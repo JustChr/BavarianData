@@ -103,7 +103,7 @@
           "action_fetch_image": "Fordonsbild",
           "action_charging_costs": "Laddkostnader och historik",
           "action_energy_sources": "Sol och energikällor",
-          "action_evcc_bridge": "evcc-/laddboxbrygga",
+          "action_evcc_bridge": "MQTT-brygga (evcc med mera)",
           "action_trips": "Resor",
           "action_mileage": "Miltak",
           "action_units": "Enheter",
@@ -283,7 +283,7 @@
         }
       },
       "bridge_vehicle": {
-        "title": "evcc-/laddboxbrygga",
+        "title": "MQTT-brygga (evcc med mera)",
         "description": "Varje fordon kan publiceras för sig. Välj det fordon du vill ändra.",
         "data": {
           "vehicle": "Fordon"
@@ -293,29 +293,35 @@
         }
       },
       "action_evcc_bridge": {
-        "title": "evcc-/laddboxbrygga",
-        "description": "Publicerar live-läget för **{vehicle}** till din MQTT-broker för evcc och liknande laddstyrningar: laddnivån direkt från BMW:s ström, utan API-kostnad. Kräver Home Assistants MQTT-integration. Att stänga av tar bort det som publicerats; nästa skärm har evcc-konfigurationen att klistra in.",
+        "title": "MQTT-brygga (evcc med mera)",
+        "description": "Publicerar **{vehicle}** till din MQTT-broker direkt från BMW:s ström, utan API-kostnad: för evcc och liknande laddstyrningar och, om du delar hela strömmen, för vilken annan app som helst. Kräver Home Assistants MQTT-integration. Att stänga av något tar bort det som det publicerade.",
         "data": {
-          "bridge_enabled": "Publicera den här bilen till MQTT",
+          "bridge_enabled": "Publicera den här bilen för evcc",
+          "bridge_stream_enabled": "Dela hela strömmen från den här bilen",
+          "bridge_stream_hide_position": "Utelämna positionen",
           "bridge_topic_prefix": "Topic-prefix",
           "bridge_retain": "Publicera som retained"
         },
         "data_description": {
           "bridge_enabled": "Av som standard: det lägger VIN och bilens tillstånd på en broker som andra kan läsa.",
-          "bridge_topic_prefix": "Topics blir `PREFIX/VIN/soc` och så vidare. Behåll bavariandata om det inte krockar med något.",
-          "bridge_retain": "Låt det vara på: då hittar evcc laddnivån direkt när det startar. Stäng bara av om din broker vägrar retained-meddelanden."
+          "bridge_stream_enabled": "Av som standard: varje värde BMW strömmar, på `PREFIX/VIN/stream`, för appar som annars skulle behöva en egen ström (BMW tillåter en per konto).",
+          "bridge_stream_hide_position": "Håller bilens position och navigeringsmål utanför den delade strömmen. Stäng bara av om en app behöver dem.",
+          "bridge_topic_prefix": "Topics blir `PREFIX/VIN/soc`, `PREFIX/VIN/stream` och så vidare. Behåll bavariandata om det inte krockar med något.",
+          "bridge_retain": "Låt det vara på: då hittar evcc och instrumentpaneler det senaste värdet direkt när de startar. Stäng bara av om din broker vägrar retained-meddelanden."
         },
         "sections": {
           "all_vehicles": {
             "name": "Alla fordon",
             "description": "Dessa inställningar gäller alla fordon på det här kontot.",
             "data": {
+              "bridge_stream_hide_position": "Utelämna positionen",
               "bridge_topic_prefix": "Topic-prefix",
               "bridge_retain": "Publicera som retained"
             },
             "data_description": {
-              "bridge_topic_prefix": "Topics blir `PREFIX/VIN/soc` och så vidare. Behåll bavariandata om det inte krockar med något.",
-              "bridge_retain": "Låt det vara på: då hittar evcc laddnivån direkt när det startar. Stäng bara av om din broker vägrar retained-meddelanden."
+              "bridge_stream_hide_position": "Håller bilens position och navigeringsmål utanför den delade strömmen. Stäng bara av om en app behöver dem.",
+              "bridge_topic_prefix": "Topics blir `PREFIX/VIN/soc`, `PREFIX/VIN/stream` och så vidare. Behåll bavariandata om det inte krockar med något.",
+              "bridge_retain": "Låt det vara på: då hittar evcc och instrumentpaneler det senaste värdet direkt när de startar. Stäng bara av om din broker vägrar retained-meddelanden."
             }
           }
         }

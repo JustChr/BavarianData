@@ -158,8 +158,8 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `action_data_refresh` | Automatic data refresh | 🟢 Settings-Reference → "Automatic data refresh" | 📷 |
 | `charging_vehicle` | Charging costs: which vehicle (only with 2+ cars) | 🟢 Settings-Reference → "Charging costs & history" + Feature-Multiple-Cars-and-Accounts (EN + DE) | 📷 (have, staged two-car: `bavariandata-charging-costs-second-car.png`; picker shared) |
 | `action_charging_costs` | Charging costs & history (per car with 2+ cars: meter and losses; price etc. in "All vehicles") | 🟡 | 📷 (have, 2026-10-11: `bavariandata-charging-costs.png`) |
-| `bridge_vehicle` | evcc bridge: which vehicle (only with 2+ cars) | 🟢 Settings-Reference → "evcc / wallbox bridge" + Feature-Multiple-Cars-and-Accounts (EN + DE) | 📷 (have, staged two-car: `bavariandata-evcc-bridge-second-car.png`; picker shared) |
-| `action_evcc_bridge` | evcc / wallbox bridge (per car with 2+ cars: publish on/off; prefix and retained in "All vehicles") | 🟢 Feature-evcc-and-Wallbox-Bridge + Settings-Reference → "evcc / wallbox bridge" | 📷 (have, 2026-10-11: `bavariandata-evcc-bridge.png`) |
+| `bridge_vehicle` | MQTT bridge: which vehicle (only with 2+ cars) | 🟢 Settings-Reference → "MQTT bridge (evcc & more)" + Feature-Multiple-Cars-and-Accounts (EN + DE) | 📷 (stale since 2026-11-03: old title and no stream switch; re-shoot `bavariandata-evcc-bridge-second-car.png` once beta.3 is live) |
+| `action_evcc_bridge` | MQTT bridge (evcc & more) (per car with 2+ cars: evcc on/off, share the whole stream; leave out the position, prefix and retained in "All vehicles"; the evcc snippet follows only when evcc is on) | 🟢 Feature-evcc-and-Wallbox-Bridge (incl. "Sharing the whole stream, with other apps") + Settings-Reference → "MQTT bridge (evcc & more)" | 📷 (stale since 2026-11-03: re-shoot `bavariandata-evcc-bridge.png` EN + DE once beta.3 is live) |
 | `evcc_snippet` | evcc configuration (generated, paste-ready) | 🟢 Feature-evcc-and-Wallbox-Bridge → "Setting it up" | 📷 (have, 2026-10-14: `bavariandata-evcc-snippet.png`, staged from the live YAML with the VIN replaced: the bridge was off) |
 | `trips_vehicle` | Trips: which vehicle (only with 2+ cars) | 🟢 Settings-Reference → "Trips" + Feature-Multiple-Cars-and-Accounts → "Telling the cars apart" (EN + DE) | 📷 (have, staged two-car: `bavariandata-vehicle-picker.png`) |
 | `action_trips` | Trips (per car with 2+ cars; shared settings in the collapsed "All vehicles" section) | 🟡 | 📷 (have, 2026-10-11: `bavariandata-configure-trips.png`) |
@@ -181,11 +181,13 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `statistics_import` | Charging costs & history | 🟡 |
 | `charge_locations` (Remember charging locations; off deletes coordinates) | Charging costs & history | 🟢 Settings-Reference + Feature-Charging-History-and-Cost → "Remember charging locations" (EN + DE) |
 | `refresh_on_start` | Automatic data refresh | 🟢 Settings-Reference → "Automatic data refresh" + Feature-Charging-History-and-Cost → "Restarting while the car is charging" |
-| `bridge_enabled` | evcc / wallbox bridge | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge (incl. "Away from home, the status is withheld") |
+| `bridge_enabled` | MQTT bridge (evcc & more) | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge (incl. "Away from home, the status is withheld") |
 | `mileage_kind`, `mileage_start`, `mileage_end`, `mileage_allowance_km`, `mileage_start_km` | Mileage allowance (stored under `vehicles[VIN]`) | 🟢 Settings-Reference → "Mileage allowance" + Feature-Mileage |
 | `unit_distance`, `unit_fuel`, `unit_temperature`, `unit_pressure` | Units | 🟢 Settings-Reference → "Units" (EN + DE) |
-| `bridge_topic_prefix` | evcc / wallbox bridge | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge |
-| `bridge_retain` | evcc / wallbox bridge | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge |
+| `bridge_stream_enabled` | MQTT bridge (evcc & more), per car | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge → "Sharing the whole stream, with other apps" |
+| `bridge_stream_hide_position` | MQTT bridge (evcc & more), all vehicles | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge → "Sharing the whole stream, with other apps" |
+| `bridge_topic_prefix` | MQTT bridge (evcc & more) | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge |
+| `bridge_retain` | MQTT bridge (evcc & more) | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge |
 | `trip_work_zone` | Trips | 🟡 |
 | `trip_default_class` (default type) | Trips | ✅ |
 | `trip_commute_gap` (commute stop tolerance) | Trips | ✅ |

@@ -27,7 +27,7 @@ erscheinen (der Screenshot zeigt die englische).
 | **Fahrzeugbild** | Einstellungen ⚡ | Woher das Bild des Autos kommt: BMW CarData oder BMWs Online-Konfigurator — unten. |
 | **Ladekosten & Verlauf** | Einstellungen | Preisquelle, Aufbewahrung, Statistiken — unten. |
 | **Solar & Energiequellen** | Einstellungen | Woher die Energie jeder Ladung kam: PV, Hausspeicher, Netz — unten. |
-| **evcc-/Wallbox-Brücke** | Einstellungen | Den Live-Zustand des Autos für eine Ladesteuerung per MQTT veröffentlichen — unten. |
+| **MQTT-Brücke (evcc & mehr)** | Einstellungen | Den Live-Zustand des Autos für eine Ladesteuerung per MQTT veröffentlichen oder seinen ganzen Stream mit anderen Apps teilen — unten. |
 | **Fahrten** | Einstellungen | Arbeitszone, Standard-Typ, Toleranz für Zwischenstopps, Adressauflösung und Routenaufzeichnung — unten. |
 | **Kilometerkontingent** | Einstellungen | Ein Leasing oder eine jährliche Kilometergrenze pro Auto — unten. |
 | **Einheiten** | Einstellungen | Kilometer oder Meilen, Einheiten für Kraftstoff, Temperatur und Reifendruck, für Karte, Bildschirme und Sensoren — unten. |
@@ -197,11 +197,12 @@ Die Auswahllisten zeigen Sensoren mit der **Geräteklasse `power`**. Wird dein e
 Template-Sensor nicht angeboten, gib ihm `device_class: power` (und eine
 `unit_of_measurement` von `W` oder `kW`), dann erscheint er.
 
-## evcc-/Wallbox-Brücke
+## MQTT-Brücke (evcc & mehr)
 
+<a id="mqtt-bridge-evcc--more"></a>
 <a id="evcc--wallbox-bridge"></a>
 
-Bildschirm: **Konfigurieren → evcc-/Wallbox-Brücke**. Konzepte, Topic-Tabelle und
+Bildschirm: **Konfigurieren → MQTT-Brücke (evcc & mehr)**. Konzepte, Topic-Tabelle und
 Fehlerbehebung stehen unter [evcc- & Wallbox-Brücke](DE-Feature-evcc-and-Wallbox-Bridge).
 
 <p align="center">
@@ -209,10 +210,11 @@ Fehlerbehebung stehen unter [evcc- & Wallbox-Brücke](DE-Feature-evcc-and-Wallbo
 </p>
 
 **Mehrere Fahrzeuge im Konto?** Der Bildschirm fragt zuerst nach dem Fahrzeug,
-und **Dieses Auto per MQTT veröffentlichen** gilt je Auto, sodass ein Auto, das
-woanders lädt, samt FIN vom Broker fernbleiben kann. Schaltest du ein Auto aus,
-werden seine Topics entfernt. **Topic-Prefix** und **Mit Retain veröffentlichen**
-gelten für alle Autos, im eingeklappten Abschnitt **Alle Fahrzeuge**.
+und **Dieses Auto für evcc veröffentlichen** und **Ganzen Stream dieses Autos
+teilen** gelten je Auto, sodass ein Auto, das woanders lädt, samt FIN vom Broker
+fernbleiben kann. Schaltest du ein Auto aus, werden seine Topics entfernt.
+**Position weglassen**, **Topic-Prefix** und **Mit Retain veröffentlichen** gelten
+für alle Autos, im eingeklappten Abschnitt **Alle Fahrzeuge**.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-evcc-bridge-second-car.png?v=2026-10-11b" alt="evcc-/Wallbox-Brücke für ein zweites Auto: sein eigener Schalter, darunter Topic-Prefix und Retain gemeinsam im Abschnitt Alle Fahrzeuge" width="460" />
@@ -222,14 +224,16 @@ Veröffentlicht den Live-Zustand des Autos auf deinem MQTT-Broker, sodass evcc, 
 oder ein Node-RED-Flow einen Ladezustand lesen kann, der kein
 [API-Kontingent](DE-Feature-API-Quota) kostet. **Setzt die MQTT-Integration voraus**
 — die Brücke veröffentlicht über sie, daher sind hier weder Host noch Passwort eines
-Brokers einzutragen. Beim Einschalten erscheint ein zweiter Bildschirm mit der
-evcc-Konfiguration zum Einfügen.
+Brokers einzutragen. Schaltest du evcc ein, erscheint ein zweiter Bildschirm mit der
+evcc-Konfiguration zum Einfügen; nur den Stream zu teilen speichert sofort.
 
 | Option | Werte | Bedeutung |
 | --- | --- | --- |
-| **Dieses Auto per MQTT veröffentlichen** | an/aus | Standard **aus**. Es legt FIN und Fahrzeugzustand auf einen Broker, den auch anderes lesen kann. Wieder ausschalten **entfernt** die veröffentlichten Topics. |
+| **Dieses Auto für evcc veröffentlichen** | an/aus | Standard **aus**. Es legt FIN und Fahrzeugzustand auf einen Broker, den auch anderes lesen kann. Wieder ausschalten **entfernt** die veröffentlichten Topics. |
+| **Ganzen Stream dieses Autos teilen** | an/aus | Standard **aus**. Jeder Wert, den BMW für das Auto streamt, auf `<prefix>/<FIN>/stream`, für Apps, die sonst einen eigenen Stream bräuchten. Siehe [Den ganzen Stream teilen](DE-Feature-evcc-and-Wallbox-Bridge#sharing-the-whole-stream-with-other-apps). Ausschalten **entfernt**, was veröffentlicht wurde. |
+| **Position weglassen** | an/aus | Standard **an**. Hält Standort und Navigationsziel des Autos aus dem geteilten Stream heraus. Wieder einschalten entfernt die Positions-Topics. |
 | **Topic-Prefix** | Text | Wurzel der Topics; alles landet unter `<prefix>/<FIN>/`. Standard `bavariandata`. Schrägstriche werden entfernt, und ein MQTT-Platzhalter fällt auf den Standard zurück. |
-| **Mit Retain veröffentlichen** | an/aus | Standard **an**, und am besten so gelassen: Nur so findet evcc den Ladezustand sofort beim Start, statt zu warten, bis das Auto sich wieder meldet. Nur abschalten, wenn dein Broker Retain-Nachrichten ablehnt. |
+| **Mit Retain veröffentlichen** | an/aus | Standard **an**, und am besten so gelassen: Nur so finden evcc (und ein Dashboard, das den geteilten Stream liest) den letzten Wert sofort beim Start, statt zu warten, bis das Auto sich wieder meldet. Nur abschalten, wenn dein Broker Retain-Nachrichten ablehnt. |
 
 ## Fahrten
 

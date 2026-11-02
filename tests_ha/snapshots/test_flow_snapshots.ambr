@@ -1042,6 +1042,24 @@
           }),
         }),
         dict({
+          'default': False,
+          'name': 'bridge_stream_enabled',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'default': True,
+          'name': 'bridge_stream_hide_position',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
           'description': dict({
             'suggested_value': 'bavariandata',
           }),
@@ -1078,6 +1096,24 @@
         dict({
           'default': False,
           'name': 'bridge_enabled',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
+          'name': 'bridge_stream_enabled',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'default': True,
+          'name': 'bridge_stream_hide_position',
           'required': True,
           'selector': dict({
             'boolean': dict({
@@ -1120,19 +1156,74 @@
     }),
     dict({
       'data_schema': list([
+        dict({
+          'default': False,
+          'name': 'bridge_enabled',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
+          'name': 'bridge_stream_enabled',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'default': True,
+          'name': 'bridge_stream_hide_position',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': 'bavariandata',
+          }),
+          'name': 'bridge_topic_prefix',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'text': dict({
+              'multiline': False,
+              'multiple': False,
+            }),
+          }),
+        }),
+        dict({
+          'default': True,
+          'name': 'bridge_retain',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
       ]),
       'description_placeholders': dict({
-        'snippet': '(the bridge is switched off -- nothing is published)',
+        'vehicle': 'i5 eDrive40',
       }),
-      'errors': None,
+      'errors': dict({
+        'base': 'mqtt_missing',
+      }),
       'last_step': None,
-      'step_id': 'evcc_snippet',
+      'step_id': 'action_evcc_bridge',
       'type': 'form',
     }),
+    'nothing on: no evcc configuration to paste',
     dict({
       'data': dict({
         'bridge_enabled': False,
         'bridge_retain': True,
+        'bridge_stream_enabled': False,
+        'bridge_stream_hide_position': True,
       }),
       'description_placeholders': None,
       'title': '',
@@ -1144,6 +1235,24 @@
         dict({
           'default': False,
           'name': 'bridge_enabled',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
+          'name': 'bridge_stream_enabled',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'default': True,
+          'name': 'bridge_stream_hide_position',
           'required': True,
           'selector': dict({
             'boolean': dict({
@@ -1205,6 +1314,82 @@
       'data': dict({
         'bridge_enabled': True,
         'bridge_retain': False,
+        'bridge_stream_enabled': False,
+        'bridge_stream_hide_position': True,
+        'bridge_topic_prefix': 'cars',
+      }),
+      'description_placeholders': None,
+      'title': '',
+      'type': 'create_entry',
+    }),
+    'sharing the stream only',
+    dict({
+      'data_schema': list([
+        dict({
+          'default': True,
+          'name': 'bridge_enabled',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
+          'name': 'bridge_stream_enabled',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'default': True,
+          'name': 'bridge_stream_hide_position',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': 'cars',
+          }),
+          'name': 'bridge_topic_prefix',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'text': dict({
+              'multiline': False,
+              'multiple': False,
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
+          'name': 'bridge_retain',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'i5 eDrive40',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'action_evcc_bridge',
+      'type': 'form',
+    }),
+    dict({
+      'data': dict({
+        'bridge_enabled': False,
+        'bridge_retain': True,
+        'bridge_stream_enabled': True,
+        'bridge_stream_hide_position': False,
         'bridge_topic_prefix': 'cars',
       }),
       'description_placeholders': None,
@@ -3172,10 +3357,28 @@
           }),
         }),
         dict({
+          'default': False,
+          'name': 'bridge_stream_enabled',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
           'expanded': False,
           'name': 'all_vehicles',
           'required': True,
           'schema': list([
+            dict({
+              'default': True,
+              'name': 'bridge_stream_hide_position',
+              'required': True,
+              'selector': dict({
+                'boolean': dict({
+                }),
+              }),
+            }),
             dict({
               'description': dict({
                 'suggested_value': 'bavariandata',

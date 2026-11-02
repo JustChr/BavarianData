@@ -32,9 +32,12 @@ from typing import Any, Mapping, Optional
 from .const import (
     DEFAULT_BRIDGE_PREFIX,
     DEFAULT_BRIDGE_RETAIN,
+    DEFAULT_BRIDGE_STREAM_HIDE_POSITION,
     OPTION_BRIDGE_ENABLED,
     OPTION_BRIDGE_PREFIX,
     OPTION_BRIDGE_RETAIN,
+    OPTION_BRIDGE_STREAM,
+    OPTION_BRIDGE_STREAM_HIDE_POSITION,
 )
 from .vehicle_options import BRIDGE_OPTIONS, cars_with_own
 
@@ -411,11 +414,23 @@ class BridgeConfig:
     retain: bool = DEFAULT_BRIDGE_RETAIN
     # Cars with their own on/off (multi-car accounts, ``vehicle_options.py``).
     vehicles: dict[str, bool] = field(default_factory=dict)
+    # Whether a car without a setting of its own shares its whole stream
+    # (``stream_share.py``), the cars with one, and whether the position stays
+    # out of it. Independent of the evcc switch: a car can share its stream
+    # without being published for a charge controller, and the other way round.
+    stream: bool = False
+    stream_vehicles: dict[str, bool] = field(default_factory=dict)
+    hide_position: bool = DEFAULT_BRIDGE_STREAM_HIDE_POSITION
 
     def publishes(self, vin: str) -> bool:
         """Whether ``vin`` is published."""
 
         return self.vehicles.get(vin, self.enabled)
+
+    def shares(self, vin: str) -> bool:
+        """Whether ``vin``'s whole stream is shared."""
+
+        return self.stream_vehicles.get(vin, self.stream)
 
     @property
     def any_enabled(self) -> bool:
@@ -423,14 +438,25 @@ class BridgeConfig:
 
         return self.enabled or any(self.vehicles.values())
 
+    @property
+    def any_sharing(self) -> bool:
+        """Whether any car's stream may be shared."""
+
+        return self.stream or any(self.stream_vehicles.values())
+
     @classmethod
     def from_options(cls, options: dict[str, Any]) -> "BridgeConfig":
+        own = cars_with_own(options, BRIDGE_OPTIONS)
         return cls(
             enabled=bool(options.get(OPTION_BRIDGE_ENABLED)),
             prefix=normalize_prefix(options.get(OPTION_BRIDGE_PREFIX)),
             retain=bool(options.get(OPTION_BRIDGE_RETAIN, DEFAULT_BRIDGE_RETAIN)),
-            vehicles={
-                vin: bool(own.get(OPTION_BRIDGE_ENABLED))
-                for vin, own in cars_with_own(options, BRIDGE_OPTIONS).items()
+            vehicles={vin: bool(values.get(OPTION_BRIDGE_ENABLED)) for vin, values in own.items()},
+            stream=bool(options.get(OPTION_BRIDGE_STREAM)),
+            stream_vehicles={
+                vin: bool(values.get(OPTION_BRIDGE_STREAM)) for vin, values in own.items()
             },
+            hide_position=bool(
+                options.get(OPTION_BRIDGE_STREAM_HIDE_POSITION, DEFAULT_BRIDGE_STREAM_HIDE_POSITION)
+            ),
         )

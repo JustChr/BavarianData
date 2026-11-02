@@ -21,8 +21,20 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   update brings their latest version: automations made from them pick it up at
   once. Copies imported by URL before are updated in place. A blueprint you
   changed by hand is left alone.
+- **Share a car's whole stream with other apps.** BMW allows one stream per
+  account, so a MagicMirror module, a Garmin widget or your own script couldn't
+  read it next to Home Assistant. **Configure → MQTT bridge (evcc & more)** now
+  has **Share this car's whole stream**: every value BMW streams goes on Home
+  Assistant's MQTT broker, each message as BMW sent it on
+  `bavariandata/VIN/stream` and the latest value of each field on its own
+  retained topic under it. Off by default and set per car. The position and
+  the navigation destination are left out unless you turn **Leave out the
+  position** off. Switching it off removes what it published. No API cost.
 
 ### Changed
+- **The evcc / wallbox bridge is now the MQTT bridge (evcc & more)**, with the
+  stream sharing above beside the evcc switch, now labeled *Publish this car for
+  evcc*. The evcc configuration screen only follows when evcc is on for the car.
 - **A finished charge is announced at once.** When the car reports the charge
   as ended, *Charging completed* and the other end events now fire right
   away; with the cable still in they used to wait 5 minutes for a possible

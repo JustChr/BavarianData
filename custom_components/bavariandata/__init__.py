@@ -43,7 +43,12 @@ from .account import (
 from .account_rest import (
     LAST_TELEMATIC_POLL,
 )
-from .bridge import REPUBLISH_INTERVAL_S, VehicleBridge, async_clear_published
+from .bridge import (
+    REPUBLISH_INTERVAL_S,
+    VehicleBridge,
+    async_clear_published,
+    async_clear_shared,
+)
 from .const import (
     BOOTSTRAP_COMPLETE,
     DEFAULT_STATISTICS_IMPORT,
@@ -256,7 +261,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
         config_entry=entry,
         error_callback=handle_stream_error,
     )
-    manager.set_message_callback(coordinator.async_handle_message)
+    # Before the stream starts, so the very first message can be shared too.
+    bridge = _async_wire_bridge(hass, entry, coordinator, options)
+
+    async def handle_message(payload: dict[str, Any]) -> None:
+        await coordinator.async_handle_message(payload)
+        # After the coordinator, and never at its expense: a broker that has
+        # gone away must not cost a car its message (``_async_send`` swallows
+        # MQTT's errors; this guards the rest).
+        try:
+            await bridge.async_share(payload)
+        except Exception:  # noqa: BLE001 - sharing must never break the stream
+            _LOGGER.exception("Sharing a stream message on MQTT failed")
+
+    manager.set_message_callback(handle_message)
     manager.set_status_callback(coordinator.async_handle_connection_event)
     tokens = TokenKeeper(partial(async_renew_tokens, entry, session, manager), lambda: entry.data)
     rest = RestGateway(session, tokens, quota_manager.async_claim)
@@ -297,8 +315,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
         refresh_loop(tokens, refresh_wake, partial(async_request_reauth, hass, entry)),
         f"{DOMAIN}_token_refresh",
     )
-
-    bridge = _async_wire_bridge(hass, entry, coordinator, options)
 
     runtime_data = CardataRuntimeData(
         stream=manager,
@@ -665,6 +681,11 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
         # their service dates, so it goes with everything else.
         await TyreStore(hass, entry.entry_id).async_clear()
     bridge_config = BridgeConfig.from_options(dict(entry.options))
+    if bridge_config.any_sharing:
+        with suppress(Exception):
+            # The shared stream too, for the same reason as the evcc topics
+            # below: the broker holds it, not us.
+            await async_clear_shared(hass, prefix=bridge_config.prefix)
     if bridge_config.any_enabled:
         with suppress(Exception):
             # ...and anything the evcc bridge published. Retained MQTT messages
