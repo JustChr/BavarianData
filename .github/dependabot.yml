@@ -20,6 +20,12 @@ updates:
     versioning-strategy: increase-if-necessary
     schedule:
       interval: monthly
+    # The frontend pin follows Home Assistant, not its own releases: it must be
+    # what the plugin's HA names (tests_ha/test_requirements.py), so a bump on
+    # its own always fails. It moves with a pytest-homeassistant-custom-component
+    # bump instead.
+    ignore:
+      - dependency-name: home-assistant-frontend
     commit-message:
       prefix: "ci"
 
