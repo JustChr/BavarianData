@@ -579,6 +579,8 @@
       "charging_started": "Carga iniciada",
       "charging_complete": "Carga completada (objetivo alcanzado)",
       "charging_interrupted": "Carga detenida antes del objetivo, cable aún conectado",
+      "charging_paused": "Carga en pausa, cable aún conectado",
+      "charging_resumed": "Carga reanudada",
       "preconditioning_started": "Preacondicionamiento iniciado",
       "preconditioning_finished": "Preacondicionamiento terminado",
       "alarm": "La alarma se ha disparado",

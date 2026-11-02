@@ -177,6 +177,11 @@ EVENT_CHARGING_COMPLETE = f"{DOMAIN}_charging_complete"
 # Charging stopped short of the target while the cable is still in (see
 # ``vehicle_triggers.charging_interrupted``).
 EVENT_CHARGING_INTERRUPTED = f"{DOMAIN}_charging_interrupted"
+# A charge that stopped short of its target with the cable in and stayed
+# stopped past the flap debounce; ``resumed`` when it carries on inside the
+# plugged-in hold. The session stays one record either way.
+EVENT_CHARGING_PAUSED = f"{DOMAIN}_charging_paused"
+EVENT_CHARGING_RESUMED = f"{DOMAIN}_charging_resumed"
 # A trip ended inside a zone / a drive carried the car out of the zone it
 # started in. Carry {"zone", "zone_entity_id"} plus the trip's figures.
 EVENT_ZONE_ARRIVED = f"{DOMAIN}_zone_arrived"

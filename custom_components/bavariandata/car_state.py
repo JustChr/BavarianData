@@ -146,6 +146,8 @@ class SessionState(_ReadOnlyWhenEmpty):
     # When, and on which status, the charge behind a pending close stopped:
     # the record ends there, and the plugged-in hold counts from it.
     stopped: Optional[tuple[datetime, str]] = None
+    # The pending close was announced as a pause: its resume is announced too.
+    paused: bool = False
 
 
 @dataclass

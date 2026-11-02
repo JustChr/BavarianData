@@ -143,7 +143,8 @@ def test_a_finished_charge_zeroes_what_bmw_left_behind():
     with CoordinatorHarness() as h:
         _bmw_charge(h)
         h.send(40, soc=80, status="CHARGINGENDED")
-        assert _value(h, TTF) == 32  # still inside the flap debounce
+        # Finished, so closed at once: nothing waits out the flap debounce.
+        assert _value(h, TTF) == 0
 
         h.advance_to(43)
         assert _value(h, TTF) == 0

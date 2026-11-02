@@ -32,6 +32,7 @@ from homeassistant.util import dt as dt_util
 from .car_signals import (
     CHARGE_CLOSE_DEBOUNCE_S,
     CHARGE_END_REASON_DESCRIPTORS,
+    CHARGE_FINISHED_STATUS,
     CHARGE_PLUGGED_HOLD_S,
     CHARGE_PROGRESS_DESCRIPTORS,
     CHARGE_TERMINAL_STATUSES,
@@ -44,6 +45,8 @@ from .const import (
     DOMAIN,
     EVENT_CHARGING_COMPLETE,
     EVENT_CHARGING_INTERRUPTED,
+    EVENT_CHARGING_PAUSED,
+    EVENT_CHARGING_RESUMED,
     EVENT_CHARGING_STARTED,
     EVENT_CHARGING_STOPPED,
 )
@@ -564,7 +567,11 @@ class VehicleCharging:
             # flap, not a new plug-in. Cancel the pending close and let the same
             # session continue -- no fresh STARTED event, no split record.
             if self._cancel_charge_close_timer(vin):
-                self._host._car(vin).session.stopped = None
+                session = self._host._car(vin).session
+                session.stopped = None
+                if session.paused:
+                    session.paused = False
+                    self._host._fire(EVENT_CHARGING_RESUMED, payload)
                 if debug_enabled():
                     _LOGGER.debug(
                         "[charge] %s RESUME after status flap; keeping session",
@@ -585,8 +592,17 @@ class VehicleCharging:
             self._open_session_record(vin, tracking, started_at)
             self._host._fire(EVENT_CHARGING_STARTED, payload)
             return
-        # Charging stopped. Debounce the close so a momentary NOCHARGING blip
-        # that comes straight back doesn't split one plug-in into two records.
+        if str(status).strip().upper() == CHARGE_FINISHED_STATUS:
+            # Finished, in the car's own word. Nothing to wait for, so the
+            # charge is closed and announced now. (Not on the target alone: a
+            # running estimate passes it before a blip as easily as after.)
+            self._cancel_charge_close_timer(vin)
+            self._host._car(vin).session.stopped = (datetime.now(timezone.utc), status)
+            self._finalize_charge_close(vin)
+            return
+        # Stopped short of the target. Debounce the close so a momentary
+        # NOCHARGING blip that comes straight back doesn't split one plug-in
+        # into two records.
         self._arm_charge_close_timer(vin, status)
 
     def _arm_charge_close_timer(self, vin: str, status: str) -> None:
@@ -611,14 +627,60 @@ class VehicleCharging:
         def _fire(_now: datetime) -> None:
             self._host._car(vin).session.close_timer = None
             stopped = self._host._peek(vin).session.stopped
-            if stopped is not None and self._plug_state_live(vin) is True:
+            if (
+                stopped is not None
+                and self._plug_state_live(vin) is True
+                and not self._reached_target(vin)
+            ):
                 waited = (datetime.now(timezone.utc) - stopped[0]).total_seconds()
                 if waited < CHARGE_PLUGGED_HOLD_S:
+                    self._announce_pause(vin, stopped[1])
                     self._schedule_charge_close(vin, CHARGE_PLUGGED_HOLD_S - waited)
                     return
             self._finalize_charge_close(vin)
 
         self._host._car(vin).session.close_timer = async_call_later(self._host.hass, delay_s, _fire)
+
+    def _reached_target(self, vin: str) -> bool:
+        """A stopped charge at its target, past the flap debounce: done, not paused."""
+
+        tracking = self._host._peek(vin).charge.tracking
+        if tracking is None:
+            return False
+        soc = (
+            tracking.estimated_percent
+            if tracking.estimated_percent is not None
+            else tracking.last_soc_percent
+        )
+        return _charge_complete(soc, tracking.target_soc_percent)
+
+    def _announce_pause(self, vin: str, status: str) -> None:
+        """Say that a charge stopped short of its target and the cable is still in.
+
+        Once per stop, when it outlasted the flap debounce: the record stays
+        open through the plugged-in hold, but automations needn't wait for it.
+        """
+
+        session = self._host._car(vin).session
+        tracking = self._host._peek(vin).charge.tracking
+        if session.paused or tracking is None:
+            return
+        session.paused = True
+        soc = (
+            tracking.estimated_percent
+            if tracking.estimated_percent is not None
+            else tracking.last_soc_percent
+        )
+        self._host._fire(
+            EVENT_CHARGING_PAUSED,
+            {
+                "vin": vin,
+                "entry_id": self._host.entry_id,
+                "status": status,
+                "soc": None if soc is None else round(soc, 1),
+                "target_soc": tracking.target_soc_percent,
+            },
+        )
 
     def close_held_charge_on_unplug(self, vin: str) -> None:
         """Close a charge held for the plug as soon as the cable comes out.
@@ -660,6 +722,8 @@ class VehicleCharging:
         """
 
         stopped_at, stopped_status = self._host._peek(vin).session.take("stopped") or (None, None)
+        if self._host._peek(vin).session.paused:
+            self._host._car(vin).session.paused = False
         status = status or stopped_status
         tracking = self._host._peek(vin).charge.tracking
         if tracking is None:

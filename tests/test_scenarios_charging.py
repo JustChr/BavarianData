@@ -163,12 +163,115 @@ def test_pauses_with_the_cable_in_are_one_charge(h, snapshot):
     sessions = h.sessions()
     assert len(sessions) == 1
     assert sessions[0].end == h.at(10 + 236 + 32 / 60)  # the stop, not the wait
+    # Each pause is said when it outlasts the flap debounce, each resume too;
+    # the last one runs into the plugged-in hold and ends the charge.
     assert [name for name, _ in h.events()] == [
         "bavariandata_charging_started",
+        "bavariandata_charging_paused",
+        "bavariandata_charging_resumed",
+        "bavariandata_charging_paused",
+        "bavariandata_charging_resumed",
+        "bavariandata_charging_paused",
         "bavariandata_charging_stopped",
         "bavariandata_charging_interrupted",  # short of 100 %, cable in
     ]
     assert h.render() == snapshot
+
+
+def test_a_finished_charge_is_said_at_once_with_the_cable_in(h, snapshot):
+    """The i5 on 2 Nov 2026: CHARGINGENDED at its 80 % target, cable in.
+
+    The end used to wait out the plugged-in hold, five minutes in which a
+    notification or a lock-screen card still showed the charge running.
+    """
+
+    h.send(10, plug="CONNECTED", step="plugged in")
+    h.send(10, target=80, step="target 80")
+    h.send(10, soc=60, status="CHARGINGACTIVE", power=3990)
+    h.send(60, soc=80, status="CHARGINGENDED", power=0, step="ended")
+
+    assert not h.has_open_session()
+    assert [s.end for s in h.sessions()] == [h.at(60)]
+    events = h.events()
+    assert [name for name, _ in events] == [
+        "bavariandata_charging_started",
+        "bavariandata_charging_stopped",
+        "bavariandata_charging_complete",
+    ]
+    assert events[1][1]["complete"] is True
+    assert h.render() == snapshot
+
+
+def test_stopped_at_the_target_is_done_after_the_flap_debounce(h):
+    """NOCHARGING at the target is no pause: it closes once a blip is ruled out.
+
+    Not at once -- a running estimate reaches the target as easily just before
+    a blip -- but without the plugged-in hold, and without a pause event.
+    """
+
+    h.send(10, plug="CONNECTED", step="plugged in")
+    h.send(10, target=80, step="target 80")
+    h.send(10, soc=60, status="CHARGINGACTIVE", power=3990)
+    h.send(60, soc=80, status="NOCHARGING", power=0, step="stopped at the target")
+    assert h.has_open_session()  # a blip is still possible
+
+    h.advance_to(62.1)
+    assert not h.has_open_session()
+    assert [name for name, _ in h.events()] == [
+        "bavariandata_charging_started",
+        "bavariandata_charging_stopped",
+        "bavariandata_charging_complete",
+    ]
+
+
+def test_ended_short_of_the_target_is_said_at_once_too(h):
+    """CHARGINGENDED is the car's word that this charge is over, wherever it stopped."""
+
+    h.send(10, plug="CONNECTED", step="plugged in")
+    h.send(10, target=80, step="target 80")
+    h.send(10, soc=60, status="CHARGINGACTIVE", power=3990)
+    h.send(40, soc=70, status="CHARGINGENDED", power=0, step="ended at 70")
+
+    assert not h.has_open_session()
+    assert [name for name, _ in h.events()] == [
+        "bavariandata_charging_started",
+        "bavariandata_charging_stopped",
+        "bavariandata_charging_interrupted",  # short of 80 %, cable in
+    ]
+
+
+def test_a_pause_is_said_after_the_flap_debounce_and_its_resume_too(h):
+    h.send(10, plug="CONNECTED", step="plugged in")
+    _start_charge(h)
+    h.send(60, status="NOCHARGING", power=0, step="paused")
+    h.advance_to(61.9)
+    assert [name for name, _ in h.events()] == ["bavariandata_charging_started"]
+
+    h.advance_to(62.1)
+    paused = h.events()[-1]
+    assert paused[0] == "bavariandata_charging_paused"
+    assert paused[1]["status"] == "NOCHARGING"
+    assert paused[1]["vehicle"] is None or paused[1]["vin"] == h.vin
+
+    h.send(64, status="CHARGINGACTIVE", power=3480, step="carries on")
+    assert [name for name, _ in h.events()] == [
+        "bavariandata_charging_started",
+        "bavariandata_charging_paused",
+        "bavariandata_charging_resumed",
+    ]
+    assert h.has_open_session()  # one charge, not two
+
+
+def test_a_flap_says_nothing(h):
+    """A few seconds out of CHARGINGACTIVE is the stream, not a pause."""
+
+    h.send(10, plug="CONNECTED", step="plugged in")
+    _start_charge(h)
+    h.send(30, status="NOCHARGING", step="flap off")
+    h.send(30.5, status="CHARGINGACTIVE", step="flap on")
+    h.advance_to(40)
+
+    assert [name for name, _ in h.events()] == ["bavariandata_charging_started"]
 
 
 def test_an_unplug_ends_the_wait_for_the_cable(h):
