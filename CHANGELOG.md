@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.25-beta.3] - 2026-11-03
+
 ### Added
 - **Blueprint: Charging on the lock screen.** While the car charges, your
   phone's lock screen shows a Live Activity (iPhone) or Live Update (Android): a
