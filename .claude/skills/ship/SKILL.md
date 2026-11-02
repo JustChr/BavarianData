@@ -53,6 +53,20 @@ list is advisory; clear it with the `translate` skill before a release. The form
 separate from the lint and is easy to skip: v0.9.13-beta.3 went out with CI red
 over one line wrapped wrong in a new test file.
 
+And the last CI run on `main` itself, since that covers what a local run
+can't (real HA, typing, per-module coverage, hassfest):
+
+```bash
+gh run list --branch main --limit 4
+```
+
+Every workflow on `main`'s HEAD must be `completed success`. Never release over
+a red or still-running `main`.
+
+**A stable promotes a beta that was proven live.** If `current-status.md` lists
+something to verify on the live instance before the stable (a midnight reset,
+a refresh time), check it with the `live` skill first, or ask.
+
 ## 4. Release
 
 ```bash

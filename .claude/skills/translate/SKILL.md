@@ -27,6 +27,7 @@ not — retranslate unless the English change was a typo fix with no meaning cha
 | `translations` | `custom_components/bavariandata/translations/<lang>.json` | Hand-edit every section **except `entity`** (generated). |
 | `card` | `www/bavariandata-card-translations.js`, `TRANSLATIONS.<lang>` | Same key order as `en`. |
 | `report` | `history/export.py`, `STRINGS["<lang>"]` | HTML month report. |
+| `calendar` | `service_calendar.py`, `STRINGS["<lang>"]` | Service-item and lease-end calendar events. |
 | `export_history.language` | `services.yaml` | Must list exactly the report's languages. |
 
 **Entity names are not translated here.** Descriptor names come from BMW's own
@@ -95,7 +96,7 @@ Služební/Soukromá/Dojíždění · sv Tjänst/Privat/Pendling.
 ```bash
 python tools/i18n_gaps.py          # must print "No translation gaps."
 python -m pytest tests/test_translations_parity.py tests/test_translations_dialect.py \
-  tests/test_card_snapshots.py tests/test_statistics.py -q
+  tests/test_card_snapshots.py tests/test_statistics.py tests/test_service_calendar.py -q
 ```
 
 `test_card_snapshots.py` renders every card view in every language; the

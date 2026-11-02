@@ -30,6 +30,22 @@ continue on red. **Run it as its own command and read its exit status** — neve
 `check.sh | tail … && git commit`: the pipe hands `&&` the exit status of `tail`,
 so a red run commits anyway (it happened on PR #31).
 
+`check.sh` covers CI's *Unit tests* job only. Two more jobs can turn a PR red;
+run them locally when the change can trip them, since a CI round trip is slower:
+
+- **Home Assistant tests** (real HA, `mypy --strict`, and every module at
+  ≥95 % coverage across both suites). Run them whenever the change adds code or
+  touches a module that imports HA: `bash scripts/coverage.sh --missing` (WSL)
+  prints CI's per-module table and the lines a new branch left uncovered;
+  `bash scripts/mypy.sh` for typing. New code without a test is the usual
+  cause of red here.
+- **Refactoring gate**: a change meant to alter no behaviour gets
+  `python scripts/golden.py gate` locally and the `refactor` label on its PR
+  (`gh pr edit <N> --add-label refactor`), which is what starts the job in CI.
+
+A coordinator bug fix ships with a scenario or replay that fails without it:
+`python scripts/prove_fix.py <tests>` must say `PROVEN` before you commit.
+
 **A test that fails once and passes on a rerun is a finding, not a flake.**
 Reproduce it under load — run it in a loop while a few busy processes hold the
 CPU — before calling it noise. This repo's one "known flake" was a real race
@@ -66,7 +82,8 @@ gh pr checks <N> --watch --interval 20
 ```
 
 Hassfest and the HACS action run **only** here — a local green does not cover
-them (translation files and the manifest are what they reject). On red:
+them (translation files and the manifest are what they reject). The *Home
+Assistant tests* job is the slowest; wait for it, not just *Unit tests*. On red:
 `gh run view <run-id> --log-failed`, fix, push to the same branch, watch again.
 
 ## 6. Merge and tidy
