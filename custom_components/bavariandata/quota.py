@@ -1,4 +1,7 @@
-"""BMW's REST quota: 50 requests in any 24 hours, per account.
+"""BMW's REST quota: 50 requests a day, per account.
+
+The day is BMW's: its counter resets at 00:00 UTC (BMW support, Nov 2026),
+not 24 hours after each request.
 
 Every request claims a slot first (rest.py's ``RestGateway``); a claim with no
 slot left raises :class:`~.rest.CardataQuotaError` instead of asking BMW. The
@@ -17,7 +20,7 @@ from collections import deque
 from datetime import datetime, timezone
 from typing import Any, Callable, Deque, Iterable, Optional
 
-from .const import REQUEST_LIMIT, REQUEST_WINDOW_SECONDS
+from .const import REQUEST_LIMIT
 from .rest import CardataQuotaError
 
 
@@ -46,8 +49,14 @@ def parse_timestamps(raw: Any) -> Deque[float]:
     return deque(sorted(values))
 
 
+def day_start(now: float) -> float:
+    """The last 00:00 UTC at or before ``now``, when BMW last reset the count."""
+
+    return now - now % 86400
+
+
 class QuotaManager:
-    """Manage the rolling 24 hour request quota."""
+    """Count the day's requests against BMW's limit."""
 
     def __init__(
         self,
@@ -77,8 +86,8 @@ class QuotaManager:
         return manager
 
     def _prune(self, now: float) -> None:
-        cutoff = now - REQUEST_WINDOW_SECONDS
-        while self._timestamps and self._timestamps[0] <= cutoff:
+        cutoff = day_start(now)
+        while self._timestamps and self._timestamps[0] < cutoff:
             self._timestamps.popleft()
 
     async def async_claim(self) -> None:
@@ -88,7 +97,7 @@ class QuotaManager:
             now = self._clock()
             self._prune(now)
             if len(self._timestamps) >= REQUEST_LIMIT:
-                self._on_exhausted(self.next_reset_iso or "later today")
+                self._on_exhausted(self.next_reset_iso or "00:00 UTC")
                 raise CardataQuotaError(
                     "BMW CarData API limit reached; try again after quota resets"
                 )
@@ -112,7 +121,7 @@ class QuotaManager:
         self._prune(self._clock())
         if len(self._timestamps) < REQUEST_LIMIT:
             return None
-        return self._timestamps[0] + REQUEST_WINDOW_SECONDS
+        return day_start(self._clock()) + 86400
 
     @property
     def next_reset_iso(self) -> Optional[str]:

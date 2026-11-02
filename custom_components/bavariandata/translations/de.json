@@ -2871,7 +2871,7 @@
   "issues": {
     "api_quota_exhausted": {
       "title": "BMW CarData API-Kontingent aufgebraucht ({account})",
-      "description": "Das BMW CarData REST-Limit von {limit} Anfragen pro 24 h ist erreicht. On-Demand-Daten (Basisinfos, Ladehistorie, Reifendiagnose, Fahrzeugbild) können derzeit nicht aktualisiert werden. Die Streaming-Daten laufen weiter. Das Kontingent wird um {next_reset} wieder freigegeben."
+      "description": "Das BMW CarData REST-Limit von {limit} Anfragen pro Tag ist erreicht. On-Demand-Daten (Basisinfos, Ladehistorie, Reifendiagnose, Fahrzeugbild) können derzeit nicht aktualisiert werden. Die Streaming-Daten laufen weiter. Das Kontingent wird um {next_reset} wieder freigegeben."
     },
     "motorcycle_unsupported": {
       "title": "BMW-Motorräder können ihre Daten nicht streamen",

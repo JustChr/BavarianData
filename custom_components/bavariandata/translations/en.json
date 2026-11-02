@@ -3101,7 +3101,7 @@
   "issues": {
     "api_quota_exhausted": {
       "title": "BMW CarData API quota exhausted ({account})",
-      "description": "The {limit} requests-per-24h BMW CarData REST limit has been reached, so on-demand data (basic info, charging history, tire diagnosis, vehicle image) can't be refreshed right now. The streaming data keeps flowing. The quota frees up again at {next_reset}."
+      "description": "The BMW CarData REST limit of {limit} requests a day has been reached, so on-demand data (basic info, charging history, tire diagnosis, vehicle image) can't be refreshed right now. The streaming data keeps flowing. The quota frees up again at {next_reset}."
     },
     "motorcycle_unsupported": {
       "title": "BMW motorcycles can't stream their data",

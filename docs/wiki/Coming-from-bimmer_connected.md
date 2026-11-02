@@ -24,7 +24,7 @@ it once, and from then on the car's data reaches you two ways:
 - a **live MQTT stream**, which pushes each value within seconds of the car
   sending it — charge level, doors, windows, tire pressures, position, trip
   data;
-- a **REST API** for on-demand snapshots, limited to 50 requests per 24 hours.
+- a **REST API** for on-demand snapshots, limited to 50 requests a day.
 
 BavarianData is a Home Assistant integration that talks to both directly. There
 is no server in between: Home Assistant holds the tokens and is the only client.

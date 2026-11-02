@@ -2,8 +2,9 @@
 
 > 🇩🇪 [Deutsch](DE-Feature-API-Quota)
 
-BMW caps the CarData REST API at **50 requests per 24 hours per account**. The
-integration tracks and enforces this itself.
+BMW caps the CarData REST API at **50 requests a day per account**. BMW's day
+runs from midnight to midnight UTC: the count resets at **00:00 UTC**, not 24
+hours after each request. The integration tracks and enforces this itself.
 
 ## What spends quota
 
@@ -53,4 +54,4 @@ are left, with `used`, `limit` and `next_reset` attributes.
 
 If the quota is ever exhausted, a **repair issue** appears under **Settings →
 Repairs** telling you when it resets. **Streaming data keeps flowing
-throughout** — only REST fetches are paused until the window rolls over.
+throughout** — only REST fetches are paused until the count resets at 00:00 UTC.

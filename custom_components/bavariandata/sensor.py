@@ -369,7 +369,7 @@ class CardataDiagnosticsSensor(SensorEntity, RestoreEntity):
 
 
 class CardataQuotaSensor(SensorEntity):
-    """Surface the rolling 24 h REST quota as a first-class diagnostic sensor.
+    """Surface the day's REST quota (reset at 00:00 UTC) as a first-class diagnostic sensor.
 
     The value is the number of requests still available; ``used``, ``limit`` and
     the next-reset time ride along as attributes so an automation can warn before

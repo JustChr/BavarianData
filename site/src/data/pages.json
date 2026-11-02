@@ -224,11 +224,11 @@
     "slug": "api-quota",
     "en": {
       "title": "BMW CarData API quota: 50 requests per day",
-      "description": "How BMW's 50 requests per 24 hours limit works, what spends it, what doesn't, and why the live stream costs nothing."
+      "description": "How BMW's limit of 50 requests a day works, what spends it, what doesn't, and why the live stream costs nothing."
     },
     "de": {
       "title": "BMW-CarData-API-Kontingent: 50 Anfragen pro Tag",
-      "description": "Wie BMWs Grenze von 50 Anfragen pro 24 Stunden funktioniert, was sie verbraucht, was nicht, und warum der Live-Stream nichts kostet."
+      "description": "Wie BMWs Grenze von 50 Anfragen pro Tag funktioniert, was sie verbraucht, was nicht, und warum der Live-Stream nichts kostet."
     }
   },
   "Feature-Multiple-Cars-and-Accounts": {

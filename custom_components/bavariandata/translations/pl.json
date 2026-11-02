@@ -2871,7 +2871,7 @@
   "issues": {
     "api_quota_exhausted": {
       "title": "Wyczerpano limit API BMW CarData ({account})",
-      "description": "Osiągnięto limit REST BMW CarData wynoszący {limit} żądań na 24 h, więc danych na żądanie (dane podstawowe, historia ładowania, diagnoza opon, zdjęcie pojazdu) nie można teraz odświeżyć. Dane ze strumienia nadal napływają. Limit zwolni się ponownie o {next_reset}."
+      "description": "Osiągnięto limit REST BMW CarData wynoszący {limit} żądań dziennie, więc danych na żądanie (dane podstawowe, historia ładowania, diagnoza opon, zdjęcie pojazdu) nie można teraz odświeżyć. Dane ze strumienia nadal napływają. Limit zwolni się ponownie o {next_reset}."
     },
     "motorcycle_unsupported": {
       "title": "Motocykle BMW nie mogą przesyłać swoich danych",

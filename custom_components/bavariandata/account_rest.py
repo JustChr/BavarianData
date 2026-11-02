@@ -75,7 +75,7 @@ class AccountHost(Protocol):
 
     @property
     def quota_remaining(self) -> Optional[int]:
-        """Requests left in the rolling window, if known."""
+        """Requests left today (BMW's day, reset at 00:00 UTC), if known."""
 
     def update_data(self, **values: Any) -> None:
         """Write ``values`` into the entry's data."""

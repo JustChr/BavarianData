@@ -2,8 +2,10 @@
 
 > 🇬🇧 [English version](Feature-API-Quota)
 
-BMW begrenzt die CarData-REST-API auf **50 Anfragen pro 24 Stunden je Konto**.
-Die Integration zählt und erzwingt das selbst.
+BMW begrenzt die CarData-REST-API auf **50 Anfragen pro Tag je Konto**. BMWs Tag
+läuft von Mitternacht bis Mitternacht UTC: Der Zähler wird um **00:00 UTC**
+zurückgesetzt, nicht 24 Stunden nach jeder Anfrage. Die Integration zählt und
+erzwingt das selbst.
 
 ## Was Kontingent verbraucht
 
@@ -59,5 +61,5 @@ Anfragen noch übrig sind, mit den Attributen `used`, `limit` und `next_reset`.
 
 Ist das Kontingent einmal aufgebraucht, erscheint unter **Einstellungen →
 Reparaturen** ein Hinweis, wann es zurückgesetzt wird. **Die gestreamten Daten
-fließen die ganze Zeit weiter** — nur REST-Abrufe pausieren, bis das Zeitfenster
-weiterrückt.
+fließen die ganze Zeit weiter** — nur REST-Abrufe pausieren, bis der Zähler um
+00:00 UTC zurückgesetzt wird.

@@ -62,7 +62,7 @@ integration's own translations (so they are named in your language too).
 | **Trip in Progress** | Binary sensor: `on` while a drive is under way, with the trip so far as attributes. Deliberately *not* a "moving" sensor — it lingers after an arrival; see [Trips](Feature-Trips#seeing-the-drive-thats-happening-now). |
 | **Tire Condition** | BMW's overall verdict on the mounted set, plus any upstream errors. |
 | **Tire Front Left / Front Right / Rear Left / Rear Right** | Per-wheel wear traffic light (`green`/`yellow`/`red`/`grey`), with the mileage until a change is due, defect status, season, dimension, tread pattern and fitting date as attributes. |
-| **API Quota Remaining** | Diagnostic: requests left in the 50/24 h window. |
+| **API Quota Remaining** | Diagnostic: requests left today, of 50; BMW resets the count at 00:00 UTC. |
 | **State-of-charge estimate / rate** | Extrapolated SoC helpers (need the Electric vehicle cluster) — see [which state-of-charge entity to use](#which-state-of-charge-entity-to-use). |
 | **Predicted time to charge target** | Minutes until a **home** charge reaches the car's target, worked out from the [wallbox meter](Feature-evcc-and-Wallbox-Bridge#time-to-the-charge-target). `0` when not charging; unknown away from home, in a charge's first minutes or while a solar charge is paused. Only with a wallbox meter bound. |
 | **Stream Connection Status** | Diagnostic: MQTT connection state. |

@@ -309,7 +309,7 @@ Ladung schon gemessen: Dann bleiben sein Wert und die daraus berechneten Kosten
 erhalten. BMWs eigene abgerechnete Kosten ersetzen sie trotzdem. Schließt BMWs
 Eintrag auch kurze Teile derselben Ladung ein, die der Zähler nicht gemessen hat,
 gilt BMWs Wert für die ganze Ladung. Dieser Dienst **verbraucht**
-API-Kontingent (eine oder mehrere deiner 50 pro 24 h). Ohne **Von** und **Bis**
+API-Kontingent (eine oder mehrere deiner 50 pro Tag). Ohne **Von** und **Bis**
 holt er die letzten 30 Tage.
 
 <a id="repairing-charges-from-before-v096"></a>
