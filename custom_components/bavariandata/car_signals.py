@@ -122,8 +122,15 @@ CHARGE_CLOSE_DEBOUNCE_S = 120
 # was filed as three charges (#180). With the plug still connected the session
 # stays open this long after the stop; an unplug closes it at once, and a car
 # that doesn't stream its plug keeps the plain debounce. The record still ends
-# at the stop, so only the stop events wait.
+# at the stop. Only a stop short of the target waits: the overview keeps one
+# record, while ``charging_paused`` says so as soon as the flap debounce is
+# over. A charge the car calls finished (``CHARGE_FINISHED_STATUS``) closes at
+# once; one stopped at its target closes when the flap debounce is over.
 CHARGE_PLUGGED_HOLD_S = 300
+
+# The car's own word that the charge is over, as opposed to the NOCHARGING a
+# flap or a pause shows: such a charge is closed and announced at once.
+CHARGE_FINISHED_STATUS = "CHARGINGENDED"
 
 # How often an in-progress charge is written to the store. Every write rewrites
 # the whole history document, so this is a trade between disk churn and how much

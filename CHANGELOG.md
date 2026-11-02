@@ -23,6 +23,15 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   changed by hand is left alone.
 
 ### Changed
+- **A finished charge is announced at once.** When the car reports the charge
+  as ended, *Charging completed* and the other end events now fire right
+  away; with the cable still in they used to wait 5 minutes for a possible
+  resume. A stop short of the target is a pause first: after 2 minutes the new
+  **Charging paused** trigger fires, and **Charging resumed** if it carries on.
+  The charging history still keeps such a charge as one session, and only after
+  5 minutes stopped does it end as *stopped before the target*. Both are new
+  device triggers and events (`bavariandata_charging_paused` /
+  `bavariandata_charging_resumed`).
 - **Pick your phones from a list.** *Notify when charging completes* and *Stop
   charging at target %* now take the phones as devices of the Companion app
   (several at once) instead of a typed notification service. A service typed

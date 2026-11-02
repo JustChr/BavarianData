@@ -24,6 +24,8 @@ your car, and choose from the list. No YAML and no entity names needed.
 | **Plugged in but not charging** | a cable is in, nothing is charging, and the car is below its charging target, for the chosen time | how long (default 15 minutes) |
 | **Charging started** | a charging session begins | — |
 | **Charging completed (target reached)** | a session ends at or above the target | — |
+| **Charging paused, cable still in** | charging stops short of the target with the cable in, for more than 2 minutes | — |
+| **Charging resumed** | a paused charge carries on within 5 minutes (still the same session) | — |
 | **Charging stopped before the target, cable still in** | a session ends short of the target while the cable is still plugged in | — |
 | **Preconditioning started** | the car starts heating or cooling itself | — |
 | **Preconditioning finished** | the car stops heating or cooling itself | — |
@@ -34,6 +36,15 @@ your car, and choose from the list. No YAML and no entity names needed.
 charging target, and the session ends there. To act at a different level, say
 70 % on a wallbox with no limit of its own, use a numeric state trigger on the
 battery level entity.
+
+**When a charge counts as ended.** When the car reports the charge as
+*ended*, the session closes and its events fire at once. A stop short of the
+target with the cable still in is first a **pause**: after 2 minutes (a
+shorter dip is the data stream, not the car) *Charging paused* fires, and if
+it carries on within 5 minutes, *Charging resumed*. The charging history
+keeps it as one session. Only after 5 minutes stopped does
+the session end, as *stopped before the target*. A stop at the target ends
+the session after the 2 minutes; unplugging ends it at once.
 
 **Only the triggers your car can fire are listed.** A car that never sent a lock
 state gets no *Parked and left unlocked*; the zone triggers need the car's
@@ -132,6 +143,8 @@ Events**). Each carries `vin`, `entry_id` and `vehicle` (the car's name).
 | `bavariandata_charging_stopped` | a session ends (any reason) | `soc`, `target_soc`, `status`, `energy_kwh`, `cost`, `session_id`, `complete` (`true` when it reached its target) |
 | `bavariandata_charging_complete` | a session ends **at/above** the target SoC, also one that finished while Home Assistant was restarting | as `charging_stopped` |
 | `bavariandata_charging_interrupted` | a session ends short of the target with the cable still in | as `charging_stopped`, plus `reason` |
+| `bavariandata_charging_paused` | charging stops short of the target with the cable in, for more than 2 minutes | `soc`, `target_soc`, `status` |
+| `bavariandata_charging_resumed` | a paused charge carries on (the same session) | `soc`, `target_soc`, `status` |
 | `bavariandata_zone_arrived` | a drive ends inside a zone | as the *Arrived at a zone* trigger |
 | `bavariandata_zone_left` | a drive leaves the zone it started in | as the *Left a zone* trigger |
 | `bavariandata_trip_ended` | a drive is recorded, in a zone or not | as the *Trip ended* trigger |

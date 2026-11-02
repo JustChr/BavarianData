@@ -579,6 +579,8 @@
       "charging_started": "Laddning startad",
       "charging_complete": "Laddning klar (målet nått)",
       "charging_interrupted": "Laddning stoppad före målet, kabeln fortfarande ansluten",
+      "charging_paused": "Laddning pausad, kabeln fortfarande ansluten",
+      "charging_resumed": "Laddning återupptagen",
       "preconditioning_started": "Förkonditionering startad",
       "preconditioning_finished": "Förkonditionering klar",
       "alarm": "Larmet gick",

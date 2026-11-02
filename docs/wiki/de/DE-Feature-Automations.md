@@ -24,6 +24,8 @@ auswählen und aus der Liste wählen. Kein YAML, keine Entitätsnamen.
 | **Angesteckt, lädt aber nicht** | ein Kabel steckt, nichts lädt und das Auto unter seinem Ladeziel ist, für die gewählte Zeit | wie lange (Standard 15 Minuten) |
 | **Laden gestartet** | ein Ladevorgang beginnt | — |
 | **Laden abgeschlossen (Ziel erreicht)** | ein Ladevorgang bei oder über dem Ziel endet | — |
+| **Laden pausiert, Kabel steckt noch** | das Laden unter dem Ziel aufhört, mit Kabel, für mehr als 2 Minuten | — |
+| **Laden fortgesetzt** | ein pausierter Ladevorgang innerhalb von 5 Minuten weitergeht (derselbe Ladevorgang) | — |
 | **Laden vor dem Ziel beendet, Kabel steckt noch** | ein Ladevorgang unter dem Ziel endet, während das Kabel noch steckt | — |
 | **Vorklimatisierung gestartet** | das Auto beginnt, sich zu heizen oder zu kühlen | — |
 | **Vorklimatisierung beendet** | das Auto hört auf, sich zu heizen oder zu kühlen | — |
@@ -34,6 +36,15 @@ auswählen und aus der Liste wählen. Kein YAML, keine Entitätsnamen.
 seinem Ladeziel auf, und dort endet der Ladevorgang. Für eine andere Schwelle,
 etwa 70 % an einer Wallbox ohne eigene Grenze, nimm einen numerischen
 Zustands-Auslöser auf der Entität für den Ladezustand.
+
+**Wann ein Ladevorgang als beendet gilt.** Meldet das Auto den Ladevorgang als
+*beendet*, wird er sofort abgeschlossen und seine Ereignisse lösen aus. Hört das
+Laden unter dem Ziel auf, während das Kabel steckt, ist das zuerst eine
+**Pause**: Nach 2 Minuten (ein kürzerer Aussetzer kommt vom Datenstrom, nicht vom
+Auto) löst *Laden pausiert* aus, und geht es innerhalb von 5 Minuten weiter,
+*Laden fortgesetzt*. Die Ladehistorie behält ihn als einen Ladevorgang. Erst nach 5 Minuten Stillstand endet er, als *vor dem Ziel
+beendet*. Ein Halt am Ziel endet nach den 2 Minuten; Abstecken beendet ihn
+sofort.
 
 **Angeboten werden nur die Auslöser, die dein Auto auslösen kann.** Ein Auto,
 das nie einen Verriegelungszustand gesendet hat, bekommt kein *Geparkt und nicht
@@ -138,6 +149,8 @@ ausgelöst, für YAML-Automationen und Node-RED (beobachten kannst du sie unter
 | `bavariandata_charging_stopped` | ein Ladevorgang endet (aus jedem Grund) | `soc`, `target_soc`, `status`, `energy_kwh`, `cost`, `session_id`, `complete` (`true`, wenn er sein Ziel erreicht hat) |
 | `bavariandata_charging_complete` | ein Ladevorgang **bei/über** dem Ziel-Ladezustand endet, auch einer, der während eines Neustarts von Home Assistant fertig wurde | wie `charging_stopped` |
 | `bavariandata_charging_interrupted` | ein Ladevorgang unter dem Ziel endet, während das Kabel noch steckt | wie `charging_stopped`, dazu `reason` |
+| `bavariandata_charging_paused` | das Laden unter dem Ziel aufhört, mit Kabel, für mehr als 2 Minuten | `soc`, `target_soc`, `status` |
+| `bavariandata_charging_resumed` | ein pausierter Ladevorgang weitergeht (derselbe Ladevorgang) | `soc`, `target_soc`, `status` |
 | `bavariandata_zone_arrived` | eine Fahrt in einer Zone endet | wie beim Auslöser *In einer Zone angekommen* |
 | `bavariandata_zone_left` | eine Fahrt die Zone verlässt, in der sie begann | wie beim Auslöser *Eine Zone verlassen* |
 | `bavariandata_trip_ended` | eine Fahrt eingetragen wird, in einer Zone oder nicht | wie beim Auslöser *Fahrt beendet* |

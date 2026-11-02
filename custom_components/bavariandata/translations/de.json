@@ -579,6 +579,8 @@
       "charging_started": "Laden gestartet",
       "charging_complete": "Laden abgeschlossen (Ziel erreicht)",
       "charging_interrupted": "Laden vor dem Ziel beendet, Kabel steckt noch",
+      "charging_paused": "Laden pausiert, Kabel steckt noch",
+      "charging_resumed": "Laden fortgesetzt",
       "preconditioning_started": "Vorklimatisierung gestartet",
       "preconditioning_finished": "Vorklimatisierung beendet",
       "alarm": "Alarmanlage ausgelöst",

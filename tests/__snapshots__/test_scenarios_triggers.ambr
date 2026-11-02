@@ -6,7 +6,7 @@
       1.0  send soc=50,target=80,plug=CONNECTED,status=CHARGINGACTIVE,power=11000 est= 50.00 rate=14.67 charging=on  open=y sessions=0 charging_started
      30.0  wait 30                  est= 57.09 rate=14.67 charging=on  open=y sessions=0
      30.0  send status=NOCHARGING,power=0 est= 57.09 rate=    - charging=off open=y sessions=0 situation
-     35.0  advance 35               est= 57.09 rate=    - charging=off open=n sessions=1 charging_stopped,charging_interrupted
+     35.0  advance 35               est= 57.09 rate=    - charging=off open=n sessions=1 charging_paused,charging_stopped,charging_interrupted
   '''
 # ---
 # name: test_a_new_message_fires_and_its_resolution_too
