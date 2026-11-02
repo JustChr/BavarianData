@@ -8,6 +8,8 @@ BMW's stream — and let your wallbox's own meter tell the
 drew from the grid.
 
 Two directions, configured in two different places, and useful independently.
+The same screen can also [share the car's whole stream](#sharing-the-whole-stream-with-other-apps)
+with any other app on your broker.
 
 ---
 
@@ -36,8 +38,8 @@ there's no broker host or password to enter here — it lands on exactly the
 broker Home Assistant is already connected to, which for almost everyone is the
 same one evcc reads.
 
-1. **Configure** → **evcc / wallbox bridge**
-2. Tick **Publish this car to MQTT**. Leave the topic prefix and **Publish
+1. **Configure** → **MQTT bridge (evcc & more)**
+2. Tick **Publish this car for evcc**. Leave the topic prefix and **Publish
    retained** alone unless you have a reason.
 3. The next screen hands you the **evcc configuration**, already filled in with
    your VIN, your prefix and your car's pack size. Copy it.
@@ -128,6 +130,48 @@ you can see how old the underlying reading is.
 Each vehicle gets its own topic subtree keyed on its VIN, and the generated
 configuration lists every car the entry knows about under a single `vehicles:`
 key.
+
+---
+
+## Sharing the whole stream, with other apps
+
+BMW allows **one stream per account**, and BavarianData holds it. A MagicMirror
+module, a Garmin widget or a script written against BMW's own format would
+need a stream of its own, and would lose it to Home Assistant or take it away.
+Sharing the stream is the way round that: every value BMW streams for the car
+goes on the same broker the evcc topics use, as it arrives. It costs no
+[API requests](Feature-API-Quota).
+
+**Configure → MQTT bridge (evcc & more)** → tick **Share this car's whole
+stream**. It's off by default and set per car, like the evcc switch, and the two
+are independent: a car can share its stream without being published for evcc.
+It needs the MQTT integration too.
+
+Two shapes, under the same prefix:
+
+| Topic | Retained | Payload |
+| --- | --- | --- |
+| `<prefix>/<VIN>/stream` | never | Each message exactly as BMW sent it: `vin`, `timestamp`, and a `data` block with only the values that just changed. |
+| `<prefix>/<VIN>/stream/<field>` | per **Publish retained** | One topic per value, in BMW's shape: `{"value": 72, "unit": "%", "timestamp": "…"}`. `<field>` is BMW's own name, such as `vehicle.drivetrain.batteryManagement.header`. |
+
+Subscribe to the first if your tool already reads BMW's messages, to the second
+(or `<prefix>/<VIN>/stream/#`) if it just wants the latest value of each field.
+The message itself is never retained because it only holds what changed, so a
+late subscriber would take a fragment for the whole car. The field topics are
+retained, so a dashboard that starts later finds the car waiting.
+
+A car shares only what its **Data Selection** in the BMW portal streams; see
+[Choose your data](Getting-Started-4-Choose-Data).
+
+**The position stays home.** **Leave out the position** (on by default, under
+*All vehicles* with several cars) keeps the car's location and its navigation
+destination out of both shapes. Turn it off only if an app needs them; turning
+it back on removes the position topics from the broker.
+
+**Switching sharing off removes what it published.** BavarianData asks the
+broker which shared-stream topics it still holds and deletes them, for that car,
+or for every car once the last one is off. That works after a restart too, and
+when the integration or a car is deleted.
 
 ---
 

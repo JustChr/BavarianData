@@ -25,10 +25,17 @@ Two properties this module exists to guarantee:
   the retained topics it owns. Otherwise a charge controller would keep charging
   against a frozen SoC from last week, which is the one genuinely dangerous
   failure mode of pushing data to something that acts on it.
+
+The same broker also carries a car's whole stream when the user shares it
+(``stream_share.py`` lays it out): BMW allows one stream per account, so this
+is how other apps get to read it. Switching that off clears it too, found by
+subscribing for what the broker still retains -- a restart remembers nothing of
+what an earlier run published.
 """
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import Any, Iterable, Optional, cast
 
@@ -47,6 +54,7 @@ from .evcc import (
     bridge_topics,
     normalize_prefix,
 )
+from .stream_share import clears, shared_message, sweep_filter
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -65,6 +73,11 @@ REPUBLISH_INTERVAL_S = 300
 # Not a value -- brokers treat it as "forget this topic" -- which is exactly the
 # semantics wanted for "we no longer know this".
 _CLEAR = ""
+
+# How long a sweep listens for the retained shared-stream topics the broker
+# replays on subscribing. A local broker answers in milliseconds; Home
+# Assistant's MQTT client batches subscriptions first, so this leaves room.
+SWEEP_S = 3
 
 
 async def async_clear_published(hass: HomeAssistant, *, prefix: str, vins: Iterable[str]) -> None:
@@ -89,6 +102,50 @@ async def async_clear_published(hass: HomeAssistant, *, prefix: str, vins: Itera
                 _LOGGER.debug("[bridge] could not clear %s: %s", topic, err)
             except Exception:  # noqa: BLE001 - teardown must not fail on MQTT
                 _LOGGER.exception("[bridge] unexpected error clearing %s", topic)
+
+
+async def async_clear_shared(
+    hass: HomeAssistant,
+    *,
+    prefix: str,
+    vins: Optional[Iterable[str]] = None,
+    position_only: bool = False,
+) -> None:
+    """Delete the shared stream's retained topics, for these cars or all.
+
+    The fields a car streams are not known in advance -- they are whatever its
+    Data Selection holds -- and a restart forgets what an earlier run
+    published, so the broker is asked instead: subscribe, collect what it
+    replays as retained, delete what :func:`stream_share.clears` names. Module
+    level for the same reason as :func:`async_clear_published`.
+    """
+
+    found: set[str] = set()
+
+    @callback
+    def _seen(message: Any) -> None:
+        if getattr(message, "retain", False) and message.payload:
+            found.add(message.topic)
+
+    wanted = None if vins is None else tuple(vin for vin in vins if vin)
+    try:
+        unsubscribe = await mqtt.async_subscribe(hass, sweep_filter(prefix), _seen, qos=0)
+    except HomeAssistantError as err:
+        _LOGGER.debug("[bridge] could not look for the shared stream: %s", err)
+        return
+    try:
+        await asyncio.sleep(SWEEP_S)
+    finally:
+        unsubscribe()
+    for topic in sorted(found):
+        if not clears(topic, prefix, vins=wanted, position_only=position_only):
+            continue
+        try:
+            await mqtt.async_publish(hass, topic, _CLEAR, qos=0, retain=True)
+        except HomeAssistantError as err:
+            _LOGGER.debug("[bridge] could not clear %s: %s", topic, err)
+        except Exception:  # noqa: BLE001 - teardown must not fail on MQTT
+            _LOGGER.exception("[bridge] unexpected error clearing %s", topic)
 
 
 class VehicleBridge:
@@ -123,6 +180,10 @@ class VehicleBridge:
     @property
     def enabled(self) -> bool:
         return self._config.any_enabled and not self._closed
+
+    @property
+    def sharing(self) -> bool:
+        return self._config.any_sharing and not self._closed
 
     def available(self) -> bool:
         """Whether Home Assistant has a working MQTT integration to publish via.
@@ -204,17 +265,8 @@ class VehicleBridge:
 
         if not self.enabled or not self._config.publishes(vin):
             return
-        if not self.available():
-            if not self._warned_unavailable:
-                self._warned_unavailable = True
-                _LOGGER.warning(
-                    "The evcc/wallbox bridge is switched on but Home Assistant has "
-                    "no MQTT integration set up, so there is nowhere to publish. "
-                    "Add the MQTT integration (Settings > Devices & services) and "
-                    "reload BavarianData."
-                )
+        if not self._can_publish():
             return
-        self._warned_unavailable = False
 
         snapshot = self.snapshot(vin)
         payloads = bridge_payloads(snapshot)
@@ -264,6 +316,46 @@ class VehicleBridge:
                 vin,
             )
 
+    def _can_publish(self) -> bool:
+        """Whether there is a broker, saying once when there is none."""
+
+        if not self.available():
+            if not self._warned_unavailable:
+                self._warned_unavailable = True
+                _LOGGER.warning(
+                    "The MQTT bridge is switched on but Home Assistant has "
+                    "no MQTT integration set up, so there is nowhere to publish. "
+                    "Add the MQTT integration (Settings > Devices & services) and "
+                    "reload BavarianData."
+                )
+            return False
+        self._warned_unavailable = False
+        return True
+
+    async def async_share(self, payload: dict[str, Any]) -> None:
+        """Put one stream message on the broker, if its car shares its stream.
+
+        Called for every message, after the coordinator has read it; returns at
+        once for a car that does not share. Not debounced like the evcc topics:
+        each message is news of its own, and the stream is sparse.
+        """
+
+        vin = payload.get("vin")
+        if not self.sharing or not isinstance(vin, str) or not self._config.shares(vin):
+            return
+        if not self._can_publish():
+            return
+        shared = shared_message(
+            self._config.prefix, payload, hide_position=self._config.hide_position
+        )
+        if shared.message is not None:
+            topic, message = shared.message
+            await self._async_send(topic, message, retain=False)
+        for topic, value in shared.fields.items():
+            await self._async_send(topic, value)
+        if debug_enabled() and shared.fields:
+            _LOGGER.debug("[bridge] %s shared %d fields", vin, len(shared.fields))
+
     async def async_publish_all(self, *, force: bool = False) -> None:
         """The heartbeat, and the first publish after setup."""
 
@@ -306,14 +398,22 @@ class VehicleBridge:
         for suffix in suffixes:
             self._published.get(vin, {}).pop(suffix, None)
 
-    async def _async_send(self, topic: str, payload: str, *, clearing: bool = False) -> None:
+    async def _async_send(
+        self,
+        topic: str,
+        payload: str,
+        *,
+        clearing: bool = False,
+        retain: Optional[bool] = None,
+    ) -> None:
         """One publish, with the broker's problems kept out of the stream.
 
         Nothing upstream of here may fail because MQTT did: this runs off the
         same signals that drive the entities and the charging ledger, and a
         broker that has gone away must not take the integration with it. A clear
         is always retained regardless of the setting -- a non-retained empty
-        message deletes nothing.
+        message deletes nothing. ``retain`` overrides the setting, for the
+        shared stream's messages, which are never retained.
         """
 
         try:
@@ -322,7 +422,7 @@ class VehicleBridge:
                 topic,
                 payload,
                 qos=0,
-                retain=True if clearing else self._config.retain,
+                retain=True if clearing else self._config.retain if retain is None else retain,
             )
         except HomeAssistantError as err:
             _LOGGER.debug("[bridge] could not publish %s: %s", topic, err)

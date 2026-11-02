@@ -24,6 +24,7 @@ from homeassistant.util import dt as dt_util
 from .const import (
     DEFAULT_BRIDGE_PREFIX,
     DEFAULT_BRIDGE_RETAIN,
+    DEFAULT_BRIDGE_STREAM_HIDE_POSITION,
     DEFAULT_HISTORY_RETAIN_MONTHS,
     DEFAULT_STATISTICS_IMPORT,
     DEFAULT_TRIP_COMMUTE_GAP_MIN,
@@ -31,6 +32,8 @@ from .const import (
     OPTION_BRIDGE_ENABLED,
     OPTION_BRIDGE_PREFIX,
     OPTION_BRIDGE_RETAIN,
+    OPTION_BRIDGE_STREAM,
+    OPTION_BRIDGE_STREAM_HIDE_POSITION,
     OPTION_CHARGE_LOCATIONS,
     OPTION_CHARGING_LOSS_PERCENT,
     OPTION_GRID_ENERGY_ENTITY,
@@ -54,6 +57,7 @@ from .const import (
     TRIP_DETECTION_CHOICES,
     TRIP_DETECTION_LIVE,
 )
+from .bridge import async_clear_shared
 from .distance import car_distance_unit
 from .evcc import BridgeConfig, bridge_payloads, evcc_yaml
 from .flow_answers import (
@@ -89,6 +93,7 @@ from .mileage import (
     KINDS as MILEAGE_KINDS,
     allowance_settings,
 )
+from .stream_share import sweeps
 from .trip_settings import account_trip_settings, vehicle_trip_settings
 from .vehicle_options import (
     BRIDGE_OPTIONS,
@@ -389,10 +394,11 @@ class PerCarScreens(_FlowBase):
         switching it off clears what was published rather than leaving evcc
         charging against a state of charge frozen at that moment.
 
-        Whether a car is published is per car on an account with more than one
-        (a company car charged elsewhere stays off the broker, VIN included);
-        the topic prefix and retained flag are shared, in the collapsed "All
-        vehicles" section.
+        Whether a car is published -- for evcc, and its whole stream for any
+        other app -- is per car on an account with more than one (a company car
+        charged elsewhere stays off the broker, VIN included); the position
+        rule, the topic prefix and the retained flag are shared, in the
+        collapsed "All vehicles" section.
         """
 
         vehicles, per_vehicle, vin = self._vehicle_context()
@@ -406,8 +412,19 @@ class PerCarScreens(_FlowBase):
             vol.Required(
                 OPTION_BRIDGE_ENABLED, default=bool(car.get(OPTION_BRIDGE_ENABLED))
             ): selector.BooleanSelector(),
+            vol.Required(
+                OPTION_BRIDGE_STREAM, default=bool(car.get(OPTION_BRIDGE_STREAM))
+            ): selector.BooleanSelector(),
         }
         shared_fields = {
+            vol.Required(
+                OPTION_BRIDGE_STREAM_HIDE_POSITION,
+                default=bool(
+                    options.get(
+                        OPTION_BRIDGE_STREAM_HIDE_POSITION, DEFAULT_BRIDGE_STREAM_HIDE_POSITION
+                    )
+                ),
+            ): selector.BooleanSelector(),
             vol.Optional(
                 OPTION_BRIDGE_PREFIX,
                 description={
@@ -448,9 +465,8 @@ class PerCarScreens(_FlowBase):
         # *presence* of an MQTT config entry, not on it being loaded: "you have
         # not set up MQTT" is unambiguous and actionable, while a broker that
         # happens to be reconnecting is not the user's mistake to fix here.
-        if submitted.get(OPTION_BRIDGE_ENABLED) and not self.hass.config_entries.async_entries(
-            "mqtt"
-        ):
+        publishing = submitted.get(OPTION_BRIDGE_ENABLED) or submitted.get(OPTION_BRIDGE_STREAM)
+        if publishing and not self.hass.config_entries.async_entries("mqtt"):
             return _form({"base": "mqtt_missing"})
 
         options.update(shared)
@@ -473,9 +489,25 @@ class PerCarScreens(_FlowBase):
             # Applied in place rather than by reloading the entry: BMW allows
             # one concurrent stream per account, so a reload risks racing the
             # reconnect (same reason as the energy-sources step).
+            # What the shared stream leaves behind is found by asking the
+            # broker, which takes a few seconds: in the background, so the
+            # dialog closes at once.
+            for sweep in sweeps(before, after, runtime.coordinator.data):
+                self.hass.async_create_task(
+                    async_clear_shared(
+                        self.hass,
+                        prefix=sweep.prefix,
+                        vins=sweep.vins,
+                        position_only=sweep.position_only,
+                    )
+                )
             bridge.apply_config(after)
             if bridge.enabled:
                 await bridge.async_publish_all(force=True)
+        if not after.publishes(vin or ""):
+            # The evcc configuration is for a car published for evcc; someone
+            # who only shares the stream has nothing to paste.
+            return self.async_create_entry(title="", data=options)
         self._bridge_options = options
         return await self.async_step_evcc_snippet()
 

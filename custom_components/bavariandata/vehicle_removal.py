@@ -13,7 +13,7 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import issue_registry as ir
 
 from . import entry_setup
-from .bridge import async_clear_published
+from .bridge import async_clear_published, async_clear_shared
 from .const import (
     DOMAIN,
     OPTION_STREAM_SECTIONS,
@@ -113,6 +113,9 @@ async def _async_forget_vehicles_now(hass: HomeAssistant, entry_id: str, vins: l
     if bridge_config.any_enabled:
         with suppress(Exception):
             await async_clear_published(hass, prefix=bridge_config.prefix, vins=vins)
+    if bridge_config.any_sharing:
+        with suppress(Exception):
+            await async_clear_shared(hass, prefix=bridge_config.prefix, vins=vins)
     with suppress(Exception):
         from .image import async_forget_vehicles  # noqa: PLC0415 - pulls in HA's image component
 

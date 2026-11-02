@@ -268,6 +268,15 @@ DEFAULT_BRIDGE_PREFIX = "bavariandata"
 # configured to refuse retained messages.
 OPTION_BRIDGE_RETAIN = "bridge_retain"
 DEFAULT_BRIDGE_RETAIN = True
+# Share a car's whole stream on the same broker (``stream_share.py``), for apps
+# that would otherwise need a stream of their own -- and BMW allows one per
+# account. Per car, beside the evcc switch, and off by default for the same
+# reason: it puts the car's state on a broker other things can read.
+OPTION_BRIDGE_STREAM = "bridge_stream_enabled"
+# Keep the position (and the navigation destination) out of the shared stream.
+# Account-wide, and on by default: coordinates leave the house only on purpose.
+OPTION_BRIDGE_STREAM_HIDE_POSITION = "bridge_stream_hide_position"
+DEFAULT_BRIDGE_STREAM_HIDE_POSITION = True
 
 # A car's mileage allowance (Configure -> Mileage allowance; ``mileage.py``).
 # Always stored under the car's VIN, even on a single-car account: a lease

@@ -103,7 +103,7 @@
           "action_fetch_image": "Vehicle image",
           "action_charging_costs": "Charging costs & history",
           "action_energy_sources": "Solar & energy sources",
-          "action_evcc_bridge": "evcc / wallbox bridge",
+          "action_evcc_bridge": "MQTT bridge (evcc & more)",
           "action_trips": "Trips",
           "action_mileage": "Mileage allowance",
           "action_units": "Units",
@@ -283,7 +283,7 @@
         }
       },
       "bridge_vehicle": {
-        "title": "evcc / wallbox bridge",
+        "title": "MQTT bridge (evcc & more)",
         "description": "Each vehicle can be published on its own. Pick the vehicle to change.",
         "data": {
           "vehicle": "Vehicle"
@@ -293,29 +293,35 @@
         }
       },
       "action_evcc_bridge": {
-        "title": "evcc / wallbox bridge",
-        "description": "Publishes the live state of **{vehicle}** to your MQTT broker for evcc and similar charge controllers: the state of charge straight off BMW's stream, at no API cost. Needs Home Assistant's MQTT integration. Switching it off removes what was published; the next screen has the evcc configuration to paste.",
+        "title": "MQTT bridge (evcc & more)",
+        "description": "Publishes **{vehicle}** to your MQTT broker straight off BMW's stream, at no API cost: for evcc and similar charge controllers, and, if you share the whole stream, for any other app. Needs Home Assistant's MQTT integration. Switching something off removes what it published.",
         "data": {
-          "bridge_enabled": "Publish this car to MQTT",
+          "bridge_enabled": "Publish this car for evcc",
+          "bridge_stream_enabled": "Share this car's whole stream",
+          "bridge_stream_hide_position": "Leave out the position",
           "bridge_topic_prefix": "Topic prefix",
           "bridge_retain": "Publish retained"
         },
         "data_description": {
           "bridge_enabled": "Off by default: it puts the VIN and the car's state on a broker other things can read.",
-          "bridge_topic_prefix": "Topics become `PREFIX/VIN/soc` and so on. Leave it as bavariandata unless it clashes with something.",
-          "bridge_retain": "Keep this on: it lets evcc find the state of charge the moment it starts. Turn it off only if your broker refuses retained messages."
+          "bridge_stream_enabled": "Off by default: every value BMW streams, on `PREFIX/VIN/stream`, for apps that would otherwise need a stream of their own (BMW allows one per account).",
+          "bridge_stream_hide_position": "Keeps the car's location and navigation destination out of the shared stream. Turn it off only if an app needs them.",
+          "bridge_topic_prefix": "Topics become `PREFIX/VIN/soc`, `PREFIX/VIN/stream` and so on. Leave it as bavariandata unless it clashes with something.",
+          "bridge_retain": "Keep this on: evcc and dashboards get the latest value the moment they start. Turn it off only if your broker refuses retained messages."
         },
         "sections": {
           "all_vehicles": {
             "name": "All vehicles",
             "description": "These settings apply to every vehicle on this account.",
             "data": {
+              "bridge_stream_hide_position": "Leave out the position",
               "bridge_topic_prefix": "Topic prefix",
               "bridge_retain": "Publish retained"
             },
             "data_description": {
-              "bridge_topic_prefix": "Topics become `PREFIX/VIN/soc` and so on. Leave it as bavariandata unless it clashes with something.",
-              "bridge_retain": "Keep this on: it lets evcc find the state of charge the moment it starts. Turn it off only if your broker refuses retained messages."
+              "bridge_stream_hide_position": "Keeps the car's location and navigation destination out of the shared stream. Turn it off only if an app needs them.",
+              "bridge_topic_prefix": "Topics become `PREFIX/VIN/soc`, `PREFIX/VIN/stream` and so on. Leave it as bavariandata unless it clashes with something.",
+              "bridge_retain": "Keep this on: evcc and dashboards get the latest value the moment they start. Turn it off only if your broker refuses retained messages."
             }
           }
         }

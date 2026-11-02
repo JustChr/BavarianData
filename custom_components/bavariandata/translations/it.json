@@ -103,7 +103,7 @@
           "action_fetch_image": "Immagine del veicolo",
           "action_charging_costs": "Costi e storico di ricarica",
           "action_energy_sources": "Fotovoltaico e fonti di energia",
-          "action_evcc_bridge": "Bridge evcc / wallbox",
+          "action_evcc_bridge": "Bridge MQTT (evcc e altro)",
           "action_trips": "Viaggi",
           "action_mileage": "Chilometraggio consentito",
           "action_units": "Unità",
@@ -283,7 +283,7 @@
         }
       },
       "bridge_vehicle": {
-        "title": "Bridge evcc / wallbox",
+        "title": "Bridge MQTT (evcc e altro)",
         "description": "Ogni veicolo può essere pubblicato separatamente. Scegli il veicolo da modificare.",
         "data": {
           "vehicle": "Veicolo"
@@ -293,29 +293,35 @@
         }
       },
       "action_evcc_bridge": {
-        "title": "Bridge evcc / wallbox",
-        "description": "Pubblica lo stato in tempo reale di **{vehicle}** sul tuo broker MQTT per evcc e gestori di ricarica simili: lo stato di carica direttamente dallo stream di BMW, senza costi API. Richiede l'integrazione MQTT di Home Assistant. Disattivarlo rimuove ciò che è stato pubblicato; la schermata successiva mostra la configurazione evcc da incollare.",
+        "title": "Bridge MQTT (evcc e altro)",
+        "description": "Pubblica **{vehicle}** sul tuo broker MQTT direttamente dallo stream di BMW, senza costi API: per evcc e gestori di ricarica simili e, se condividi l'intero stream, per qualsiasi altra app. Richiede l'integrazione MQTT di Home Assistant. Disattivare qualcosa rimuove ciò che ha pubblicato.",
         "data": {
-          "bridge_enabled": "Pubblica questa auto su MQTT",
+          "bridge_enabled": "Pubblica questa auto per evcc",
+          "bridge_stream_enabled": "Condividi l'intero stream di questa auto",
+          "bridge_stream_hide_position": "Escludi la posizione",
           "bridge_topic_prefix": "Prefisso dei topic",
           "bridge_retain": "Pubblica come retained"
         },
         "data_description": {
           "bridge_enabled": "Disattivato per impostazione predefinita: mette il VIN e lo stato dell'auto su un broker leggibile da altri.",
-          "bridge_topic_prefix": "I topic diventano `PREFIX/VIN/soc` e così via. Lascia bavariandata a meno che non entri in conflitto con qualcosa.",
-          "bridge_retain": "Lascialo attivo: così evcc trova lo stato di carica appena si avvia. Disattivalo solo se il tuo broker rifiuta i messaggi retained."
+          "bridge_stream_enabled": "Disattivato di default: ogni valore che BMW trasmette, su `PREFIX/VIN/stream`, per le app che altrimenti avrebbero bisogno di uno stream proprio (BMW ne consente uno per account).",
+          "bridge_stream_hide_position": "Tiene la posizione dell'auto e la destinazione di navigazione fuori dallo stream condiviso. Disattivalo solo se un'app ne ha bisogno.",
+          "bridge_topic_prefix": "I topic diventano `PREFIX/VIN/soc`, `PREFIX/VIN/stream` e così via. Lascia bavariandata a meno che non entri in conflitto con qualcosa.",
+          "bridge_retain": "Lascialo attivo: così evcc e le dashboard trovano l'ultimo valore appena si avviano. Disattivalo solo se il tuo broker rifiuta i messaggi retained."
         },
         "sections": {
           "all_vehicles": {
             "name": "Tutti i veicoli",
             "description": "Queste impostazioni valgono per tutti i veicoli di questo account.",
             "data": {
+              "bridge_stream_hide_position": "Escludi la posizione",
               "bridge_topic_prefix": "Prefisso dei topic",
               "bridge_retain": "Pubblica come retained"
             },
             "data_description": {
-              "bridge_topic_prefix": "I topic diventano `PREFIX/VIN/soc` e così via. Lascia bavariandata a meno che non entri in conflitto con qualcosa.",
-              "bridge_retain": "Lascialo attivo: così evcc trova lo stato di carica appena si avvia. Disattivalo solo se il tuo broker rifiuta i messaggi retained."
+              "bridge_stream_hide_position": "Tiene la posizione dell'auto e la destinazione di navigazione fuori dallo stream condiviso. Disattivalo solo se un'app ne ha bisogno.",
+              "bridge_topic_prefix": "I topic diventano `PREFIX/VIN/soc`, `PREFIX/VIN/stream` e così via. Lascia bavariandata a meno che non entri in conflitto con qualcosa.",
+              "bridge_retain": "Lascialo attivo: così evcc e le dashboard trovano l'ultimo valore appena si avviano. Disattivalo solo se il tuo broker rifiuta i messaggi retained."
             }
           }
         }

@@ -49,13 +49,13 @@ const SCREENS = {
     values: { grid_energy_entity: null, charging_loss_percent: 10 },
   },
   bridge: {
-    menu: { en: "evcc / wallbox bridge", de: "evcc-/Wallbox-Brücke" },
+    menu: { en: "MQTT bridge (evcc & more)", de: "MQTT-Brücke (evcc & mehr)" },
     step: "action_evcc_bridge",
     picker: "bridge_vehicle",
     second: { vin: "WBADEMO0000000003", name: "iX1 eDrive20" },
-    car: ["bridge_enabled"],
+    car: ["bridge_enabled", "bridge_stream_enabled"],
     expanded: false,
-    values: { bridge_enabled: false },
+    values: { bridge_enabled: false, bridge_stream_enabled: false },
   },
   phone: {
     menu: { en: "Trips", de: "Fahrten" },

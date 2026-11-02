@@ -322,6 +322,53 @@ async def test_removing_the_account_clears_what_the_bridge_published(
     assert sorted(cleared.await_args.kwargs["vins"]) == [VIN, OTHER]
 
 
+async def test_removing_the_account_clears_the_shared_stream(hass: HomeAssistant, no_bmw) -> None:
+    entry = _entry(**{VEHICLE_METADATA: {VIN: {"vin": VIN}}})
+    entry.add_to_hass(hass)
+    hass.config_entries.async_update_entry(
+        entry, options={"bridge_stream_enabled": True, "bridge_topic_prefix": "cars"}
+    )
+    await _set_up(hass, entry)
+    with (
+        patch(f"{PACKAGE}.async_clear_shared", AsyncMock()) as shared,
+        patch(f"{PACKAGE}.async_clear_published", AsyncMock()) as published,
+    ):
+        await hass.config_entries.async_remove(entry.entry_id)
+        await hass.async_block_till_done()
+    shared.assert_awaited_once_with(hass, prefix="cars")
+    published.assert_not_awaited()  # evcc was never on
+
+
+async def test_deleting_a_car_clears_its_shared_stream(hass: HomeAssistant, no_bmw) -> None:
+    entry = _entry(**{VEHICLE_METADATA: {VIN: {"vin": VIN}, OTHER: {"vin": OTHER}}})
+    entry.add_to_hass(hass)
+    hass.config_entries.async_update_entry(entry, options={"bridge_stream_enabled": True})
+    await _set_up(hass, entry)
+    with patch(f"{PACKAGE}.vehicle_removal.async_clear_shared", AsyncMock()) as shared:
+        await integration.async_forget_account_cars(hass, entry.entry_id, [VIN])
+        await hass.async_block_till_done()
+    shared.assert_awaited_once()
+    assert shared.await_args.kwargs["vins"] == [VIN]
+
+
+async def test_every_stream_message_is_offered_to_the_bridge_after_the_coordinator(
+    hass: HomeAssistant, no_bmw, caplog
+) -> None:
+    entry = _entry()
+    await _set_up(hass, entry)
+    runtime = entry.runtime_data
+    message = {"vin": VIN, "data": {"vehicle.x": {"value": 1}}}
+
+    with patch.object(runtime.bridge, "async_share", AsyncMock()) as share:
+        await runtime.stream._message_callback(message)
+    share.assert_awaited_once_with(message)
+    assert VIN in runtime.coordinator.data
+
+    with patch.object(runtime.bridge, "async_share", AsyncMock(side_effect=RuntimeError("x"))):
+        await runtime.stream._message_callback(message)
+    assert "Sharing a stream message on MQTT failed" in caplog.text
+
+
 # -- tokens ------------------------------------------------------------------
 
 

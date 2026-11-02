@@ -9,6 +9,7 @@ so Bronze's ``config-flow-test-coverage`` holds for every line of the flows.
 
 from __future__ import annotations
 
+from typing import Any, Optional
 from unittest.mock import AsyncMock, patch
 
 from homeassistant.core import HomeAssistant
@@ -152,15 +153,25 @@ async def test_charging_costs_with_statistics_rebuild_them(hass: HomeAssistant, 
     publish.assert_awaited_once_with(force=True)
 
 
-async def _bridge_for(hass: HomeAssistant, entry, vin: str, enabled: bool) -> dict:
+async def _bridge_for(
+    hass: HomeAssistant, entry, vin: str, enabled: bool, *, stream: bool = False, **shared: Any
+) -> Optional[str]:
+    """Set one car's switches; the evcc configuration shown after, if any."""
+
     result = await _configure(hass, entry, _Walk(), "action_evcc_bridge")
     result = await _submit(hass, _Walk(), result, {"vehicle": vin})
     result = await _submit(
         hass,
         _Walk(),
         result,
-        {"bridge_enabled": enabled, "all_vehicles": {"bridge_retain": False}},
+        {
+            "bridge_enabled": enabled,
+            "bridge_stream_enabled": stream,
+            "all_vehicles": {"bridge_retain": False, **shared},
+        },
     )
+    if result["type"] is FlowResultType.CREATE_ENTRY:
+        return None
     snippet = result["description_placeholders"]["snippet"]
     await _submit(hass, _Walk(), result, {})
     return snippet
@@ -179,13 +190,54 @@ async def test_switching_the_bridge_off_car_by_car_clears_what_each_published(
         await _bridge_for(hass, entry, VIN, True)
         await _bridge_for(hass, entry, VIN_B, True)
 
-        snippet = await _bridge_for(hass, entry, VIN_B, False)
+        assert await _bridge_for(hass, entry, VIN_B, False) is None, "nothing to paste"
         assert [call.args for call in clear_car.await_args_list] == [(VIN_B,)]
+        snippet = await _bridge_for(hass, entry, VIN, True)
         assert VIN in snippet and VIN_B not in snippet, "only a published car is offered"
         clear_all.assert_not_awaited()
 
         await _bridge_for(hass, entry, VIN, False)
         clear_all.assert_awaited_once()
+
+
+async def test_a_car_shares_its_stream_without_being_published_for_evcc(
+    hass: HomeAssistant, no_bmw
+) -> None:
+    entry = await _account(hass, VIN, VIN_B)
+    result = await _configure(hass, entry, _Walk(), "action_evcc_bridge")
+    result = await _submit(hass, _Walk(), result, {"vehicle": VIN})
+    result = await _submit(
+        hass,
+        _Walk(),
+        result,
+        {"bridge_enabled": False, "bridge_stream_enabled": True, "all_vehicles": {}},
+    )
+    assert result["errors"] == {"base": "mqtt_missing"}, "sharing needs a broker too"
+
+    MockConfigEntry(domain="mqtt").add_to_hass(hass)
+    with patch(f"{PACKAGE}.options_cars.async_clear_shared", new_callable=AsyncMock) as sweep:
+        assert await _bridge_for(hass, entry, VIN, False, stream=True) is None
+        assert entry.options["vehicles"][VIN] == {
+            "bridge_enabled": False,
+            "bridge_stream_enabled": True,
+        }
+        assert entry.runtime_data.bridge.config.shares(VIN)
+        assert not entry.runtime_data.bridge.config.shares(VIN_B)
+        sweep.assert_not_awaited()
+
+        await _bridge_for(hass, entry, VIN, False, stream=True, bridge_stream_hide_position=False)
+        await _bridge_for(hass, entry, VIN, False, stream=True, bridge_stream_hide_position=True)
+        await hass.async_block_till_done()
+        assert sweep.await_args.kwargs == {
+            "prefix": "bavariandata",
+            "vins": None,
+            "position_only": True,
+        }, "hiding the position again takes it off the broker"
+
+        await _bridge_for(hass, entry, VIN, False, stream=False)
+        await hass.async_block_till_done()
+        assert sweep.await_args.kwargs["vins"] is None, "the last car off: everything goes"
+        assert sweep.await_args.kwargs["position_only"] is False
 
 
 async def test_a_mileage_needs_a_car(hass: HomeAssistant, no_bmw) -> None:

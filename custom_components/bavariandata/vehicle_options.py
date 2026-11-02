@@ -2,7 +2,8 @@
 
 An account can hold several cars, and some settings describe a car rather than
 the house: how its trips are detected and filed, which wallbox meter measures
-its charging and how lossy its charger is, whether it is published to evcc.
+its charging and how lossy its charger is, whether it is published to evcc
+and whether its whole stream is shared.
 Those live per VIN (see ``OPTION_VEHICLES``)::
 
     {"vehicles": {VIN: {key: value, ...}}, <account-wide keys>...}
@@ -24,6 +25,7 @@ from typing import Any, Mapping, Optional
 
 from .const import (
     OPTION_BRIDGE_ENABLED,
+    OPTION_BRIDGE_STREAM,
     OPTION_CHARGING_LOSS_PERCENT,
     OPTION_GRID_ENERGY_ENTITY,
     OPTION_MILEAGE_ALLOWANCE_KM,
@@ -58,7 +60,7 @@ TRIP_OPTIONS = (
     OPTION_TRIP_PHONE_IN_CAR_2,
 )
 CHARGING_OPTIONS = (OPTION_GRID_ENERGY_ENTITY, OPTION_CHARGING_LOSS_PERCENT)
-BRIDGE_OPTIONS = (OPTION_BRIDGE_ENABLED,)
+BRIDGE_OPTIONS = (OPTION_BRIDGE_ENABLED, OPTION_BRIDGE_STREAM)
 # Unlike the groups above, always stored under the car -- even on a single-car
 # account -- and never read from account-wide keys: a lease belongs to one car,
 # and a car added later must not inherit it (``mileage_values``).

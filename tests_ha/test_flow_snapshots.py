@@ -500,8 +500,11 @@ async def test_configure_evcc_bridge(hass: HomeAssistant, no_bmw, snapshot) -> N
     entry = await _account(hass, VIN)
     result = await _configure(hass, entry, walk, "action_evcc_bridge")
     result = await _submit(hass, walk, result, {"bridge_enabled": True, "bridge_retain": True})
-    result = await _submit(hass, walk, result, {"bridge_enabled": False, "bridge_retain": True})
-    await _submit(hass, walk, result, {})
+    result = await _submit(
+        hass, walk, result, {"bridge_enabled": False, "bridge_stream_enabled": True}
+    )
+    walk.note("nothing on: no evcc configuration to paste")
+    await _submit(hass, walk, result, {"bridge_enabled": False, "bridge_retain": True})
 
     walk.note("with MQTT set up")
     MockConfigEntry(domain="mqtt").add_to_hass(hass)
@@ -514,6 +517,21 @@ async def test_configure_evcc_bridge(hass: HomeAssistant, no_bmw, snapshot) -> N
             {"bridge_enabled": True, "bridge_topic_prefix": "cars", "bridge_retain": False},
         )
         await _submit(hass, walk, result, {})
+
+        walk.note("sharing the stream only")
+        result = await _configure(hass, entry, walk, "action_evcc_bridge")
+        await _submit(
+            hass,
+            walk,
+            result,
+            {
+                "bridge_enabled": False,
+                "bridge_stream_enabled": True,
+                "bridge_stream_hide_position": False,
+                "bridge_topic_prefix": "cars",
+                "bridge_retain": True,
+            },
+        )
 
     assert walk.steps == snapshot
 

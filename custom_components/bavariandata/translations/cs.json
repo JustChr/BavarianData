@@ -103,7 +103,7 @@
           "action_fetch_image": "Obrázek vozidla",
           "action_charging_costs": "Náklady a historie nabíjení",
           "action_energy_sources": "Solár a zdroje energie",
-          "action_evcc_bridge": "Most evcc / wallbox",
+          "action_evcc_bridge": "Most MQTT (evcc a další)",
           "action_trips": "Jízdy",
           "action_mileage": "Limit kilometrů",
           "action_units": "Jednotky",
@@ -283,7 +283,7 @@
         }
       },
       "bridge_vehicle": {
-        "title": "Most evcc / wallbox",
+        "title": "Most MQTT (evcc a další)",
         "description": "Každé vozidlo lze publikovat samostatně. Vyberte vozidlo, které chcete změnit.",
         "data": {
           "vehicle": "Vozidlo"
@@ -293,29 +293,35 @@
         }
       },
       "action_evcc_bridge": {
-        "title": "Most evcc / wallbox",
-        "description": "Publikuje živý stav **{vehicle}** do vašeho MQTT brokeru pro evcc a podobné regulátory nabíjení: stav nabití přímo ze streamu BMW, bez nákladů na API. Vyžaduje integraci MQTT v Home Assistantu. Vypnutí odstraní, co bylo publikováno; další obrazovka obsahuje konfiguraci evcc ke vložení.",
+        "title": "Most MQTT (evcc a další)",
+        "description": "Publikuje **{vehicle}** do vašeho MQTT brokeru přímo ze streamu BMW, bez nákladů na API: pro evcc a podobné regulátory nabíjení a, pokud sdílíte celý stream, pro jakoukoli jinou aplikaci. Vyžaduje integraci MQTT v Home Assistantu. Vypnutí odstraní, co bylo publikováno.",
         "data": {
-          "bridge_enabled": "Publikovat toto auto do MQTT",
+          "bridge_enabled": "Publikovat toto auto pro evcc",
+          "bridge_stream_enabled": "Sdílet celý stream tohoto auta",
+          "bridge_stream_hide_position": "Vynechat polohu",
           "bridge_topic_prefix": "Prefix témat",
           "bridge_retain": "Publikovat jako retained"
         },
         "data_description": {
           "bridge_enabled": "Ve výchozím stavu vypnuto: umístí VIN a stav auta na broker, který mohou číst i jiné systémy.",
-          "bridge_topic_prefix": "Témata budou `PREFIX/VIN/soc` a tak dále. Ponechte bavariandata, pokud to s něčím nekoliduje.",
-          "bridge_retain": "Nechte zapnuté: evcc tak zná stav nabití hned po startu. Vypněte jen tehdy, když váš broker odmítá zprávy retained."
+          "bridge_stream_enabled": "Ve výchozím stavu vypnuto: každá hodnota, kterou BMW streamuje, na `PREFIX/VIN/stream`, pro aplikace, které by jinak potřebovaly vlastní stream (BMW povoluje jeden na účet).",
+          "bridge_stream_hide_position": "Polohu auta a cíl navigace nechá mimo sdílený stream. Vypněte jen tehdy, když je nějaká aplikace potřebuje.",
+          "bridge_topic_prefix": "Témata budou `PREFIX/VIN/soc`, `PREFIX/VIN/stream` a tak dále. Ponechte bavariandata, pokud to s něčím nekoliduje.",
+          "bridge_retain": "Nechte zapnuté: evcc a dashboardy tak znají poslední hodnotu hned po startu. Vypněte jen tehdy, když váš broker odmítá zprávy retained."
         },
         "sections": {
           "all_vehicles": {
             "name": "Všechna vozidla",
             "description": "Tato nastavení platí pro všechna vozidla tohoto účtu.",
             "data": {
+              "bridge_stream_hide_position": "Vynechat polohu",
               "bridge_topic_prefix": "Prefix témat",
               "bridge_retain": "Publikovat jako retained"
             },
             "data_description": {
-              "bridge_topic_prefix": "Témata budou `PREFIX/VIN/soc` a tak dále. Ponechte bavariandata, pokud to s něčím nekoliduje.",
-              "bridge_retain": "Nechte zapnuté: evcc tak zná stav nabití hned po startu. Vypněte jen tehdy, když váš broker odmítá zprávy retained."
+              "bridge_stream_hide_position": "Polohu auta a cíl navigace nechá mimo sdílený stream. Vypněte jen tehdy, když je nějaká aplikace potřebuje.",
+              "bridge_topic_prefix": "Témata budou `PREFIX/VIN/soc`, `PREFIX/VIN/stream` a tak dále. Ponechte bavariandata, pokud to s něčím nekoliduje.",
+              "bridge_retain": "Nechte zapnuté: evcc a dashboardy tak znají poslední hodnotu hned po startu. Vypněte jen tehdy, když váš broker odmítá zprávy retained."
             }
           }
         }

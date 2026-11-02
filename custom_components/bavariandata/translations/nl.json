@@ -103,7 +103,7 @@
           "action_fetch_image": "Voertuigafbeelding",
           "action_charging_costs": "Laadkosten en -geschiedenis",
           "action_energy_sources": "Zonne-energie en energiebronnen",
-          "action_evcc_bridge": "evcc-/laadpaalbrug",
+          "action_evcc_bridge": "MQTT-brug (evcc & meer)",
           "action_trips": "Ritten",
           "action_mileage": "Kilometerlimiet",
           "action_units": "Eenheden",
@@ -283,7 +283,7 @@
         }
       },
       "bridge_vehicle": {
-        "title": "evcc-/laadpaalbrug",
+        "title": "MQTT-brug (evcc & meer)",
         "description": "Elk voertuig kan apart gepubliceerd worden. Kies het voertuig dat je wilt wijzigen.",
         "data": {
           "vehicle": "Voertuig"
@@ -293,29 +293,35 @@
         }
       },
       "action_evcc_bridge": {
-        "title": "evcc-/laadpaalbrug",
-        "description": "Publiceert de live status van **{vehicle}** op je MQTT-broker voor evcc en vergelijkbare laadregelaars: de laadtoestand rechtstreeks uit BMW's stream, zonder API-kosten. Vereist de MQTT-integratie van Home Assistant. Uitzetten verwijdert wat gepubliceerd was; het volgende scherm geeft de evcc-configuratie om te plakken.",
+        "title": "MQTT-brug (evcc & meer)",
+        "description": "Publiceert **{vehicle}** rechtstreeks uit BMW's stream op je MQTT-broker, zonder API-kosten: voor evcc en vergelijkbare laadregelaars en, als je de hele stream deelt, voor elke andere app. Vereist de MQTT-integratie van Home Assistant. Iets uitzetten verwijdert wat het gepubliceerd had.",
         "data": {
-          "bridge_enabled": "Deze auto naar MQTT publiceren",
+          "bridge_enabled": "Deze auto voor evcc publiceren",
+          "bridge_stream_enabled": "De hele stream van deze auto delen",
+          "bridge_stream_hide_position": "Positie weglaten",
           "bridge_topic_prefix": "Topic-voorvoegsel",
           "bridge_retain": "Retained publiceren"
         },
         "data_description": {
           "bridge_enabled": "Standaard uit: het zet de VIN en de status van de auto op een broker die anderen kunnen lezen.",
-          "bridge_topic_prefix": "Topics worden `PREFIX/VIN/soc` enzovoort. Laat het op bavariandata staan, tenzij het ergens mee botst.",
-          "bridge_retain": "Laat dit aan: zo vindt evcc de laadtoestand zodra het start. Zet het alleen uit als je broker retained-berichten weigert."
+          "bridge_stream_enabled": "Standaard uit: elke waarde die BMW streamt, op `PREFIX/VIN/stream`, voor apps die anders een eigen stream nodig zouden hebben (BMW staat er één per account toe).",
+          "bridge_stream_hide_position": "Houdt de locatie en de navigatiebestemming van de auto uit de gedeelde stream. Zet het alleen uit als een app ze nodig heeft.",
+          "bridge_topic_prefix": "Topics worden `PREFIX/VIN/soc`, `PREFIX/VIN/stream` enzovoort. Laat het op bavariandata staan, tenzij het ergens mee botst.",
+          "bridge_retain": "Laat dit aan: zo vinden evcc en dashboards de laatste waarde zodra ze starten. Zet het alleen uit als je broker retained-berichten weigert."
         },
         "sections": {
           "all_vehicles": {
             "name": "Alle voertuigen",
             "description": "Deze instellingen gelden voor alle voertuigen van dit account.",
             "data": {
+              "bridge_stream_hide_position": "Positie weglaten",
               "bridge_topic_prefix": "Topic-voorvoegsel",
               "bridge_retain": "Retained publiceren"
             },
             "data_description": {
-              "bridge_topic_prefix": "Topics worden `PREFIX/VIN/soc` enzovoort. Laat het op bavariandata staan, tenzij het ergens mee botst.",
-              "bridge_retain": "Laat dit aan: zo vindt evcc de laadtoestand zodra het start. Zet het alleen uit als je broker retained-berichten weigert."
+              "bridge_stream_hide_position": "Houdt de locatie en de navigatiebestemming van de auto uit de gedeelde stream. Zet het alleen uit als een app ze nodig heeft.",
+              "bridge_topic_prefix": "Topics worden `PREFIX/VIN/soc`, `PREFIX/VIN/stream` enzovoort. Laat het op bavariandata staan, tenzij het ergens mee botst.",
+              "bridge_retain": "Laat dit aan: zo vinden evcc en dashboards de laatste waarde zodra ze starten. Zet het alleen uit als je broker retained-berichten weigert."
             }
           }
         }

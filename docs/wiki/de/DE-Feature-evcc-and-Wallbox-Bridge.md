@@ -8,7 +8,9 @@ Stream — und lass den Zähler deiner Wallbox dem
 aus dem Netz gezogen hat.
 
 Zwei Richtungen, an zwei verschiedenen Stellen eingerichtet und unabhängig
-voneinander nützlich.
+voneinander nützlich. Derselbe Bildschirm kann außerdem
+[den ganzen Stream des Autos teilen](#sharing-the-whole-stream-with-other-apps), mit
+jeder anderen App auf deinem Broker.
 
 ---
 
@@ -37,8 +39,8 @@ sind hier weder Host noch Passwort des Brokers einzutragen — die Werte landen 
 auf dem Broker, mit dem Home Assistant schon verbunden ist, und das ist fast immer
 derselbe, den evcc liest.
 
-1. **Konfigurieren** → **evcc-/Wallbox-Brücke**
-2. Hake **Dieses Auto per MQTT veröffentlichen** an. Lass **Topic-Prefix** und
+1. **Konfigurieren** → **MQTT-Brücke (evcc & mehr)**
+2. Hake **Dieses Auto für evcc veröffentlichen** an. Lass **Topic-Prefix** und
    **Mit Retain veröffentlichen** unverändert, wenn du keinen Grund hast.
 3. Der nächste Bildschirm liefert dir die **evcc-Konfiguration**, bereits mit deiner
    FIN, deinem Prefix und der Akkugröße deines Autos ausgefüllt. Kopiere sie.
@@ -132,6 +134,51 @@ widersprechen. Das Topic `updated` trägt, wann BMW ihn zuletzt tatsächlich
 Jedes Fahrzeug bekommt einen eigenen Topic-Zweig, benannt nach seiner FIN, und die
 erzeugte Konfiguration führt jedes Auto, das der Eintrag kennt, unter einem einzigen
 Schlüssel `vehicles:` auf.
+
+---
+
+## Den ganzen Stream mit anderen Apps teilen
+
+<a id="sharing-the-whole-stream-with-other-apps"></a>
+
+BMW erlaubt **einen Stream pro Konto**, und BavarianData hält ihn. Ein
+MagicMirror-Modul, ein Garmin-Widget oder ein Skript, das BMWs eigenes Format liest,
+bräuchte einen eigenen Stream und würde ihn an Home Assistant verlieren oder ihm
+wegnehmen. Den Stream zu teilen umgeht das: Jeder Wert, den BMW für das Auto streamt,
+landet beim Eintreffen auf demselben Broker wie die evcc-Topics. Das kostet keine
+[API-Anfragen](DE-Feature-API-Quota).
+
+**Konfigurieren → MQTT-Brücke (evcc & mehr)** → **Ganzen Stream dieses Autos
+teilen** anhaken. Standardmäßig aus und je Auto eingestellt, wie der evcc-Schalter,
+und beide sind unabhängig: Ein Auto kann seinen Stream teilen, ohne für evcc
+veröffentlicht zu werden. Auch das braucht die MQTT-Integration.
+
+Zwei Formen, unter demselben Prefix:
+
+| Topic | Retained | Inhalt |
+| --- | --- | --- |
+| `<prefix>/<FIN>/stream` | nie | Jede Nachricht genau so, wie BMW sie geschickt hat: `vin`, `timestamp` und ein `data`-Block mit nur den Werten, die sich gerade geändert haben. |
+| `<prefix>/<FIN>/stream/<feld>` | je nach **Mit Retain veröffentlichen** | Ein Topic pro Wert, in BMWs Form: `{"value": 72, "unit": "%", "timestamp": "…"}`. `<feld>` ist BMWs eigener Name, etwa `vehicle.drivetrain.batteryManagement.header`. |
+
+Abonniere das erste, wenn dein Werkzeug BMWs Nachrichten schon liest, das zweite
+(oder `<prefix>/<FIN>/stream/#`), wenn es nur den letzten Wert jedes Felds braucht.
+Die Nachricht selbst wird nie mit Retain veröffentlicht, weil sie nur das Geänderte
+enthält; ein später Abonnent hielte ein Bruchstück für das ganze Auto. Die
+Feld-Topics sind retained, sodass ein später startendes Dashboard das Auto schon
+vorfindet.
+
+Ein Auto teilt nur, was seine **Datenauswahl** im BMW-Portal streamt; siehe
+[Daten auswählen](DE-Getting-Started-4-Choose-Data).
+
+**Die Position bleibt zu Hause.** **Position weglassen** (standardmäßig an, bei
+mehreren Autos unter *Alle Fahrzeuge*) hält Standort und Navigationsziel des Autos
+aus beiden Formen heraus. Schalte es nur aus, wenn eine App sie braucht; wieder
+einschalten entfernt die Positions-Topics vom Broker.
+
+**Teilen ausschalten entfernt, was veröffentlicht wurde.** BavarianData fragt den
+Broker, welche Topics des geteilten Streams er noch hält, und löscht sie, für dieses
+Auto oder für alle, sobald das letzte aus ist. Das klappt auch nach einem Neustart
+und wenn die Integration oder ein Auto gelöscht wird.
 
 ---
 

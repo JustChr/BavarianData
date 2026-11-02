@@ -26,7 +26,7 @@ The menu labels below are exactly as they appear in the UI.
 | **Vehicle image** | settings ⚡ | Where the car's picture comes from: BMW CarData, or BMW's online configurator — below. |
 | **Charging costs & history** | settings | Price source, retention, statistics — below. |
 | **Solar & energy sources** | settings | Where each charge's energy came from: PV, house battery, grid — below. |
-| **evcc / wallbox bridge** | settings | Publish the car's live state to MQTT for a charge controller — below. |
+| **MQTT bridge (evcc & more)** | settings | Publish the car's live state to MQTT for a charge controller, or share its whole stream with other apps — below. |
 | **Trips** | settings | Work zone, default type, commute stop tolerance, address resolution and route recording — below. |
 | **Mileage allowance** | settings | A lease or a yearly mileage limit for each car — below. |
 | **Units** | settings | Kilometers or miles, fuel, temperature and tire pressure units, for the card, the screens and the sensors — below. |
@@ -185,9 +185,11 @@ The pickers list sensors whose **device class is `power`**. If your own template
 sensor isn't offered, give it `device_class: power` (and a `unit_of_measurement`
 of `W` or `kW`) and it will appear.
 
-## evcc / wallbox bridge
+## MQTT bridge (evcc & more)
 
-Screen: **Configure → evcc / wallbox bridge**. See
+<a id="evcc--wallbox-bridge"></a>
+
+Screen: **Configure → MQTT bridge (evcc & more)**. See
 [evcc & wallbox bridge](Feature-evcc-and-Wallbox-Bridge) for the concepts, the
 topic table and the troubleshooting.
 
@@ -196,10 +198,11 @@ topic table and the troubleshooting.
 </p>
 
 **Several cars on the account?** The screen first asks which vehicle, and
-**Publish this car to MQTT** is per car, so a car charged elsewhere can stay
-off the broker, VIN included. Switching one car off removes that car's topics.
-**Topic prefix** and **Publish retained** apply to every car, in the collapsed
-**All vehicles** section.
+**Publish this car for evcc** and **Share this car's whole stream** are per car,
+so a car charged elsewhere can stay off the broker, VIN included. Switching one
+car off removes that car's topics. **Leave out the position**, **Topic prefix**
+and **Publish retained** apply to every car, in the collapsed **All vehicles**
+section.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-evcc-bridge-second-car.png?v=2026-10-11b" alt="evcc / wallbox bridge for a second car: its own publish switch, the shared topic prefix and retained setting in the All vehicles section" width="460" />
@@ -209,14 +212,16 @@ Publishes the car's live state onto your MQTT broker so evcc, openWB or a
 Node-RED flow can read a state of charge that costs no
 [API quota](Feature-API-Quota). **Requires the MQTT integration** to be set up in
 Home Assistant — the bridge publishes through it, so there is no broker host or
-password to enter here. Switching it on shows a second screen with the
-ready-to-paste evcc configuration.
+password to enter here. Switching evcc on shows a second screen with the
+ready-to-paste evcc configuration; sharing only the stream saves straight away.
 
 | Option | Values | Meaning |
 | --- | --- | --- |
-| **Publish this car to MQTT** | on/off | Default **off**. It puts the VIN and the car's state on a broker other things can read. Switching it back off **removes** the published topics. |
+| **Publish this car for evcc** | on/off | Default **off**. It puts the VIN and the car's state on a broker other things can read. Switching it back off **removes** the published topics. |
+| **Share this car's whole stream** | on/off | Default **off**. Every value BMW streams for the car, on `<prefix>/<VIN>/stream`, for apps that would otherwise need a stream of their own. See [Sharing the whole stream](Feature-evcc-and-Wallbox-Bridge#sharing-the-whole-stream-with-other-apps). Switching it off **removes** what it published. |
+| **Leave out the position** | on/off | Default **on**. Keeps the car's location and navigation destination out of the shared stream. Turning it back on removes the position topics. |
 | **Topic prefix** | text | Topic root; everything lands under `<prefix>/<VIN>/`. Default `bavariandata`. Slashes are trimmed and an MQTT wildcard falls back to the default. |
-| **Publish retained** | on/off | Default **on**, and best left on: it is what lets evcc find the state of charge the moment it starts rather than waiting for the car to speak again. Turn off only for a broker that refuses retained messages. |
+| **Publish retained** | on/off | Default **on**, and best left on: it is what lets evcc (and a dashboard reading the shared stream) find the latest value the moment it starts rather than waiting for the car to speak again. Turn off only for a broker that refuses retained messages. |
 
 ## Trips
 
