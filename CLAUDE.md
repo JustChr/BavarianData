@@ -213,7 +213,8 @@ living only in prose.
   Configure screen against plain-language rules before building it; its
   `mock_flow.js` shoots a screen in the real HA dialog, or stages one the
   live instance can't reach, such as a second car), `review-pr` (reproduce a contributor's PR
-  in a worktree, prove its test, judge it, report before acting), `triage` (read a user's diagnostics), `live`
+  in a worktree, prove its test, judge it, report before acting), `support` (a user's issue or Discussion end to end: whole thread, facts
+  before code, a drafted reply that links the wiki, never posted without a go), `triage` (read a user's diagnostics), `live`
   (zero-quota reads against the live instance), `shoot` (Playwright screenshots),
   `close` (end every session with it: park or land the work, gates if code
   changed, docs and wiki in line, memory pruned, close marker set).

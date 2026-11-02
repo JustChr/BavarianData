@@ -93,6 +93,19 @@ The wiki is a separate git repo; `docs/wiki/` is the source of truth. Pages
 reference screenshots through `raw.githubusercontent.com/.../main/screenshots/…`,
 so **screenshot files must already be committed to `main`** or the images 404.
 
+## 6. A beta: write down how it will be proven
+
+A beta exists to be proven on the live instance before the stable. Right after
+releasing one, put its **predictions** into *Next up* in `current-status.md`:
+for each change, what should be observable, on which entity or log, **when**
+(UTC), and what it costs in quota (aim for zero). For example: "00:00 UTC:
+quota sensor jumps 40 → 50; ~10:43 UTC refresh costs 2 requests, CBS fresh".
+A prediction you can't check without spending quota or driving the car is a
+task for Chris; say so.
+
+Installing it and checking the predictions is the `live` skill (*Proving a
+beta*). The stable waits until every prediction holds or Chris waives one.
+
 ## Before you call it done
 
 Every new config-flow step, options screen, card view, service, option key,

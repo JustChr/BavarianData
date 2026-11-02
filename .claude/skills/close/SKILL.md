@@ -74,7 +74,7 @@ The list above catches what is **missing**. Two more checks catch what is
   changed or removed, grep `docs/wiki/` (both languages) for the entity,
   option, service or attribute name, and read each hit: does it still hold?
   A new row next to a now-false paragraph is still a stale wiki.
-- **Support answers belong in the wiki.** For every issue, discussion or
+- **Support answers belong in the wiki** (the `support` skill's step 3). For every issue, discussion or
   diagnostics read this session: if the answer had to come from the code or
   from memory rather than a wiki link, the wiki has a gap. Write the page
   (EN + DE) so the next reply can be a link. If a wiki statement turned out
