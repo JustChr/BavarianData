@@ -2871,7 +2871,7 @@
   "issues": {
     "api_quota_exhausted": {
       "title": "Quota dell'API BMW CarData esaurita ({account})",
-      "description": "È stato raggiunto il limite REST di BMW CarData di {limit} richieste ogni 24 h, quindi i dati su richiesta (dati di base, storico di ricarica, diagnosi pneumatici, immagine del veicolo) non possono essere aggiornati adesso. I dati in streaming continuano ad arrivare. La quota si libera di nuovo alle {next_reset}."
+      "description": "È stato raggiunto il limite REST di BMW CarData di {limit} richieste al giorno, quindi i dati su richiesta (dati di base, storico di ricarica, diagnosi pneumatici, immagine del veicolo) non possono essere aggiornati adesso. I dati in streaming continuano ad arrivare. La quota si libera di nuovo alle {next_reset}."
     },
     "motorcycle_unsupported": {
       "title": "Le moto BMW non possono trasmettere i loro dati",

@@ -82,7 +82,7 @@ tut dasselbe.)
   wenn seine Felder im Portal angekreuzt sind.
 - **Nur primäre Fahrzeuge werden hinzugefügt.** Ein Auto, das BMW für das Konto mit dem
   Status SECONDARY führt, wird nicht übernommen.
-- **Es kostet Kontingent, einmal pro Auto.** Zwei Anfragen aus den 50 pro 24 h,
+- **Es kostet Kontingent, einmal pro Auto.** Zwei Anfragen aus den 50 pro Tag,
   nur wenn ein neues Auto gefunden wird; ohne neues Auto wird nichts verbraucht.
   Ist das Kontingent aufgebraucht, wird das Auto übersprungen; **Fahrzeuge
   suchen** versucht es später erneut.
@@ -102,7 +102,7 @@ tut dasselbe.)
 
 <a id="quota-with-several-cars"></a>
 
-Die 50 Anfragen pro 24 h gehören dem **Konto**, und die tägliche Aktualisierung
+Die 50 Anfragen pro Tag gehören dem **Konto**, und die tägliche Aktualisierung
 kostet **2 Anfragen je Fahrzeug** (Telematik-Container und Reifendiagnose).
 Drei Autos in einem Konto sind 6 von 50 pro Tag — reichlich Luft. Zwei getrennte
 Konten haben je 50, weil BMW pro Konto zählt. Siehe

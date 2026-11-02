@@ -25,7 +25,7 @@ funktioniert.
 ## Abruf-Dienste — verbrauchen API-Kontingent ⚡
 
 Jeder davon verbraucht **eine oder mehrere** deiner
-[50 Anfragen / 24 h](DE-Feature-API-Quota). Die ersten beiden laufen einmal am Tag
+[50 Anfragen pro Tag](DE-Feature-API-Quota). Die ersten beiden laufen einmal am Tag
 automatisch als [tägliche Aktualisierung](DE-Feature-API-Quota#the-daily-refresh);
 von Hand aufgerufen holen sie nur früher ab und verbrauchen eine Anfrage mehr.
 

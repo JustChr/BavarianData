@@ -30,7 +30,7 @@ Daten auf zwei Wegen zu dir:
   das Auto liefert — Ladezustand, Türen, Fenster, Reifendrücke, Position,
   Fahrtdaten;
 - eine **REST-API** für Abfragen bei Bedarf, begrenzt auf 50 Anfragen pro
-  24 Stunden.
+  Tag.
 
 BavarianData ist eine Home-Assistant-Integration, die mit beiden direkt spricht.
 Kein Server dazwischen: Home Assistant hält die Tokens und ist der einzige

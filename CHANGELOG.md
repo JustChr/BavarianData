@@ -9,6 +9,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **The API quota now resets when BMW's does: at 00:00 UTC.** BMW confirmed
+  that its 50 requests a day are counted per calendar day (UTC) and do not roll
+  over 24 hours after each request. The integration counted a rolling 24 hours,
+  so after a busy day it could hold back requests BMW would still have answered.
+  **API Quota Remaining**, its `next_reset` attribute and the quota repair now
+  follow BMW's day.
+
 ## [0.9.25-beta.1] - 2026-11-02
 
 ### Changed

@@ -71,8 +71,8 @@ the same.)
   portal.
 - **Only primary cars are added.** A car BMW lists for the account with
   the status SECONDARY is not adopted.
-- **It costs quota, once per car.** Two requests against the account's 50 per
-  24 h, only when a new car is found; nothing is spent when there is none. If the
+- **It costs quota, once per car.** Two requests against the account's 50 a
+  day, only when a new car is found; nothing is spent when there is none. If the
   quota is used up, the car is skipped, and **Discover vehicles** tries again
   later.
 - **A failed attempt is not repeated by itself.** If BMW has no data for a car
@@ -88,7 +88,7 @@ the same.)
 
 ## Quota with several cars
 
-The 50 requests per 24 h belong to the **account**, and the daily refresh costs
+The 50 requests a day belong to the **account**, and the daily refresh costs
 **2 requests per car** (the telematics container, plus the tire diagnosis). Three
 cars on one account is 6 of 50 a day — comfortable. Two separate accounts get 50
 each, because BMW counts per account. See [API quota](Feature-API-Quota).

@@ -23,7 +23,7 @@ message, so the automation stops instead of looking like it worked.
 ## Fetch services — spend API quota ⚡
 
 Each of these spends **one or more** of your
-[50 requests / 24 h](Feature-API-Quota). The first two run automatically once a
+[50 requests a day](Feature-API-Quota). The first two run automatically once a
 day as the [daily refresh](Feature-API-Quota#the-daily-refresh); calling them by
 hand just fetches early and spends an extra request.
 

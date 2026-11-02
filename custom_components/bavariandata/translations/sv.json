@@ -2871,7 +2871,7 @@
   "issues": {
     "api_quota_exhausted": {
       "title": "BMW CarData API-kvoten är slut ({account})",
-      "description": "BMW CarData:s REST-gräns på {limit} anrop per 24 h har nåtts, så data på begäran (grunddata, laddningshistorik, däckdiagnos, fordonsbild) kan inte uppdateras just nu. Strömmade data fortsätter att komma. Kvoten frigörs igen {next_reset}."
+      "description": "BMW CarData:s REST-gräns på {limit} anrop per dygn har nåtts, så data på begäran (grunddata, laddningshistorik, däckdiagnos, fordonsbild) kan inte uppdateras just nu. Strömmade data fortsätter att komma. Kvoten frigörs igen {next_reset}."
     },
     "motorcycle_unsupported": {
       "title": "BMW-motorcyklar kan inte strömma sina data",

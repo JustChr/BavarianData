@@ -306,7 +306,7 @@ Konto stammen — was zählt, weil BMW pro Konto nur einen laufenden Stream erla
 
 | In der Datei | Beantwortet |
 | --- | --- |
-| Kontingent (verbraucht / übrig / nächstes Zurücksetzen) | Ob du deine 50 Anfragen / 24 h aufgebraucht hast. |
+| Kontingent (verbraucht / übrig / nächstes Zurücksetzen) | Ob du die 50 Anfragen des Tages aufgebraucht hast. |
 | Gewählte Datengruppen + Deskriptor-Abdeckung pro Auto | Ob die Datenauswahl wirklich gespeichert wurde und ob das Auto liefert, was du gewählt hast. |
 | Ankünfte und letzter Zeitpunkt pro Deskriptor | Ob der Stream liefert, und was. |
 | Verbindungsverlauf mit MQTT-`rc`-Codes | Autorisierungsfehler und ein anderer Client, der den einzigen Stream belegt. |
@@ -550,9 +550,9 @@ mit der Zeile; ersetze vorher die FIN im Pfad durch `…`.
 
 <a id="quota-exhausted"></a>
 
-Hast du alle [50 REST-Anfragen](DE-Feature-API-Quota) in 24 h verbraucht, erscheint unter
+Hast du alle [50 REST-Anfragen](DE-Feature-API-Quota) des Tages verbraucht, erscheint unter
 **Einstellungen → Reparaturen** der Hinweis **„BMW CarData API-Kontingent aufgebraucht“**
-mit dem Zeitpunkt, zu dem es zurückgesetzt wird. **Der Stream
+mit dem Zeitpunkt, zu dem es zurückgesetzt wird: um 00:00 UTC, wenn bei BMW ein neuer Tag beginnt. **Der Stream
 fließt die ganze Zeit weiter** — nur `fetch_*`-Aufrufe pausieren.
 
 ## BavarianData vollständig entfernen

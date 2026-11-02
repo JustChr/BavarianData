@@ -68,7 +68,7 @@ passend).
 | **Fahrt aktiv** | Binärsensor: `an`, solange eine Fahrt läuft, mit der bisherigen Fahrt als Attributen. Bewusst *kein* „bewegt sich“-Sensor — er bleibt nach der Ankunft noch eine Weile an; siehe [Fahrten](DE-Feature-Trips#seeing-the-drive-thats-happening-now). |
 | **Reifenzustand** | BMWs Gesamturteil zum montierten Satz, plus etwaige Fehler der Gegenseite. |
 | **Reifen vorne links / vorne rechts / hinten links / hinten rechts** | Verschleiß-Ampel pro Rad (`green`/`yellow`/`red`/`grey`), mit Restlaufleistung bis zum Wechsel, Defektstatus, Saison, Dimension, Profil und Montagedatum als Attributen. |
-| **Verbleibendes API-Kontingent** | Diagnose: übrige Anfragen im Fenster von 50 pro 24 h. |
+| **Verbleibendes API-Kontingent** | Diagnose: heute noch übrige Anfragen von 50; BMW setzt den Zähler um 00:00 UTC zurück. |
 | **Ladezustand (integrationsseitig vorhergesagt) / Vorhergesagte Ladegeschwindigkeit** | Hochgerechnete Ladezustands-Helfer (brauchen die Datengruppe Elektrofahrzeug) — siehe [welche Ladezustands-Entität verwenden](#which-state-of-charge-entity-to-use). |
 | **Vorhergesagte Zeit bis zum Ladeziel** | Minuten, bis eine Ladung **zu Hause** das Ladeziel des Autos erreicht, berechnet aus dem [Wallbox-Zähler](DE-Feature-evcc-and-Wallbox-Bridge#time-to-the-charge-target). `0`, wenn nicht geladen wird; unbekannt unterwegs, in den ersten Minuten einer Ladung und während eine PV-Ladung pausiert. Nur mit verknüpftem Wallbox-Zähler. |
 | **Stream-Verbindungsstatus** | Diagnose: Zustand der MQTT-Verbindung. |

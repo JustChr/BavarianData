@@ -55,7 +55,7 @@ erscheinen (der Screenshot zeigt die englische).
 | **Telemetrie-Container zurücksetzen** | Aktion ⚡ | Ersetzt den REST-Container der Integration durch einen frischen (etwa drei Anfragen). Nutze das, wenn Telematik-Abrufe mit CU-105 oder CU-121 fehlschlagen. |
 | **Debug-Protokollierung** | Einstellungen | Schalter für ausführliche Protokollierung — unten. |
 
-⚡ = verbraucht eine (oder mehrere) deiner [50 Anfragen / 24 h](DE-Feature-API-Quota).
+⚡ = verbraucht eine (oder mehrere) deiner [50 Anfragen pro Tag](DE-Feature-API-Quota).
 
 <a id="change-the-client-id"></a>
 

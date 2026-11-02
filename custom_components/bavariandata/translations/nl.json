@@ -2871,7 +2871,7 @@
   "issues": {
     "api_quota_exhausted": {
       "title": "API-quotum van BMW CarData opgebruikt ({account})",
-      "description": "De REST-limiet van BMW CarData van {limit} verzoeken per 24 uur is bereikt, dus gegevens op verzoek (basisgegevens, laadgeschiedenis, bandendiagnose, voertuigafbeelding) kunnen nu niet worden vernieuwd. De streamgegevens blijven binnenkomen. Het quotum komt weer vrij om {next_reset}."
+      "description": "De REST-limiet van BMW CarData van {limit} verzoeken per dag is bereikt, dus gegevens op verzoek (basisgegevens, laadgeschiedenis, bandendiagnose, voertuigafbeelding) kunnen nu niet worden vernieuwd. De streamgegevens blijven binnenkomen. Het quotum komt weer vrij om {next_reset}."
     },
     "motorcycle_unsupported": {
       "title": "BMW-motoren kunnen hun gegevens niet streamen",

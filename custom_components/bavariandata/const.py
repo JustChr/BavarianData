@@ -23,7 +23,6 @@ BOOTSTRAP_COMPLETE = "bootstrap_complete"
 REQUEST_LOG = "request_log"
 REQUEST_LOG_VERSION = 1
 REQUEST_LIMIT = 50  # API Quota
-REQUEST_WINDOW_SECONDS = 24 * 60 * 60  # How long API Quota is reserved after API Call in seconds
 # How often to call the Telematic API, in seconds. Once a day: the container now
 # holds the fields BMW *cannot* stream, and those change on the scale of days
 # (service demands, tread wear, lifetime counters), not minutes. A 24 h cadence

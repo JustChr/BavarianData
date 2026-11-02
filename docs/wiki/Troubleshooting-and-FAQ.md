@@ -295,7 +295,7 @@ What's left is exactly what distinguishes the common failures from each other:
 
 | In the file | Answers |
 | --- | --- |
-| Quota state (used / remaining / next reset) | Whether you've spent your 50 requests / 24 h. |
+| Quota state (used / remaining / next reset) | Whether you've spent the day's 50 requests. |
 | Selected clusters + descriptor coverage per car | Whether Data Selection actually saved, and whether the car produces what you picked. |
 | Per-descriptor arrival counts and last-seen times | Whether the stream is delivering, and what. |
 | Connection history with MQTT `rc` codes | Authorization failures, and another client stealing the single stream. |
@@ -535,9 +535,9 @@ with `…`.
 
 <a id="quota-exhausted"></a>
 
-If you've spent all [50 REST requests](Feature-API-Quota) in 24 h, a repair
+If you've spent all [50 REST requests](Feature-API-Quota) of the day, a repair
 issue titled **"BMW CarData API quota exhausted"** appears under **Settings →
-Repairs**, telling you when it resets.
+Repairs**, telling you when it resets: at 00:00 UTC, when BMW starts a new day.
 **Streaming keeps flowing throughout** — only `fetch_*` calls pause.
 
 ## Removing BavarianData completely

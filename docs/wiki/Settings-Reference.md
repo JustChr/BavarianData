@@ -54,7 +54,7 @@ The menu labels below are exactly as they appear in the UI.
 | **Reset telemetry container** | action ⚡ | Replace the integration's REST container with a fresh one (about three requests). Use if telematics fetches start failing with CU-105 or CU-121. |
 | **Debug logging** | settings | Verbose logging toggle — below. |
 
-⚡ = spends one (or more) of your [50 requests / 24 h](Feature-API-Quota).
+⚡ = spends one (or more) of your [50 requests a day](Feature-API-Quota).
 
 <a id="change-the-client-id"></a>
 

@@ -2871,7 +2871,7 @@
   "issues": {
     "api_quota_exhausted": {
       "title": "Kvóta API BMW CarData vyčerpána ({account})",
-      "description": "Byl dosažen REST limit BMW CarData {limit} požadavků za 24 h, takže data na požádání (základní údaje, historie nabíjení, diagnostika pneumatik, obrázek vozidla) nyní nelze obnovit. Data ze streamu dál přicházejí. Kvóta se znovu uvolní v {next_reset}."
+      "description": "Byl dosažen REST limit BMW CarData {limit} požadavků denně, takže data na požádání (základní údaje, historie nabíjení, diagnostika pneumatik, obrázek vozidla) nyní nelze obnovit. Data ze streamu dál přicházejí. Kvóta se znovu uvolní v {next_reset}."
     },
     "motorcycle_unsupported": {
       "title": "Motocykly BMW nemohou přenášet svá data",
