@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.25-beta.2] - 2026-11-02
+
 ### Fixed
 - **The API quota now resets when BMW's does: at 00:00 UTC.** BMW confirmed
   that its 50 requests a day are counted per calendar day (UTC) and do not roll
