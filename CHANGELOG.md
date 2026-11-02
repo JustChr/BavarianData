@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.25-beta.1] - 2026-11-02
+
 ### Changed
 - **The service items are back in the one telematics container.** From 16 Oct
   2026 BMW refused Condition Based Service for about a week, and with it every
