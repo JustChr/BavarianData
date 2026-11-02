@@ -47,7 +47,6 @@ TO_REDACT = {
     "password",
     "serial_number",
     "hv_container_id",
-    "service_container_id",
     "topic",
     "latitude",
     "longitude",

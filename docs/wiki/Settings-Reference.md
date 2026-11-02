@@ -51,7 +51,7 @@ The menu labels below are exactly as they appear in the UI.
 | --- | --- | --- |
 | **Re-authorize with BMW** | action | Sign in to BMW again with the same Client ID (after BMW invalidates the token). |
 | **Refresh tokens now** | action | Force an OAuth token refresh. |
-| **Reset telemetry container** | action ⚡ | Replace the integration's two REST containers with fresh ones (about three requests each). Use if telematics fetches start failing with CU-105 or CU-121. |
+| **Reset telemetry container** | action ⚡ | Replace the integration's REST container with a fresh one (about three requests). Use if telematics fetches start failing with CU-105 or CU-121. |
 | **Debug logging** | settings | Verbose logging toggle — below. |
 
 ⚡ = spends one (or more) of your [50 requests / 24 h](Feature-API-Quota).

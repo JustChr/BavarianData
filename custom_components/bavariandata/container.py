@@ -48,42 +48,37 @@ class ContainerKind:
     retired_names: tuple[str, ...] = ()
 
 
-# Fields fetched from a container of their own. BMW answers a container holding
-# one field it won't serve with a bare ``CU-400`` for the whole request, naming
-# no field. From 16 Oct 2026 it did so for ``conditionBasedServices`` -- alone
-# refused, the other 65 fields fine (bisected against the live API, #130/#142)
-# -- and every car lost its whole daily refresh to it.
-SERVICE_DESCRIPTORS = ("vehicle.status.conditionBasedServices",)
-
 # Everything BMW cannot stream (the container is those fields' only route into
 # Home Assistant) plus the battery keys, so a fresh install shows values before
 # the first stream message, and a restart's catch-up sees a charge's state.
 # One GET returns the lot.
+#
+# BMW answers a container holding one field it won't serve with a bare
+# ``CU-400`` for the whole request, naming no field. From 16 Oct 2026 it did so
+# for ``conditionBasedServices`` for about a week (#130/#142), so v0.9.20 to
+# v0.9.24 fetched that field from a container of its own. BMW has answered it
+# since 23 Oct, and it is back in here.
 FULL = ContainerKind(
     key="full",
     name=HV_BATTERY_CONTAINER_NAME,
     purpose=HV_BATTERY_CONTAINER_PURPOSE,
-    descriptors=tuple(
-        d for d in container_descriptors(HV_BATTERY_DESCRIPTORS) if d not in SERVICE_DESCRIPTORS
-    ),
+    descriptors=tuple(container_descriptors(HV_BATTERY_DESCRIPTORS)),
     id_key="hv_container_id",
     signature_key="hv_descriptor_signature",
-    # v0.9.20-beta.6's fallback for a refused car, which held the refused field
-    # too, so it never helped.
-    retired_names=("BavarianData non-streamable",),
+    # v0.9.20-beta.6's fallback for a refused car, and the service items'
+    # container of v0.9.20 to v0.9.24.
+    retired_names=("BavarianData non-streamable", "BavarianData service items"),
 )
-# The service items, so BMW refusing them costs only them.
-SERVICE = ContainerKind(
-    key="service",
-    name="BavarianData service items",
-    purpose="Service items, fetched apart",
-    descriptors=tuple(d for d in container_descriptors() if d in SERVICE_DESCRIPTORS),
-    id_key="service_container_id",
-    signature_key="service_descriptor_signature",
+KINDS = (FULL,)
+# What v0.9.20-beta.6 kept in the entry for its fallback container, and
+# v0.9.20 to v0.9.24 for the service items'.
+RETIRED_ENTRY_KEYS = (
+    "base_container_id",
+    "base_descriptor_signature",
+    "rest_base_vins",
+    "service_container_id",
+    "service_descriptor_signature",
 )
-KINDS = (FULL, SERVICE)
-# What v0.9.20-beta.6 kept in the entry for its fallback container.
-RETIRED_ENTRY_KEYS = ("base_container_id", "base_descriptor_signature", "rest_base_vins")
 
 
 class CardataContainerManager:

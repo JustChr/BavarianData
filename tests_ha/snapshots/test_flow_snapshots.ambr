@@ -795,7 +795,6 @@
     dict({
       'entry containers': dict({
         'hv_container_id': 'container-new',
-        'service_container_id': 'container-new',
       }),
     }),
     'authorize again',

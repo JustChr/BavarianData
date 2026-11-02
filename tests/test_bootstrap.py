@@ -56,12 +56,7 @@ def test_basic_data_is_fetched_even_when_the_telematics_fetch_fails():
 
 def test_basic_data_is_fetched_after_a_working_telematics_fetch_too():
     host = _bootstrap(telematics_ok=True)
-    assert [args[0] for args in host.rest.asked(api.async_get_telematic_data)] == [
-        CAR_A,
-        CAR_A,
-        CAR_B,
-        CAR_B,
-    ]
+    assert [args[0] for args in host.rest.asked(api.async_get_telematic_data)] == [CAR_A, CAR_B]
     assert host.rest.asked(api.async_get_basic_data) == [(CAR_A,), (CAR_B,)]
     assert host.data[const.VEHICLE_METADATA] == {
         CAR_A: {"modelName": "car 1"},

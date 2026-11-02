@@ -114,7 +114,7 @@
       },
       "fetch_now": {
         "title": "Obter da BMW agora",
-        "description": "Peça os dados à BMW já, em vez de esperar pela atualização diária. Cada entrada usa um dos 50 pedidos diários da BMW por veículo; **Obter os dados telemáticos** usa dois.",
+        "description": "Peça os dados à BMW já, em vez de esperar pela atualização diária. Cada entrada usa um dos 50 pedidos diários da BMW por veículo.",
         "menu_options": {
           "action_fetch_mappings": "Procurar veículos",
           "action_fetch_telematic": "Obter os dados telemáticos",
@@ -168,7 +168,7 @@
       },
       "action_reset_container": {
         "title": "Repor o contentor de telemetria",
-        "description": "Elimina os contentores de telemetria do CarData criados por esta integração e volta a criá-los. Use isto se os dados transmitidos parecerem incorretos ou depois de alterar a Seleção de dados no portal BMW.\n\nPrima Submeter para continuar."
+        "description": "Elimina os contentores de telemetria do CarData criados por esta integração e cria um novo. Use isto se os dados transmitidos parecerem incorretos ou depois de alterar a Seleção de dados no portal BMW.\n\nPrima Submeter para continuar."
       },
       "action_fetch_mappings": {
         "title": "Procurar veículos",
@@ -2897,7 +2897,7 @@
   "services": {
     "fetch_telematic_data": {
       "name": "Obter dados telemáticos",
-      "description": "Obtém os dados telemáticos de cada veículo da conta usando os contentores guardados e regista a resposta. Dois pedidos por veículo.",
+      "description": "Obtém os dados telemáticos de cada veículo da conta usando o contentor guardado e regista a resposta. Um pedido por veículo.",
       "fields": {
         "device_id": {
           "name": "Veículo",

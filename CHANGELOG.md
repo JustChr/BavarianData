@@ -9,6 +9,16 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Changed
+- **The service items are back in the one telematics container.** From 16 Oct
+  2026 BMW refused Condition Based Service for about a week, and with it every
+  container that held it, so since v0.9.20 they had a container of their own.
+  BMW has answered them every day since 23 Oct, so the daily refresh is back to
+  **2 requests per car** (the container and the tire diagnosis), and
+  **Fetch telematics data** to one. On its first fetch after the update, an
+  install replaces its container once (about three requests) and deletes the
+  service items' container at BMW.
+
 ## [0.9.24] - 2026-11-01
 
 Promotes 0.9.24-beta.1 to 0.9.24-beta.4. A second phone can draw the route of an end-of-trip car, and the card's texts load from a file of their own. A wallbox meter that jumps back no longer bills a charge twice, refuels show up when a car's litres stop updating, the Tires view compares pressures in one unit, and the Trips and Charging views keep the last day of the month.
