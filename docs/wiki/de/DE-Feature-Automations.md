@@ -241,7 +241,7 @@ liegen, sodass Automationen daraus weiter funktionieren.
   eingestellten Minuten. Sie wird alle paar Minuten aktualisiert (*Update
   every*), und sofort, wenn sich die Ladeleistung um ein Zehntel oder mehr
   ändert; nach einem Neustart nimmt sie einen noch laufenden Ladevorgang
-  wieder auf, dann ohne die Dauer. Die Karte nutzt Symbole und Einheiten statt
+  wieder auf. Die Karte nutzt Symbole und Einheiten statt
   Wörter und liest sich so in jeder Sprache gleich.
 
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-charged.png?v=2026-11-02" alt="Dieselbe Karte nach dem Laden: Charged to 80 %, 15.9 kWh, 4.07 EUR, der Balken voll" width="420" />
