@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.25-beta.5] - 2026-11-03
+
 ### Added
 - **The lock-screen card can show your wallbox's power.** BMW often sends the
   car's charging power late: on a test charge it said 4.1 kW for over 40 minutes
