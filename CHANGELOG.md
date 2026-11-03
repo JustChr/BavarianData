@@ -9,6 +9,16 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Changed
+- **A clearer lock-screen card.** *Charging on the lock screen* shows the
+  battery as a bar up to the target, so a charge no longer starts on an empty
+  bar. Without a countdown, the line under the car's name shows the target and
+  the energy so far (`→ 80 % · +6.3 kWh`) rather than repeating the level and
+  power from the corner. The finished card says how long the charge took, and
+  uses symbols instead of English words (`✓ 80 % · +15.9 kWh · 4.07 EUR · 1 h
+  52 min`, or `61 % / 80 %` short of the target), so it reads the same in every
+  language.
+
 ### Fixed
 - **Blueprints imported by URL get the updates too.** Home Assistant keeps a
   blueprint imported by URL in a folder of its own, not in the one the
