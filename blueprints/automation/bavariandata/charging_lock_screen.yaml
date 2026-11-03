@@ -222,8 +222,10 @@ actions:
                         # empty bar.
                         progress: "{{ [soc, target] | min }}"
                         progress_max: "{{ target }}"
-                        # The top-right corner (Android: the status chip), kept short.
-                        critical_text: "{{ soc }}{{ nbsp }}%{{ ' · ' ~ power if power }}"
+                        # The top-right corner (Android: the status chip). The countdown
+                        # takes the message line, so the target goes here too.
+                        critical_text: >-
+                          {{ soc }}{{ nbsp }}→{{ nbsp }}{{ target }}{{ nbsp }}%{{ ' · ' ~ power if power }}
                         chronometer: "{{ eta is number and eta > 0 }}"
                         when: "{{ (eta * 60) if eta is number else 0 }}"
                         when_relative: true

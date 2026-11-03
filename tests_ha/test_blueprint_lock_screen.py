@@ -138,7 +138,7 @@ async def test_a_charge_runs_from_start_to_cleared(hass: HomeAssistant, tmp_path
     assert card["live_update"] is True
     # The bar is the battery, up to the target.
     assert (card["progress"], card["progress_max"]) == (52, 80)
-    assert card["critical_text"] == f"52{NB}% · 10.8{NB}kW"
+    assert card["critical_text"] == f"52{NB}→{NB}80{NB}% · 10.8{NB}kW"
     assert card["chronometer"] is True
     assert (card["when"], card["when_relative"]) == (3600, True)
 
@@ -186,7 +186,7 @@ async def test_without_a_countdown_or_power_the_card_still_shows(hass: HomeAssis
     (first,) = calls
     assert first.data["title"] == "i5 eDrive40"
     assert first.data["message"] == f"→{NB}80{NB}%"
-    assert first.data["data"]["critical_text"] == f"52{NB}%"
+    assert first.data["data"]["critical_text"] == f"52{NB}→{NB}80{NB}%"
     assert first.data["data"]["chronometer"] is False
 
 
@@ -203,7 +203,7 @@ async def test_watts_read_as_kilowatts(hass: HomeAssistant) -> None:
     hass.bus.async_fire("bavariandata_charging_started", {"vin": VIN, "soc": 40, "target_soc": 80})
     await _settle()
 
-    assert calls[0].data["data"]["critical_text"] == f"52{NB}% · 4.0{NB}kW"
+    assert calls[0].data["data"]["critical_text"] == f"52{NB}→{NB}80{NB}% · 4.0{NB}kW"
 
 
 async def test_a_change_in_power_refreshes_the_card_at_once(hass: HomeAssistant) -> None:
@@ -228,7 +228,7 @@ async def test_a_change_in_power_refreshes_the_card_at_once(hass: HomeAssistant)
     hass.states.async_set(power, "7.2", {**hass.states.get(power).attributes})
     await _settle()
     assert len(calls) == 2
-    assert calls[-1].data["data"]["critical_text"] == f"52{NB}% · 7.2{NB}kW"
+    assert calls[-1].data["data"]["critical_text"] == f"52{NB}→{NB}80{NB}% · 7.2{NB}kW"
 
     # Measured from the card's new 7.2 kW, not from where the charge started.
     hass.states.async_set(power, "7.6", {**hass.states.get(power).attributes})
@@ -239,7 +239,7 @@ async def test_a_change_in_power_refreshes_the_card_at_once(hass: HomeAssistant)
     hass.states.async_set(power, "0", {**hass.states.get(power).attributes})
     await _settle()
     assert len(calls) == 3
-    assert calls[-1].data["data"]["critical_text"] == f"52{NB}%"
+    assert calls[-1].data["data"]["critical_text"] == f"52{NB}→{NB}80{NB}%"
 
 
 def _tracker(hass: HomeAssistant, device: str, state: str) -> str:
@@ -260,24 +260,24 @@ async def test_the_wallbox_power_is_shown_while_the_car_is_at_home(hass: HomeAss
     # The wallbox hasn't started yet: BMW's value.
     hass.bus.async_fire("bavariandata_charging_started", {"vin": VIN, "soc": 40, "target_soc": 80})
     await _settle()
-    assert calls[-1].data["data"]["critical_text"] == f"52{NB}% · 10.8{NB}kW"
+    assert calls[-1].data["data"]["critical_text"] == f"52{NB}→{NB}80{NB}% · 10.8{NB}kW"
 
     # It starts: the card switches to it at once.
     hass.states.async_set(wallbox, "4120", {**hass.states.get(wallbox).attributes})
     await _settle()
     assert len(calls) == 2
-    assert calls[-1].data["data"]["critical_text"] == f"52{NB}% · 4.1{NB}kW"
+    assert calls[-1].data["data"]["critical_text"] == f"52{NB}→{NB}80{NB}% · 4.1{NB}kW"
 
     # The current goes up; BMW's value stays where it was.
     hass.states.async_set(wallbox, "10150", {**hass.states.get(wallbox).attributes})
     await _settle()
     assert len(calls) == 3
-    assert calls[-1].data["data"]["critical_text"] == f"52{NB}% · 10.2{NB}kW"
+    assert calls[-1].data["data"]["critical_text"] == f"52{NB}→{NB}80{NB}% · 10.2{NB}kW"
 
     # Away from home the wallbox isn't this car's: BMW's value again.
     hass.states.async_set(tracker, "not_home")
     await _later(hass, 2.1)
-    assert calls[-1].data["data"]["critical_text"] == f"52{NB}% · 10.8{NB}kW"
+    assert calls[-1].data["data"]["critical_text"] == f"52{NB}→{NB}80{NB}% · 10.8{NB}kW"
 
 
 async def test_a_stop_short_of_the_target_says_so(hass: HomeAssistant) -> None:
