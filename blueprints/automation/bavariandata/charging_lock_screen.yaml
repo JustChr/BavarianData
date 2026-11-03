@@ -108,6 +108,9 @@ variables:
   keep_minutes: !input keep_minutes
   # Joins a number to its unit, so the phone never breaks "15.9 kWh" across lines.
   nbsp: "\u00A0"
+  # The pause sign as text, in the card's own color: on its own an iPhone
+  # draws it as a blue emoji.
+  pause: "\u23F8\uFE0E"
   # Every BavarianData car, or the picked ones, as {vin: device_id}: each car's
   # device carries its VIN as its identifier.
   cars: >-
@@ -314,7 +317,7 @@ actions:
                       # iPhone: what the corner doesn't say. Symbols, not words, since
                       # a blueprint can't be translated.
                       message: >-
-                        {{ ('⏸' ~ nbsp) if not active }}→{{ nbsp }}{{ target }}{{ nbsp }}%
+                        {{ (pause ~ nbsp) if not active }}→{{ nbsp }}{{ target }}{{ nbsp }}%
                         {%- if energy | round(1) > 0 %} · +{{ energy | round(1) }}{{ nbsp }}kWh{% endif %}
                       data:
                         tag: "{{ tag }}"

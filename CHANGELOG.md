@@ -9,15 +9,86 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+Promotes 0.9.25-beta.1 to 0.9.25-beta.7. A charge now shows on your phone's lock screen, the blueprints install and update themselves, and a car's whole stream can be shared with other apps over MQTT. A finished charge is announced at once, the API quota resets at 00:00 UTC as BMW's does, and the daily refresh is back to 2 requests per car.
+
+### Added
+- **Blueprint: Charging on the lock screen** (0.9.25-beta.3). While the car
+  charges, your phone's lock screen shows a Live Activity (iPhone, also in the
+  Dynamic Island) or a Live Update (Android): the battery as a bar up to the
+  target, the level, target and charging power in the corner
+  (`75 → 80 % · 10.2 kW`), and a countdown to the target that the phone runs
+  by itself. It refreshes every few minutes and at once when the power changes
+  by a tenth or more. BMW often sends the car's charging power late (on a test
+  charge 4.1 kW for over 40 minutes while the wallbox delivered 10.1 kW), so
+  the optional *Wallbox power* setting shows your wallbox's figure while the car
+  is at home. A stop short of the target stops the countdown and shows ⏸ until
+  the car carries on or the charge ends. At the end the card shows ✓ and the
+  level reached (or both levels, short of the target), the energy, the cost
+  with a tariff set and how long it took (`✓ 80 % · +15.9 kWh · 4.07 EUR · 1 h
+  52 min`), then clears itself. After a restart it picks up a charge that is
+  still running. It uses symbols instead of words, so it reads the same in
+  every language. Needs the Companion app: iOS 17.2 with Home Assistant 2026.7
+  or later, or Android 16.
+- **The blueprints come with the integration** (0.9.25-beta.3). All nine are
+  installed under Settings → Automations & scenes → Blueprints, with no import
+  by URL, and each update brings their latest version: automations made from
+  them pick it up at once. Copies imported by URL before are kept up to date
+  too; Home Assistant keeps those in a folder of their own, so each shows up
+  twice, and once no automation uses the older copy you can delete it. A
+  blueprint you changed by hand is left alone.
+- **Share a car's whole stream with other apps** (0.9.25-beta.3). BMW allows
+  one stream per account, so a MagicMirror module, a Garmin widget or your own
+  script couldn't read it next to Home Assistant. **Configure → MQTT bridge
+  (evcc & more)** now has **Share this car's whole stream**: every value BMW
+  streams goes on Home Assistant's MQTT broker, each message as BMW sent it on
+  `bavariandata/VIN/stream` and the latest value of each field on its own
+  retained topic under it. Off by default and set per car. The position and
+  the navigation destination are left out unless you turn **Leave out the
+  position** off. Switching it off removes what it published. No API cost.
+
+### Changed
+- **The service items are back in the one telematics container**
+  (0.9.25-beta.1). From 16 Oct 2026 BMW refused Condition Based Service for
+  about a week, and with it every container that held it, so since v0.9.20 they
+  had a container of their own. BMW has answered them every day since 23 Oct,
+  so the daily refresh is back to **2 requests per car** (the container and the
+  tire diagnosis), and **Fetch telematics data** to one. On its first fetch
+  after the update, an install replaces its container once (about three
+  requests) and deletes the service items' container at BMW.
+- **The evcc / wallbox bridge is now the MQTT bridge (evcc & more)**
+  (0.9.25-beta.3), with the stream sharing above beside the evcc switch, now
+  labeled *Publish this car for evcc*. The evcc configuration screen only
+  follows when evcc is on for the car.
+- **A finished charge is announced at once** (0.9.25-beta.3). When the car
+  reports the charge as ended, *Charging completed* and the other end events
+  now fire right away; with the cable still in they used to wait 5 minutes for
+  a possible resume. A stop short of the target is a pause first: after 2
+  minutes the new **Charging paused** trigger fires, and **Charging resumed**
+  if it carries on. The charging history still keeps such a charge as one
+  session, and only after 5 minutes stopped does it end as *stopped before the
+  target*. Both are new device triggers and events
+  (`bavariandata_charging_paused` / `bavariandata_charging_resumed`).
+- **Pick your phones from a list** (0.9.25-beta.3). *Notify when charging
+  completes* and *Stop charging at target %* now take the phones as devices of
+  the Companion app (several at once) instead of a typed notification service.
+  A service typed in before moves under *Older setting* and keeps working.
+- **The blueprints' car picker lists only cars** (0.9.25-beta.3). *Notify when
+  charging completes* and *Car left open at night* also offered the account's
+  own *BMW CarData* device, which has no car behind it.
+
 ### Fixed
-- **The lock-screen card no longer starts with the last charge's energy.** The
-  start comes a moment before the charge's energy counter resets, so the first
-  card could show what went in last time (`+2.7 kWh`) until its next refresh.
-- **One card run for a charge that starts just after a restart.** A minute
-  after a restart, the card picks up a charge that is still running. A charge
-  that began in that minute already had a run from its own start and got a
-  second one, so the card was refreshed twice as often. The card now picks up
-  only a charge that began before the restart.
+- **The API quota now resets when BMW's does: at 00:00 UTC** (0.9.25-beta.2).
+  BMW confirmed that its 50 requests a day are counted per calendar day (UTC)
+  and do not roll over 24 hours after each request. The integration counted a
+  rolling 24 hours, so after a busy day it could hold back requests BMW would
+  still have answered. **API Quota Remaining**, its `next_reset` attribute and
+  the quota repair now follow BMW's day.
+- **Blueprint *Stop charging at target %* loads again** (0.9.25-beta.3).
+  Current Home Assistant refuses its `max_exceptions` line, so an automation
+  made from it was invalid and never switched the charger off. The integration
+  now installs the fixed version itself; an automation made from it works again
+  after the update.
+- ***Notify when charging completes* says "80%"** (0.9.25-beta.6), not "80.0%".
 
 ## [0.9.25-beta.7] - 2026-11-03
 
