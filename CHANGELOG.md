@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.25-beta.7] - 2026-11-03
+
 ### Fixed
 - **The lock-screen card shows up again when a charge starts.** Since beta.6
   the card checks on every round whether the charge has ended, and on the
