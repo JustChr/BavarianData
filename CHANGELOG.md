@@ -27,6 +27,13 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   twice and the imported copy was never updated. Both copies are now kept up to
   date (one changed by hand is still left alone). Once no automation uses the
   older copy, you can delete it.
+- **The lock-screen card shows the result when a charge ends.** Since beta.4 a
+  charge's end often came while the card was busy following the power, which
+  falls to 0 in the same moment, so the card never got the result and kept
+  showing the charge. The result now has a run of its own. Its duration comes
+  from the charge's own start, so it also shows after a restart, and at the
+  target the corner reads `80 %` rather than `80 → 80 %`.
+- ***Notify when charging completes* says "80%"**, not "80.0%".
 
 ## [0.9.25-beta.5] - 2026-11-03
 

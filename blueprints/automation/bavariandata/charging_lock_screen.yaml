@@ -88,6 +88,11 @@ triggers:
   - trigger: event
     event_type: bavariandata_lock_screen_resume
     id: resumed
+  # The result gets a run of its own: the run keeping the card current can be
+  # busy sending an update at that moment and would miss the event.
+  - trigger: event
+    event_type: bavariandata_charging_stopped
+    id: stopped
 
 variables:
   phones: !input phones
@@ -142,6 +147,67 @@ actions:
                     - event: bavariandata_lock_screen_resume
                       event_data:
                         vin: "{{ repeat.item }}"
+      - conditions:
+          - condition: trigger
+            id: stopped
+          - condition: template
+            value_template: "{{ trigger.event.data.vin in cars }}"
+        sequence:
+          - variables:
+              device: "{{ cars[trigger.event.data.vin] }}"
+              entities: "{{ device_entities(device) }}"
+              car: "{{ device_attr(device, 'name_by_user') or device_attr(device, 'name') or 'Car' }}"
+              tag: "bavariandata-charging-{{ device }}"
+              done: "{{ trigger.event.data }}"
+              cost: "{{ done.cost if done.cost is mapping else {} }}"
+              # The event's SoC can come as 80.0; the card shows whole percent.
+              end_soc: "{{ (done.soc if done.soc is number else 0) | round(0) | int }}"
+              target: "{{ (done.target_soc if done.target_soc is number else 100) | round(0) | int }}"
+              # The charge's own length: its energy counter was reset when it
+              # started, and keeps that time across restarts.
+              minutes: >-
+                {%- set counter = entities | select('is_state_attr', 'descriptor', 'charged_energy_session') | list | first | default('') -%}
+                {%- set reset = state_attr(counter, 'last_reset') if counter else none -%}
+                {%- set began = as_datetime(reset, none) if reset else none -%}
+                {%- set length = ((now() - began).total_seconds() / 60) | round(0) | int if began else 0 -%}
+                {{ length if 0 < length < 1440 else 0 }}
+          - repeat:
+              for_each: "{{ notify_actions }}"
+              sequence:
+                - action: "{{ repeat.item }}"
+                  data:
+                    title: "{{ car }}"
+                    # ✓ reached the target; short of it, the target it missed.
+                    message: >-
+                      {{ ('✓' ~ nbsp ~ end_soc ~ nbsp ~ '%') if done.complete
+                         else (end_soc ~ nbsp ~ '%' ~ nbsp ~ '/' ~ nbsp ~ target ~ nbsp ~ '%') }}
+                      {%- if done.energy_kwh is number %} · +{{ done.energy_kwh | round(1) }}{{ nbsp }}kWh{% endif %}
+                      {%- if cost.amount is number %} · {{ '%.2f' | format(cost.amount) }}{{ nbsp ~ cost.currency if cost.currency }}{% endif %}
+                      {%- if minutes > 0 %} · {{ (minutes ~ nbsp ~ 'min') if minutes < 60
+                           else ((minutes // 60) ~ nbsp ~ 'h' ~ (nbsp ~ (minutes % 60) ~ nbsp ~ 'min' if minutes % 60)) }}{% endif %}
+                    data:
+                      tag: "{{ tag }}"
+                      live_update: true
+                      progress: "{{ target if done.complete else [end_soc, target] | min }}"
+                      progress_max: "{{ target }}"
+                      critical_text: "{{ end_soc }}{{ nbsp }}%"
+                      chronometer: false
+                      notification_icon: mdi:battery-check
+                      notification_icon_color: "#4CAF50"
+                      color: "#4CAF50"
+                      progress_bar_direction: increasing
+                      url: /config/devices/device/{{ device }}
+                      alert_once: true
+          - delay:
+              minutes: "{{ keep_minutes }}"
+          - repeat:
+              for_each: "{{ notify_actions }}"
+              sequence:
+                - action: "{{ repeat.item }}"
+                  data:
+                    message: clear_notification
+                    data:
+                      tag: "{{ tag }}"
     default:
       - condition: template
         value_template: "{{ trigger.event.data.vin in cars }}"
@@ -160,15 +226,24 @@ actions:
             {%- set bmw = entities | select('is_state_attr', 'descriptor', 'vehicle.drivetrain.batteryManagement.header')
                   | map('states') | select('is_number') | first -%}
             {{ (trigger.event.data.soc if trigger.event.data.soc is number else (own or bmw or 0)) | float(0) | round(0) | int }}
+          status: >-
+            {{ entities | select('is_state_attr', 'descriptor', 'vehicle.drivetrain.electricEngine.charging.status')
+               | list | first | default('') }}
           bmw_power: >-
             {{ entities | select('is_state_attr', 'descriptor', 'vehicle.powertrain.electric.battery.charging.power')
                | list | first | default('') }}
           tracker: "{{ entities | select('match', 'device_tracker[.]') | list | first | default('') }}"
           started: "{{ now().timestamp() }}"
-          # After a restart this run began mid-charge, so its age isn't the charge's.
-          timed: "{{ trigger.id == 'start' }}"
       - repeat:
           sequence:
+            # The charge ended while this run was busy: the result's own run
+            # shows it, so stop here rather than cover it with an update.
+            - if:
+                - condition: template
+                  value_template: >-
+                    {{ status != '' and not is_state(status, ['chargingactive', 'initialization', 'chargingpaused']) }}
+              then:
+                - stop: The charge ended
             - variables:
                 # The integration's estimate first: it moves between BMW's updates.
                 soc: >-
@@ -223,9 +298,10 @@ actions:
                         progress: "{{ [soc, target] | min }}"
                         progress_max: "{{ target }}"
                         # The top-right corner (Android: the status chip). The countdown
-                        # takes the message line, so the target goes here too.
+                        # takes the message line, so the target goes here too, until
+                        # it is reached.
                         critical_text: >-
-                          {{ soc }}{{ nbsp }}→{{ nbsp }}{{ target }}{{ nbsp }}%{{ ' · ' ~ power if power }}
+                          {{ soc }}{{ (nbsp ~ '→' ~ nbsp ~ target) if soc < target }}{{ nbsp }}%{{ ' · ' ~ power if power }}
                         chronometer: "{{ eta is number and eta > 0 }}"
                         when: "{{ (eta * 60) if eta is number else 0 }}"
                         when_relative: true
@@ -259,50 +335,14 @@ actions:
                 - condition: template
                   value_template: "{{ wait.trigger is not none and wait.trigger.id == 'stopped' }}"
               then:
-                - variables:
-                    done: "{{ wait.trigger.event.data }}"
-                    cost: "{{ done.cost if done.cost is mapping else {} }}"
-                    # The event's SoC can come as 80.0; the card shows whole percent.
-                    end_soc: "{{ (done.soc if done.soc is number else soc) | round(0) | int }}"
-                    minutes: "{{ ((now().timestamp() - started) / 60) | round(0) | int if timed else 0 }}"
-                - repeat:
-                    for_each: "{{ notify_actions }}"
-                    sequence:
-                      - action: "{{ repeat.item }}"
-                        data:
-                          title: "{{ car }}"
-                          # ✓ reached the target; short of it, the target it missed.
-                          message: >-
-                            {{ ('✓' ~ nbsp ~ end_soc ~ nbsp ~ '%') if done.complete
-                               else (end_soc ~ nbsp ~ '%' ~ nbsp ~ '/' ~ nbsp ~ target ~ nbsp ~ '%') }}
-                            {%- if done.energy_kwh is number %} · +{{ done.energy_kwh | round(1) }}{{ nbsp }}kWh{% endif %}
-                            {%- if cost.amount is number %} · {{ '%.2f' | format(cost.amount) }}{{ nbsp ~ cost.currency if cost.currency }}{% endif %}
-                            {%- if minutes > 0 %} · {{ (minutes ~ nbsp ~ 'min') if minutes < 60
-                                 else ((minutes // 60) ~ nbsp ~ 'h' ~ (nbsp ~ (minutes % 60) ~ nbsp ~ 'min' if minutes % 60)) }}{% endif %}
-                          data:
-                            tag: "{{ tag }}"
-                            live_update: true
-                            progress: "{{ target if done.complete else [end_soc, target] | min }}"
-                            progress_max: "{{ target }}"
-                            critical_text: "{{ end_soc }}{{ nbsp }}%"
-                            chronometer: false
-                            notification_icon: mdi:battery-check
-                            notification_icon_color: "#4CAF50"
-                            color: "#4CAF50"
-                            progress_bar_direction: increasing
-                            url: /config/devices/device/{{ device }}
-                            alert_once: true
+                - stop: The charge ended
+            # Power falls as a charge ends, a moment before the car says so: give
+            # it that moment, so the check above sees the end.
+            - if:
+                - condition: template
+                  value_template: "{{ wait.trigger is not none and wait.trigger.id == 'power' }}"
+              then:
                 - delay:
-                    minutes: "{{ keep_minutes }}"
-                - repeat:
-                    for_each: "{{ notify_actions }}"
-                    sequence:
-                      - action: "{{ repeat.item }}"
-                        data:
-                          message: clear_notification
-                          data:
-                            tag: "{{ tag }}"
+                    seconds: 3
           # A charge that never reports its end (a lost event) stops after a day.
-          until: >-
-            {{ (wait.trigger is not none and wait.trigger.id == 'stopped')
-               or now().timestamp() - started >= 86400 }}
+          until: "{{ now().timestamp() - started >= 86400 }}"

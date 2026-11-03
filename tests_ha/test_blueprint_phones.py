@@ -77,7 +77,7 @@ async def test_charging_complete_reaches_the_phones(
 
     hass.bus.async_fire(
         "bavariandata_charging_stopped",
-        {"vin": VIN, "soc": 80, "target_soc": 80, "complete": True, "vehicle": "i5 eDrive40"},
+        {"vin": VIN, "soc": 80.0, "target_soc": 80.0, "complete": True, "vehicle": "i5 eDrive40"},
     )
     await hass.async_block_till_done()
 

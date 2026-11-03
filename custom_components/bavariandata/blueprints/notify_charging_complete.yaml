@@ -74,8 +74,10 @@ variables:
        + ([notify_target | trim] if notify_target | trim else []) }}
   only_on_complete: !input only_on_complete
   vehicles: !input vehicles
-  soc: "{{ trigger.event.data.soc }}"
-  target: "{{ trigger.event.data.target_soc }}"
+  # Whole percent: the event can say 80.0.
+  soc: "{{ trigger.event.data.soc | round(0) | int if trigger.event.data.soc is number else none }}"
+  target: >-
+    {{ trigger.event.data.target_soc | round(0) | int if trigger.event.data.target_soc is number else none }}
   # The integration's own verdict, the one it fires `charging_complete` by.
   complete: "{{ trigger.event.data.complete | default(false) }}"
   # The picked cars' VINs: each car's device carries it as its identifier.

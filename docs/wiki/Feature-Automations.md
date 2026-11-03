@@ -229,7 +229,7 @@ integration leaves every copy, so an automation made from one keeps working.
   tariff set), then clears itself after the minutes you set. It refreshes
   every few minutes (*Update every*), and at once when the charging power
   changes by a tenth or more; after a restart it picks up a charge that is
-  still running, then without the duration. The card uses symbols and units
+  still running. The card uses symbols and units
   rather than words, so it reads the same in every language.
 
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-charged.png?v=2026-11-02" alt="The same card once the charge ended: Charged to 80 %, 15.9 kWh, 4.07 EUR, the bar full" width="420" />
