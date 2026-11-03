@@ -559,7 +559,7 @@ async def test_a_stop_short_of_the_target_stops_the_countdown_at_once(
     hass.states.async_set(status, "nocharging", {**hass.states.get(status).attributes})
     await _settle()
     held = calls[-1].data
-    assert held["message"] == f"⏸{NB}→{NB}80{NB}% · +6.3{NB}kWh"
+    assert held["message"] == f"⏸︎{NB}→{NB}80{NB}% · +6.3{NB}kWh"
     assert held["data"]["chronometer"] is False
     assert held["data"]["critical_text"] == f"52{NB}→{NB}80{NB}%"
 
