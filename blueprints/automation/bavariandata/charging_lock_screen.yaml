@@ -41,7 +41,8 @@ blueprint:
       description: >
         How often the card is refreshed while charging. The countdown runs on the
         phone in between, so a few minutes is plenty; iPhones limit how many
-        updates they show anyway.
+        updates they show anyway. A change of a tenth or more in the charging
+        power refreshes it at once.
       default: 2
       selector:
         number:
@@ -148,6 +149,10 @@ actions:
             {%- set bmw = entities | select('is_state_attr', 'descriptor', 'vehicle.drivetrain.batteryManagement.header')
                   | map('states') | select('is_number') | first -%}
             {{ (trigger.event.data.soc if trigger.event.data.soc is number else (own or bmw or 0)) | float(0) | round(0) | int }}
+          power_entity: >-
+            {{ entities | select('is_state_attr', 'descriptor', 'vehicle.powertrain.electric.battery.charging.power')
+               | list | first | default('') }}
+          started: "{{ now().timestamp() }}"
       - repeat:
           sequence:
             - variables:
@@ -162,14 +167,15 @@ actions:
                   {%- set streamed = entities | select('is_state_attr', 'descriptor', 'vehicle.powertrain.electric.battery.stateOfCharge.target')
                         | map('states') | select('is_number') | first -%}
                   {{ (streamed or trigger.event.data.target_soc or 100) | float(100) | round(0) | int }}
-                power: >-
-                  {%- set e = entities | select('is_state_attr', 'descriptor', 'vehicle.powertrain.electric.battery.charging.power')
-                        | list | first -%}
-                  {%- if e and states(e) | is_number and states(e) | float > 0 -%}
-                    {%- set unit = state_attr(e, 'unit_of_measurement') -%}
-                    {#- Cars send watts or kilowatts; the card always says kW. -#}
-                    {{ (states(e) | float / (1000 if unit == 'W' else 1)) | round(1) }}{{ nbsp }}kW
+                # Cars send watts or kilowatts; the card always says kW.
+                power_kw: >-
+                  {%- if power_entity and states(power_entity) | is_number -%}
+                    {%- set unit = state_attr(power_entity, 'unit_of_measurement') -%}
+                    {{ [(states(power_entity) | float / (1000 if unit == 'W' else 1)) | round(1), 0] | max }}
+                  {%- else -%}
+                    0
                   {%- endif -%}
+                power: "{{ (power_kw ~ nbsp ~ 'kW') if power_kw > 0 else '' }}"
                 eta: >-
                   {{ entities | select('is_state_attr', 'descriptor', 'charge_eta')
                      | map('states') | select('is_number') | map('int') | first | default(none) }}
@@ -207,12 +213,21 @@ actions:
                   event_type: bavariandata_charging_stopped
                   event_data:
                     vin: "{{ vin }}"
+                  id: stopped
+                # The power moved a tenth or more from what the card shows: refresh now.
+                - trigger: template
+                  id: power
+                  value_template: >-
+                    {%- set unit = state_attr(power_entity, 'unit_of_measurement') -%}
+                    {%- set kw = [(states(power_entity) | float / (1000 if unit == 'W' else 1)) | round(1), 0] | max
+                          if states(power_entity) | is_number else 0 -%}
+                    {{ (kw - power_kw) | abs >= [power_kw * 0.1, 0.1] | max }}
               timeout:
                 minutes: "{{ interval }}"
               continue_on_timeout: true
             - if:
                 - condition: template
-                  value_template: "{{ wait.trigger is not none }}"
+                  value_template: "{{ wait.trigger is not none and wait.trigger.id == 'stopped' }}"
               then:
                 - variables:
                     done: "{{ wait.trigger.event.data }}"
@@ -254,4 +269,6 @@ actions:
                           data:
                             tag: "{{ tag }}"
           # A charge that never reports its end (a lost event) stops after a day.
-          until: "{{ wait.trigger is not none or repeat.index * interval >= 1440 }}"
+          until: >-
+            {{ (wait.trigger is not none and wait.trigger.id == 'stopped')
+               or now().timestamp() - started >= 86400 }}
