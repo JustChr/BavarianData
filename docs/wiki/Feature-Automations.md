@@ -194,9 +194,11 @@ The ones that message you take your **phones** from a list (the devices of the
 Home Assistant Companion app). A notification service typed in before the list
 existed stays under **Older setting** and keeps working.
 
-Before v0.9.25 they had to be imported by URL. Those copies are in the same
-place and are simply updated. Removing the integration leaves them, so an
-automation made from one keeps working.
+Before v0.9.25 they had to be imported by URL. Home Assistant keeps those copies
+in a folder of their own, so each one you imported appears **twice** in the
+list. Both are updated. Once no automation uses the older copy, you can delete
+it; its ⋮ menu in the list shows which automations use it. Removing the
+integration leaves every copy, so an automation made from one keeps working.
 
 - **Stop charging at target %** —
   [`stop_charge_at_target.yaml`](https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/stop_charge_at_target.yaml).
