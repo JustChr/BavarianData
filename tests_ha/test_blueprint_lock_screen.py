@@ -204,6 +204,42 @@ async def test_watts_read_as_kilowatts(hass: HomeAssistant) -> None:
     assert calls[0].data["message"] == f"52{NB}% of 80{NB}% · 4.0{NB}kW"
 
 
+async def test_a_change_in_power_refreshes_the_card_at_once(hass: HomeAssistant) -> None:
+    await _car(hass)
+    power = next(
+        state.entity_id
+        for state in hass.states.async_all("sensor")
+        if state.attributes.get("descriptor")
+        == "vehicle.powertrain.electric.battery.charging.power"
+    )
+    calls = await _automation(hass)
+
+    hass.bus.async_fire("bavariandata_charging_started", {"vin": VIN, "soc": 40, "target_soc": 80})
+    await _settle()
+    assert len(calls) == 1
+
+    # Less than a tenth off what the card shows (10.8 kW): it waits for its interval.
+    hass.states.async_set(power, "10.0", {**hass.states.get(power).attributes})
+    await _settle()
+    assert len(calls) == 1
+
+    hass.states.async_set(power, "7.2", {**hass.states.get(power).attributes})
+    await _settle()
+    assert len(calls) == 2
+    assert calls[-1].data["message"] == f"52{NB}% of 80{NB}% · 7.2{NB}kW"
+
+    # Measured from the card's new 7.2 kW, not from where the charge started.
+    hass.states.async_set(power, "7.6", {**hass.states.get(power).attributes})
+    await _settle()
+    assert len(calls) == 2
+
+    # Power gone (the car paused): the card drops it at once.
+    hass.states.async_set(power, "0", {**hass.states.get(power).attributes})
+    await _settle()
+    assert len(calls) == 3
+    assert calls[-1].data["message"] == f"52{NB}% of 80{NB}%"
+
+
 async def test_a_stop_short_of_the_target_says_so(hass: HomeAssistant) -> None:
     await _car(hass)
     calls = await _automation(hass, keep_minutes=0)

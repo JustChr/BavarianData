@@ -218,9 +218,14 @@ automation made from one keeps working.
 
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-charging.png?v=2026-11-02" alt="A Live Activity on an iPhone lock screen: the car's name, 78 % · 4.0 kW in the corner, a countdown of 26:48 to the target and a bar most of the way full" width="420" />
 
+  On an iPhone with a Dynamic Island, the countdown runs there too.
+
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-island.png?v=2026-11-03" alt="The iPhone's Dynamic Island while the car charges: the charging car icon on the left, a countdown of 3:52:43 to the target on the right" width="300" />
+
   When the charge ends, the card shows what went in (and the cost, with a
   tariff set), then clears itself after the minutes you set. It refreshes
-  every few minutes (*Update every*); after a restart it picks up a charge
+  every few minutes (*Update every*), and at once when the charging power
+  changes by a tenth or more; after a restart it picks up a charge
   that is still running, with the bar starting from there.
 
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-charged.png?v=2026-11-02" alt="The same card once the charge ended: Charged to 80 %, 15.9 kWh, 4.07 EUR, the bar full" width="420" />

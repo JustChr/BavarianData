@@ -9,6 +9,13 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Changed
+- **The lock-screen card follows the charging power at once.** *Charging on the
+  lock screen* still refreshes every few minutes (*Update every*), and now also
+  as soon as the charging power changes by a tenth or more, for example when a
+  wallbox raises or lowers the current, or the car pauses. The integration
+  updates the blueprint itself.
+
 ## [0.9.25-beta.3] - 2026-11-03
 
 ### Added

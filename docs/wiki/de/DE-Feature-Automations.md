@@ -228,10 +228,15 @@ liegen, sodass Automationen daraus weiter funktionieren.
 
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-charging.png?v=2026-11-02" alt="Eine Live-Aktivität auf dem Sperrbildschirm eines iPhones: der Name des Autos, 78 % · 4.0 kW in der Ecke, ein Countdown von 26:48 bis zum Ziel und ein fast voller Balken" width="420" />
 
+  Auf einem iPhone mit Dynamic Island läuft der Countdown auch dort.
+
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-island.png?v=2026-11-03" alt="Die Dynamic Island des iPhones beim Laden: links das Symbol des ladenden Autos, rechts ein Countdown von 3:52:43 bis zum Ziel" width="300" />
+
   Endet der Ladevorgang, zeigt die Karte, was geladen
   wurde (und mit Tarif, was es gekostet hat), und verschwindet nach den
   eingestellten Minuten. Sie wird alle paar Minuten aktualisiert (*Update
-  every*); nach einem Neustart nimmt sie einen noch laufenden Ladevorgang
+  every*), und sofort, wenn sich die Ladeleistung um ein Zehntel oder mehr
+  ändert; nach einem Neustart nimmt sie einen noch laufenden Ladevorgang
   wieder auf, der Balken beginnt dann dort.
 
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-charged.png?v=2026-11-02" alt="Dieselbe Karte nach dem Laden: Charged to 80 %, 15.9 kWh, 4.07 EUR, der Balken voll" width="420" />
