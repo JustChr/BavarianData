@@ -231,11 +231,17 @@ liegen, sodass Automationen daraus weiter funktionieren.
 
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-charging.png?v=2026-11-03" alt="Eine Live-Aktivität auf dem Sperrbildschirm eines iPhones: der Name des Autos, 75 → 80 % · 10.2 kW in der Ecke, ein Countdown von 21:55 bis zum Ziel und der Batteriebalken fast beim Ziel" width="420" />
 
-  Auf einem iPhone mit Dynamic Island läuft der Countdown auch dort.
+  Auf einem iPhone mit Dynamic Island läuft der Countdown auch dort; lange
+  gedrückt zeigt sie die ganze Karte.
 
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-island.png?v=2026-11-03" alt="Die Dynamic Island des iPhones beim Laden: links das Symbol des ladenden Autos, rechts ein Countdown von 3:52:43 bis zum Ziel" width="300" />
 
-  Endet der Ladevorgang, zeigt die Karte ✓ und den erreichten Ladestand (oder,
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-island-expanded.png?v=2026-11-03" alt="Die aufgezogene Dynamic Island: der Name des Autos, darunter → 85 % · +1.8 kWh, ein Countdown von 17:54 und der Batteriebalken fast beim Ziel" width="420" />
+
+  Hört das Auto vor dem Ziel auf zu laden und steckt das Kabel noch, hält der
+  Countdown sofort an und die Karte zeigt ⏸, denn das Auto kann von selbst
+  weiterladen; tut es das, läuft der Countdown wieder. Endet der Ladevorgang,
+  zeigt die Karte ✓ und den erreichten Ladestand (oder,
   wenn das Ziel nicht erreicht wurde, beides), was geladen wurde, wie lange es
   gedauert hat (und mit Tarif, was es gekostet hat), und verschwindet nach den
   eingestellten Minuten. Sie wird alle paar Minuten aktualisiert (*Update
@@ -244,7 +250,11 @@ liegen, sodass Automationen daraus weiter funktionieren.
   wieder auf. Die Karte nutzt Symbole und Einheiten statt
   Wörter und liest sich so in jeder Sprache gleich.
 
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-charged.png?v=2026-11-02" alt="Dieselbe Karte nach dem Laden: Charged to 80 %, 15.9 kWh, 4.07 EUR, der Balken voll" width="420" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-charged.png?v=2026-11-04" alt="Dieselbe Karte nach einem Ladevorgang, der vor dem Ziel endete: 82 % / 85 % · +2.7 kWh · 0.66 EUR · 21 min, 82 % in der Ecke, der Balken fast beim Ziel" width="420" />
+
+  Die Dynamic Island zeigt den erreichten Ladestand, bis die Karte verschwindet.
+
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-island-charged.png?v=2026-11-04" alt="Die Dynamic Island nach dem Laden: links eine Batterie mit Haken, rechts 82 %" width="300" />
 
   - Braucht die Companion-App mit **Live-Aktivitäten** (iPhone: iOS 17.2 und
     Home Assistant 2026.7 oder neuer) oder **Live-Updates** (Android 16 oder

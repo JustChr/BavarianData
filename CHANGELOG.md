@@ -9,6 +9,18 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **The lock-screen card shows up again when a charge starts.** Since beta.6
+  the card checks on every round whether the charge has ended, and on the
+  first round it could still read the last charge's *charging ended*: the
+  start comes a moment before the charging status says so. It then stopped
+  before sending anything. The first round no longer checks.
+- **The lock-screen card stops counting down when the car stops.** A car that
+  stops short of its target with the cable still in gets five minutes to carry
+  on before the charge counts as over, and all that time the card kept counting
+  down as if it were still charging. It now stops the countdown at once and
+  shows ⏸; if the car carries on, the countdown comes back.
+
 ## [0.9.25-beta.6] - 2026-11-03
 
 ### Changed
