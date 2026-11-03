@@ -130,19 +130,29 @@ actions:
           - condition: trigger
             id: resume
         sequence:
+          - variables:
+              restarted: "{{ now().isoformat() }}"
           # Let the integration restore its sessions and the stream reconnect.
           - delay:
               minutes: 1
           - repeat:
               for_each: "{{ cars | list }}"
               sequence:
+                # Still charging, and since before the restart: a charge that
+                # began after it (its energy counter reset later) has a run from
+                # its own start already.
                 - if:
                     - condition: template
                       value_template: >-
-                        {{ device_entities(cars[repeat.item])
+                        {%- set entities = device_entities(cars[repeat.item]) -%}
+                        {%- set counter = entities | select('is_state_attr', 'descriptor', 'charged_energy_session') | list | first | default('') -%}
+                        {%- set reset = state_attr(counter, 'last_reset') if counter else none -%}
+                        {%- set began = as_datetime(reset, none) if reset else none -%}
+                        {{ entities
                            | select('is_state_attr', 'descriptor', 'vehicle.drivetrain.electricEngine.charging.status')
                            | select('is_state', ['chargingactive', 'initialization', 'chargingpaused'])
-                           | list | count > 0 }}
+                           | list | count > 0
+                           and not (began and began > as_datetime(restarted)) }}
                   then:
                     - event: bavariandata_lock_screen_resume
                       event_data:
@@ -285,9 +295,13 @@ actions:
                 eta: >-
                   {{ entities | select('is_state_attr', 'descriptor', 'charge_eta')
                      | map('states') | select('is_number') | map('int') | first | default(none) }}
+                # The start comes a moment before the energy counter resets: one
+                # reset well before this run began is still the last charge's.
                 energy: >-
-                  {{ entities | select('is_state_attr', 'descriptor', 'charged_energy_session')
-                     | map('states') | select('is_number') | map('float') | first | default(0) }}
+                  {%- set counter = entities | select('is_state_attr', 'descriptor', 'charged_energy_session') | list | first | default('') -%}
+                  {%- set reset = state_attr(counter, 'last_reset') if counter else none -%}
+                  {%- set stale = trigger.id == 'start' and reset and as_timestamp(reset, 0) < started - 60 -%}
+                  {{ states(counter) | float(0) if counter and not stale else 0 }}
             - repeat:
                 for_each: "{{ notify_actions }}"
                 sequence:
@@ -301,7 +315,7 @@ actions:
                       # a blueprint can't be translated.
                       message: >-
                         {{ ('⏸' ~ nbsp) if not active }}→{{ nbsp }}{{ target }}{{ nbsp }}%
-                        {%- if energy > 0 %} · +{{ energy | round(1) }}{{ nbsp }}kWh{% endif %}
+                        {%- if energy | round(1) > 0 %} · +{{ energy | round(1) }}{{ nbsp }}kWh{% endif %}
                       data:
                         tag: "{{ tag }}"
                         live_update: true

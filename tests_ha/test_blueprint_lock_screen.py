@@ -379,6 +379,30 @@ async def test_a_restart_picks_up_a_running_charge(hass: HomeAssistant) -> None:
     assert (resumed.data["data"]["progress"], resumed.data["data"]["progress_max"]) == (52, 80)
 
 
+async def test_a_charge_started_just_after_a_restart_gets_one_run(hass: HomeAssistant) -> None:
+    """Live, 3 Nov: a charge began 31 s after a restart; its start ran the card,
+    and the restart's look a minute later found it charging and ran a second."""
+
+    await _car(
+        hass, states={**STATES, "vehicle.drivetrain.electricEngine.charging.status": "nocharging"}
+    )
+    hass.set_state(CoreState.not_running)
+    calls = await _automation(hass)
+    await hass.async_start()
+    await _settle()
+
+    await _later(hass, 0.5)
+    status = _entity(hass, "vehicle.drivetrain.electricEngine.charging.status")
+    hass.states.async_set(status, "chargingactive", {**hass.states.get(status).attributes})
+    _charge_began(hass)
+    hass.bus.async_fire("bavariandata_charging_started", {"vin": VIN, "soc": 40, "target_soc": 80})
+    await _settle()
+    assert len(calls) == 1
+
+    await _later(hass, 1.1)
+    assert len(calls) == 1
+
+
 def _entity(hass: HomeAssistant, descriptor: str) -> str:
     return next(
         state.entity_id
@@ -492,6 +516,31 @@ async def test_a_start_before_the_status_follows_still_shows_the_card(
     assert first.data["data"]["critical_text"] == f"52{NB}→{NB}80{NB}% · 10.8{NB}kW"
     await _later(hass, 2.1)
     assert len(calls) == 2
+
+
+async def test_a_start_does_not_show_the_last_charges_energy(hass: HomeAssistant) -> None:
+    """Live, 3 Nov: the start came 16 ms before the energy counter reset, and the
+    first card said +2.7 kWh, the charge before's."""
+
+    await _car(hass)
+    counter = _entity(hass, "charged_energy_session")
+    before = (dt_util.utcnow() - timedelta(hours=1)).isoformat()
+    hass.states.async_set(
+        counter, "2.691", {**hass.states.get(counter).attributes, "last_reset": before}
+    )
+    calls = await _automation(hass)
+
+    hass.bus.async_fire("bavariandata_charging_started", {"vin": VIN, "soc": 40, "target_soc": 80})
+    await _settle()
+    assert calls[0].data["message"] == f"→{NB}80{NB}%"
+
+    hass.states.async_set(
+        counter,
+        "1.24",
+        {**hass.states.get(counter).attributes, "last_reset": dt_util.utcnow().isoformat()},
+    )
+    await _later(hass, 2.1)
+    assert calls[-1].data["message"] == f"→{NB}80{NB}% · +1.2{NB}kWh"
 
 
 async def test_a_stop_short_of_the_target_stops_the_countdown_at_once(
