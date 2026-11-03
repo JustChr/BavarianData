@@ -203,8 +203,11 @@ Die, die dir eine Nachricht schicken, nehmen deine **Handys** aus einer Liste
 Benachrichtigungsdienst bleibt unter **Older setting** stehen und funktioniert
 weiter.
 
-Vor v0.9.25 musste man sie per URL importieren. Diese Kopien liegen am selben
-Ort und werden einfach aktualisiert. Entfernst du die Integration, bleiben sie
+Vor v0.9.25 musste man sie per URL importieren. Home Assistant legt diese
+Kopien in einem eigenen Ordner ab, deshalb steht jede, die du importiert hast,
+**zweimal** in der Liste. Beide werden aktualisiert. Nutzt keine Automation mehr
+die ältere Kopie, kannst du sie löschen; ihr ⋮-Menü in der Liste zeigt, welche
+Automationen sie nutzen. Entfernst du die Integration, bleiben alle Kopien
 liegen, sodass Automationen daraus weiter funktionieren.
 
 - **Laden beim Ziel-% stoppen** —

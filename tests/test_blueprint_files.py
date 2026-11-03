@@ -116,6 +116,64 @@ def test_other_files_in_the_folder_are_not_touched(tmp_path):
     assert (folder / "my_own.yaml").read_bytes() == b"mine\n"
 
 
+OLD_IMPORT = (
+    b"blueprint:\n  name: old\n  source_url: https://github.com/JustChr/BavarianData/"
+    b"blob/main/blueprints/automation/bavariandata/arriving_home.yaml\n"
+)
+
+
+def _imported(config: Path) -> Path:
+    return config.joinpath(*blueprint_files.IMPORTED)
+
+
+def test_a_copy_imported_by_url_is_kept_current_too(tmp_path):
+    """Home Assistant saves an import by URL under the GitHub user's folder, not
+    ours, so that copy is a second one: it gets the same updates."""
+
+    _imported(tmp_path).mkdir(parents=True)
+    (_imported(tmp_path) / "arriving_home.yaml").write_bytes(OLD_IMPORT)
+    shipped = (blueprint_files.SHIPPED / "arriving_home.yaml").read_bytes()
+
+    result = blueprint_files.sync(str(tmp_path), {})
+
+    assert (_imported(tmp_path) / "arriving_home.yaml").read_bytes() == shipped
+    assert (_target(tmp_path) / "arriving_home.yaml").read_bytes() == shipped
+    assert "JustChr/arriving_home.yaml" in result.write
+    assert result.replaces is True
+    assert result.record["JustChr/arriving_home.yaml"] == blueprint_files.digest(shipped)
+    # Only what was imported: no other blueprint is added to that folder.
+    assert [path.name for path in _imported(tmp_path).iterdir()] == ["arriving_home.yaml"]
+
+    again = blueprint_files.sync(str(tmp_path), result.record)
+    assert again.write == ()
+    assert again.record == result.record
+
+
+def test_an_imported_copy_changed_by_hand_is_left_alone(tmp_path):
+    record = blueprint_files.sync(str(tmp_path), {}).record
+    _imported(tmp_path).mkdir(parents=True)
+    (_imported(tmp_path) / "arriving_home.yaml").write_bytes(OLD_IMPORT)
+    record = blueprint_files.sync(str(tmp_path), record).record
+    edited = (_imported(tmp_path) / "arriving_home.yaml").read_bytes() + b"# mine\n"
+    (_imported(tmp_path) / "arriving_home.yaml").write_bytes(edited)
+
+    result = blueprint_files.sync(str(tmp_path), record)
+
+    assert result.write == ()
+    assert (_imported(tmp_path) / "arriving_home.yaml").read_bytes() == edited
+
+
+def test_a_namesake_from_another_repository_is_not_touched(tmp_path):
+    _imported(tmp_path).mkdir(parents=True)
+    other = b"blueprint:\n  source_url: https://github.com/JustChr/other/arriving_home.yaml\n"
+    (_imported(tmp_path) / "arriving_home.yaml").write_bytes(other)
+
+    result = blueprint_files.sync(str(tmp_path), {})
+
+    assert (_imported(tmp_path) / "arriving_home.yaml").read_bytes() == other
+    assert not any(key.startswith("JustChr/") for key in result.record)
+
+
 def test_without_shipped_files_nothing_happens(tmp_path, monkeypatch):
     monkeypatch.setattr(blueprint_files, "SHIPPED", tmp_path / "missing")
 

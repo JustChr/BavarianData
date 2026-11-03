@@ -2,9 +2,10 @@
 
 HACS installs only ``custom_components/bavariandata``, so the blueprints travel
 inside it and are copied on setup to ``blueprints/automation/bavariandata`` in
-the configuration folder: the folder an import by URL writes to as well, so a
-blueprint imported before simply becomes ours. They then appear under Settings
--> Blueprints without an import, and an update of the integration updates them.
+the configuration folder. They then appear under Settings -> Blueprints without
+an import, and an update of the integration updates them. A copy imported by URL
+before sits in ``blueprints/automation/JustChr`` (Home Assistant names the folder
+after the GitHub user); it is updated by the same rule, but never created.
 
 A file is replaced only while it is still what we last wrote. One edited by hand
 (or re-imported from GitHub, newer than this release) is left alone from then
@@ -27,9 +28,16 @@ from typing import Mapping, Optional
 _LOGGER = logging.getLogger(__name__)
 
 SHIPPED = Path(__file__).parent / "blueprints"
-# Below the configuration folder; the same path an import by URL from this
-# repository uses, so the two never make two copies.
+# Below the configuration folder.
 TARGET = ("blueprints", "automation", "bavariandata")
+# Where Home Assistant saves an import by URL from this repository: it names the
+# folder after the GitHub user, not ours. Such a copy is kept up to date as well
+# (never created), so automations made from it get every fix too. Its record
+# keys carry the folder, so they can't meet the ones above.
+IMPORTED = ("blueprints", "automation", "JustChr")
+IMPORTED_KEY = "JustChr/"
+# What marks an imported file as one of ours rather than another repository's.
+SOURCE = b"github.com/JustChr/BavarianData/"
 
 
 def digest(data: bytes) -> str:
@@ -89,10 +97,39 @@ def sync(config_dir: str, record: Mapping[str, str]) -> Plan:
         name: (target / name).read_bytes() if (target / name).is_file() else None
         for name in shipped
     }
-    result = plan(shipped, present, record)
-    if result.write:
-        target.mkdir(parents=True, exist_ok=True)
-        for name in result.write:
-            (target / name).write_bytes(shipped[name])
-        _LOGGER.info("Installed or updated blueprints in %s: %s", target, ", ".join(result.write))
-    return result
+    own_record = {key: value for key, value in record.items() if not key.startswith(IMPORTED_KEY)}
+    result = plan(shipped, present, own_record)
+    _write(target, shipped, result.write)
+
+    imported = Path(config_dir).joinpath(*IMPORTED)
+    found = {
+        name: (imported / name).read_bytes() for name in shipped if (imported / name).is_file()
+    }
+    found = {name: data for name, data in found.items() if SOURCE in data}
+    copies = plan(
+        {name: shipped[name] for name in found},
+        found,
+        {
+            key.removeprefix(IMPORTED_KEY): value
+            for key, value in record.items()
+            if key.startswith(IMPORTED_KEY)
+        },
+    )
+    _write(imported, shipped, copies.write)
+    return Plan(
+        write=result.write + tuple(IMPORTED_KEY + name for name in copies.write),
+        replaces=result.replaces or copies.replaces,
+        record={
+            **result.record,
+            **{IMPORTED_KEY + name: value for name, value in copies.record.items()},
+        },
+    )
+
+
+def _write(folder: Path, shipped: Mapping[str, bytes], names: tuple[str, ...]) -> None:
+    if not names:
+        return
+    folder.mkdir(parents=True, exist_ok=True)
+    for name in names:
+        (folder / name).write_bytes(shipped[name])
+    _LOGGER.info("Installed or updated blueprints in %s: %s", folder, ", ".join(names))

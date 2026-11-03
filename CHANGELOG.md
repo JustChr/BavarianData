@@ -9,6 +9,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Blueprints imported by URL get the updates too.** Home Assistant keeps a
+  blueprint imported by URL in a folder of its own, not in the one the
+  integration installs to since beta.3, so each imported blueprint showed up
+  twice and the imported copy was never updated. Both copies are now kept up to
+  date (one changed by hand is still left alone). Once no automation uses the
+  older copy, you can delete it.
+
 ## [0.9.25-beta.5] - 2026-11-03
 
 ### Added
