@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.25-beta.4] - 2026-11-03
+
 ### Changed
 - **The lock-screen card follows the charging power at once.** *Charging on the
   lock screen* still refreshes every few minutes (*Update every*), and now also
