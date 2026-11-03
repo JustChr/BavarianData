@@ -9,6 +9,16 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **The lock-screen card no longer starts with the last charge's energy.** The
+  start comes a moment before the charge's energy counter resets, so the first
+  card could show what went in last time (`+2.7 kWh`) until its next refresh.
+- **One card run for a charge that starts just after a restart.** A minute
+  after a restart, the card picks up a charge that is still running. A charge
+  that began in that minute already had a run from its own start and got a
+  second one, so the card was refreshed twice as often. The card now picks up
+  only a charge that began before the restart.
+
 ## [0.9.25-beta.7] - 2026-11-03
 
 ### Fixed
