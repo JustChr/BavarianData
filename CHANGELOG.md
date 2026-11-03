@@ -9,6 +9,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **The lock-screen card can show your wallbox's power.** BMW often sends the
+  car's charging power late: on a test charge it said 4.1 kW for over 40 minutes
+  while the wallbox delivered 10.1 kW. *Charging on the lock screen* has a new
+  optional setting, *Wallbox power*: pick your wallbox's power sensor, and while
+  the car is at home and the wallbox draws power, the card shows that figure and
+  refreshes as soon as it changes by a tenth or more.
+
 ## [0.9.25-beta.4] - 2026-11-03
 
 ### Changed

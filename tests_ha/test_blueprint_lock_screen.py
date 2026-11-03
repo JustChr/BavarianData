@@ -240,6 +240,44 @@ async def test_a_change_in_power_refreshes_the_card_at_once(hass: HomeAssistant)
     assert calls[-1].data["message"] == f"52{NB}% of 80{NB}%"
 
 
+def _tracker(hass: HomeAssistant, device: str, state: str) -> str:
+    entity = er.async_get(hass).async_get_or_create(
+        "device_tracker", DOMAIN, f"{VIN}_location", device_id=device
+    )
+    hass.states.async_set(entity.entity_id, state)
+    return entity.entity_id
+
+
+async def test_the_wallbox_power_is_shown_while_the_car_is_at_home(hass: HomeAssistant) -> None:
+    device = await _car(hass)
+    tracker = _tracker(hass, device, "home")
+    wallbox = "sensor.wallbox_power"
+    hass.states.async_set(wallbox, "0", {"unit_of_measurement": "W", "device_class": "power"})
+    calls = await _automation(hass, wallbox_power=wallbox)
+
+    # The wallbox hasn't started yet: BMW's value.
+    hass.bus.async_fire("bavariandata_charging_started", {"vin": VIN, "soc": 40, "target_soc": 80})
+    await _settle()
+    assert calls[-1].data["message"] == f"52{NB}% of 80{NB}% · 10.8{NB}kW"
+
+    # It starts: the card switches to it at once.
+    hass.states.async_set(wallbox, "4120", {**hass.states.get(wallbox).attributes})
+    await _settle()
+    assert len(calls) == 2
+    assert calls[-1].data["message"] == f"52{NB}% of 80{NB}% · 4.1{NB}kW"
+
+    # The current goes up; BMW's value stays where it was.
+    hass.states.async_set(wallbox, "10150", {**hass.states.get(wallbox).attributes})
+    await _settle()
+    assert len(calls) == 3
+    assert calls[-1].data["message"] == f"52{NB}% of 80{NB}% · 10.2{NB}kW"
+
+    # Away from home the wallbox isn't this car's: BMW's value again.
+    hass.states.async_set(tracker, "not_home")
+    await _later(hass, 2.1)
+    assert calls[-1].data["message"] == f"52{NB}% of 80{NB}% · 10.8{NB}kW"
+
+
 async def test_a_stop_short_of_the_target_says_so(hass: HomeAssistant) -> None:
     await _car(hass)
     calls = await _automation(hass, keep_minutes=0)
