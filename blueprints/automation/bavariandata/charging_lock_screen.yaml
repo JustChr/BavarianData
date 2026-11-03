@@ -237,14 +237,26 @@ actions:
       - repeat:
           sequence:
             # The charge ended while this run was busy: the result's own run
-            # shows it, so stop here rather than cover it with an update.
+            # shows it, so stop here rather than cover it with an update. That is
+            # the car's own end, or a stop that outlasted the five minutes the
+            # integration waits for a car to carry on. Not on the first pass: the
+            # start event comes a moment before the status says so, and still
+            # reads the last charge's end.
             - if:
                 - condition: template
                   value_template: >-
-                    {{ status != '' and not is_state(status, ['chargingactive', 'initialization', 'chargingpaused']) }}
+                    {{ repeat.index > 1 and status != ''
+                       and (is_state(status, 'chargingended')
+                            or (not is_state(status, ['chargingactive', 'initialization'])
+                                and now() - states[status].last_changed > timedelta(minutes=6))) }}
               then:
                 - stop: The charge ended
             - variables:
+                # Stopped short of the target, the car may still carry on: the card
+                # waits for that or for the result, without a countdown.
+                active: >-
+                  {{ repeat.index == 1 or status == ''
+                     or is_state(status, ['chargingactive', 'initialization']) }}
                 # The integration's estimate first: it moves between BMW's updates.
                 soc: >-
                   {%- set own = entities | select('is_state_attr', 'descriptor', 'soc_estimate')
@@ -269,7 +281,7 @@ actions:
                   {%- else -%}
                     0
                   {%- endif -%}
-                power: "{{ (power_kw ~ nbsp ~ 'kW') if power_kw > 0 else '' }}"
+                power: "{{ (power_kw ~ nbsp ~ 'kW') if active and power_kw > 0 else '' }}"
                 eta: >-
                   {{ entities | select('is_state_attr', 'descriptor', 'charge_eta')
                      | map('states') | select('is_number') | map('int') | first | default(none) }}
@@ -288,7 +300,7 @@ actions:
                       # iPhone: what the corner doesn't say. Symbols, not words, since
                       # a blueprint can't be translated.
                       message: >-
-                        →{{ nbsp }}{{ target }}{{ nbsp }}%
+                        {{ ('⏸' ~ nbsp) if not active }}→{{ nbsp }}{{ target }}{{ nbsp }}%
                         {%- if energy > 0 %} · +{{ energy | round(1) }}{{ nbsp }}kWh{% endif %}
                       data:
                         tag: "{{ tag }}"
@@ -302,7 +314,7 @@ actions:
                         # it is reached.
                         critical_text: >-
                           {{ soc }}{{ (nbsp ~ '→' ~ nbsp ~ target) if soc < target }}{{ nbsp }}%{{ ' · ' ~ power if power }}
-                        chronometer: "{{ eta is number and eta > 0 }}"
+                        chronometer: "{{ active and eta is number and eta > 0 }}"
                         when: "{{ (eta * 60) if eta is number else 0 }}"
                         when_relative: true
                         notification_icon: mdi:car-electric
@@ -318,6 +330,11 @@ actions:
                   event_data:
                     vin: "{{ vin }}"
                   id: stopped
+                # The car stopped or carried on: say so now, not at the next round.
+                - trigger: template
+                  id: status
+                  value_template: >-
+                    {{ status != '' and active != is_state(status, ['chargingactive', 'initialization']) }}
                 # The power moved a tenth or more from what the card shows: refresh now.
                 - trigger: template
                   id: power

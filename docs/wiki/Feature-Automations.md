@@ -220,11 +220,16 @@ integration leaves every copy, so an automation made from one keeps working.
 
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-charging.png?v=2026-11-03" alt="A Live Activity on an iPhone lock screen: the car's name, 75 → 80 % · 10.2 kW in the corner, a countdown of 21:55 to the target and the battery bar nearly up to the target" width="420" />
 
-  On an iPhone with a Dynamic Island, the countdown runs there too.
+  On an iPhone with a Dynamic Island, the countdown runs there too; touch and
+  hold it for the whole card.
 
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-island.png?v=2026-11-03" alt="The iPhone's Dynamic Island while the car charges: the charging car icon on the left, a countdown of 3:52:43 to the target on the right" width="300" />
 
-  When the charge ends, the card shows ✓ and the level reached (or, short of
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-island-expanded.png?v=2026-11-03" alt="The Dynamic Island held open: the car's name, → 85 % · +1.8 kWh under it, a countdown of 17:54 and the battery bar nearly up to the target" width="420" />
+
+  If the car stops short of the target with the cable still in, the countdown
+  stops at once and the card shows ⏸, since the car may carry on by itself;
+  when it does, the countdown comes back. When the charge ends, the card shows ✓ and the level reached (or, short of
   the target, both), what went in, how long it took (and the cost, with a
   tariff set), then clears itself after the minutes you set. It refreshes
   every few minutes (*Update every*), and at once when the charging power
@@ -232,7 +237,11 @@ integration leaves every copy, so an automation made from one keeps working.
   still running. The card uses symbols and units
   rather than words, so it reads the same in every language.
 
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-charged.png?v=2026-11-02" alt="The same card once the charge ended: Charged to 80 %, 15.9 kWh, 4.07 EUR, the bar full" width="420" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-charged.png?v=2026-11-04" alt="The same card once a charge stopped short of its target: 82 % / 85 % · +2.7 kWh · 0.66 EUR · 21 min, 82 % in the corner, the bar nearly at the target" width="420" />
+
+  The Dynamic Island keeps the level reached until the card clears.
+
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-island-charged.png?v=2026-11-04" alt="The Dynamic Island after the charge: a battery with a check mark on the left, 82 % on the right" width="300" />
 
   - Needs the Companion app with **Live Activities** (iPhone: iOS 17.2 and
     Home Assistant 2026.7 or later) or **Live Updates** (Android 16 or later).

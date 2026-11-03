@@ -469,6 +469,72 @@ async def test_an_end_while_the_card_is_updating_still_shows_the_result(
     assert sent[-2:] == [f"✓{NB}80{NB}% · +11.9{NB}kWh", "clear_notification"]
 
 
+async def test_a_start_before_the_status_follows_still_shows_the_card(
+    hass: HomeAssistant,
+) -> None:
+    """Live, 3 Nov: ``charging_started`` came in the same second as the status
+    turned to charging, but before it: the card's run read the last charge's
+    ``chargingended``, took the charge for over and sent nothing."""
+
+    await _car(
+        hass,
+        states={**STATES, "vehicle.drivetrain.electricEngine.charging.status": "chargingended"},
+    )
+    calls = await _automation(hass)
+    status = _entity(hass, "vehicle.drivetrain.electricEngine.charging.status")
+
+    hass.bus.async_fire("bavariandata_charging_started", {"vin": VIN, "soc": 40, "target_soc": 80})
+    await _settle()
+    hass.states.async_set(status, "chargingactive", {**hass.states.get(status).attributes})
+    await _settle()
+
+    (first,) = calls
+    assert first.data["data"]["critical_text"] == f"52{NB}→{NB}80{NB}% · 10.8{NB}kW"
+    await _later(hass, 2.1)
+    assert len(calls) == 2
+
+
+async def test_a_stop_short_of_the_target_stops_the_countdown_at_once(
+    hass: HomeAssistant,
+) -> None:
+    """Live, 3 Nov: stopped at 82 of 85 % with the cable in, the integration waits
+    five minutes for the car to carry on before it announces the end; the card's
+    run stopped without a word and the phone counted down all that time."""
+
+    await _car(hass)
+    calls = await _automation(hass, keep_minutes=0)
+    status = _entity(hass, "vehicle.drivetrain.electricEngine.charging.status")
+    hass.bus.async_fire("bavariandata_charging_started", {"vin": VIN, "soc": 40, "target_soc": 80})
+    await _settle()
+
+    hass.states.async_set(status, "nocharging", {**hass.states.get(status).attributes})
+    await _settle()
+    held = calls[-1].data
+    assert held["message"] == f"⏸{NB}→{NB}80{NB}% · +6.3{NB}kWh"
+    assert held["data"]["chronometer"] is False
+    assert held["data"]["critical_text"] == f"52{NB}→{NB}80{NB}%"
+
+    # The car carries on: the countdown comes back.
+    await _later(hass, 1)
+    hass.states.async_set(status, "chargingactive", {**hass.states.get(status).attributes})
+    await _settle()
+    assert calls[-1].data["data"]["chronometer"] is True
+
+    # It stops again, and the result follows five minutes later; nothing covers it.
+    hass.states.async_set(status, "nocharging", {**hass.states.get(status).attributes})
+    await _settle()
+    for _ in range(3):
+        await _later(hass, 2.1)
+    hass.bus.async_fire("bavariandata_charging_stopped", _ended(complete=False, soc=52.0))
+    await _settle()
+    await _later(hass, 1)
+    assert calls[-2].data["message"].startswith(f"52{NB}%{NB}/{NB}80{NB}%")
+    assert calls[-1].data["message"] == "clear_notification"
+    count = len(calls)
+    await _later(hass, 30)
+    assert len(calls) == count
+
+
 async def test_at_the_target_the_corner_drops_the_arrow(hass: HomeAssistant) -> None:
     await _car(hass, states={**STATES, "soc_estimate": "80"})
     calls = await _automation(hass)
