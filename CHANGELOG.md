@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.25] - 2026-11-03
+
 Promotes 0.9.25-beta.1 to 0.9.25-beta.7. A charge now shows on your phone's lock screen, the blueprints install and update themselves, and a car's whole stream can be shared with other apps over MQTT. A finished charge is announced at once, the API quota resets at 00:00 UTC as BMW's does, and the daily refresh is back to 2 requests per car.
 
 ### Added
