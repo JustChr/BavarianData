@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.25-beta.6] - 2026-11-03
+
 ### Changed
 - **A clearer lock-screen card.** *Charging on the lock screen* shows the
   battery as a bar up to the target, so a charge no longer starts on an empty
