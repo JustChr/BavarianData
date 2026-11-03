@@ -247,6 +247,9 @@ liegen, sodass Automationen daraus weiter funktionieren.
   - Der Countdown ist die eigene **Zeit bis zum Ziel** der Integration, bekannt
     beim Laden zu Hause. Unterwegs hat die Karte keinen Countdown; auf einem
     iPhone stehen dann dort Ladestand und Ziel.
+  - BMW schickt die Ladeleistung des Autos oft spät, manchmal eine Stunde lang
+    nicht. Wähle unter *Wallbox power* den Leistungssensor deiner Wallbox: Steht
+    das Auto zu Hause und die Wallbox liefert Strom, zeigt die Karte deren Wert.
   - Ein iPhone beendet eine Live-Aktivität nach 8 Stunden; bei längerem Laden
     startet die nächste Aktualisierung eine neue.
 - **Ladekabel in einen Schalter spiegeln** —

@@ -235,6 +235,9 @@ automation made from one keeps working.
   - The countdown is the integration's own **time to target**, known while
     charging at home. Away from home the card has no countdown; on an iPhone
     it then shows the battery level and the target in its place.
+  - BMW often sends the car's charging power late, sometimes not for an hour.
+    Pick your wallbox's power sensor in *Wallbox power*, and while the car is at
+    home and the wallbox draws power, the card shows the wallbox's figure.
   - An iPhone ends a Live Activity after 8 hours; on a longer charge the next
     refresh starts a new one.
 - **Mirror the charging cable into a switch** —
