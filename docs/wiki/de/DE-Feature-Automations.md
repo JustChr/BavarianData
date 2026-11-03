@@ -225,9 +225,8 @@ liegen, sodass Automationen daraus weiter funktionieren.
 - **Laden auf dem Sperrbildschirm** —
   [`charging_lock_screen.yaml`](https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/charging_lock_screen.yaml).
   Solange das Auto lädt, zeigt der Sperrbildschirm deines Handys eine Karte:
-  einen Balken, der sich vom Start-Ladestand bis zum Ziel füllt, den
-  Ladestand, die Ladeleistung und einen Countdown bis zum Ziel, den das Handy
-  selbst herunterzählt.
+  die Batterie als Balken bis zum Ziel, den Ladestand, die Ladeleistung und
+  einen Countdown bis zum Ziel, den das Handy selbst herunterzählt.
 
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-charging.png?v=2026-11-02" alt="Eine Live-Aktivität auf dem Sperrbildschirm eines iPhones: der Name des Autos, 78 % · 4.0 kW in der Ecke, ein Countdown von 26:48 bis zum Ziel und ein fast voller Balken" width="420" />
 
@@ -235,12 +234,14 @@ liegen, sodass Automationen daraus weiter funktionieren.
 
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-island.png?v=2026-11-03" alt="Die Dynamic Island des iPhones beim Laden: links das Symbol des ladenden Autos, rechts ein Countdown von 3:52:43 bis zum Ziel" width="300" />
 
-  Endet der Ladevorgang, zeigt die Karte, was geladen
-  wurde (und mit Tarif, was es gekostet hat), und verschwindet nach den
+  Endet der Ladevorgang, zeigt die Karte ✓ und den erreichten Ladestand (oder,
+  wenn das Ziel nicht erreicht wurde, beides), was geladen wurde, wie lange es
+  gedauert hat (und mit Tarif, was es gekostet hat), und verschwindet nach den
   eingestellten Minuten. Sie wird alle paar Minuten aktualisiert (*Update
   every*), und sofort, wenn sich die Ladeleistung um ein Zehntel oder mehr
   ändert; nach einem Neustart nimmt sie einen noch laufenden Ladevorgang
-  wieder auf, der Balken beginnt dann dort.
+  wieder auf, dann ohne die Dauer. Die Karte nutzt Symbole und Einheiten statt
+  Wörter und liest sich so in jeder Sprache gleich.
 
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-charged.png?v=2026-11-02" alt="Dieselbe Karte nach dem Laden: Charged to 80 %, 15.9 kWh, 4.07 EUR, der Balken voll" width="420" />
 
@@ -249,7 +250,7 @@ liegen, sodass Automationen daraus weiter funktionieren.
     neuer).
   - Der Countdown ist die eigene **Zeit bis zum Ziel** der Integration, bekannt
     beim Laden zu Hause. Unterwegs hat die Karte keinen Countdown; auf einem
-    iPhone stehen dann dort Ladestand und Ziel.
+    iPhone stehen dann dort das Ziel und die bisher geladene Energie.
   - BMW schickt die Ladeleistung des Autos oft spät, manchmal eine Stunde lang
     nicht. Wähle unter *Wallbox power* den Leistungssensor deiner Wallbox: Steht
     das Auto zu Hause und die Wallbox liefert Strom, zeigt die Karte deren Wert.

@@ -214,9 +214,9 @@ integration leaves every copy, so an automation made from one keeps working.
   target reached* was off.
 - **Charging on the lock screen** —
   [`charging_lock_screen.yaml`](https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/charging_lock_screen.yaml).
-  While the car charges, your phone's lock screen shows a card: a bar that
-  fills from where the charge started to the target, the battery level and the
-  charging power, and a countdown to the target that the phone runs by itself.
+  While the car charges, your phone's lock screen shows a card: the battery as
+  a bar up to the target, the battery level and the charging power, and a
+  countdown to the target that the phone runs by itself.
 
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-charging.png?v=2026-11-02" alt="A Live Activity on an iPhone lock screen: the car's name, 78 % · 4.0 kW in the corner, a countdown of 26:48 to the target and a bar most of the way full" width="420" />
 
@@ -224,11 +224,13 @@ integration leaves every copy, so an automation made from one keeps working.
 
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-island.png?v=2026-11-03" alt="The iPhone's Dynamic Island while the car charges: the charging car icon on the left, a countdown of 3:52:43 to the target on the right" width="300" />
 
-  When the charge ends, the card shows what went in (and the cost, with a
+  When the charge ends, the card shows ✓ and the level reached (or, short of
+  the target, both), what went in, how long it took (and the cost, with a
   tariff set), then clears itself after the minutes you set. It refreshes
   every few minutes (*Update every*), and at once when the charging power
-  changes by a tenth or more; after a restart it picks up a charge
-  that is still running, with the bar starting from there.
+  changes by a tenth or more; after a restart it picks up a charge that is
+  still running, then without the duration. The card uses symbols and units
+  rather than words, so it reads the same in every language.
 
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-charged.png?v=2026-11-02" alt="The same card once the charge ended: Charged to 80 %, 15.9 kWh, 4.07 EUR, the bar full" width="420" />
 
@@ -236,7 +238,7 @@ integration leaves every copy, so an automation made from one keeps working.
     Home Assistant 2026.7 or later) or **Live Updates** (Android 16 or later).
   - The countdown is the integration's own **time to target**, known while
     charging at home. Away from home the card has no countdown; on an iPhone
-    it then shows the battery level and the target in its place.
+    it then shows the target and the energy so far in its place.
   - BMW often sends the car's charging power late, sometimes not for an hour.
     Pick your wallbox's power sensor in *Wallbox power*, and while the car is at
     home and the wallbox draws power, the card shows the wallbox's figure.
