@@ -194,7 +194,7 @@ Screen: **Configure → MQTT bridge (evcc & more)**. See
 topic table and the troubleshooting.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-evcc-bridge.png?v=2026-10-11b" alt="evcc / wallbox bridge with one car: publish this car to MQTT, topic prefix and publish retained" width="460" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-evcc-bridge.png?v=2026-11-03" alt="MQTT bridge (evcc & more) with one car: publish this car for evcc, share its whole stream, leave out the position, topic prefix and publish retained" width="460" />
 </p>
 
 **Several cars on the account?** The screen first asks which vehicle, and
@@ -205,7 +205,7 @@ and **Publish retained** apply to every car, in the collapsed **All vehicles**
 section.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-evcc-bridge-second-car.png?v=2026-10-11b" alt="evcc / wallbox bridge for a second car: its own publish switch, the shared topic prefix and retained setting in the All vehicles section" width="460" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-evcc-bridge-second-car.png?v=2026-11-03" alt="MQTT bridge for a second car: its own evcc and stream switches on top, leave out the position, topic prefix and retained shared in the opened All vehicles section" width="460" />
 </p>
 
 Publishes the car's live state onto your MQTT broker so evcc, openWB or a

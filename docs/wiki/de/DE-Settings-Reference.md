@@ -206,7 +206,7 @@ Bildschirm: **Konfigurieren → MQTT-Brücke (evcc & mehr)**. Konzepte, Topic-Ta
 Fehlerbehebung stehen unter [evcc- & Wallbox-Brücke](DE-Feature-evcc-and-Wallbox-Bridge).
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-evcc-bridge.png?v=2026-10-11b" alt="evcc-/Wallbox-Brücke mit einem Auto: dieses Auto per MQTT veröffentlichen, Topic-Prefix und mit Retain veröffentlichen" width="460" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-evcc-bridge.png?v=2026-11-03" alt="MQTT-Brücke (evcc & mehr) mit einem Auto: dieses Auto für evcc veröffentlichen, seinen ganzen Stream teilen, Position weglassen, Topic-Prefix und mit Retain veröffentlichen" width="460" />
 </p>
 
 **Mehrere Fahrzeuge im Konto?** Der Bildschirm fragt zuerst nach dem Fahrzeug,
@@ -217,7 +217,7 @@ fernbleiben kann. Schaltest du ein Auto aus, werden seine Topics entfernt.
 für alle Autos, im eingeklappten Abschnitt **Alle Fahrzeuge**.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-evcc-bridge-second-car.png?v=2026-10-11b" alt="evcc-/Wallbox-Brücke für ein zweites Auto: sein eigener Schalter, darunter Topic-Prefix und Retain gemeinsam im Abschnitt Alle Fahrzeuge" width="460" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-evcc-bridge-second-car.png?v=2026-11-03" alt="MQTT-Brücke für ein zweites Auto: oben seine eigenen Schalter für evcc und den Stream, darunter Position weglassen, Topic-Prefix und Retain gemeinsam im geöffneten Abschnitt Alle Fahrzeuge" width="460" />
 </p>
 
 Veröffentlicht den Live-Zustand des Autos auf deinem MQTT-Broker, sodass evcc, openWB
