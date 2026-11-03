@@ -225,10 +225,11 @@ liegen, sodass Automationen daraus weiter funktionieren.
 - **Laden auf dem Sperrbildschirm** —
   [`charging_lock_screen.yaml`](https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/charging_lock_screen.yaml).
   Solange das Auto lädt, zeigt der Sperrbildschirm deines Handys eine Karte:
-  die Batterie als Balken bis zum Ziel, den Ladestand, die Ladeleistung und
-  einen Countdown bis zum Ziel, den das Handy selbst herunterzählt.
+  die Batterie als Balken bis zum Ziel, den Ladestand mit dem Ziel, die
+  Ladeleistung und einen Countdown bis zum Ziel, den das Handy selbst
+  herunterzählt.
 
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-charging.png?v=2026-11-02" alt="Eine Live-Aktivität auf dem Sperrbildschirm eines iPhones: der Name des Autos, 78 % · 4.0 kW in der Ecke, ein Countdown von 26:48 bis zum Ziel und ein fast voller Balken" width="420" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-charging.png?v=2026-11-03" alt="Eine Live-Aktivität auf dem Sperrbildschirm eines iPhones: der Name des Autos, 75 → 80 % · 10.2 kW in der Ecke, ein Countdown von 21:55 bis zum Ziel und der Batteriebalken fast beim Ziel" width="420" />
 
   Auf einem iPhone mit Dynamic Island läuft der Countdown auch dort.
 

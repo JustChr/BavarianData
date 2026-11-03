@@ -215,10 +215,10 @@ integration leaves every copy, so an automation made from one keeps working.
 - **Charging on the lock screen** —
   [`charging_lock_screen.yaml`](https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/charging_lock_screen.yaml).
   While the car charges, your phone's lock screen shows a card: the battery as
-  a bar up to the target, the battery level and the charging power, and a
-  countdown to the target that the phone runs by itself.
+  a bar up to the target, the battery level with the target and the charging
+  power, and a countdown to the target that the phone runs by itself.
 
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-charging.png?v=2026-11-02" alt="A Live Activity on an iPhone lock screen: the car's name, 78 % · 4.0 kW in the corner, a countdown of 26:48 to the target and a bar most of the way full" width="420" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-charging.png?v=2026-11-03" alt="A Live Activity on an iPhone lock screen: the car's name, 75 → 80 % · 10.2 kW in the corner, a countdown of 21:55 to the target and the battery bar nearly up to the target" width="420" />
 
   On an iPhone with a Dynamic Island, the countdown runs there too.
 
