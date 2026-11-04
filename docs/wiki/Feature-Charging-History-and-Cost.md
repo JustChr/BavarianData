@@ -4,7 +4,8 @@
 
 Because BavarianData streams data in real time, it records every completed
 charging session and can put a price on it — all from the stream, spending **no
-REST quota**.
+REST quota**. The charge level while it charges has a page of its own:
+[state of charge while charging](Feature-State-of-Charge).
 
 ## Charged-energy sensors
 

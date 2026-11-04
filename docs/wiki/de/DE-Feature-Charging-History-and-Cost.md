@@ -4,7 +4,8 @@
 
 Weil BavarianData Daten in Echtzeit streamt, zeichnet es jeden abgeschlossenen
 Ladevorgang auf und kann ihm einen Preis geben — alles aus dem Stream, ohne
-**REST-Kontingent** zu verbrauchen.
+**REST-Kontingent** zu verbrauchen. Der Ladestand während des Ladens hat eine
+eigene Seite: [Ladezustand beim Laden](DE-Feature-State-of-Charge).
 
 ## Sensoren für geladene Energie
 

@@ -92,11 +92,11 @@
     "slug": "entities-and-devices",
     "en": {
       "title": "BMW and MINI sensors in Home Assistant: entities and devices",
-      "description": "What appears in Home Assistant for each BMW: one device per car, native sensors with device classes and units, derived sensors, and how entities are named."
+      "description": "What appears in Home Assistant for each BMW or MINI: battery and charging, doors and windows, tire pressure and wear, service due dates, the 12 V battery and location, and how they're named."
     },
     "de": {
       "title": "BMW- und MINI-Sensoren in Home Assistant: Entitäten und Geräte",
-      "description": "Was für jeden BMW in Home Assistant erscheint: ein Gerät pro Auto, native Sensoren mit Geräteklassen und Einheiten, abgeleitete Sensoren und die Benennung."
+      "description": "Was in Home Assistant für jeden BMW oder MINI erscheint: Akku und Laden, Türen und Fenster, Reifendruck und Verschleiß, Servicetermine, 12-V-Batterie und Standort, und wie sie heißen."
     }
   },
   "Feature-Charging-History-and-Cost": {
@@ -108,6 +108,17 @@
     "de": {
       "title": "BMW-Ladeverlauf und Ladekosten in Home Assistant",
       "description": "Jeder Ladevorgang aus dem Stream erfasst: Energie, Kosten aus deinem Tarif, Herkunft der Energie (Solar, Hausbatterie, Netz), Leistungskurve und Monatssummen."
+    }
+  },
+  "Feature-State-of-Charge": {
+    "slug": "state-of-charge-while-charging",
+    "en": {
+      "title": "BMW state of charge not updating while charging? The SoC estimate",
+      "description": "BMW CarData often stops streaming the battery level while a BMW or MINI charges. How BavarianData keeps the state of charge counting in Home Assistant, at no API cost."
+    },
+    "de": {
+      "title": "BMW-Ladezustand aktualisiert sich beim Laden nicht? Die SoC-Schätzung",
+      "description": "BMW CarData streamt den Akkustand beim Laden oft nicht. Wie BavarianData den Ladezustand von BMW und MINI in Home Assistant weiterzählt, ohne API-Kontingent."
     }
   },
   "Feature-Battery-Health": {
@@ -163,6 +174,17 @@
     "de": {
       "title": "BMW-Ladezustand für evcc und openWB über MQTT",
       "description": "Den Live-Ladezustand deines BMW über MQTT an evcc, openWB oder jede Wallbox-Steuerung geben, ohne API-Kosten, und den Wallbox-Zähler in den Ladeverlauf zurücklesen."
+    }
+  },
+  "Feature-ABRP": {
+    "slug": "abrp",
+    "en": {
+      "title": "BMW live data in ABRP (A Better Routeplanner) via Home Assistant",
+      "description": "Send your BMW or MINI's live charge level, charging, odometer and range from BMW CarData to ABRP, so route plans start from the real battery. Free ABRP account, no API quota."
+    },
+    "de": {
+      "title": "BMW-Live-Daten in ABRP (A Better Routeplanner) über Home Assistant",
+      "description": "Ladestand, Laden, Kilometerstand und Reichweite deines BMW oder MINI live aus BMW CarData an ABRP senden, damit Routen mit dem echten Akku beginnen. Kostenlos, ohne API-Kontingent."
     }
   },
   "Feature-Smart-Charging": {
@@ -246,11 +268,11 @@
     "slug": "settings",
     "en": {
       "title": "Settings of the BMW & MINI Home Assistant integration",
-      "description": "Every Configure screen of the BMW CarData integration: streamed data, automatic refresh, charging costs, solar sources, the evcc bridge, trips and debug logging."
+      "description": "Every Configure screen of the BMW CarData integration: streamed data, charging costs, solar sources, the evcc bridge, ABRP, trips, mileage, units and debug logging."
     },
     "de": {
       "title": "Einstellungen der BMW- & MINI-Integration für Home Assistant",
-      "description": "Jeder Konfigurieren-Bildschirm der BMW-CarData-Integration: gestreamte Daten, automatische Aktualisierung, Ladekosten, Solarquellen, evcc-Brücke, Fahrten und Debug-Protokoll."
+      "description": "Jeder Konfigurieren-Bildschirm der BMW-CarData-Integration: gestreamte Daten, Ladekosten, Solarquellen, evcc-Brücke, ABRP, Fahrten, Kilometer, Einheiten und Debug-Protokoll."
     }
   },
   "Services-Reference": {

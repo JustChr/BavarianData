@@ -229,7 +229,8 @@ ready-to-paste evcc configuration; sharing only the stream saves straight away.
 
 ## ABRP (A Better Routeplanner)
 
-Screen: **Configure → Share live data → ABRP (A Better Routeplanner)**.
+Screen: **Configure → Share live data → ABRP (A Better Routeplanner)**. What ABRP
+shows and the questions people ask are on [ABRP live data](Feature-ABRP).
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-abrp.png" alt="ABRP settings: Send to ABRP, Car token, Include the position and Own API key (optional), both switches off and both fields empty" width="460" />

@@ -80,6 +80,14 @@ cluster isn't saved in the portal's Data Selection, or your car doesn't produce
 that data. Re-activate it under **Configure → Choose streamed data**, or unselect
 it.
 
+## The battery level stands still while the car charges
+
+BMW CarData often stops streaming the state of charge mid-charge, for an hour
+or more, so *Battery HV State Of Charge* stands still and then jumps. Use
+**State Of Charge (Predicted on Integration side)** instead: it keeps counting
+from the charging power, or from your wallbox meter. See
+[state of charge while charging](Feature-State-of-Charge).
+
 ## One sensor reads unknown or looks stuck while the rest update
 
 <a id="one-sensor-reads-unknown"></a>

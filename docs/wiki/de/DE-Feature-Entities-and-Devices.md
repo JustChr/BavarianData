@@ -245,7 +245,8 @@ anderen zurück.
 
 <a id="which-state-of-charge-entity-to-use"></a>
 
-Dieselbe Falle beim Akkustand:
+Dieselbe Falle beim Akkustand (warum BMWs eigener Wert beim Laden stehen
+bleibt: [Ladezustand beim Laden](DE-Feature-State-of-Charge)):
 
 | Entität | Deskriptor | Was sie ist |
 | --- | --- | --- |

@@ -81,6 +81,16 @@ gestreamt“**: Diese Datengruppe ist in der Datenauswahl im Portal nicht
 gespeichert, oder dein Auto liefert diese Daten nicht. Aktiviere sie erneut unter
 **Konfigurieren → Gestreamte Daten auswählen** oder wähle sie ab.
 
+## Der Akkustand bleibt beim Laden stehen
+
+<a id="the-battery-level-stands-still-while-the-car-charges"></a>
+
+BMW CarData streamt den Ladezustand beim Laden oft eine Stunde oder länger
+nicht, also bleibt *Battery HV State Of Charge* stehen und springt dann. Nimm
+stattdessen **Ladezustand (integrationsseitig vorhergesagt)**: Er zählt aus der
+Ladeleistung oder deinem Wallbox-Zähler weiter. Siehe
+[Ladezustand beim Laden](DE-Feature-State-of-Charge).
+
 ## Ein Sensor bleibt „unbekannt“ oder hängt, während sich der Rest aktualisiert
 
 <a id="one-sensor-reads-unknown"></a>

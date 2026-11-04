@@ -217,7 +217,8 @@ only falls back to the others on a car that doesn't send it.
 
 ## Which state-of-charge entity to use
 
-The same trap, with the battery level:
+The same trap, with the battery level (why BMW's own figure stands still
+mid-charge: [state of charge while charging](Feature-State-of-Charge)):
 
 | Entity | Descriptor | What it is |
 | --- | --- | --- |
