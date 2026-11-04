@@ -359,7 +359,7 @@
         },
         "data_description": {
           "abrp_enabled": "Domyślnie wyłączone. Auto musi być zapisane w aplikacji ABRP.",
-          "abrp_token": "Z aplikacji ABRP: dane na żywo auta, Generic.",
+          "abrp_token": "Z aplikacji ABRP: dane na żywo auta, Custom connection, Copy token.",
           "abrp_position": "Domyślnie wyłączone: bez niej ABRP nie wie, gdzie jest auto.",
           "abrp_api_key": "Tylko jeśli wbudowany przestanie działać: utwórz go na koncie ABRP, w kluczach API telemetrii."
         },
@@ -547,7 +547,7 @@
       "mileage_end_before_start": "Data zakończenia musi być późniejsza niż data rozpoczęcia.",
       "fetch_failed": "Pobieranie się nie powiodło: {error}",
       "abrp_token_missing": "Wklej token auta z aplikacji ABRP albo wyłącz wysyłanie.",
-      "abrp_token_rejected": "ABRP odrzucił ten token. Skopiuj go ponownie z aplikacji ABRP (dane na żywo auta, Generic).",
+      "abrp_token_rejected": "ABRP odrzucił ten token. Skopiuj go ponownie z aplikacji ABRP (dane na żywo auta, Custom connection).",
       "abrp_key_missing": "Ta kopia nie ma wbudowanego klucza ABRP. Wpisz własny klucz API z konta ABRP.",
       "abrp_unreachable": "Nie można połączyć się z ABRP. Sprawdź połączenie z internetem i spróbuj ponownie."
     },

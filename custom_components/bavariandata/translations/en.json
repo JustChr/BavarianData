@@ -359,7 +359,7 @@
         },
         "data_description": {
           "abrp_enabled": "Off by default. Needs the car saved in the ABRP app.",
-          "abrp_token": "From the ABRP app: your car's live data, Generic.",
+          "abrp_token": "From the ABRP app: your car's live data, Custom connection, Copy token.",
           "abrp_position": "Off by default: without it, ABRP doesn't know where the car is.",
           "abrp_api_key": "Only if the built-in one stops working: create one in your ABRP account, under telemetry API keys."
         },
@@ -547,7 +547,7 @@
       "mileage_end_before_start": "The end date must be after the start date.",
       "fetch_failed": "The fetch didn't go through: {error}",
       "abrp_token_missing": "Paste the car token from the ABRP app, or switch sending off.",
-      "abrp_token_rejected": "ABRP refused this token. Copy it again from the ABRP app (your car's live data, Generic).",
+      "abrp_token_rejected": "ABRP refused this token. Copy it again from the ABRP app (your car's live data, Custom connection).",
       "abrp_key_missing": "This copy has no built-in ABRP key. Enter your own API key from your ABRP account.",
       "abrp_unreachable": "ABRP couldn't be reached. Check the internet connection and try again."
     },

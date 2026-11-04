@@ -359,7 +359,7 @@
         },
         "data_description": {
           "abrp_enabled": "Av som standard. Bilen måste vara sparad i ABRP-appen.",
-          "abrp_token": "Från ABRP-appen: bilens livedata, Generic.",
+          "abrp_token": "Från ABRP-appen: bilens livedata, Custom connection, Copy token.",
           "abrp_position": "Av som standard: utan den vet ABRP inte var bilen är.",
           "abrp_api_key": "Bara om den inbyggda slutar fungera: skapa en i ditt ABRP-konto, under telemetri-API-nycklar."
         },
@@ -547,7 +547,7 @@
       "mileage_end_before_start": "Slutdatumet måste ligga efter startdatumet.",
       "fetch_failed": "Hämtningen gick inte igenom: {error}",
       "abrp_token_missing": "Klistra in biltoken från ABRP-appen, eller stäng av sändningen.",
-      "abrp_token_rejected": "ABRP avvisade denna token. Kopiera den igen från ABRP-appen (bilens livedata, Generic).",
+      "abrp_token_rejected": "ABRP avvisade denna token. Kopiera den igen från ABRP-appen (bilens livedata, Custom connection).",
       "abrp_key_missing": "Den här kopian har ingen inbyggd ABRP-nyckel. Ange din egen API-nyckel från ditt ABRP-konto.",
       "abrp_unreachable": "ABRP gick inte att nå. Kontrollera internetanslutningen och försök igen."
     },

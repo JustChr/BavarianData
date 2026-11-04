@@ -359,7 +359,7 @@
         },
         "data_description": {
           "abrp_enabled": "Standaard uit. De auto moet in de ABRP-app zijn opgeslagen.",
-          "abrp_token": "Uit de ABRP-app: live data van je auto, Generic.",
+          "abrp_token": "Uit de ABRP-app: live data van je auto, Custom connection, Copy token.",
           "abrp_position": "Standaard uit: zonder weet ABRP niet waar de auto staat.",
           "abrp_api_key": "Alleen als de ingebouwde niet meer werkt: maak er een aan in je ABRP-account, onder telemetrie-API-sleutels."
         },
@@ -547,7 +547,7 @@
       "mileage_end_before_start": "De einddatum moet na de startdatum liggen.",
       "fetch_failed": "Het ophalen is niet gelukt: {error}",
       "abrp_token_missing": "Plak het autotoken uit de ABRP-app, of zet verzenden uit.",
-      "abrp_token_rejected": "ABRP heeft dit token geweigerd. Kopieer het opnieuw uit de ABRP-app (live data van je auto, Generic).",
+      "abrp_token_rejected": "ABRP heeft dit token geweigerd. Kopieer het opnieuw uit de ABRP-app (live data van je auto, Custom connection).",
       "abrp_key_missing": "Deze kopie heeft geen ingebouwde ABRP-sleutel. Vul je eigen API-sleutel uit je ABRP-account in.",
       "abrp_unreachable": "ABRP is niet bereikbaar. Controleer de internetverbinding en probeer het opnieuw."
     },

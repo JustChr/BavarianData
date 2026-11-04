@@ -359,7 +359,7 @@
         },
         "data_description": {
           "abrp_enabled": "Desligado por predefinição. O carro tem de estar guardado na aplicação ABRP.",
-          "abrp_token": "Na aplicação ABRP: dados em direto do seu carro, Generic.",
+          "abrp_token": "Na aplicação ABRP: dados em direto do seu carro, Custom connection, Copy token.",
           "abrp_position": "Desligado por predefinição: sem ela, a ABRP não sabe onde está o carro.",
           "abrp_api_key": "Só se a integrada deixar de funcionar: crie uma na sua conta ABRP, nas chaves API de telemetria."
         },
@@ -547,7 +547,7 @@
       "mileage_end_before_start": "A data de fim tem de ser posterior à data de início.",
       "fetch_failed": "A obtenção não foi concluída: {error}",
       "abrp_token_missing": "Cole o token do carro da aplicação ABRP, ou desligue o envio.",
-      "abrp_token_rejected": "A ABRP recusou este token. Copie-o novamente da aplicação ABRP (dados em direto do seu carro, Generic).",
+      "abrp_token_rejected": "A ABRP recusou este token. Copie-o novamente da aplicação ABRP (dados em direto do seu carro, Custom connection).",
       "abrp_key_missing": "Esta cópia não tem chave ABRP integrada. Introduza a sua própria chave API da sua conta ABRP.",
       "abrp_unreachable": "Não foi possível contactar a ABRP. Verifique a ligação à Internet e tente novamente."
     },

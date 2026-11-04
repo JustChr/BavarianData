@@ -9,6 +9,11 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **The ABRP screen now names the app's real path to the car token:** the
+  car's *Live data* → *Custom connection* → *Copy token*. It used to say
+  *Generic*, a label the app shows only as the token's heading.
+
 ## [0.9.26-beta.1] - 2026-11-04
 
 ### Added

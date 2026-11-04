@@ -359,7 +359,7 @@
         },
         "data_description": {
           "abrp_enabled": "Standardmäßig aus. Das Auto muss in der ABRP-App gespeichert sein.",
-          "abrp_token": "Aus der ABRP-App: Live-Daten deines Autos, Generic.",
+          "abrp_token": "Aus der ABRP-App: Live-Daten deines Autos, Custom connection, Copy token.",
           "abrp_position": "Standardmäßig aus: ohne sie weiß ABRP nicht, wo das Auto steht.",
           "abrp_api_key": "Nur falls der eingebaute nicht mehr funktioniert: in deinem ABRP-Konto unter Telemetrie-API-Schlüssel anlegen."
         },
@@ -547,7 +547,7 @@
       "mileage_end_before_start": "Das Ende muss nach dem Beginn liegen.",
       "fetch_failed": "Der Abruf hat nicht geklappt: {error}",
       "abrp_token_missing": "Füge den Auto-Token aus der ABRP-App ein oder schalte das Senden aus.",
-      "abrp_token_rejected": "ABRP hat diesen Token abgelehnt. Kopiere ihn erneut aus der ABRP-App (Live-Daten deines Autos, Generic).",
+      "abrp_token_rejected": "ABRP hat diesen Token abgelehnt. Kopiere ihn erneut aus der ABRP-App (Live-Daten deines Autos, Custom connection).",
       "abrp_key_missing": "Diese Kopie hat keinen eingebauten ABRP-Schlüssel. Gib deinen eigenen API-Schlüssel aus deinem ABRP-Konto ein.",
       "abrp_unreachable": "ABRP war nicht erreichbar. Prüfe die Internetverbindung und versuche es erneut."
     },
