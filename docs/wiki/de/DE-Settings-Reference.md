@@ -243,7 +243,8 @@ evcc-Konfiguration zum Einfügen; nur den Stream zu teilen speichert sofort.
 
 <a id="abrp-a-better-routeplanner"></a>
 
-Bildschirm: **Konfigurieren → Live-Daten teilen → ABRP (A Better Routeplanner)**.
+Bildschirm: **Konfigurieren → Live-Daten teilen → ABRP (A Better Routeplanner)**. Was
+ABRP zeigt und häufige Fragen stehen unter [ABRP-Live-Daten](DE-Feature-ABRP).
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-abrp-de.png" alt="ABRP-Einstellungen: An ABRP senden, Auto-Token, Position mitsenden und Eigener API-Schlüssel (optional), beide Schalter aus, beide Felder leer" width="460" />

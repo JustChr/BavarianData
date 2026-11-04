@@ -40,10 +40,14 @@ you add the card to a dashboard yourself. It has several views:
 
 - [Entities & devices](Feature-Entities-and-Devices) — what appears, and how it's named
 - [Charging history & cost](Feature-Charging-History-and-Cost)
+- [State of charge while charging](Feature-State-of-Charge) — why BMW's figure stands still mid-charge, and the estimate that keeps counting
 - [Battery health](Feature-Battery-Health) — how usable capacity is learned
 - [Efficiency & real range](Feature-Efficiency-and-Range) — measured consumption, and how far it reaches
 - [Trips / driving journal](Feature-Trips) — and the Fahrtenbuch caveat
+- [Mileage & allowance](Feature-Mileage) — distance driven month by month, and whether a lease is on plan
 - [evcc & wallbox bridge](Feature-evcc-and-Wallbox-Bridge) — hand your state of charge to a charge controller, at no API cost
+- [ABRP live data](Feature-ABRP) — your real battery level in A Better Routeplanner, with a free ABRP account
+- [Smart charging](Feature-Smart-Charging) — charge level and target for EV Smart Charging and Predbat
 - [Energy dashboard & long-term statistics](Feature-Energy-and-Statistics)
 - [Export (CSV / HTML report)](Feature-Export)
 - [Events & automation blueprints](Feature-Automations)

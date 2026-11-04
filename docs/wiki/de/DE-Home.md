@@ -42,10 +42,14 @@ hat mehrere Ansichten:
 
 - [Entitäten & Geräte](DE-Feature-Entities-and-Devices) — was angelegt wird und wie es heißt
 - [Ladeverlauf & Kosten](DE-Feature-Charging-History-and-Cost)
+- [Ladezustand beim Laden](DE-Feature-State-of-Charge) — warum BMWs Wert beim Laden stehen bleibt, und die Schätzung, die weiterzählt
 - [Batteriezustand](DE-Feature-Battery-Health) — wie die nutzbare Kapazität gelernt wird
 - [Effizienz & reale Reichweite](DE-Feature-Efficiency-and-Range) — gemessener Verbrauch und wie weit er reicht
 - [Fahrten / Fahrtenbuch](DE-Feature-Trips) — und warum es kein Finanzamt-Fahrtenbuch ist
+- [Kilometer & Kontingent](DE-Feature-Mileage) — gefahrene Kilometer pro Monat, und ob das Leasing im Plan liegt
 - [evcc- & Wallbox-Brücke](DE-Feature-evcc-and-Wallbox-Bridge) — den Ladezustand ohne API-Kosten an eine Ladesteuerung weitergeben
+- [ABRP-Live-Daten](DE-Feature-ABRP) — dein echter Akkustand in A Better Routeplanner, mit kostenlosem ABRP-Konto
+- [Intelligent laden](DE-Feature-Smart-Charging) — Ladezustand und Ladeziel für EV Smart Charging und Predbat
 - [Energie-Dashboard & Langzeitstatistiken](DE-Feature-Energy-and-Statistics)
 - [Export (CSV / HTML-Bericht)](DE-Feature-Export)
 - [Ereignisse & Automations-Blueprints](DE-Feature-Automations)

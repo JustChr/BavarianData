@@ -57,7 +57,14 @@ It can also hand that live charge level **to your charge controller**: the
 publishes the car's state of charge over MQTT, so evcc or openWB can charge on a
 figure that arrives as the car reports it instead of polling a rate-limited
 vendor API — and it reads your wallbox's own meter back, to record what each
-charge really drew from the grid.
+charge really drew from the grid. The same figure goes
+[to ABRP](https://github.com/JustChr/BavarianData/wiki/Feature-ABRP) if you
+like, so A Better Routeplanner plans from your real battery.
+
+That charge level keeps counting **while the car charges**, too: BMW often stops
+streaming it mid-charge, for hours, and the integration
+[estimates it](https://github.com/JustChr/BavarianData/wiki/Feature-State-of-Charge)
+from the charging power or your wallbox meter until BMW reports again.
 
 And you can simply **ask**: with an AI conversation agent behind Assist,
 *"Do I need to charge before driving to Munich and back?"* or *"Is the car
