@@ -39,7 +39,7 @@ sind hier weder Host noch Passwort des Brokers einzutragen — die Werte landen 
 auf dem Broker, mit dem Home Assistant schon verbunden ist, und das ist fast immer
 derselbe, den evcc liest.
 
-1. **Konfigurieren** → **MQTT-Brücke (evcc & mehr)**
+1. **Konfigurieren** → **Live-Daten teilen** → **MQTT-Brücke (evcc & mehr)**
 2. Hake **Dieses Auto für evcc veröffentlichen** an. Lass **Topic-Prefix** und
    **Mit Retain veröffentlichen** unverändert, wenn du keinen Grund hast.
 3. Der nächste Bildschirm liefert dir die **evcc-Konfiguration**, bereits mit deiner
@@ -148,7 +148,7 @@ wegnehmen. Den Stream zu teilen umgeht das: Jeder Wert, den BMW für das Auto st
 landet beim Eintreffen auf demselben Broker wie die evcc-Topics. Das kostet keine
 [API-Anfragen](DE-Feature-API-Quota).
 
-**Konfigurieren → MQTT-Brücke (evcc & mehr)** → **Ganzen Stream dieses Autos
+**Konfigurieren → Live-Daten teilen → MQTT-Brücke (evcc & mehr)** → **Ganzen Stream dieses Autos
 teilen** anhaken. Standardmäßig aus und je Auto eingestellt, wie der evcc-Schalter,
 und beide sind unabhängig: Ein Auto kann seinen Stream teilen, ohne für evcc
 veröffentlicht zu werden. Auch das braucht die MQTT-Integration.

@@ -40,6 +40,8 @@ from .account import (
     telematic_poll_loop,
     account_vins,
 )
+from .abrp import AbrpConfig
+from .abrp_push import HEARTBEAT, AbrpPush
 from .account_rest import (
     LAST_TELEMATIC_POLL,
 )
@@ -263,6 +265,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     )
     # Before the stream starts, so the very first message can be shared too.
     bridge = _async_wire_bridge(hass, entry, coordinator, options)
+    abrp = _async_wire_abrp(hass, entry, coordinator, options)
 
     async def handle_message(payload: dict[str, Any]) -> None:
         await coordinator.async_handle_message(payload)
@@ -330,6 +333,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
         coverage=coverage_store,
         tyre=tyre_store,
         bridge=bridge,
+        abrp=abrp,
         bootstrap_task=None,
         quota_manager=quota_manager,
         telematic_task=None,
@@ -518,6 +522,40 @@ def _async_wire_bridge(
     entry.async_on_unload(async_at_started(hass, _bridge_heartbeat))
     entry.async_on_unload(bridge.async_shutdown)
     return bridge
+
+
+def _async_wire_abrp(
+    hass: HomeAssistant,
+    entry: CardataConfigEntry,
+    coordinator: CardataCoordinator,
+    options: dict[str, Any],
+) -> AbrpPush:
+    """The ABRP push, sending on every SoC or descriptor change and on a heartbeat.
+
+    Off unless the user switched a car on (``abrp_push.py``).
+    """
+
+    abrp = AbrpPush(hass, coordinator, config=AbrpConfig.from_options(options))
+
+    @callback
+    def _abrp_send(vin: Any = None, _descriptor: Any = None) -> None:
+        # The same two signatures as the bridge's callback.
+        abrp.async_schedule(vin if isinstance(vin, str) else None)
+
+    entry.async_on_unload(
+        async_dispatcher_connect(hass, coordinator.signal_soc_estimate, _abrp_send)
+    )
+    entry.async_on_unload(async_dispatcher_connect(hass, coordinator.signal_update, _abrp_send))
+
+    @callback
+    def _abrp_heartbeat(_now: Any = None) -> None:
+        if abrp.enabled:
+            entry.async_create_background_task(hass, abrp.async_send_all(), f"{DOMAIN}_abrp")
+
+    entry.async_on_unload(async_track_time_interval(hass, _abrp_heartbeat, HEARTBEAT))
+    entry.async_on_unload(async_at_started(hass, _abrp_heartbeat))
+    entry.async_on_unload(abrp.async_shutdown)
+    return abrp
 
 
 @callback

@@ -10,6 +10,7 @@ from typing import Any, Optional
 import aiohttp
 from homeassistant.config_entries import ConfigEntry
 
+from .abrp_push import AbrpPush
 from .bridge import VehicleBridge
 from .container import (
     CardataContainerManager,
@@ -46,6 +47,7 @@ class CardataRuntimeData:
     coverage: Optional[CoverageStore] = None
     tyre: Optional[TyreStore] = None
     bridge: Optional[VehicleBridge] = None
+    abrp: Optional[AbrpPush] = None
     bootstrap_task: asyncio.Task[Any] | None = None
     quota_manager: QuotaManager | None = None
     telematic_task: asyncio.Task[Any] | None = None

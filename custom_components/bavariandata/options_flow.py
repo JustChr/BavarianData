@@ -85,7 +85,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
                 "action_fetch_image",
                 "action_charging_costs",
                 "action_energy_sources",
-                "action_evcc_bridge",
+                "share_live_data",
                 "action_trips",
                 "action_mileage",
                 "action_units",
@@ -93,6 +93,16 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
                 "fetch_now",
                 "connection",
             ],
+        )
+
+    async def async_step_share_live_data(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> ConfigFlowResult:
+        """Where the car's live state goes outside Home Assistant."""
+
+        return self.async_show_menu(
+            step_id="share_live_data",
+            menu_options=["action_evcc_bridge", "action_abrp"],
         )
 
     async def async_step_fetch_now(

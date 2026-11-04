@@ -103,7 +103,7 @@
           "action_fetch_image": "Immagine del veicolo",
           "action_charging_costs": "Costi e storico di ricarica",
           "action_energy_sources": "Fotovoltaico e fonti di energia",
-          "action_evcc_bridge": "Bridge MQTT (evcc e altro)",
+          "share_live_data": "Condividi dati in tempo reale",
           "action_trips": "Viaggi",
           "action_mileage": "Chilometraggio consentito",
           "action_units": "Unità",
@@ -330,6 +330,52 @@
         "title": "Configurazione evcc",
         "description": "Aggiungi questo al tuo `evcc.yaml` sotto una chiave `vehicles:` (uniscilo ai veicoli che hai già — la chiave può comparire una sola volta):\n\n```\n{snippet}\n```\n\nevcc deve anche conoscere il tuo broker, nella propria sezione `mqtt:` — lo stesso usato da Home Assistant. Poi assegna il veicolo a un punto di ricarica e riavvia evcc.\n\nSono elencati solo i campi che questa auto comunica davvero: un plugin puntato su un topic che non riceve mai messaggi fa registrare a evcc un errore di lettura a ogni ciclo. Nessun `timeout` è impostato di proposito — i valori vengono ripubblicati periodicamente, così un'auto parcheggiata mantiene uno stato di carica valido invece di restare vuota.\n\nPuoi recuperare di nuovo questa configurazione in qualsiasi momento con l'azione **Ottieni la configurazione evcc**."
       },
+      "share_live_data": {
+        "title": "Condividi dati in tempo reale",
+        "description": "Invia lo stato in tempo reale dell'auto ad altre app, direttamente dallo stream BMW e senza costi API.",
+        "menu_options": {
+          "action_evcc_bridge": "Bridge MQTT (evcc e altro)",
+          "action_abrp": "ABRP (A Better Routeplanner)"
+        }
+      },
+      "abrp_vehicle": {
+        "title": "ABRP (A Better Routeplanner)",
+        "description": "Ogni veicolo viene inviato con il proprio token ABRP. Scegli il veicolo da modificare.",
+        "data": {
+          "vehicle": "Veicolo"
+        },
+        "data_description": {
+          "vehicle": "La schermata successiva mostra le impostazioni ABRP di questo veicolo."
+        }
+      },
+      "action_abrp": {
+        "title": "ABRP (A Better Routeplanner)",
+        "description": "Invia ad ABRP livello di carica, ricarica e autonomia di **{vehicle}** appena arrivano, così i percorsi partono dalla batteria reale. Gratis, e non usa nessuna delle richieste giornaliere BMW.",
+        "data": {
+          "abrp_enabled": "Invia ad ABRP",
+          "abrp_token": "Token dell'auto",
+          "abrp_position": "Includi la posizione",
+          "abrp_api_key": "Chiave API propria (facoltativa)"
+        },
+        "data_description": {
+          "abrp_enabled": "Disattivato di default. L'auto deve essere salvata nell'app ABRP.",
+          "abrp_token": "Dall'app ABRP: dati in tempo reale della tua auto, Generic.",
+          "abrp_position": "Disattivato di default: senza, ABRP non sa dove si trova l'auto.",
+          "abrp_api_key": "Solo se quella integrata smette di funzionare: creane una nel tuo account ABRP, tra le chiavi API di telemetria."
+        },
+        "sections": {
+          "all_vehicles": {
+            "name": "Tutti i veicoli",
+            "description": "Queste impostazioni valgono per tutti i veicoli di questo account.",
+            "data": {
+              "abrp_api_key": "Chiave API propria (facoltativa)"
+            },
+            "data_description": {
+              "abrp_api_key": "Solo se quella integrata smette di funzionare: creane una nel tuo account ABRP, tra le chiavi API di telemetria."
+            }
+          }
+        }
+      },
       "trips_vehicle": {
         "title": "Viaggi (diario di guida)",
         "description": "Ogni veicolo ha le proprie impostazioni dei viaggi. Scegli quello da modificare.",
@@ -499,7 +545,11 @@
       "configurator_unavailable": "Il configuratore BMW non ha risposto o è cambiato. Riprova più tardi, oppure tieni l'immagine ufficiale.",
       "configurator_no_render": "Il configuratore BMW non ha un'immagine di {vehicle}. Tieni l'immagine ufficiale.",
       "mileage_end_before_start": "La data di fine deve essere successiva alla data di inizio.",
-      "fetch_failed": "Il recupero non è riuscito: {error}"
+      "fetch_failed": "Il recupero non è riuscito: {error}",
+      "abrp_token_missing": "Incolla il token dell'auto dall'app ABRP, oppure disattiva l'invio.",
+      "abrp_token_rejected": "ABRP ha rifiutato questo token. Copialo di nuovo dall'app ABRP (dati in tempo reale della tua auto, Generic).",
+      "abrp_key_missing": "Questa copia non ha una chiave ABRP integrata. Inserisci la tua chiave API dal tuo account ABRP.",
+      "abrp_unreachable": "ABRP non è raggiungibile. Controlla la connessione Internet e riprova."
     },
     "abort": {
       "reauth_started": "Autorizzazione riavviata. Completa il nuovo accesso dalla notifica appena comparsa.",

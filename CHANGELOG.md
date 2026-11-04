@@ -9,6 +9,23 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **ABRP (A Better Routeplanner) live data.** *Configure → Share live data →
+  ABRP* sends the car's charge level, charging (and whether from a DC charger),
+  charging power, parked or driving, odometer and range to ABRP, so a route
+  plan starts from the real battery. It runs off BMW's stream, so it costs no
+  API quota, and it works with a free ABRP account (one saved car). Off by
+  default, per car, with the car token from the ABRP app (the car's live data,
+  *Generic*); switching on checks the token right away. The position goes only
+  with a second switch, also off by default. A value the car hasn't reported is
+  left out, never sent as zero, and the last known values are repeated every
+  30 seconds so ABRP doesn't drop the car. Releases carry BavarianData's own
+  ABRP key; an own key can be entered if that one ever stops working.
+
+### Changed
+- **The MQTT bridge moved one level down**, to *Configure → Share live data →
+  MQTT bridge (evcc & more)*, next to ABRP. Its settings are unchanged.
+
 ## [0.9.25] - 2026-11-03
 
 Promotes 0.9.25-beta.1 to 0.9.25-beta.7. A charge now shows on your phone's lock screen, the blueprints install and update themselves, and a car's whole stream can be shared with other apps over MQTT. A finished charge is announced at once, the API quota resets at 00:00 UTC as BMW's does, and the daily refresh is back to 2 requests per car.

@@ -187,6 +187,312 @@
     }),
   ])
 # ---
+# name: test_configure_abrp
+  list([
+    dict({
+      'data_schema': list([
+        dict({
+          'default': False,
+          'name': 'abrp_enabled',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': '',
+          }),
+          'name': 'abrp_token',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'text': dict({
+              'multiline': False,
+              'multiple': False,
+              'type': 'password',
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
+          'name': 'abrp_position',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': '',
+          }),
+          'name': 'abrp_api_key',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'text': dict({
+              'multiline': False,
+              'multiple': False,
+              'type': 'password',
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'i5 eDrive40',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'action_abrp',
+      'type': 'form',
+    }),
+    'switched on without a token',
+    dict({
+      'data_schema': list([
+        dict({
+          'default': True,
+          'name': 'abrp_enabled',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': '',
+          }),
+          'name': 'abrp_token',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'text': dict({
+              'multiline': False,
+              'multiple': False,
+              'type': 'password',
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
+          'name': 'abrp_position',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': '',
+          }),
+          'name': 'abrp_api_key',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'text': dict({
+              'multiline': False,
+              'multiple': False,
+              'type': 'password',
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'i5 eDrive40',
+      }),
+      'errors': dict({
+        'abrp_token': 'abrp_token_missing',
+      }),
+      'last_step': None,
+      'step_id': 'action_abrp',
+      'type': 'form',
+    }),
+    'a token ABRP refuses',
+    dict({
+      'data_schema': list([
+        dict({
+          'default': True,
+          'name': 'abrp_enabled',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': 'bad',
+          }),
+          'name': 'abrp_token',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'text': dict({
+              'multiline': False,
+              'multiple': False,
+              'type': 'password',
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
+          'name': 'abrp_position',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': '',
+          }),
+          'name': 'abrp_api_key',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'text': dict({
+              'multiline': False,
+              'multiple': False,
+              'type': 'password',
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'i5 eDrive40',
+      }),
+      'errors': dict({
+        'abrp_token': 'abrp_token_rejected',
+      }),
+      'last_step': None,
+      'step_id': 'action_abrp',
+      'type': 'form',
+    }),
+    'a token ABRP takes',
+    dict({
+      'data': dict({
+        'vehicles': dict({
+          'WBATEST0000000001': dict({
+            'abrp_enabled': True,
+            'abrp_position': True,
+            'abrp_token': 'good',
+          }),
+        }),
+      }),
+      'description_placeholders': None,
+      'title': '',
+      'type': 'create_entry',
+    }),
+  ])
+# ---
+# name: test_configure_abrp_two_cars
+  list([
+    dict({
+      'data_schema': list([
+        dict({
+          'default': 'WBATEST0000000001',
+          'name': 'vehicle',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                dict({
+                  'label': 'i5 eDrive40',
+                  'value': 'WBATEST0000000001',
+                }),
+                dict({
+                  'label': 'iX1 xDrive30',
+                  'value': 'WBATEST0000000002',
+                }),
+              ]),
+              'sort': False,
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': None,
+      'errors': None,
+      'last_step': False,
+      'step_id': 'abrp_vehicle',
+      'type': 'form',
+    }),
+    'the key sits in All vehicles',
+    dict({
+      'data_schema': list([
+        dict({
+          'default': False,
+          'name': 'abrp_enabled',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': '',
+          }),
+          'name': 'abrp_token',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'text': dict({
+              'multiline': False,
+              'multiple': False,
+              'type': 'password',
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
+          'name': 'abrp_position',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'expanded': False,
+          'name': 'all_vehicles',
+          'required': True,
+          'schema': list([
+            dict({
+              'description': dict({
+                'suggested_value': '',
+              }),
+              'name': 'abrp_api_key',
+              'optional': True,
+              'required': False,
+              'selector': dict({
+                'text': dict({
+                  'multiline': False,
+                  'multiple': False,
+                  'type': 'password',
+                }),
+              }),
+            }),
+          ]),
+          'type': 'expandable',
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'iX1 xDrive30',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'action_abrp',
+      'type': 'form',
+    }),
+  ])
+# ---
 # name: test_configure_charging_costs
   list([
     dict({
@@ -1578,8 +1884,8 @@
               'action_energy_sources',
             ]),
             list([
-              'action_evcc_bridge',
-              'action_evcc_bridge',
+              'share_live_data',
+              'share_live_data',
             ]),
             list([
               'action_trips',
@@ -1616,7 +1922,7 @@
         'action_fetch_image',
         'action_charging_costs',
         'action_energy_sources',
-        'action_evcc_bridge',
+        'share_live_data',
         'action_trips',
         'action_mileage',
         'action_units',
@@ -1707,6 +2013,32 @@
         'action_debug_logging',
       ]),
       'step_id': 'connection',
+      'type': 'menu',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'name': 'next_step_id',
+          'options': list([
+            list([
+              'action_evcc_bridge',
+              'action_evcc_bridge',
+            ]),
+            list([
+              'action_abrp',
+              'action_abrp',
+            ]),
+          ]),
+          'required': False,
+          'type': 'select',
+        }),
+      ]),
+      'description_placeholders': None,
+      'menu_options': list([
+        'action_evcc_bridge',
+        'action_abrp',
+      ]),
+      'step_id': 'share_live_data',
       'type': 'menu',
     }),
   ])

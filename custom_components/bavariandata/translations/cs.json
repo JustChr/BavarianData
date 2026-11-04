@@ -103,7 +103,7 @@
           "action_fetch_image": "Obrázek vozidla",
           "action_charging_costs": "Náklady a historie nabíjení",
           "action_energy_sources": "Solár a zdroje energie",
-          "action_evcc_bridge": "Most MQTT (evcc a další)",
+          "share_live_data": "Sdílet živá data",
           "action_trips": "Jízdy",
           "action_mileage": "Limit kilometrů",
           "action_units": "Jednotky",
@@ -330,6 +330,52 @@
         "title": "Konfigurace evcc",
         "description": "Přidejte toto do svého `evcc.yaml` pod klíč `vehicles:` (sloučte s vozidly, která už máte — klíč se smí objevit jen jednou):\n\n```\n{snippet}\n```\n\nevcc také musí znát váš broker, ve vlastní sekci `mqtt:` — tentýž, který používá Home Assistant. Poté přiřaďte vozidlo k nabíjecímu bodu a restartujte evcc.\n\nUvedena jsou jen pole, která toto auto skutečně hlásí: plugin nasměrovaný na téma, na které nikdy nepřijde zpráva, způsobí, že evcc v každém cyklu zaloguje chybu čtení. Záměrně není nastaven `timeout` — hodnoty se pravidelně publikují znovu, takže zaparkované auto si udrží platný stav nabití, místo aby zůstalo prázdné.\n\nKdykoli si to můžete znovu načíst akcí **Získat konfiguraci evcc**."
       },
+      "share_live_data": {
+        "title": "Sdílet živá data",
+        "description": "Posílejte živý stav auta do jiných aplikací, přímo ze streamu BMW a bez nákladů na API.",
+        "menu_options": {
+          "action_evcc_bridge": "Most MQTT (evcc a další)",
+          "action_abrp": "ABRP (A Better Routeplanner)"
+        }
+      },
+      "abrp_vehicle": {
+        "title": "ABRP (A Better Routeplanner)",
+        "description": "Každé vozidlo se posílá s vlastním tokenem ABRP. Vyberte vozidlo, které chcete změnit.",
+        "data": {
+          "vehicle": "Vozidlo"
+        },
+        "data_description": {
+          "vehicle": "Další obrazovka ukáže nastavení ABRP tohoto vozidla."
+        }
+      },
+      "action_abrp": {
+        "title": "ABRP (A Better Routeplanner)",
+        "description": "Posílá do ABRP stav nabití, nabíjení a dojezd **{vehicle}**, jakmile dorazí, aby trasy začínaly od skutečné baterie. Zdarma a nespotřebuje žádný z denních požadavků BMW.",
+        "data": {
+          "abrp_enabled": "Posílat do ABRP",
+          "abrp_token": "Token auta",
+          "abrp_position": "Přidat polohu",
+          "abrp_api_key": "Vlastní klíč API (nepovinné)"
+        },
+        "data_description": {
+          "abrp_enabled": "Ve výchozím stavu vypnuto. Auto musí být uložené v aplikaci ABRP.",
+          "abrp_token": "Z aplikace ABRP: živá data vašeho auta, Generic.",
+          "abrp_position": "Ve výchozím stavu vypnuto: bez ní ABRP neví, kde auto je.",
+          "abrp_api_key": "Jen pokud vestavěný přestane fungovat: vytvořte si ho v účtu ABRP, v klíčích API pro telemetrii."
+        },
+        "sections": {
+          "all_vehicles": {
+            "name": "Všechna vozidla",
+            "description": "Tato nastavení platí pro všechna vozidla tohoto účtu.",
+            "data": {
+              "abrp_api_key": "Vlastní klíč API (nepovinné)"
+            },
+            "data_description": {
+              "abrp_api_key": "Jen pokud vestavěný přestane fungovat: vytvořte si ho v účtu ABRP, v klíčích API pro telemetrii."
+            }
+          }
+        }
+      },
       "trips_vehicle": {
         "title": "Jízdy (kniha jízd)",
         "description": "Každé vozidlo má vlastní nastavení jízd. Vyberte to, které chcete změnit.",
@@ -499,7 +545,11 @@
       "configurator_unavailable": "Konfigurátor BMW neodpověděl nebo se změnil. Zkuste to později, nebo ponechte oficiální obrázek.",
       "configurator_no_render": "Konfigurátor BMW nemá obrázek {vehicle}. Ponechte oficiální obrázek.",
       "mileage_end_before_start": "Datum konce musí být po datu začátku.",
-      "fetch_failed": "Načtení se nezdařilo: {error}"
+      "fetch_failed": "Načtení se nezdařilo: {error}",
+      "abrp_token_missing": "Vložte token auta z aplikace ABRP, nebo posílání vypněte.",
+      "abrp_token_rejected": "ABRP tento token odmítlo. Zkopírujte ho znovu z aplikace ABRP (živá data vašeho auta, Generic).",
+      "abrp_key_missing": "Tato kopie nemá vestavěný klíč ABRP. Zadejte vlastní klíč API ze svého účtu ABRP.",
+      "abrp_unreachable": "ABRP není dostupné. Zkontrolujte připojení k internetu a zkuste to znovu."
     },
     "abort": {
       "reauth_started": "Autorizace byla znovu spuštěna. Dokončete nové přihlášení z oznámení, které se právě objevilo.",

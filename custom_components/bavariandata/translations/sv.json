@@ -103,7 +103,7 @@
           "action_fetch_image": "Fordonsbild",
           "action_charging_costs": "Laddkostnader och historik",
           "action_energy_sources": "Sol och energikällor",
-          "action_evcc_bridge": "MQTT-brygga (evcc med mera)",
+          "share_live_data": "Dela livedata",
           "action_trips": "Resor",
           "action_mileage": "Miltak",
           "action_units": "Enheter",
@@ -330,6 +330,52 @@
         "title": "evcc-konfiguration",
         "description": "Lägg till detta i din `evcc.yaml` under en `vehicles:`-nyckel (slå ihop det med fordon du redan har — nyckeln får bara förekomma en gång):\n\n```\n{snippet}\n```\n\nevcc behöver också känna till din broker, i sin egen `mqtt:`-sektion — samma som Home Assistant använder. Tilldela sedan fordonet till en laddpunkt och starta om evcc.\n\nBara de fält som den här bilen faktiskt rapporterar listas: ett plugin som pekar på ett topic som aldrig får något meddelande får evcc att logga ett läsfel varje cykel. Ingen `timeout` är satt med avsikt — värdena publiceras om regelbundet, så en parkerad bil behåller en giltig laddningsnivå i stället för att bli tom.\n\nDu kan hämta detta igen när som helst med åtgärden **Hämta evcc-konfiguration**."
       },
+      "share_live_data": {
+        "title": "Dela livedata",
+        "description": "Skicka bilens livetillstånd till andra appar, direkt från BMW:s ström och utan API-kostnad.",
+        "menu_options": {
+          "action_evcc_bridge": "MQTT-brygga (evcc med mera)",
+          "action_abrp": "ABRP (A Better Routeplanner)"
+        }
+      },
+      "abrp_vehicle": {
+        "title": "ABRP (A Better Routeplanner)",
+        "description": "Varje fordon skickas med sin egen ABRP-token. Välj fordonet du vill ändra.",
+        "data": {
+          "vehicle": "Fordon"
+        },
+        "data_description": {
+          "vehicle": "Nästa skärm visar fordonets ABRP-inställningar."
+        }
+      },
+      "action_abrp": {
+        "title": "ABRP (A Better Routeplanner)",
+        "description": "Skickar laddnivå, laddning och räckvidd för **{vehicle}** till ABRP så fort de kommer in, så att rutter utgår från det verkliga batteriet. Gratis, och använder ingen av BMW:s dagliga förfrågningar.",
+        "data": {
+          "abrp_enabled": "Skicka till ABRP",
+          "abrp_token": "Biltoken",
+          "abrp_position": "Ta med positionen",
+          "abrp_api_key": "Egen API-nyckel (valfritt)"
+        },
+        "data_description": {
+          "abrp_enabled": "Av som standard. Bilen måste vara sparad i ABRP-appen.",
+          "abrp_token": "Från ABRP-appen: bilens livedata, Generic.",
+          "abrp_position": "Av som standard: utan den vet ABRP inte var bilen är.",
+          "abrp_api_key": "Bara om den inbyggda slutar fungera: skapa en i ditt ABRP-konto, under telemetri-API-nycklar."
+        },
+        "sections": {
+          "all_vehicles": {
+            "name": "Alla fordon",
+            "description": "Dessa inställningar gäller alla fordon på det här kontot.",
+            "data": {
+              "abrp_api_key": "Egen API-nyckel (valfritt)"
+            },
+            "data_description": {
+              "abrp_api_key": "Bara om den inbyggda slutar fungera: skapa en i ditt ABRP-konto, under telemetri-API-nycklar."
+            }
+          }
+        }
+      },
       "trips_vehicle": {
         "title": "Resor (körjournal)",
         "description": "Varje fordon har egna reseinställningar. Välj det du vill ändra.",
@@ -499,7 +545,11 @@
       "configurator_unavailable": "BMW:s konfigurator svarade inte eller har ändrats. Försök senare, eller behåll den officiella bilden.",
       "configurator_no_render": "BMW:s konfigurator har ingen bild av {vehicle}. Behåll den officiella bilden.",
       "mileage_end_before_start": "Slutdatumet måste ligga efter startdatumet.",
-      "fetch_failed": "Hämtningen gick inte igenom: {error}"
+      "fetch_failed": "Hämtningen gick inte igenom: {error}",
+      "abrp_token_missing": "Klistra in biltoken från ABRP-appen, eller stäng av sändningen.",
+      "abrp_token_rejected": "ABRP avvisade denna token. Kopiera den igen från ABRP-appen (bilens livedata, Generic).",
+      "abrp_key_missing": "Den här kopian har ingen inbyggd ABRP-nyckel. Ange din egen API-nyckel från ditt ABRP-konto.",
+      "abrp_unreachable": "ABRP gick inte att nå. Kontrollera internetanslutningen och försök igen."
     },
     "abort": {
       "reauth_started": "Auktoriseringen har startats om. Slutför den nya inloggningen från aviseringen som just dök upp.",

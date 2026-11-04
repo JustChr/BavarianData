@@ -27,7 +27,7 @@ erscheinen (der Screenshot zeigt die englische).
 | **Fahrzeugbild** | Einstellungen ⚡ | Woher das Bild des Autos kommt: BMW CarData oder BMWs Online-Konfigurator — unten. |
 | **Ladekosten & Verlauf** | Einstellungen | Preisquelle, Aufbewahrung, Statistiken — unten. |
 | **Solar & Energiequellen** | Einstellungen | Woher die Energie jeder Ladung kam: PV, Hausspeicher, Netz — unten. |
-| **MQTT-Brücke (evcc & mehr)** | Einstellungen | Den Live-Zustand des Autos für eine Ladesteuerung per MQTT veröffentlichen oder seinen ganzen Stream mit anderen Apps teilen — unten. |
+| **Live-Daten teilen** | Menü | Den Live-Zustand des Autos weitergeben: **MQTT-Brücke (evcc & mehr)** für eine Ladesteuerung oder andere Apps, **ABRP (A Better Routeplanner)** für die Routenplanung — beides unten. |
 | **Fahrten** | Einstellungen | Arbeitszone, Standard-Typ, Toleranz für Zwischenstopps, Adressauflösung und Routenaufzeichnung — unten. |
 | **Kilometerkontingent** | Einstellungen | Ein Leasing oder eine jährliche Kilometergrenze pro Auto — unten. |
 | **Einheiten** | Einstellungen | Kilometer oder Meilen, Einheiten für Kraftstoff, Temperatur und Reifendruck, für Karte, Bildschirme und Sensoren — unten. |
@@ -202,7 +202,7 @@ Template-Sensor nicht angeboten, gib ihm `device_class: power` (und eine
 <a id="mqtt-bridge-evcc--more"></a>
 <a id="evcc--wallbox-bridge"></a>
 
-Bildschirm: **Konfigurieren → MQTT-Brücke (evcc & mehr)**. Konzepte, Topic-Tabelle und
+Bildschirm: **Konfigurieren → Live-Daten teilen → MQTT-Brücke (evcc & mehr)**. Konzepte, Topic-Tabelle und
 Fehlerbehebung stehen unter [evcc- & Wallbox-Brücke](DE-Feature-evcc-and-Wallbox-Bridge).
 
 <p align="center">
@@ -234,6 +234,43 @@ evcc-Konfiguration zum Einfügen; nur den Stream zu teilen speichert sofort.
 | **Position weglassen** | an/aus | Standard **an**. Hält Standort und Navigationsziel des Autos aus dem geteilten Stream heraus. Wieder einschalten entfernt die Positions-Topics. |
 | **Topic-Prefix** | Text | Wurzel der Topics; alles landet unter `<prefix>/<FIN>/`. Standard `bavariandata`. Schrägstriche werden entfernt, und ein MQTT-Platzhalter fällt auf den Standard zurück. |
 | **Mit Retain veröffentlichen** | an/aus | Standard **an**, und am besten so gelassen: Nur so finden evcc (und ein Dashboard, das den geteilten Stream liest) den letzten Wert sofort beim Start, statt zu warten, bis das Auto sich wieder meldet. Nur abschalten, wenn dein Broker Retain-Nachrichten ablehnt. |
+
+## ABRP (A Better Routeplanner)
+
+<a id="abrp-a-better-routeplanner"></a>
+
+Bildschirm: **Konfigurieren → Live-Daten teilen → ABRP (A Better Routeplanner)**.
+
+Sendet den Live-Zustand des Autos an [ABRP](https://abetterrouteplanner.com),
+damit eine Routenplanung mit dem echten Akkustand beginnt statt mit einer
+Schätzung. Es kommt direkt aus BMWs Stream, kostet also kein
+[API-Kontingent](DE-Feature-API-Quota), und ABRPs Live-Daten funktionieren mit
+einem kostenlosen ABRP-Konto.
+
+**Vorab:** Speichere das Auto in der ABRP-App, öffne dann die Live-Daten des
+Autos, wähle **Generic** und kopiere den angezeigten Token. Ein kostenloses
+ABRP-Konto hält **ein** Auto: Ist ein zweites gespeichert, verlangt die App
+Premium, bevor sie einen Token herausgibt.
+
+| Option | Werte | Bedeutung |
+| --- | --- | --- |
+| **An ABRP senden** | an/aus | Standard **aus**. Beim Einschalten wird der Token sofort bei ABRP geprüft (mit einer Nachricht, die nur die Uhrzeit enthält); einen abgelehnten Token meldet der Bildschirm. Ausschalten beendet einfach das Senden. |
+| **Auto-Token** | Text | Der Token aus der ABRP-App (Live-Daten des Autos, **Generic**). Gehört nur zu diesem Auto: Ein später hinzugefügtes Auto übernimmt ihn nicht. |
+| **Position mitsenden** | an/aus | Standard **aus**. Fügt Standort und Höhe des Autos hinzu. Ohne sie kennt ABRP den Akku, aber nicht, wo das Auto steht. |
+| **Eigener API-Schlüssel (optional)** | Text | Leer lassen. Jede Version bringt BavarianDatas eigenen ABRP-Schlüssel mit; trage deinen (ABRP-Konto → Telemetrie-API-Schlüssel) nur ein, wenn dieser nicht mehr funktioniert. Bei mehreren Autos steht er im eingeklappten Abschnitt **Alle Fahrzeuge** und gilt für jedes Auto. |
+
+**Was gesendet wird:** der Ladestand, ob das Auto lädt (und ob an einer
+DC-Säule), die Ladeleistung, ob es parkt, der Kilometerstand und BMWs
+Reichweite, dazu die Position, wenn du sie eingeschaltet hast. Wie bei der
+MQTT-Brücke gilt: **Ein Wert, den das Auto nicht gemeldet hat, fehlt, statt als
+Null gesendet zu werden**, und gesendet wird erst, wenn das Auto einen Ladestand
+gemeldet hat. Gesendet wird bei jeder Änderung und alle 30 Sekunden erneut mit
+den letzten bekannten Werten, weil ABRP ein Auto, das verstummt, als weg
+betrachtet. BMWs Stream enthält weder Geschwindigkeit noch Außentemperatur,
+daher bekommt ABRP beides nicht.
+
+**Mehrere Fahrzeuge im Konto?** Der Bildschirm fragt zuerst nach dem Fahrzeug;
+jedes Auto hat seinen eigenen Schalter und Token.
 
 ## Fahrten
 

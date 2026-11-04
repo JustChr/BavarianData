@@ -161,6 +161,9 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `bridge_vehicle` | MQTT bridge: which vehicle (only with 2+ cars) | 🟢 Settings-Reference → "MQTT bridge (evcc & more)" + Feature-Multiple-Cars-and-Accounts (EN + DE) | 📷 (have, 2026-11-03, staged two-car: `bavariandata-evcc-bridge-second-car.png`, All vehicles open; picker shared) |
 | `action_evcc_bridge` | MQTT bridge (evcc & more) (per car with 2+ cars: evcc on/off, share the whole stream; leave out the position, prefix and retained in "All vehicles"; the evcc snippet follows only when evcc is on) | 🟢 Feature-evcc-and-Wallbox-Bridge (incl. "Sharing the whole stream, with other apps") + Settings-Reference → "MQTT bridge (evcc & more)" | 📷 (have, 2026-11-03: `bavariandata-evcc-bridge.png`) |
 | `evcc_snippet` | evcc configuration (generated, paste-ready) | 🟢 Feature-evcc-and-Wallbox-Bridge → "Setting it up" | 📷 (have, 2026-10-14: `bavariandata-evcc-snippet.png`, staged from the live YAML with the VIN replaced: the bridge was off) |
+| `share_live_data` | Share live data (submenu: MQTT bridge, ABRP) | 🟢 Settings-Reference → "The Configure menu" (EN + DE) | 📷 (needed: the submenu) |
+| `abrp_vehicle` | ABRP: which vehicle (only with 2+ cars) | 🟢 Settings-Reference → "ABRP (A Better Routeplanner)" + Feature-Multiple-Cars-and-Accounts (EN + DE) | 📷 (needed) |
+| `action_abrp` | ABRP (A Better Routeplanner) (always per car: send, token, position; own API key shared, in "All vehicles" with 2+ cars; switching on checks the token) | 🟢 Settings-Reference → "ABRP (A Better Routeplanner)" (EN + DE) | 📷 (needed: on a release with the project key) |
 | `trips_vehicle` | Trips: which vehicle (only with 2+ cars) | 🟢 Settings-Reference → "Trips" + Feature-Multiple-Cars-and-Accounts → "Telling the cars apart" (EN + DE) | 📷 (have, staged two-car: `bavariandata-vehicle-picker.png`) |
 | `action_trips` | Trips (per car with 2+ cars; shared settings in the collapsed "All vehicles" section) | 🟡 | 📷 (have, 2026-10-11: `bavariandata-configure-trips.png`) |
 | `action_mileage` → `mileage_vehicle` (2+ cars) → `mileage_lease` / `mileage_yearly` | Mileage allowance (always per car, even with one car) | 🟢 Settings-Reference → "Mileage allowance" + Feature-Mileage (EN + DE) | 📷 (have, 2026-10-14: `bavariandata-mileage-allowance.png`, `-lease.png` with example figures, `-yearly.png`) |
@@ -188,6 +191,8 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `bridge_stream_hide_position` | MQTT bridge (evcc & more), all vehicles | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge → "Sharing the whole stream, with other apps" |
 | `bridge_topic_prefix` | MQTT bridge (evcc & more) | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge |
 | `bridge_retain` | MQTT bridge (evcc & more) | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge |
+| `abrp_enabled`, `abrp_token`, `abrp_position` | ABRP (A Better Routeplanner), always per car (stored under the VIN even with one car) | 🟢 Settings-Reference → "ABRP (A Better Routeplanner)" (EN + DE) |
+| `abrp_api_key` | ABRP (A Better Routeplanner), all vehicles | 🟢 Settings-Reference → "ABRP (A Better Routeplanner)" (EN + DE) |
 | `trip_work_zone` | Trips | 🟡 |
 | `trip_default_class` (default type) | Trips | ✅ |
 | `trip_commute_gap` (commute stop tolerance) | Trips | ✅ |
@@ -196,7 +201,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `trip_detection` (live / end-of-trip reports) | Trips | 🟢 Settings-Reference + Feature-Trips → "Older cars…" (EN + DE), screenshot `bavariandata-configure-trip-detection.png` |
 | `trip_phone_tracker` / `trip_phone_in_car` and `_2` (route from a phone, up to two) | Trips → Route from a phone | 🟢 Settings-Reference + Feature-Trips → "The route from a phone" (EN + DE), screenshot `bavariandata-configure-trips-phone.png` |
 | `trip_debug` (trip-capture diagnostics) | Trips | ✅ |
-| `vehicles` (per-car settings by VIN: trips, wallbox meter + losses, evcc publish) | Trips, Charging costs, evcc bridge | 🟢 Settings-Reference → "Trips", "Charging costs & history", "evcc / wallbox bridge" (EN + DE) |
+| `vehicles` (per-car settings by VIN: trips, wallbox meter + losses, evcc publish, ABRP) | Trips, Charging costs, evcc bridge, ABRP | 🟢 Settings-Reference → "Trips", "Charging costs & history", "evcc / wallbox bridge" (EN + DE) |
 | `debug_log` | Debug logging | 🟡 |
 | `mqtt_keepalive` (hidden override) | — | ❌ |
 | `diagnostic_log_interval` (hidden override) | — | ❌ |

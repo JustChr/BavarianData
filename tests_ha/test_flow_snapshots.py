@@ -31,6 +31,7 @@ from homeassistant.helpers.data_entry_flow import _BaseFlowManagerView
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.bavariandata.abrp import SendResult
 from custom_components.bavariandata.const import DOMAIN
 from custom_components.bavariandata.container import CardataContainerManager
 from custom_components.bavariandata.device_flow import CardataAuthError
@@ -445,6 +446,7 @@ async def test_configure_menus(hass: HomeAssistant, no_bmw, snapshot) -> None:
     walk(await hass.config_entries.options.async_init(entry.entry_id))
     await _configure(hass, entry, walk, "fetch_now")
     await _configure(hass, entry, walk, "connection")
+    await _configure(hass, entry, walk, "share_live_data")
 
     assert walk.steps == snapshot
 
@@ -495,10 +497,47 @@ async def test_configure_energy_sources(hass: HomeAssistant, no_bmw, snapshot) -
     assert walk.steps == snapshot
 
 
+async def test_configure_abrp(hass: HomeAssistant, no_bmw, snapshot) -> None:
+    walk = _Walk()
+    entry = await _account(hass, VIN)
+    check = f"{PACKAGE}.options_cars.async_check"
+    with (
+        patch(f"{PACKAGE}.abrp.PROJECT_API_KEY", "project-key"),
+        patch(check, new_callable=AsyncMock, return_value=SendResult.REJECTED),
+    ):
+        result = await _configure(hass, entry, walk, "share_live_data", "action_abrp")
+        walk.note("switched on without a token")
+        result = await _submit(hass, walk, result, {"abrp_enabled": True, "abrp_position": False})
+        walk.note("a token ABRP refuses")
+        result = await _submit(
+            hass, walk, result, {"abrp_enabled": True, "abrp_token": "bad", "abrp_position": False}
+        )
+    walk.note("a token ABRP takes")
+    with (
+        patch(f"{PACKAGE}.abrp.PROJECT_API_KEY", "project-key"),
+        patch(check, new_callable=AsyncMock, return_value=SendResult.OK),
+    ):
+        await _submit(
+            hass, walk, result, {"abrp_enabled": True, "abrp_token": "good", "abrp_position": True}
+        )
+
+    assert walk.steps == snapshot
+
+
+async def test_configure_abrp_two_cars(hass: HomeAssistant, no_bmw, snapshot) -> None:
+    walk = _Walk()
+    entry = await _account(hass, VIN, VIN_B)
+    result = await _configure(hass, entry, walk, "share_live_data", "action_abrp")
+    walk.note("the key sits in All vehicles")
+    await _submit(hass, walk, result, {"vehicle": VIN_B})
+
+    assert walk.steps == snapshot
+
+
 async def test_configure_evcc_bridge(hass: HomeAssistant, no_bmw, snapshot) -> None:
     walk = _Walk()
     entry = await _account(hass, VIN)
-    result = await _configure(hass, entry, walk, "action_evcc_bridge")
+    result = await _configure(hass, entry, walk, "share_live_data", "action_evcc_bridge")
     result = await _submit(hass, walk, result, {"bridge_enabled": True, "bridge_retain": True})
     result = await _submit(
         hass, walk, result, {"bridge_enabled": False, "bridge_stream_enabled": True}
@@ -509,7 +548,7 @@ async def test_configure_evcc_bridge(hass: HomeAssistant, no_bmw, snapshot) -> N
     walk.note("with MQTT set up")
     MockConfigEntry(domain="mqtt").add_to_hass(hass)
     with patch(f"{PACKAGE}.bridge.VehicleBridge.async_publish_all", new_callable=AsyncMock):
-        result = await _configure(hass, entry, walk, "action_evcc_bridge")
+        result = await _configure(hass, entry, walk, "share_live_data", "action_evcc_bridge")
         result = await _submit(
             hass,
             walk,
@@ -519,7 +558,7 @@ async def test_configure_evcc_bridge(hass: HomeAssistant, no_bmw, snapshot) -> N
         await _submit(hass, walk, result, {})
 
         walk.note("sharing the stream only")
-        result = await _configure(hass, entry, walk, "action_evcc_bridge")
+        result = await _configure(hass, entry, walk, "share_live_data", "action_evcc_bridge")
         await _submit(
             hass,
             walk,
@@ -797,7 +836,7 @@ async def test_configure_two_cars(hass: HomeAssistant, no_bmw, freezer, snapshot
     )
 
     walk.note("evcc bridge")
-    result = await _configure(hass, entry, walk, "action_evcc_bridge")
+    result = await _configure(hass, entry, walk, "share_live_data", "action_evcc_bridge")
     await _submit(hass, walk, result, {"vehicle": VIN_B})
 
     walk.note("mileage")

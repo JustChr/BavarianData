@@ -103,7 +103,7 @@
           "action_fetch_image": "Voertuigafbeelding",
           "action_charging_costs": "Laadkosten en -geschiedenis",
           "action_energy_sources": "Zonne-energie en energiebronnen",
-          "action_evcc_bridge": "MQTT-brug (evcc & meer)",
+          "share_live_data": "Live data delen",
           "action_trips": "Ritten",
           "action_mileage": "Kilometerlimiet",
           "action_units": "Eenheden",
@@ -330,6 +330,52 @@
         "title": "evcc-configuratie",
         "description": "Voeg dit toe aan je `evcc.yaml` onder een `vehicles:`-sleutel (voeg het samen met voertuigen die je al hebt — de sleutel mag maar één keer voorkomen):\n\n```\n{snippet}\n```\n\nevcc moet ook je broker kennen, in zijn eigen `mqtt:`-sectie — dezelfde die Home Assistant gebruikt. Wijs het voertuig daarna toe aan een laadpunt en herstart evcc.\n\nAlleen de velden die deze auto echt meldt worden vermeld: een plugin die naar een topic wijst dat nooit een bericht krijgt, laat evcc elke cyclus een leesfout loggen. Er is bewust geen `timeout` ingesteld — de waarden worden periodiek opnieuw gepubliceerd, zodat een geparkeerde auto een geldige laadtoestand houdt in plaats van leeg te worden.\n\nJe kunt dit altijd opnieuw ophalen met de actie **evcc-configuratie ophalen**."
       },
+      "share_live_data": {
+        "title": "Live data delen",
+        "description": "Stuur de live toestand van de auto naar andere apps, rechtstreeks uit de BMW-stream en zonder API-kosten.",
+        "menu_options": {
+          "action_evcc_bridge": "MQTT-brug (evcc & meer)",
+          "action_abrp": "ABRP (A Better Routeplanner)"
+        }
+      },
+      "abrp_vehicle": {
+        "title": "ABRP (A Better Routeplanner)",
+        "description": "Elk voertuig wordt verzonden met een eigen ABRP-token. Kies het voertuig dat je wilt wijzigen.",
+        "data": {
+          "vehicle": "Voertuig"
+        },
+        "data_description": {
+          "vehicle": "Het volgende scherm toont de ABRP-instellingen van dit voertuig."
+        }
+      },
+      "action_abrp": {
+        "title": "ABRP (A Better Routeplanner)",
+        "description": "Stuurt laadniveau, laden en actieradius van **{vehicle}** naar ABRP zodra ze binnenkomen, zodat routes beginnen bij de echte accu. Gratis, en het gebruikt geen van de dagelijkse BMW-verzoeken.",
+        "data": {
+          "abrp_enabled": "Naar ABRP sturen",
+          "abrp_token": "Autotoken",
+          "abrp_position": "Positie meesturen",
+          "abrp_api_key": "Eigen API-sleutel (optioneel)"
+        },
+        "data_description": {
+          "abrp_enabled": "Standaard uit. De auto moet in de ABRP-app zijn opgeslagen.",
+          "abrp_token": "Uit de ABRP-app: live data van je auto, Generic.",
+          "abrp_position": "Standaard uit: zonder weet ABRP niet waar de auto staat.",
+          "abrp_api_key": "Alleen als de ingebouwde niet meer werkt: maak er een aan in je ABRP-account, onder telemetrie-API-sleutels."
+        },
+        "sections": {
+          "all_vehicles": {
+            "name": "Alle voertuigen",
+            "description": "Deze instellingen gelden voor alle voertuigen van dit account.",
+            "data": {
+              "abrp_api_key": "Eigen API-sleutel (optioneel)"
+            },
+            "data_description": {
+              "abrp_api_key": "Alleen als de ingebouwde niet meer werkt: maak er een aan in je ABRP-account, onder telemetrie-API-sleutels."
+            }
+          }
+        }
+      },
       "trips_vehicle": {
         "title": "Ritten (rittenlogboek)",
         "description": "Elk voertuig heeft eigen ritinstellingen. Kies het voertuig dat je wilt wijzigen.",
@@ -499,7 +545,11 @@
       "configurator_unavailable": "De BMW-configurator antwoordde niet of is veranderd. Probeer het later opnieuw, of houd de officiële afbeelding.",
       "configurator_no_render": "De BMW-configurator heeft geen afbeelding van {vehicle}. Houd de officiële afbeelding.",
       "mileage_end_before_start": "De einddatum moet na de startdatum liggen.",
-      "fetch_failed": "Het ophalen is niet gelukt: {error}"
+      "fetch_failed": "Het ophalen is niet gelukt: {error}",
+      "abrp_token_missing": "Plak het autotoken uit de ABRP-app, of zet verzenden uit.",
+      "abrp_token_rejected": "ABRP heeft dit token geweigerd. Kopieer het opnieuw uit de ABRP-app (live data van je auto, Generic).",
+      "abrp_key_missing": "Deze kopie heeft geen ingebouwde ABRP-sleutel. Vul je eigen API-sleutel uit je ABRP-account in.",
+      "abrp_unreachable": "ABRP is niet bereikbaar. Controleer de internetverbinding en probeer het opnieuw."
     },
     "abort": {
       "reauth_started": "Autorisatie opnieuw gestart. Rond de nieuwe aanmelding af via de melding die zojuist is verschenen.",

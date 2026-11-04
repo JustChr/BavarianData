@@ -20,6 +20,25 @@ jobs:
         with:
           ref: ${{ github.event.inputs.tag || github.ref }}
 
+      - name: Write the ABRP key
+        # abrp_key.py is empty in git; the shipped zip carries the project's
+        # telemetry key from the ABRP_API_KEY secret. Fails rather than ship a
+        # release whose ABRP screen would ask every user for a key of their own.
+        env:
+          ABRP_API_KEY: ${{ secrets.ABRP_API_KEY }}
+        run: |
+          python3 - <<'PY'
+          import os, pathlib, re
+          key = os.environ.get("ABRP_API_KEY", "").strip()
+          if not re.fullmatch(r"[0-9A-Za-z-]{16,64}", key):
+              raise SystemExit("ABRP_API_KEY secret is missing or malformed")
+          path = pathlib.Path("custom_components/bavariandata/abrp_key.py")
+          text = path.read_text(encoding="utf-8")
+          if 'PROJECT_API_KEY = ""' not in text:
+              raise SystemExit("abrp_key.py no longer has the empty key to fill")
+          path.write_text(text.replace('PROJECT_API_KEY = ""', f'PROJECT_API_KEY = "{key}"'), encoding="utf-8")
+          PY
+
       - name: Build zip
         # Zip from *inside* the integration folder so HACS extracts the
         # contents straight into custom_components/bavariandata/.

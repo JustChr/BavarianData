@@ -103,7 +103,7 @@
           "action_fetch_image": "Vehicle image",
           "action_charging_costs": "Charging costs & history",
           "action_energy_sources": "Solar & energy sources",
-          "action_evcc_bridge": "MQTT bridge (evcc & more)",
+          "share_live_data": "Share live data",
           "action_trips": "Trips",
           "action_mileage": "Mileage allowance",
           "action_units": "Units",
@@ -330,6 +330,52 @@
         "title": "evcc configuration",
         "description": "Add this to your `evcc.yaml` under a `vehicles:` key (merge it with any vehicles you already have — the key may only appear once):\n\n```\n{snippet}\n```\n\nevcc also needs to know your broker, in its own `mqtt:` section — the same one Home Assistant uses. Then assign the vehicle to a loadpoint and restart evcc.\n\nOnly the fields this car actually reports are listed: a plugin pointed at a topic that never gets a message makes evcc log a read error on every cycle. No `timeout` is set on purpose — the values are republished on a heartbeat, so a parked car keeps a valid state of charge instead of going blank.\n\nYou can fetch this again at any time with the **Get evcc configuration** action."
       },
+      "share_live_data": {
+        "title": "Share live data",
+        "description": "Send the car's live state to other apps, straight off BMW's stream and at no API cost.",
+        "menu_options": {
+          "action_evcc_bridge": "MQTT bridge (evcc & more)",
+          "action_abrp": "ABRP (A Better Routeplanner)"
+        }
+      },
+      "abrp_vehicle": {
+        "title": "ABRP (A Better Routeplanner)",
+        "description": "Each vehicle is sent with its own ABRP token. Pick the vehicle to change.",
+        "data": {
+          "vehicle": "Vehicle"
+        },
+        "data_description": {
+          "vehicle": "The next screen shows this vehicle's ABRP settings."
+        }
+      },
+      "action_abrp": {
+        "title": "ABRP (A Better Routeplanner)",
+        "description": "Sends **{vehicle}**'s charge level, charging and range to ABRP as they stream in, so route plans start from the real battery. Free, and uses none of BMW's daily requests.",
+        "data": {
+          "abrp_enabled": "Send to ABRP",
+          "abrp_token": "Car token",
+          "abrp_position": "Include the position",
+          "abrp_api_key": "Own API key (optional)"
+        },
+        "data_description": {
+          "abrp_enabled": "Off by default. Needs the car saved in the ABRP app.",
+          "abrp_token": "From the ABRP app: your car's live data, Generic.",
+          "abrp_position": "Off by default: without it, ABRP doesn't know where the car is.",
+          "abrp_api_key": "Only if the built-in one stops working: create one in your ABRP account, under telemetry API keys."
+        },
+        "sections": {
+          "all_vehicles": {
+            "name": "All vehicles",
+            "description": "These settings apply to every vehicle on this account.",
+            "data": {
+              "abrp_api_key": "Own API key (optional)"
+            },
+            "data_description": {
+              "abrp_api_key": "Only if the built-in one stops working: create one in your ABRP account, under telemetry API keys."
+            }
+          }
+        }
+      },
       "trips_vehicle": {
         "title": "Trips (driving journal)",
         "description": "Each vehicle has its own trip settings. Pick the one to change.",
@@ -499,7 +545,11 @@
       "configurator_unavailable": "BMW's configurator didn't answer, or has changed. Try again later, or keep the official picture.",
       "configurator_no_render": "BMW's configurator has no picture of {vehicle}. Keep the official picture.",
       "mileage_end_before_start": "The end date must be after the start date.",
-      "fetch_failed": "The fetch didn't go through: {error}"
+      "fetch_failed": "The fetch didn't go through: {error}",
+      "abrp_token_missing": "Paste the car token from the ABRP app, or switch sending off.",
+      "abrp_token_rejected": "ABRP refused this token. Copy it again from the ABRP app (your car's live data, Generic).",
+      "abrp_key_missing": "This copy has no built-in ABRP key. Enter your own API key from your ABRP account.",
+      "abrp_unreachable": "ABRP couldn't be reached. Check the internet connection and try again."
     },
     "abort": {
       "reauth_started": "Authorization restarted. Finish the new login from the notification that just appeared.",
