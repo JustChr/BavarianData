@@ -1,4 +1,7 @@
 ---
+The manual is also on the website: [justchr.github.io/BavarianData](https://justchr.github.io/BavarianData/docs/) ·
+auf Deutsch: [Handbuch](https://justchr.github.io/BavarianData/de/docs/)
+
 BavarianData is an independent, community-built integration and is **not**
 affiliated with, endorsed by, or sponsored by BMW Group. "BMW", "Mini",
 "Rolls-Royce" and "CarData" are trademarks of their respective owners.
