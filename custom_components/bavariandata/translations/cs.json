@@ -359,7 +359,7 @@
         },
         "data_description": {
           "abrp_enabled": "Ve výchozím stavu vypnuto. Auto musí být uložené v aplikaci ABRP.",
-          "abrp_token": "Z aplikace ABRP: živá data vašeho auta, Generic.",
+          "abrp_token": "Z aplikace ABRP: živá data vašeho auta, Custom connection, Copy token.",
           "abrp_position": "Ve výchozím stavu vypnuto: bez ní ABRP neví, kde auto je.",
           "abrp_api_key": "Jen pokud vestavěný přestane fungovat: vytvořte si ho v účtu ABRP, v klíčích API pro telemetrii."
         },
@@ -547,7 +547,7 @@
       "mileage_end_before_start": "Datum konce musí být po datu začátku.",
       "fetch_failed": "Načtení se nezdařilo: {error}",
       "abrp_token_missing": "Vložte token auta z aplikace ABRP, nebo posílání vypněte.",
-      "abrp_token_rejected": "ABRP tento token odmítlo. Zkopírujte ho znovu z aplikace ABRP (živá data vašeho auta, Generic).",
+      "abrp_token_rejected": "ABRP tento token odmítlo. Zkopírujte ho znovu z aplikace ABRP (živá data vašeho auta, Custom connection).",
       "abrp_key_missing": "Tato kopie nemá vestavěný klíč ABRP. Zadejte vlastní klíč API ze svého účtu ABRP.",
       "abrp_unreachable": "ABRP není dostupné. Zkontrolujte připojení k internetu a zkuste to znovu."
     },

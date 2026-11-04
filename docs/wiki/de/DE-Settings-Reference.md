@@ -247,15 +247,17 @@ Schätzung. Es kommt direkt aus BMWs Stream, kostet also kein
 [API-Kontingent](DE-Feature-API-Quota), und ABRPs Live-Daten funktionieren mit
 einem kostenlosen ABRP-Konto.
 
-**Vorab:** Speichere das Auto in der ABRP-App, öffne dann die Live-Daten des
-Autos, wähle **Generic** und kopiere den angezeigten Token. Ein kostenloses
+**Vorab:** Speichere das Auto in der ABRP-App, öffne dann die **Live data** des
+Autos, wähle **Custom connection** und tippe unter *Generic token* auf **Copy
+token**. (Hat das Auto schon eine Verbindung, zeigt die App stattdessen seine
+Live-Daten: dort zuerst auf **Edit** tippen.) Ein kostenloses
 ABRP-Konto hält **ein** Auto: Ist ein zweites gespeichert, verlangt die App
 Premium, bevor sie einen Token herausgibt.
 
 | Option | Werte | Bedeutung |
 | --- | --- | --- |
 | **An ABRP senden** | an/aus | Standard **aus**. Beim Einschalten wird der Token sofort bei ABRP geprüft (mit einer Nachricht, die nur die Uhrzeit enthält); einen abgelehnten Token meldet der Bildschirm. Ausschalten beendet einfach das Senden. |
-| **Auto-Token** | Text | Der Token aus der ABRP-App (Live-Daten des Autos, **Generic**). Gehört nur zu diesem Auto: Ein später hinzugefügtes Auto übernimmt ihn nicht. |
+| **Auto-Token** | Text | Der Token aus der ABRP-App (Live-Daten des Autos, **Custom connection**). Gehört nur zu diesem Auto: Ein später hinzugefügtes Auto übernimmt ihn nicht. |
 | **Position mitsenden** | an/aus | Standard **aus**. Fügt Standort und Höhe des Autos hinzu. Ohne sie kennt ABRP den Akku, aber nicht, wo das Auto steht. |
 | **Eigener API-Schlüssel (optional)** | Text | Leer lassen. Jede Version bringt BavarianDatas eigenen ABRP-Schlüssel mit; trage deinen (ABRP-Konto → Telemetrie-API-Schlüssel) nur ein, wenn dieser nicht mehr funktioniert. Bei mehreren Autos steht er im eingeklappten Abschnitt **Alle Fahrzeuge** und gilt für jedes Auto. |
 

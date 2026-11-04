@@ -232,15 +232,17 @@ route plan starts from the real battery instead of a guess. It goes straight off
 BMW's stream, so it costs no [API quota](Feature-API-Quota), and ABRP's live
 data works with a free ABRP account.
 
-**Before you start:** save the car in the ABRP app, then open the car's live
-data, pick **Generic** and copy the token it shows. A free ABRP account holds
+**Before you start:** save the car in the ABRP app, then open the car's **Live
+data**, pick **Custom connection** and tap **Copy token** under *Generic
+token*. (A car that already has a connection shows its live data instead: tap
+**Edit** there first.) A free ABRP account holds
 **one** car: with a second one saved, the app asks for Premium before it gives
 out a token.
 
 | Option | Values | Meaning |
 | --- | --- | --- |
 | **Send to ABRP** | on/off | Default **off**. Switching on checks the token with ABRP straight away (a message that carries only the time); a token ABRP refuses is said on the screen. Switching off simply stops sending. |
-| **Car token** | text | The token from the ABRP app (the car's live data, **Generic**). Belongs to this car only: a car added later doesn't inherit it. |
+| **Car token** | text | The token from the ABRP app (the car's live data, **Custom connection**). Belongs to this car only: a car added later doesn't inherit it. |
 | **Include the position** | on/off | Default **off**. Adds the car's location and altitude. Without it, ABRP knows the battery but not where the car is. |
 | **Own API key (optional)** | text | Leave empty. Every release carries BavarianData's own ABRP key; enter yours (ABRP account → telemetry API keys) only if that one stops working. With several cars it sits in the collapsed **All vehicles** section and applies to every car. |
 
