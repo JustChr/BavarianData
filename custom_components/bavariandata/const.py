@@ -278,6 +278,18 @@ OPTION_BRIDGE_STREAM = "bridge_stream_enabled"
 OPTION_BRIDGE_STREAM_HIDE_POSITION = "bridge_stream_hide_position"
 DEFAULT_BRIDGE_STREAM_HIDE_POSITION = True
 
+# Send a car's live state to ABRP (A Better Routeplanner; ``abrp.py``), so its
+# route plans start from the real battery. Always stored under the car's VIN,
+# even on a single-car account: the token belongs to the car saved in the ABRP
+# app, and a car added later must not inherit it. Off by default, and the
+# position only with a switch of its own: both send data out of the house.
+OPTION_ABRP_ENABLED = "abrp_enabled"
+OPTION_ABRP_TOKEN = "abrp_token"
+OPTION_ABRP_POSITION = "abrp_position"
+# The user's own telemetry API key, account-wide, for when the one shipped with
+# a release stops working. Empty means the shipped key.
+OPTION_ABRP_API_KEY = "abrp_api_key"
+
 # A car's mileage allowance (Configure -> Mileage allowance; ``mileage.py``).
 # Always stored under the car's VIN, even on a single-car account: a lease
 # belongs to one car, and a car added later must not inherit it.

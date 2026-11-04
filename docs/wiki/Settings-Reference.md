@@ -26,7 +26,7 @@ The menu labels below are exactly as they appear in the UI.
 | **Vehicle image** | settings ⚡ | Where the car's picture comes from: BMW CarData, or BMW's online configurator — below. |
 | **Charging costs & history** | settings | Price source, retention, statistics — below. |
 | **Solar & energy sources** | settings | Where each charge's energy came from: PV, house battery, grid — below. |
-| **MQTT bridge (evcc & more)** | settings | Publish the car's live state to MQTT for a charge controller, or share its whole stream with other apps — below. |
+| **Share live data** | menu | Send the car's live state elsewhere: **MQTT bridge (evcc & more)** for a charge controller or other apps, **ABRP (A Better Routeplanner)** for route planning — both below. |
 | **Trips** | settings | Work zone, default type, commute stop tolerance, address resolution and route recording — below. |
 | **Mileage allowance** | settings | A lease or a yearly mileage limit for each car — below. |
 | **Units** | settings | Kilometers or miles, fuel, temperature and tire pressure units, for the card, the screens and the sensors — below. |
@@ -189,7 +189,7 @@ of `W` or `kW`) and it will appear.
 
 <a id="evcc--wallbox-bridge"></a>
 
-Screen: **Configure → MQTT bridge (evcc & more)**. See
+Screen: **Configure → Share live data → MQTT bridge (evcc & more)**. See
 [evcc & wallbox bridge](Feature-evcc-and-Wallbox-Bridge) for the concepts, the
 topic table and the troubleshooting.
 
@@ -222,6 +222,39 @@ ready-to-paste evcc configuration; sharing only the stream saves straight away.
 | **Leave out the position** | on/off | Default **on**. Keeps the car's location and navigation destination out of the shared stream. Turning it back on removes the position topics. |
 | **Topic prefix** | text | Topic root; everything lands under `<prefix>/<VIN>/`. Default `bavariandata`. Slashes are trimmed and an MQTT wildcard falls back to the default. |
 | **Publish retained** | on/off | Default **on**, and best left on: it is what lets evcc (and a dashboard reading the shared stream) find the latest value the moment it starts rather than waiting for the car to speak again. Turn off only for a broker that refuses retained messages. |
+
+## ABRP (A Better Routeplanner)
+
+Screen: **Configure → Share live data → ABRP (A Better Routeplanner)**.
+
+Sends the car's live state to [ABRP](https://abetterrouteplanner.com), so a
+route plan starts from the real battery instead of a guess. It goes straight off
+BMW's stream, so it costs no [API quota](Feature-API-Quota), and ABRP's live
+data works with a free ABRP account.
+
+**Before you start:** save the car in the ABRP app, then open the car's live
+data, pick **Generic** and copy the token it shows. A free ABRP account holds
+**one** car: with a second one saved, the app asks for Premium before it gives
+out a token.
+
+| Option | Values | Meaning |
+| --- | --- | --- |
+| **Send to ABRP** | on/off | Default **off**. Switching on checks the token with ABRP straight away (a message that carries only the time); a token ABRP refuses is said on the screen. Switching off simply stops sending. |
+| **Car token** | text | The token from the ABRP app (the car's live data, **Generic**). Belongs to this car only: a car added later doesn't inherit it. |
+| **Include the position** | on/off | Default **off**. Adds the car's location and altitude. Without it, ABRP knows the battery but not where the car is. |
+| **Own API key (optional)** | text | Leave empty. Every release carries BavarianData's own ABRP key; enter yours (ABRP account → telemetry API keys) only if that one stops working. With several cars it sits in the collapsed **All vehicles** section and applies to every car. |
+
+**What is sent:** the charge level, whether the car is charging (and from a DC
+charger), the charging power, whether it is parked, the odometer and BMW's
+range, plus the position if you switched it on. As on the MQTT bridge, **a value
+the car hasn't reported is left out, never sent as zero**, and nothing is sent
+until the car has reported a charge level. Points go out when something changes
+and are repeated every 30 seconds with the last known values, because ABRP
+treats a car that falls silent as gone. BMW's stream carries no speed or outside
+temperature, so ABRP doesn't get those.
+
+**Several cars on the account?** The screen first asks which vehicle; each car
+has its own switch and token.
 
 ## Trips
 

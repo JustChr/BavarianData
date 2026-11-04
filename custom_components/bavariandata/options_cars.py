@@ -18,6 +18,7 @@ import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry, ConfigFlowResult, OptionsFlow
 from homeassistant.data_entry_flow import section
 from homeassistant.helpers import selector
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.util import dt as dt_util
 
@@ -29,6 +30,10 @@ from .const import (
     DEFAULT_STATISTICS_IMPORT,
     DEFAULT_TRIP_COMMUTE_GAP_MIN,
     DEFAULT_TRIP_DEFAULT_CLASS,
+    OPTION_ABRP_API_KEY,
+    OPTION_ABRP_ENABLED,
+    OPTION_ABRP_POSITION,
+    OPTION_ABRP_TOKEN,
     OPTION_BRIDGE_ENABLED,
     OPTION_BRIDGE_PREFIX,
     OPTION_BRIDGE_RETAIN,
@@ -57,11 +62,14 @@ from .const import (
     TRIP_DETECTION_CHOICES,
     TRIP_DETECTION_LIVE,
 )
+from .abrp import AbrpConfig, api_key, async_check
 from .bridge import async_clear_shared
 from .distance import car_distance_unit
 from .evcc import BridgeConfig, bridge_payloads, evcc_yaml
 from .flow_answers import (
     SHARED_SECTION,
+    abrp_check_error,
+    abrp_error,
     car_labels,
     evcc_vehicles,
     mileage_prefill,
@@ -96,11 +104,14 @@ from .mileage import (
 from .stream_share import sweeps
 from .trip_settings import account_trip_settings, vehicle_trip_settings
 from .vehicle_options import (
+    ABRP_OPTIONS,
     BRIDGE_OPTIONS,
     CHARGING_OPTIONS,
     TRIP_OPTIONS,
     mileage_allowances,
+    abrp_values,
     mileage_values,
+    store_abrp,
     store_mileage,
     store_values,
     values_for,
@@ -225,6 +236,13 @@ class PerCarScreens(_FlowBase):
     ) -> ConfigFlowResult:
         return await self._vehicle_picker(
             step_id="bridge_vehicle", user_input=user_input, then=self.async_step_action_evcc_bridge
+        )
+
+    async def async_step_abrp_vehicle(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> ConfigFlowResult:
+        return await self._vehicle_picker(
+            step_id="abrp_vehicle", user_input=user_input, then=self.async_step_action_abrp
         )
 
     async def async_step_mileage_vehicle(
@@ -558,6 +576,112 @@ class PerCarScreens(_FlowBase):
                 )
             )
         return evcc_vehicles(blocks)
+
+    # --- ABRP ---------------------------------------------------------------
+
+    async def async_step_action_abrp(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> ConfigFlowResult:
+        """Send the car's live state to ABRP (``abrp.py``).
+
+        The car's switch, token and position are always its own, even on a
+        single-car account (a token belongs to one car in the ABRP app); the
+        user's own API key is shared, in the collapsed "All vehicles" section
+        when there are two cars. Switching on checks the token with a send that
+        carries nothing but the time, so a wrong token is said here and not
+        only in the log.
+        """
+
+        vehicles, per_vehicle, vin = self._vehicle_context()
+        if vin is _PICK:
+            return await self.async_step_abrp_vehicle()
+
+        options = dict(self._config_entry.options)
+        car = abrp_values(options, vin)
+        if user_input is not None:
+            submitted, shared = split_shared(user_input, ABRP_OPTIONS)
+            car = submitted
+            options[OPTION_ABRP_API_KEY] = shared.get(OPTION_ABRP_API_KEY)
+        car_fields = {
+            vol.Required(
+                OPTION_ABRP_ENABLED, default=bool(car.get(OPTION_ABRP_ENABLED))
+            ): selector.BooleanSelector(),
+            vol.Optional(
+                OPTION_ABRP_TOKEN,
+                description={"suggested_value": car.get(OPTION_ABRP_TOKEN) or ""},
+            ): selector.TextSelector(
+                selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
+            ),
+            vol.Required(
+                OPTION_ABRP_POSITION, default=bool(car.get(OPTION_ABRP_POSITION))
+            ): selector.BooleanSelector(),
+        }
+        shared_fields = {
+            vol.Optional(
+                OPTION_ABRP_API_KEY,
+                description={"suggested_value": options.get(OPTION_ABRP_API_KEY) or ""},
+            ): selector.TextSelector(
+                selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
+            ),
+        }
+        if per_vehicle:
+            schema = vol.Schema(
+                {
+                    **car_fields,
+                    vol.Required(SHARED_SECTION): section(
+                        vol.Schema(shared_fields), {"collapsed": True}
+                    ),
+                }
+            )
+        else:
+            schema = vol.Schema({**car_fields, **shared_fields})
+
+        def _form(errors: Optional[Dict[str, str]] = None) -> ConfigFlowResult:
+            return self.async_show_form(
+                step_id="action_abrp",
+                data_schema=schema,
+                errors=errors,
+                description_placeholders={"vehicle": self._vehicle_label(vehicles, vin)},
+            )
+
+        if user_input is None:
+            return _form()
+        if vin is None:
+            return _form({"base": "no_vins"})
+
+        own_key = (options.get(OPTION_ABRP_API_KEY) or "").strip()
+        if own_key:
+            options[OPTION_ABRP_API_KEY] = own_key
+        else:
+            options.pop(OPTION_ABRP_API_KEY, None)
+        enabled = bool(car.get(OPTION_ABRP_ENABLED))
+        token = (car.get(OPTION_ABRP_TOKEN) or "").strip()
+        key = api_key(options)
+        problem = abrp_error(enabled=enabled, token=token, key=key)
+        if problem is None and enabled:
+            result = await async_check(
+                async_get_clientsession(self.hass), key=key, token=token, now=dt_util.utcnow()
+            )
+            problem = abrp_check_error(result)
+        if problem is not None:
+            return _form({problem[0]: problem[1]})
+
+        options = store_abrp(
+            options,
+            vin,
+            {
+                OPTION_ABRP_ENABLED: enabled,
+                OPTION_ABRP_TOKEN: token,
+                OPTION_ABRP_POSITION: bool(car.get(OPTION_ABRP_POSITION)),
+            },
+        )
+        runtime = self._get_runtime()
+        push = None if runtime is None else runtime.abrp
+        if push is not None:
+            # In place, like every screen here: a reload would restart the stream.
+            push.apply_config(AbrpConfig.from_options(options))
+            push.async_schedule(vin)
+        return self.async_create_entry(title="", data=options)
 
     # --- trips --------------------------------------------------------------
 

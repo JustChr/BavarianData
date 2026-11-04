@@ -50,6 +50,9 @@ TO_REDACT = {
     "topic",
     "latitude",
     "longitude",
+    # ABRP's car token and the user's own API key: either sends data as them.
+    "abrp_token",
+    "abrp_api_key",
 }
 
 

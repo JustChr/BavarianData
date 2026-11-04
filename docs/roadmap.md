@@ -437,25 +437,24 @@ sensors and *Last Vehicle Report*; the budget of eight stays as it is.
 
 ### ABRP live push
 
-**Parked 2026-11-04.** A free ABRP account can no longer receive live data: the
-app asks for Premium before it saves a car or hands out a Generic token, and
-the OAuth login shows our self-service telemetry key as "Unknown Application"
-until Iternio registers it. The key exists (GitHub secret `ABRP_API_KEY`);
-pick this up again only if ABRP opens live data to free accounts, or for
-Premium users on purpose.
+**Built 2026-11-04** (*Configure → Share live data → ABRP*). Parked earlier the
+same day because the app asked for Premium; the cause was a second car saved in
+the free account. With one car the app hands out a car token (live data →
+Generic), and `tlm/send` accepts it with the project key.
 
 - Opt-in, outbound, built like the evcc bridge: **unknown sends nothing**,
-  heartbeat while parked, off clears nothing remote (ABRP keeps no retained
-  state we own).
-- Sends SoC, charging / parked / DC, power, outside temperature, range.
-  **Position only with a second toggle, off by default.**
-- Credentials: a **project telemetry key** requested from Iternio and shipped in
-  the integration, with an optional field for the user's own key should ours be
-  revoked; plus the user's per-car ABRP token (ABRP app → Generic → Link).
-- Generic HACS pushers exist (`samhunt/hass-abrp-push`, `Riffer/abrp_telemetry`;
-  `hass-abrp` mainly reads from ABRP), reviewed 2026-10-15: each needs a manual
-  mapping of about ten entities plus the user's own key, and sends Home
-  Assistant's display units. A built-in push needs none of that.
+  changes are sent after a 2 s debounce and the last known values repeated every
+  30 s; off clears nothing remote (ABRP keeps no retained state we own).
+- Sends SoC, charging / parked / DC, charging power, odometer, range.
+  **Position (and altitude) only with a second toggle, off by default.** BMW
+  streams no speed or outside temperature; parked cars send `speed: 0`.
+- Credentials: the **project telemetry key** is written into `abrp_key.py` by
+  the release workflow from the `ABRP_API_KEY` secret (empty in git), with an
+  optional account-wide field for the user's own key; plus the per-car token,
+  always stored under the car. Switching on checks the token with a
+  timestamp-only send.
+- Not done: picking ABRP's car model (`car_model`); the token is already tied
+  to the car the user saved in the app.
 
 ### Waiting for data, not scheduled
 

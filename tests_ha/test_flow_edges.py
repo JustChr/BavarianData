@@ -158,7 +158,7 @@ async def _bridge_for(
 ) -> Optional[str]:
     """Set one car's switches; the evcc configuration shown after, if any."""
 
-    result = await _configure(hass, entry, _Walk(), "action_evcc_bridge")
+    result = await _configure(hass, entry, _Walk(), "share_live_data", "action_evcc_bridge")
     result = await _submit(hass, _Walk(), result, {"vehicle": vin})
     result = await _submit(
         hass,
@@ -204,7 +204,7 @@ async def test_a_car_shares_its_stream_without_being_published_for_evcc(
     hass: HomeAssistant, no_bmw
 ) -> None:
     entry = await _account(hass, VIN, VIN_B)
-    result = await _configure(hass, entry, _Walk(), "action_evcc_bridge")
+    result = await _configure(hass, entry, _Walk(), "share_live_data", "action_evcc_bridge")
     result = await _submit(hass, _Walk(), result, {"vehicle": VIN})
     result = await _submit(
         hass,

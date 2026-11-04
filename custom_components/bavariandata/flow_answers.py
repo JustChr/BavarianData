@@ -14,6 +14,8 @@ from __future__ import annotations
 from datetime import date, timedelta
 from typing import Any, Iterable, Mapping, Optional
 
+from .abrp import SendResult
+from .const import OPTION_ABRP_API_KEY, OPTION_ABRP_TOKEN
 from .const import OPTION_PRICE_ENTITY, OPTION_PRICE_FIXED, OPTION_PRICE_MODE
 from .const import OPTION_TRIP_DETECTION, OPTION_TRIP_TRACK, TRIP_DETECTION_REPORTS
 from .history.pricing import MODE_ENTITY, MODE_FIXED, MODE_NONE
@@ -154,6 +156,32 @@ def split_shared(
     if shared is None:
         shared = {key: car.pop(key) for key in list(car) if key not in car_keys}
     return car, shared
+
+
+def abrp_error(*, enabled: bool, token: str, key: str) -> Optional[tuple[str, str]]:
+    """``(field, error)`` for an ABRP form that can't be checked yet, or ``None``.
+
+    Only a car switched on needs a token and a key; switched off, whatever is
+    typed is kept for next time.
+    """
+
+    if not enabled:
+        return None
+    if not token:
+        return OPTION_ABRP_TOKEN, "abrp_token_missing"
+    if not key:
+        return OPTION_ABRP_API_KEY, "abrp_key_missing"
+    return None
+
+
+def abrp_check_error(result: SendResult) -> Optional[tuple[str, str]]:
+    """``(field, error)`` for what ABRP answered the test send, or ``None``."""
+
+    if result is SendResult.REJECTED:
+        return OPTION_ABRP_TOKEN, "abrp_token_rejected"
+    if result is SendResult.UNREACHABLE:
+        return "base", "abrp_unreachable"
+    return None
 
 
 def price_error(shared: Mapping[str, Any]) -> Optional[str]:

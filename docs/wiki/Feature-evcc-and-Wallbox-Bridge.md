@@ -38,7 +38,7 @@ there's no broker host or password to enter here — it lands on exactly the
 broker Home Assistant is already connected to, which for almost everyone is the
 same one evcc reads.
 
-1. **Configure** → **MQTT bridge (evcc & more)**
+1. **Configure** → **Share live data** → **MQTT bridge (evcc & more)**
 2. Tick **Publish this car for evcc**. Leave the topic prefix and **Publish
    retained** alone unless you have a reason.
 3. The next screen hands you the **evcc configuration**, already filled in with
@@ -142,7 +142,7 @@ Sharing the stream is the way round that: every value BMW streams for the car
 goes on the same broker the evcc topics use, as it arrives. It costs no
 [API requests](Feature-API-Quota).
 
-**Configure → MQTT bridge (evcc & more)** → tick **Share this car's whole
+**Configure → Share live data → MQTT bridge (evcc & more)** → tick **Share this car's whole
 stream**. It's off by default and set per car, like the evcc switch, and the two
 are independent: a car can share its stream without being published for evcc.
 It needs the MQTT integration too.

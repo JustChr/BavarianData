@@ -24,6 +24,9 @@ from __future__ import annotations
 from typing import Any, Mapping, Optional
 
 from .const import (
+    OPTION_ABRP_ENABLED,
+    OPTION_ABRP_POSITION,
+    OPTION_ABRP_TOKEN,
     OPTION_BRIDGE_ENABLED,
     OPTION_BRIDGE_STREAM,
     OPTION_CHARGING_LOSS_PERCENT,
@@ -71,6 +74,9 @@ MILEAGE_OPTIONS = (
     OPTION_MILEAGE_ALLOWANCE_KM,
     OPTION_MILEAGE_START_KM,
 )
+# Always stored under the car, like the mileage allowance: the token belongs to
+# the car saved in the ABRP app (``abrp_values``).
+ABRP_OPTIONS = (OPTION_ABRP_ENABLED, OPTION_ABRP_TOKEN, OPTION_ABRP_POSITION)
 
 # Entity selectors: Home Assistant leaves a cleared one out of the submitted
 # data altogether, so its absence means "none", not "unchanged".
@@ -195,6 +201,19 @@ def store_mileage(
         return updated
     picked = {key: values.get(key) for key in MILEAGE_OPTIONS}
     return store_values(options, picked, MILEAGE_OPTIONS, vin=vin, per_vehicle=True)
+
+
+def abrp_values(options: Mapping[str, Any], vin: Optional[str]) -> dict[str, Any]:
+    """The car's own ABRP settings; empty when it has none."""
+
+    return own_values(options, vin, ABRP_OPTIONS) or {}
+
+
+def store_abrp(options: Mapping[str, Any], vin: str, values: Mapping[str, Any]) -> dict[str, Any]:
+    """New options with the car's ABRP settings replaced by ``values``."""
+
+    picked = {key: values.get(key) for key in ABRP_OPTIONS}
+    return store_values(options, picked, ABRP_OPTIONS, vin=vin, per_vehicle=True)
 
 
 def mileage_allowances(options: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
