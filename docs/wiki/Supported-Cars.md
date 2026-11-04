@@ -33,16 +33,16 @@ Any car with CarData should work; this list is only what has been seen.
 
 | Car | Drivetrain | Worth knowing |
 | --- | --- | --- |
-| BMW i5 eDrive40 | Electric | The maintainer's car. Every feature is developed and tested on it. |
-| BMW i4 M60 xDrive, i4 eDrive35 | Electric | Versions before 0.9.15 could mistake an i4 for a hybrid ([#53](https://github.com/JustChr/BavarianData/issues/53)). |
+| BMW i5 eDrive40 | Electric | The maintainer's car. |
+| BMW i4 M60 xDrive, i4 eDrive35 | Electric | — |
 | BMW iX3 (new generation) | Electric | BMW streams a repeating 100 % charge target on top of the real setting ([#52](https://github.com/JustChr/BavarianData/issues/52)). |
 | BMW i3s 120 Ah | Electric | — |
 | BMW X3 30e xDrive | Plug-in hybrid | Doesn't stream the state of charge; it arrives with the [daily REST refresh](Feature-API-Quota#the-daily-refresh). |
 | BMW X3 M40d (G01) | Diesel | — |
-| BMW M240i xDrive (G42) | Petrol | Tire pressure drifted after restarts before 0.9.7 ([#7](https://github.com/JustChr/BavarianData/issues/7)). |
-| BMW 530d Touring (G31, iDrive 6) | Diesel | Sends mileage, fuel and position only when a trip ends. Set **Trip detection** to **End-of-trip reports** for a trip journal (since 0.9.17; [more](Feature-Trips#older-cars-that-report-only-at-the-end-of-a-trip)). No tire diagnosis: BMW doesn't offer it on iDrive 6 ([#174](https://github.com/JustChr/BavarianData/issues/174)). |
+| BMW M240i xDrive (G42) | Petrol | — |
+| BMW 530d Touring (G31, iDrive 6) | Diesel | Sends mileage, fuel and position only when a trip ends. Set **Trip detection** to **End-of-trip reports** for a trip journal ([more](Feature-Trips#older-cars-that-report-only-at-the-end-of-a-trip)). No tire diagnosis: BMW doesn't offer it on iDrive 6 ([#174](https://github.com/JustChr/BavarianData/issues/174)). |
 | MINI (petrol), incl. Countryman JCW (U25) | Petrol | Set up through the MINI portal. Sends fewer fields than a BMW: no lifetime fuel-consumption counters, and the cars seen so far send **no tank level** either ([#23](https://github.com/JustChr/BavarianData/issues/23), [#100](https://github.com/JustChr/BavarianData/issues/100)). Ticking it in Data Selection doesn't change that. |
-| MINI Cooper SE (F56) | Electric | Set up through the MINI portal. Sleeps while charging: it sends the state of charge only when a charge starts and again when it ends. Before 0.9.22 that recorded each charge at about 2 % of the pack; it is now recorded in full ([#180](https://github.com/JustChr/BavarianData/discussions/180)). The one seen so far sent **no tire pressure**, although its sensors are fitted. |
+| MINI Cooper SE (F56) | Electric | Set up through the MINI portal. Sleeps while charging: it sends the state of charge only when a charge starts and again when it ends; each charge is still recorded in full ([#180](https://github.com/JustChr/BavarianData/discussions/180)). The one seen so far sent **no tire pressure**, although its sensors are fitted. |
 
 ## What differs from car to car
 

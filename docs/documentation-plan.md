@@ -58,7 +58,7 @@ Home  (landing / nav)
 ├─ Getting started            [Tutorial]
 │   ├─ Which cars work (by drivetrain, owner-confirmed models)
 │   ├─ 1. BMW portal setup (client ID + scopes)
-│   ├─ 2. Install via HACS
+│   ├─ 2. Install from the Marketplace (HACS before 2026.11)
 │   ├─ 3. Add & authorize the integration
 │   ├─ 4. Choose which data to stream (cluster picker + activator)
 │   └─ 5. Add the card to a dashboard (no dashboard is auto-created)
@@ -289,6 +289,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 
 | Feature | Status |
 | --- | --- |
+| Install: the Marketplace (HA 2026.11+), HACS before it, beta switch, add from link | 🟢 Getting-Started-2-Install (all sections) |
 | Charging history & cost | 🟡 |
 | Charged-energy accuracy (burst sampling, the SoC ceiling) | 🟢 Feature-Charging-History-and-Cost → "How accurate is it?" |
 | A car that never streams SoC (no arc, no ceiling; issue #6) | 🟢 Feature-Charging-History-and-Cost → "No start/end SoC on a session" |
@@ -322,7 +323,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | Smart charging with other integrations (EV Smart Charging, Predbat: which entity goes where, the predicted SoC as the planner's input, the iX3 target caveat, home-only cable blueprint) | 🟢 Feature-Smart-Charging (EN + DE) |
 | API quota + Repairs issue | 🟡 |
 | Daily REST refresh (container + tire, 2 req/day **per vehicle**) | 🟢 Feature-API-Quota → "The daily refresh" + Services-Reference |
-| Multi-vehicle accounts: every car is refreshed, not just one (issue #13) | 🟢 Troubleshooting → "A second car's REST-only values are frozen" + Feature-API-Quota → "The daily refresh" + Services-Reference (`fetch_telematic_data` without a `vin`) |
+| Multi-vehicle accounts: every car is refreshed, not just one (issue #13) | 🟢 Feature-API-Quota → "The daily refresh" + Services-Reference (`fetch_telematic_data` without a `vin`) |
 | One entry per account (a second entry for the same account is refused: one stream, one quota), two accounts side by side, and how to name the car in the card / services / automations / the bridge | 🟢 Feature-Multiple-Cars-and-Accounts (all sections) + Troubleshooting → "This BMW account is already set up in Home Assistant" + Settings-Reference → "Debug logging" (the log level is shared) |
 | A car added to the account after setup: entities arrive on the stream by themselves, its name/model are fetched on first sight, its coverage grace window is its own, its Data Selection still has to be ticked per car; discovery after Choose streamed data / re-auth, and the corner cases (parked car, primary only, quota, no auto-retry, re-add keeps history) | 🟢 Feature-Multiple-Cars-and-Accounts → "Adding a car later" (incl. "Corner cases") + Troubleshooting → "A new car shows up as its VIN, with no model" |
 | Descriptor-coverage self-test (the report lists every gap; the Repairs warning fires only for a silent cluster, never for events, a cluster the drivetrain can't fill, or a lone cluster still silent after 30 days — the car doesn't have it) | 🟢 Services-Reference → `get_coverage_report` + Getting-Started-4 → "Did it work?" + Troubleshooting → "No data arriving" (names both repairs) |
@@ -377,11 +378,10 @@ PR. (Proposed addition to `CLAUDE.md`.)
    cannot be captured safely: `authorize` / `authorize_failed` (submitting a client
    id **deletes** the existing entry with that id), `guided_wait` (https-only, and
    the test instance is http), `guided_done` / `activate_stream_done` (need a real
-   activation), the trip **map** view and `card-trips` (need recorded route data),
-   and the **trip-in-progress** hero badge / live trips row (only exist while the
+   activation), and the **trip-in-progress** hero badge / live trips row (only exist while the
    car is actually being driven — grab them opportunistically on a real drive).
-   The `Trips` settings screen was captured but showed a real work-zone name
-   (redact before use).
+   The Trips and Map card views are shot from the website's demo (made-up
+   places), the Trips settings screen with its work zone redacted.
 6. ✅ German pass — every page has a German counterpart in `docs/wiki/de/`,
    named `DE-<English page>.md` and published flat beside the English ones (a wiki
    page name is global). The sidebar carries both languages and each page links to

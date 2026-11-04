@@ -13,7 +13,7 @@ const read = (...parts: string[]) => readFileSync(join(REPO_ROOT, ...parts), "ut
 
 const changelog = read("CHANGELOG.md");
 const stable = /^## \[(\d+\.\d+\.\d+)\] - (\d{4}-\d{2}-\d{2})/m.exec(changelog);
-/** The newest stable release -- what HACS offers by default. */
+/** The newest stable release -- what the Marketplace offers by default. */
 export const RELEASE = { version: stable?.[1] ?? "", date: stable?.[2] ?? "" };
 
 /** The Home Assistant floor, from hacs.json. */
@@ -66,7 +66,8 @@ export function localized(path: string, lang: Lang): string {
   return lang === "de" ? `de/${path}`.replace(/\/$/, "") : path;
 }
 
-export const HACS_REDIRECT =
+/** Opens the Marketplace from 2026.11, HACS before it. */
+export const INSTALL_REDIRECT =
   "https://my.home-assistant.io/redirect/hacs_repository/?owner=JustChr&repository=BavarianData&category=integration";
 
 export const absolute = (path: string) => `${SITE_URL}${url(path)}`;

@@ -26,7 +26,7 @@ unterstützt wird, steht unter [Welche Autos funktionieren](DE-Supported-Cars).
 Zum ersten Mal dabei? Geh die fünf Schritte der Reihe nach durch:
 
 1. [Einrichtung im BMW-Portal](DE-Getting-Started-1-BMW-Portal-Setup) — deine Client-ID erstellen
-2. [Installation über HACS](DE-Getting-Started-2-Install)
+2. [Installation aus dem Marketplace](DE-Getting-Started-2-Install)
 3. [Integration hinzufügen und autorisieren](DE-Getting-Started-3-Add-and-Authorize)
 4. [Gestreamte Daten auswählen](DE-Getting-Started-4-Choose-Data) — die Datengruppen-Auswahl
 5. [Karte zu einem Dashboard hinzufügen](DE-The-Dashboard-Card) — von selbst
@@ -42,22 +42,33 @@ hat mehrere Ansichten:
 
 ## Funktionen
 
-- [Entitäten & Geräte](DE-Feature-Entities-and-Devices) — was angelegt wird und wie es heißt
-- [Ladeverlauf & Kosten](DE-Feature-Charging-History-and-Cost)
+### Laden
+
+- [Ladeverlauf & Kosten](DE-Feature-Charging-History-and-Cost) — jede Ladung mit ihrer Energie, und was sie zu deinem Tarif gekostet hat
 - [Ladezustand beim Laden](DE-Feature-State-of-Charge) — warum BMWs Wert beim Laden stehen bleibt, und die Schätzung, die weiterzählt
 - [Batteriezustand](DE-Feature-Battery-Health) — wie die nutzbare Kapazität gelernt wird
-- [Effizienz & reale Reichweite](DE-Feature-Efficiency-and-Range) — gemessener Verbrauch und wie weit er reicht
+- [Intelligent laden](DE-Feature-Smart-Charging) — Ladezustand und Ladeziel für EV Smart Charging und Predbat
+
+### Fahren
+
 - [Fahrten / Fahrtenbuch](DE-Feature-Trips) — und warum es kein Finanzamt-Fahrtenbuch ist
+- [Effizienz & reale Reichweite](DE-Feature-Efficiency-and-Range) — gemessener Verbrauch und wie weit er reicht
 - [Kilometer & Kontingent](DE-Feature-Mileage) — gefahrene Kilometer pro Monat, und ob das Leasing im Plan liegt
+
+### Automatisieren & verbinden
+
+- [Ereignisse & Automations-Blueprints](DE-Feature-Automations) — Geräte-Auslöser, Lade-Ereignisse und fertige Automationen
+- [Assist & KI nach dem Auto fragen](DE-Feature-Assist-and-AI) — Fragen per Sprache und Chat, dazu MCP für KI-Apps am Rechner
+- [Energie-Dashboard & Langzeitstatistiken](DE-Feature-Energy-and-Statistics) — das Laden des Autos im Energie-Dashboard von Home Assistant
 - [evcc- & Wallbox-Brücke](DE-Feature-evcc-and-Wallbox-Bridge) — den Ladezustand ohne API-Kosten an eine Ladesteuerung weitergeben
 - [ABRP-Live-Daten](DE-Feature-ABRP) — dein echter Akkustand in A Better Routeplanner, mit kostenlosem ABRP-Konto
-- [Intelligent laden](DE-Feature-Smart-Charging) — Ladezustand und Ladeziel für EV Smart Charging und Predbat
-- [Energie-Dashboard & Langzeitstatistiken](DE-Feature-Energy-and-Statistics)
 - [Export (CSV / HTML-Bericht)](DE-Feature-Export)
-- [Ereignisse & Automations-Blueprints](DE-Feature-Automations)
-- [Assist & KI nach dem Auto fragen](DE-Feature-Assist-and-AI) — Fragen per Sprache und Chat, dazu MCP für KI-Apps am Rechner
-- [API-Kontingent](DE-Feature-API-Quota) — die Grenze von 50 Anfragen pro Tag
+
+### Dein Konto
+
+- [Entitäten & Geräte](DE-Feature-Entities-and-Devices) — was angelegt wird und wie es heißt
 - [Mehrere Fahrzeuge & Konten](DE-Feature-Multiple-Cars-and-Accounts) — ein Eintrag je Konto, und wie du sagst, welches Auto gemeint ist
+- [API-Kontingent](DE-Feature-API-Quota) — die Grenze von 50 Anfragen pro Tag
 
 ## Nachschlagen
 
@@ -66,8 +77,8 @@ hat mehrere Ansichten:
 - [Fehlerbehebung & FAQ](DE-Troubleshooting-and-FAQ)
 - [Technische Referenz](DE-Reference) — Katalog der Deskriptoren und Felder
 
-> **Status — in aktiver Entwicklung.** Ein Freizeitprojekt, getestet an wenigen
-> Fahrzeugen und Home-Assistant-Versionen. Bei einem Modell, das es noch nicht
-> kennt, kann also mal etwas haken. Es ist bewusst nur lesend (CarData kann das
+> **Status — in aktiver Entwicklung.** Läuft auf elektrischen, Plug-in-Hybrid-,
+> Benzin- und Diesel-BMWs und -MINIs ([welche Autos](DE-Supported-Cars)). Es ist
+> bewusst nur lesend (CarData kann das
 > Auto nicht steuern): Nimm seine Werte als Information, nicht als Auslöser für
 > sicherheitskritische Automationen.

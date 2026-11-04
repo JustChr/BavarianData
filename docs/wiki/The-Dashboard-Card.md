@@ -406,7 +406,9 @@ type: custom:bavariandata-card
 view: trips
 ```
 
-<!-- screenshot: card-trips -->
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-trips.png?v=2026-10-10" alt="Trips view: the month's distance and average consumption, the private split, top destinations and the latest trips" width="360" />
+</p>
 
 It reads the `get_trips` and `get_driving_summary` services, so it spends **no
 API quota**. Trips are reconstructed from the stream — no configuration needed.
@@ -437,7 +439,9 @@ type: custom:bavariandata-card
 view: map
 ```
 
-<!-- screenshot: card-map -->
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-map.png?v=2026-11-04" alt="Trip map view: chips for this month, 3 months or all, and the month's trip ends clustered into counted bubbles on the map" width="360" />
+</p>
 
 The map only has something to show once you turn on **Record route** under
 **Configure → Trips** — that opt-in setting is what stores each drive's GPS
@@ -655,8 +659,7 @@ entities or want to point the card at a helper.
 
 ---
 
-> **Does this look right on your car?** The card is only ever seen on an i5 here.
-> A screenshot of it on a different model is the single most useful thing you can
-> send — especially if a view comes up empty, a value looks wrong, or a cluster you
+> **Does this look right on your car?** A screenshot of the card on your model
+> is the single most useful thing you can send — especially if a view comes up empty, a value looks wrong, or a cluster you
 > expected is missing.
 > [Post it in Discussions →](https://github.com/JustChr/BavarianData/discussions)

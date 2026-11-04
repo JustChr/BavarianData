@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-BavarianData — a Home Assistant (HA) custom integration (HACS) that connects HA
+BavarianData — a Home Assistant (HA) custom integration (Marketplace, HACS before HA 2026.11) that connects HA
 directly to **BMW CarData**: a live MQTT stream plus a REST API, using the
 user's personal BMW client ID. Domain: `bavariandata`. Repo:
 `JustChr/BavarianData`. License: MIT. Read-only — CarData cannot command the car.
@@ -15,7 +15,7 @@ user's personal BMW client ID. Domain: `bavariandata`. Repo:
   - `refusal.py` — every error a user reads, by translation key (`MESSAGES`, the English the log keeps). HA-free modules raise a `Refusal`; `as_ha_error` turns it into HA's error. Never raise a `HomeAssistantError` with a plain message (`tests/test_refusal.py` fails on it), and keep placeholders out of quotes (hassfest).
   - `entry_setup.py` — what `async_setup_entry` decides (options → coordinator, the history's one-time repairs, stored cars back as devices, registry fixes); `__init__.py` only builds the parts in order and wires them (setup, unload, removal).
   - Beside it, what a loaded account is and does: `runtime.py` (`CardataRuntimeData` on `entry.runtime_data`), `account.py` (tokens and reauth, the REST bootstrap, catch-up and poll loop, new cars and their metadata, `account_vins`), `vehicle_removal.py` (forgetting a car), `coverage_issues.py` (the coverage self-test's repairs), `frontend.py` (the card's Lovelace resource). Other modules import from these, never a private name from `__init__.py`.
-  - `quota.py` — the rolling 50-a-day count (`QuotaManager`), kept in a store across restarts; HA-free, `__init__._async_quota_manager` passes HA's `Store` and the exhaustion repair in.
+  - `quota.py` — the 50-a-day count, reset at 00:00 UTC (`QuotaManager`), kept in a store across restarts; HA-free, `__init__._async_quota_manager` passes HA's `Store` and the exhaustion repair in.
   - `container.py` — the REST container every car reads, `FULL` (non-streamable + battery seed). BMW refuses a whole container over one field it won't serve (`conditionBasedServices`, 16–23 Oct 2026, #142); `retired_names`/`RETIRED_ENTRY_KEYS` clear the containers older releases made.
   - `services.py` — registers every service once from `async_setup`, each handler bound to a `ServiceContext` (`service_context.py`). The handlers live by kind: `service_fetch.py` (asks BMW, spends quota; the portal activation), `service_read.py` (the `get_*` answers), `service_history.py` (trip class/start, export, statistics). A handler finds its account only through `ctx.resolve_target`, and its car through `ctx.target_car` (a `device_id` picker, `vin` or `entry_id`). The rules are HA-free in `service_target.py`: with two cars, a one-car service refuses a call that names none. What the handlers work out (month/date/limit arguments, export files, the evcc block, the portal activation's attributes and errors) is HA-free in `service_answers.py`; `tests_ha/test_services.py` calls every service.
   - `assist.py` / `assist_api.py` — the BavarianData LLM API: six read-only tools a conversation agent (or HA's MCP server) can call. `assist.py` is HA-free and decides what an answer may hold (no VIN, ids, coordinates, curves; the open/unlocked rule shared with the `car_left_open` blueprint); the adapter is registered once from `async_setup` and reads through the read services.
@@ -243,8 +243,9 @@ files — this repo is public.
 
 ## Releases
 
-Pushing to `main` is **not** a release — HACS users get updates only from
-GitHub releases. Use `scripts/release.sh` (bash): bumps `manifest.json` version,
+Pushing to `main` is **not** a release — Marketplace (and HACS) users get
+updates only from GitHub releases, and the Marketplace installs only a release
+whose tag matches `manifest.json`'s `version`. Use `scripts/release.sh` (bash): bumps `manifest.json` version,
 commits (`git add .` — so check for stray files first), tags `vX.Y.Z`, pushes,
 and creates the release with `--notes-file`. Default is a beta pre-release
 (`-beta.N`); pass `--stable` for a full release. Only release when the user
@@ -259,7 +260,8 @@ page changed; a beta leaves it alone, since the wiki is what stable users read.
 
 Version lives in `custom_components/bavariandata/manifest.json`. `hacs.json`
 sets `zip_release: true` / `bavariandata.zip` (the release workflow expects the
-zip asset).
+zip asset). The manifest's `categories` (`vehicles_transport.cars_evs`,
+`energy.ev_charging`) place it in the Marketplace's browse list.
 
 ## Constraints & hard-won quirks
 
@@ -296,7 +298,7 @@ zip asset).
   (`ReauthGate.refused`), and HA drops every attribute then; the card reads
   `login_refused` off the account's connection sensor and says so instead.
 - README image links use absolute `raw.githubusercontent.com` URLs on purpose
-  (HACS info screen can't resolve relative paths).
+  (the Marketplace's and HACS's info screens can't resolve relative paths).
 
 ## Conventions
 

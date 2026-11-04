@@ -35,11 +35,11 @@ Planer das kann, einen Planer pro Auto ein.
 
 ## EV Smart Charging
 
-[EV Smart Charging](https://github.com/jonasbkarlsson/ev_smart_charging) (HACS)
+[EV Smart Charging](https://github.com/jonasbkarlsson/ev_smart_charging) (Marketplace)
 sucht die billigsten Stunden aus Nord Pool, Entso-e, Energi Data Service und
 anderen und schaltet dein Ladegerät in diesen Stunden ein.
 
-1. Aus HACS installieren und unter *Einstellungen → Geräte & Dienste*
+1. Aus dem Marketplace (vor 2026.11 aus HACS) installieren und unter *Einstellungen → Geräte & Dienste*
    hinzufügen.
 2. **EV SOC entity:** der *Ladezustand (integrationsseitig vorhergesagt)* des
    Autos.

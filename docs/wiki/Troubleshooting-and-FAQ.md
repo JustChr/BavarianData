@@ -2,6 +2,35 @@
 
 > 🇩🇪 [Deutsch](DE-Troubleshooting-and-FAQ)
 
+**Jump to:**
+
+- **Setting up:** [access denied](#onboarding-fails-with-access-denied) ·
+  [account already set up](#setup-says-this-bmw-account-is-already-set-up) ·
+  [a new car shows only its VIN](#a-new-car-shows-up-as-its-vin-with-no-model)
+- **The stream:** [no data arriving](#no-data-arriving) ·
+  [not authorized (rc=5)](#stream-authorization-failing) ·
+  [one stream per account](#only-one-stream-per-account)
+- **A value looks wrong:** [battery level stands still while charging](#the-battery-level-stands-still-while-the-car-charges) ·
+  [one sensor unknown or stuck](#one-sensor-reads-unknown) ·
+  [a field never arrives](#field-never-arrives) ·
+  [an absurd value](#sensor-value-looks-wrong) ·
+  [door lock unchanged](#doors-lock-hasnt-changed-in-days) ·
+  [fuel litres never change](#fuel-litres-never-change)
+- **The card:** [no dashboard after setup](#no-dashboard-appears) ·
+  [card missing after an update](#the-card-doesnt-show-up-after-an-update) ·
+  [custom element in the app](#custom-element-doesnt-exist-app) ·
+  [configuration error after a reload](#config-error-after-reload) ·
+  [key names instead of text](#card-shows-key-names)
+- **Fetches and quota:** [HTTP 400 and other errors](#a-fetch-fails-with-http-400-or-another-http-error) ·
+  [quota exhausted](#quota-exhausted)
+- **What it can't do:** [control the car](#the-car-cant-be-controlled) ·
+  [motorcycles](#does-bavariandata-work-with-a-bmw-motorcycle)
+- **Getting help:** [download diagnostics](#download-diagnostics) ·
+  [debug logging](#debug-logging) ·
+  [capture a drive](#capturing-a-drive-for-trip-detection) ·
+  [remove completely](#clean-uninstall) ·
+  [where to get help](#where-to-get-help)
+
 ## "Authorization didn't finish": access_denied during setup
 
 <a id="onboarding-fails-with-access-denied"></a>
@@ -186,37 +215,20 @@ BavarianData ignores litres that are more than a day older than the fuel level.
 The Fuel view then shows the level and finds refuels in it. Consumption between
 refuels is worked out in litres, so on such a car it stays empty.
 
-## A second car's REST-only values are frozen
-
-Fixed in **v0.9.11-beta.2**. Before it, an account with more than one vehicle
-refreshed only one of them: everything BMW cannot stream — Condition Based
-Servicing, service demands, charging level, door-lock status, the tire diagnosis
-— stayed at whatever it was when that car was set up, while the car's stream
-kept running normally and hid the gap.
-
-The tell is a car whose other sensors update by the second, next to a handful
-that share one timestamp weeks old. The [daily refresh](Feature-API-Quota#the-daily-refresh)
-now covers every vehicle, at 2 requests per car.
-
-To fill the gap immediately rather than waiting for the next refresh, call
-`bavariandata.fetch_telematic_data` with that car's `vin`
-([Services reference](Services-Reference)).
-
 ## A new car shows up as its VIN, with no model
 
 Everything that names a car — model, series, software version, the device name
-itself — comes from one REST call that used to run only during setup, so a car
-added to the account afterwards stayed a bare VIN.
+itself — comes from one REST call to BMW. Until it has answered, a car is a bare VIN.
 
 It is fetched automatically the first time a car is seen on the stream, and
-from **v0.9.20** again after every Home Assistant start for any car still
-without it (one request per such car). To ask right away, run **Configure →
+again after every Home Assistant start for any car still without it (one
+request per such car). To ask right away, run **Configure →
 Fetch from BMW now → Fetch basic vehicle info**, which covers every car on the
 entry.
 
 The same call tells the integration the drivetrain and which side the driver
 sits on, so without it a right-hand-drive car has its doors drawn on the wrong
-side of the card. Since **v0.9.18** a failed call leaves a warning in the log
+side of the card. A failed call leaves a warning in the log
 (`basic data request failed`) with BMW's status code.
 
 Its streamed fields are a separate matter: BMW's Data Selection is per vehicle
@@ -228,8 +240,7 @@ data**. See [Multiple cars & accounts](Feature-Multiple-Cars-and-Accounts#adding
 <a id="setup-says-this-bmw-account-is-already-set-up"></a>
 
 One config entry covers a whole CarData account, **including every car on it** —
-there is no need for a second entry per car, and since **v0.9.11-beta.4** setup
-refuses one, even when you generated a second Client ID in the BMW portal.
+there is no need for a second entry per car, and setup refuses one, even when you generated a second Client ID in the BMW portal.
 
 BMW allows only **one stream connection per account**, so two entries for the
 same account would disconnect each other in a loop, and both would count against
@@ -434,8 +445,8 @@ open your Home Assistant address with this path appended:
 - **404 / "not found"** → your connection can't reach the path. That's a
   **reverse proxy** (Nginx, Traefik, Caddy, Cloudflare Tunnel …) forwarding only
   the well-known paths — `/api/`, `/static/`, `/frontend_latest/` and friends.
-  Custom cards live outside those: BavarianData's at `/bavariandata/`, HACS
-  cards at `/hacsfiles/`. It has to forward everything. Home Assistant Cloud
+  Custom cards live outside those: BavarianData's at `/bavariandata/`, Marketplace
+  cards at `/local/community/` (`/hacsfiles/` before 2026.11). It has to forward everything. Home Assistant Cloud
   (Nabu Casa) does, and is unaffected.
 
 Worth knowing for both tests: the companion app only uses your **internal** URL
@@ -445,7 +456,7 @@ external URL *even on your home Wi-Fi* — which is how a proxy problem hides
 until you look at it on the phone. Test whichever URL the app is actually using,
 and ideally both.
 
-Cross-check if you have any HACS card installed: if *it* is broken on the phone
+Cross-check if you have any other card from the Marketplace or HACS installed: if *it* is broken on the phone
 too, the cause is the connection or the app, not this integration.
 
 ## Every card shows "Configuration error" after a reload
@@ -456,8 +467,7 @@ Symptom: the cards render correctly when you first open Home Assistant, then
 every one of them turns into a *Configuration error* box after pressing F5. A
 hard refresh doesn't help; only a fresh browser session does.
 
-This is fixed from **v0.9.2-beta.8** onward — update the integration and restart
-Home Assistant. If it persists:
+Update the integration and restart Home Assistant. If it persists:
 
 1. Go to **Settings → Dashboards → ⋮ → Resources** and check that
    `/bavariandata/bavariandata-card.js?v=…` is listed, with the `?v=` matching
@@ -509,20 +519,18 @@ translations*.
 
 A `fetch_*` call or the daily refresh that BMW refuses logs a line like
 `HTTP 400 (CU-105: No permission for specified containerId) for GET …`. The
-`CU-` code is BMW's (since v0.9.20-beta.5; older versions logged only the
-number). The ones worth knowing:
+`CU-` code is BMW's. The ones worth knowing:
 
 | Code | Meaning | What to do |
 | --- | --- | --- |
 | CU-104 | No permission for this car | The car isn't mapped to your account or isn't telematics-capable. Check it is listed at BMW's CarData portal. |
 | CU-105 / CU-121 | The telemetry container is unknown or malformed | Configure → Connection → **Reset telemetry container** ([Settings](Settings-Reference#the-configure-menu)), then fetch again. |
-| CU-400 | Bad request | BMW refuses one field of a container, and with it the whole fetch. From 16 Oct 2026 it did so for the service items (Condition Based Service), on every car, for about a week, and v0.9.20 to v0.9.24 fetched them from a container of their own. BMW has answered them since 23 Oct, so they are back in the one container. If the daily fetch fails with CU-400 now, report it in an issue. |
+| CU-400 | Bad request | BMW refuses one field of a container, and with it the whole fetch (it did so for the service items for a week in October 2026). If the daily fetch fails with CU-400, report it in an issue. |
 | CU-429 | Too many requests | See [quota exhausted](#quota-exhausted) below. |
 
 The stream is not affected by any of these.
 
-**HTTP 502 (Bad Gateway) or 503** with no `CU-` code (versions before
-v0.9.23-beta.5 logged the front server's whole HTML page) means BMW's front server couldn't reach the service behind it: an
+**HTTP 502 (Bad Gateway) or 503** with no `CU-` code means BMW's front server couldn't reach the service behind it: an
 outage on BMW's side, not a fault in your setup. If the CarData portal shows
 errors for your car at the same time, that confirms it. Each attempt still
 spends quota, so don't keep fetching; the daily refresh tries again, and the

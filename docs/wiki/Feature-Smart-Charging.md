@@ -35,11 +35,11 @@ one planner per car where the planner supports it.
 
 ## EV Smart Charging
 
-[EV Smart Charging](https://github.com/jonasbkarlsson/ev_smart_charging) (HACS)
+[EV Smart Charging](https://github.com/jonasbkarlsson/ev_smart_charging) (Marketplace)
 picks the cheapest hours from Nord Pool, Entso-e, Energi Data Service and
 others, and switches your charger in them.
 
-1. Install it from HACS and add it under *Settings → Devices & services*.
+1. Install it from the Marketplace (HACS before 2026.11) and add it under *Settings → Devices & services*.
 2. **EV SOC entity:** the car's *State Of Charge (Predicted on Integration
    side)*.
 3. **EV Target SOC entity:** the car's *Battery EV Target state of charge*.

@@ -5,6 +5,10 @@
     "recorder",
     "mqtt"
   ],
+  "categories": [
+    "vehicles_transport.cars_evs",
+    "energy.ev_charging"
+  ],
   "codeowners": [
     "@JustChr"
   ],

@@ -28,7 +28,7 @@ it once, and from then on the car's data reaches you two ways:
 
 BavarianData is a Home Assistant integration that talks to both directly. There
 is no server in between: Home Assistant holds the tokens and is the only client.
-It is installed from the **HACS default store**.
+It is installed from Home Assistant's **Marketplace** (HACS before 2026.11).
 
 ## What changes for you
 

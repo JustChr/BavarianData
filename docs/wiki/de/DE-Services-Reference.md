@@ -13,8 +13,7 @@ MINI-Konto) genügt also die Auswahl.
 
 Bei **zwei Autos** lehnt ein Dienst, der für ein Auto arbeitet (Reifendiagnose,
 Kilometerbericht, Export …), **einen Aufruf ohne Auto ab**, und die Fehlermeldung
-nennt die Autos zur Auswahl. Bis v0.9.20 nahm er stillschweigend das Auto, das
-zuerst gestreamt hatte. Dienste, die alle Autos lesen (`fetch_telematic_data`,
+nennt die Autos zur Auswahl. Dienste, die alle Autos lesen (`fetch_telematic_data`,
 `get_charging_sessions`, `get_charging_places`, `get_trips`, `get_coverage_report`,
 `import_statistics`), lesen ohne Angabe weiterhin alle. Eine VIN, die kein Auto
 des Kontos ist, wird abgelehnt, bevor Kontingent verbraucht wird. Ein Aufruf

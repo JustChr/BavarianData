@@ -2,6 +2,35 @@
 
 > 🇬🇧 [English version](Troubleshooting-and-FAQ)
 
+**Direkt zu:**
+
+- **Einrichtung:** [access denied](#onboarding-fails-with-access-denied) ·
+  [Konto schon eingerichtet](#setup-says-this-bmw-account-is-already-set-up) ·
+  [neues Auto zeigt nur die FIN](#a-new-car-shows-up-as-its-vin-with-no-model)
+- **Der Stream:** [keine Daten](#no-data-arriving) ·
+  [nicht autorisiert (rc=5)](#stream-authorization-failing) ·
+  [ein Stream pro Konto](#only-one-stream-per-account)
+- **Ein Wert stimmt nicht:** [Akkustand steht beim Laden](#the-battery-level-stands-still-while-the-car-charges) ·
+  [ein Sensor unbekannt oder hängt](#one-sensor-reads-unknown) ·
+  [ein Feld kommt nie an](#field-never-arrives) ·
+  [ein absurder Wert](#sensor-value-looks-wrong) ·
+  [Türstatus unverändert](#doors-lock-hasnt-changed-in-days) ·
+  [Liter ändern sich nie](#fuel-litres-never-change)
+- **Die Karte:** [kein Dashboard nach der Einrichtung](#no-dashboard-appears) ·
+  [Karte fehlt nach einem Update](#the-card-doesnt-show-up-after-an-update) ·
+  [Custom element in der App](#custom-element-doesnt-exist-app) ·
+  [Konfigurationsfehler nach Neuladen](#config-error-after-reload) ·
+  [Schlüsselnamen statt Text](#card-shows-key-names)
+- **Abrufe und Kontingent:** [HTTP 400 und andere Fehler](#a-fetch-fails-with-http-400-or-another-http-error) ·
+  [Kontingent aufgebraucht](#quota-exhausted)
+- **Was es nicht kann:** [das Auto steuern](#the-car-cant-be-controlled) ·
+  [Motorräder](#does-bavariandata-work-with-a-bmw-motorcycle)
+- **Hilfe holen:** [Diagnosedaten herunterladen](#download-diagnostics) ·
+  [Debug-Protokollierung](#debug-logging) ·
+  [eine Fahrt aufzeichnen](#capturing-a-drive-for-trip-detection) ·
+  [vollständig entfernen](#clean-uninstall) ·
+  [Wo es Hilfe gibt](#where-to-get-help)
+
 ## „Autorisierung nicht abgeschlossen“: access_denied bei der Einrichtung
 
 <a id="onboarding-fails-with-access-denied"></a>
@@ -168,6 +197,8 @@ Dienste → Entitäten →** die Entität **→ ⚙ → Maßeinheit** ist wieder
 
 ## „Status der Türen“ hat sich seit Tagen nicht geändert
 
+<a id="doors-lock-hasnt-changed-in-days"></a>
+
 Erwartet und kein Fehler. BMW legt `vehicle.cabin.door.lock.status` **nicht** auf den
 Stream — er wird nur bei einem REST-Aufruf erneuert, zeigt also das Schloss zum
 Zeitpunkt der letzten [täglichen Aktualisierung](DE-Feature-API-Quota#the-daily-refresh)
@@ -194,39 +225,23 @@ Die Ansicht Kraftstoff zeigt dann den Füllstand und findet Tankstopps darin. De
 Verbrauch zwischen Tankstopps wird in Litern berechnet und bleibt bei einem solchen
 Auto leer.
 
-## Die REST-Werte eines zweiten Fahrzeugs sind eingefroren
-
-Behoben in **v0.9.11-beta.2**. Davor wurde bei Konten mit mehreren Fahrzeugen
-nur eines aktualisiert: alles, was BMW nicht streamen kann — Condition Based
-Service, Servicebedarfe, Ladezustand der Ladung, Verriegelungsstatus der Türen,
-die Reifendiagnose — blieb auf dem Stand der Einrichtung dieses Autos stehen,
-während sein Stream normal weiterlief und die Lücke verdeckte.
-
-Erkennbar an einem Fahrzeug, dessen übrige Sensoren sich laufend aktualisieren,
-neben einer Handvoll, die sich einen wochenalten Zeitstempel teilen. Die
-[tägliche Aktualisierung](DE-Feature-API-Quota#the-daily-refresh) umfasst jetzt
-alle Fahrzeuge, mit 2 Anfragen pro Auto.
-
-Wer die Lücke sofort schließen will, statt auf die nächste Aktualisierung zu
-warten, ruft `bavariandata.fetch_telematic_data` mit der `vin` dieses Autos auf
-([Dienste](DE-Services-Reference)).
-
 ## Ein neues Fahrzeug erscheint als FIN, ohne Modell
 
+<a id="a-new-car-shows-up-as-its-vin-with-no-model"></a>
+
 Alles, was ein Auto benennt — Modell, Baureihe, Softwarestand, der Gerätename
-selbst — stammt aus einem REST-Aufruf, der bisher nur bei der Einrichtung lief.
-Ein später hinzugekommenes Fahrzeug blieb daher eine nackte FIN.
+selbst — stammt aus einem REST-Aufruf an BMW. Bis er beantwortet ist, ist ein Auto eine
+nackte FIN.
 
 Der Abruf erfolgt automatisch, sobald ein Auto zum ersten Mal im Stream
-auftaucht, und ab **v0.9.20** nach jedem Start von Home Assistant erneut für jedes
-Auto, dem die Daten noch fehlen (eine Anfrage je solchem Auto). Wer nicht warten
+auftaucht, und nach jedem Start von Home Assistant erneut für jedes Auto, dem
+die Daten noch fehlen (eine Anfrage je solchem Auto). Wer nicht warten
 will, ruft **Konfigurieren → Jetzt von BMW abrufen → Fahrzeug-Basisdaten
 abrufen** auf — das deckt alle Fahrzeuge des Eintrags ab.
 
 Derselbe Aufruf verrät der Integration auch den Antrieb und auf welcher Seite
 der Fahrer sitzt. Ohne ihn zeichnet die Karte bei einem Rechtslenker die Türen
-auf der falschen Seite. Ab **v0.9.18** hinterlässt ein fehlgeschlagener Aufruf
-eine Warnung im Log (`basic data request failed`) mit BMWs Statuscode.
+auf der falschen Seite. Ein fehlgeschlagener Aufruf hinterlässt eine Warnung im Log (`basic data request failed`) mit BMWs Statuscode.
 
 Die gestreamten Felder sind eine eigene Sache: BMWs Datenauswahl gilt je
 Fahrzeug und nur im Portal. Kreuze die Felder des neuen Autos über
@@ -238,8 +253,7 @@ Fahrzeug und nur im Portal. Kreuze die Felder des neuen Autos über
 <a id="setup-says-this-bmw-account-is-already-set-up"></a>
 
 Ein Konfigurationseintrag deckt ein ganzes CarData-Konto ab, **einschließlich
-aller Fahrzeuge darin** — ein zweiter Eintrag je Auto ist nicht nötig, und seit
-**v0.9.11-beta.4** wird er abgelehnt, selbst wenn du im BMW-Portal eine zweite
+aller Fahrzeuge darin** — ein zweiter Eintrag je Auto ist nicht nötig, und er wird abgelehnt, selbst wenn du im BMW-Portal eine zweite
 Client-ID erzeugt hast.
 
 BMW erlaubt nur **eine Stream-Verbindung pro Konto**. Zwei Einträge für dasselbe
@@ -278,6 +292,8 @@ kein anderes Werkzeug zur selben Zeit verbunden sein. Läuft ein anderer CarData
 trenne ihn.
 
 ## Das Auto lässt sich nicht steuern
+
+<a id="the-car-cant-be-controlled"></a>
 
 **Nur lesend.** CarData kann keine Befehle senden, daher kann diese Integration das Auto
 nicht verriegeln, vorklimatisieren oder anderweitig steuern. Automationen steuern externe
@@ -412,6 +428,8 @@ nächsten beiden Abschnitten weiter.
 
 ## Die Karte erscheint nach einem Update nicht
 
+<a id="the-card-doesnt-show-up-after-an-update"></a>
+
 **Lade den Browser hart neu** — die mitgelieferte Karte wird hartnäckig zwischengespeichert.
 
 ## „Custom element doesn't exist: bavariandata-card“ in der App
@@ -452,8 +470,8 @@ Telefons deine Home-Assistant-Adresse mit angehängtem Pfad:
 - **404 / „nicht gefunden“** → deine Verbindung erreicht den Pfad nicht. Das ist ein
   **Reverse Proxy** (Nginx, Traefik, Caddy, Cloudflare Tunnel …), der nur die bekannten
   Pfade weiterleitet — `/api/`, `/static/`, `/frontend_latest/` und Co. Eigene Karten
-  liegen außerhalb davon: die von BavarianData unter `/bavariandata/`, HACS-Karten unter
-  `/hacsfiles/`. Der Proxy muss alles weiterleiten. Home Assistant Cloud (Nabu Casa) tut das und
+  liegen außerhalb davon: die von BavarianData unter `/bavariandata/`, Karten aus dem Marketplace unter
+  `/local/community/` (vor 2026.11 `/hacsfiles/`). Der Proxy muss alles weiterleiten. Home Assistant Cloud (Nabu Casa) tut das und
   ist nicht betroffen.
 
 Für beide Tests gut zu wissen: Die Companion App nutzt deine **interne** URL nur, wenn du
@@ -462,7 +480,7 @@ Verbindung → Interne URL**, mit gesetzter SSID). Ohne das nutzt sie die extern
 in deinem Heim-WLAN* — so versteckt sich ein Proxy-Problem, bis man es auf dem Telefon
 ansieht. Teste die URL, die die App tatsächlich nutzt, am besten beide.
 
-Gegenprobe, falls du eine HACS-Karte installiert hast: Ist *die* auf dem Telefon auch
+Gegenprobe, falls du eine andere Karte aus dem Marketplace oder HACS installiert hast: Ist *die* auf dem Telefon auch
 kaputt, liegt es an der Verbindung oder der App, nicht an dieser Integration.
 
 ## Nach einem Neuladen zeigt jede Karte „Konfigurationsfehler“
@@ -473,8 +491,7 @@ Symptom: Die Karten werden beim ersten Öffnen von Home Assistant richtig angeze
 nach F5 wird jede zu einem Kasten *Konfigurationsfehler*. Ein hartes Neuladen hilft nicht,
 nur eine neue Browsersitzung.
 
-Das ist ab **v0.9.2-beta.8** behoben — aktualisiere die Integration und starte Home
-Assistant neu. Bleibt es:
+Aktualisiere die Integration und starte Home Assistant neu. Bleibt es:
 
 1. Gehe zu **Einstellungen → Dashboards → ⋮ → Ressourcen** und prüfe, ob
    `/bavariandata/bavariandata-card.js?v=…` aufgeführt ist, mit einem `?v=`, das zu
@@ -523,23 +540,23 @@ Browser-Konsole sagt das mit der Zeile *BavarianData card: could not load its tr
 
 ## Ein Abruf schlägt mit „HTTP 400“ oder einem anderen HTTP-Fehler fehl
 
+<a id="a-fetch-fails-with-http-400-or-another-http-error"></a>
+
 Ein `fetch_*`-Aufruf oder die tägliche Aktualisierung, die BMW ablehnt,
 schreibt eine Zeile wie
 `HTTP 400 (CU-105: No permission for specified containerId) for GET …` ins
-Protokoll. Der `CU-`-Code ist BMWs eigener (seit v0.9.20-beta.5; ältere
-Versionen nannten nur die Zahl). Die wichtigsten:
+Protokoll. Der `CU-`-Code ist BMWs eigener. Die wichtigsten:
 
 | Code | Bedeutung | Was tun |
 | --- | --- | --- |
 | CU-104 | Keine Berechtigung für dieses Auto | Das Auto ist deinem Konto nicht zugeordnet oder nicht telematikfähig. Prüfe, ob es in BMWs CarData-Portal steht. |
 | CU-105 / CU-121 | Der Telemetrie-Container ist unbekannt oder fehlerhaft | Konfigurieren → Verbindung → **Telemetrie-Container zurücksetzen** ([Einstellungen](DE-Settings-Reference#das-menü-konfigurieren)), dann erneut abrufen. |
-| CU-400 | Fehlerhafte Anfrage | BMW lehnt ein Feld eines Containers ab und damit den ganzen Abruf. Ab dem 16. Okt. 2026 tat es das etwa eine Woche lang für die Serviceumfänge (Condition Based Service), bei allen Autos, und v0.9.20 bis v0.9.24 holten sie aus einem eigenen Container. Seit dem 23. Okt. liefert BMW sie wieder, daher stecken sie wieder in dem einen Container. Schlägt der tägliche Abruf jetzt mit CU-400 fehl, melde es in einem Issue. |
+| CU-400 | Fehlerhafte Anfrage | BMW lehnt ein Feld eines Containers ab und damit den ganzen Abruf (im Oktober 2026 eine Woche lang für die Serviceumfänge). Schlägt der tägliche Abruf mit CU-400 fehl, melde es in einem Issue. |
 | CU-429 | Zu viele Anfragen | Siehe [Kontingent aufgebraucht](#quota-exhausted) unten. |
 
 Der Stream ist von keinem davon betroffen.
 
-**HTTP 502 (Bad Gateway) oder 503** ohne `CU-`-Code (Versionen vor
-v0.9.23-beta.5 protokollierten die ganze HTML-Seite des Servers) heißt: BMWs vorgelagerter Server hat den Dienst dahinter nicht
+**HTTP 502 (Bad Gateway) oder 503** ohne `CU-`-Code heißt: BMWs vorgelagerter Server hat den Dienst dahinter nicht
 erreicht. Das ist ein Ausfall bei BMW, kein Fehler in deiner Einrichtung.
 Zeigt das CarData-Portal zur selben Zeit Fehler für dein Auto, ist das die
 Bestätigung. Jeder Versuch verbraucht trotzdem Kontingent, also nicht immer
@@ -601,6 +618,8 @@ Die vollständige Liste der Artefakte und eine Schritt-für-Schritt-Checkliste:
 > Integration mit der Checkliste oben und richte BavarianData dann neu ein.
 
 ## Wo es Hilfe gibt
+
+<a id="where-to-get-help"></a>
 
 - Fehler in der Integration → [Issues](https://github.com/JustChr/BavarianData/issues).
   Hänge [Diagnosedaten](#download-diagnostics) an — sie sind geschwärzt, kosten kein

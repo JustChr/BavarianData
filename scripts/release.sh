@@ -128,7 +128,7 @@ fi
 # the new version, leaving a fresh, empty [Unreleased] behind.
 notes_file="$(mktemp)"
 awk '/^## \[Unreleased\]/{c=1;next} c&&/^## /{c=0} c{print}' "$changelog_file" > "$notes_file"
-# A support footer on the GitHub release only (not CHANGELOG.md): HACS shows
+# A support footer on the GitHub release only (not CHANGELOG.md): the Marketplace shows
 # these notes in Home Assistant's update dialog, where happy users already are.
 cat >> "$notes_file" <<'EOF'
 

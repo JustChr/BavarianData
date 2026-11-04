@@ -12,8 +12,7 @@ none of them. Picking the car also picks its account, so with **two accounts**
 
 With **two cars**, a service that acts on one car (a tire diagnosis, a mileage
 report, an export…) **refuses a call that doesn't say which car**, and the error
-lists the cars to choose from. Until v0.9.20 it quietly took whichever car had
-streamed first. A service that reads every car (`fetch_telematic_data`,
+lists the cars to choose from. A service that reads every car (`fetch_telematic_data`,
 `get_charging_sessions`, `get_charging_places`, `get_trips`, `get_coverage_report`,
 `import_statistics`) still reads them all when no car is named. A VIN that
 isn't a car of the account is refused before any quota is spent. A call that
