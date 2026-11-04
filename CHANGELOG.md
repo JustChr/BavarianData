@@ -9,10 +9,28 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
-### Fixed
-- **The ABRP screen now names the app's real path to the car token:** the
-  car's *Live data* → *Custom connection* → *Copy token*. It used to say
-  *Generic*, a label the app shows only as the token's heading.
+## [0.9.26] - 2026-11-04
+
+Promotes 0.9.26-beta.1. Your BMW's live battery can now go to ABRP (A Better Routeplanner), so a route plan starts from the real charge level, with a free ABRP account and no API quota.
+
+### Added
+- **ABRP (A Better Routeplanner) live data.** *Configure → Share live data →
+  ABRP* sends the car's charge level, charging (and whether from a DC charger),
+  charging power, parked or driving, odometer and range to ABRP, so a route
+  plan starts from the real battery. It runs off BMW's stream, so it costs no
+  API quota, and it works with a free ABRP account (one saved car). Off by
+  default, per car, with the car token from the ABRP app (the car's *Live data*
+  → *Custom connection* → *Copy token*); switching on checks the token right
+  away. The position goes only with a second switch, also off by default. A
+  value the car hasn't reported is left out, never sent as zero, and the last
+  known values are repeated every 30 seconds so ABRP doesn't drop the car.
+  Releases carry BavarianData's own ABRP key; an own key can be entered if that
+  one ever stops working. New manual page:
+  [ABRP live data](https://justchr.github.io/BavarianData/docs/abrp/).
+
+### Changed
+- **The MQTT bridge moved one level down**, to *Configure → Share live data →
+  MQTT bridge (evcc & more)*, next to ABRP. Its settings are unchanged.
 
 ## [0.9.26-beta.1] - 2026-11-04
 
