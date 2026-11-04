@@ -15,7 +15,7 @@ reconnect.
 ## The Configure menu
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-menu.png?v=2026-10-17" alt="BavarianData options menu (the main menu since v0.9.20)" width="460" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-menu.png?v=2026-11-04" alt="BavarianData options menu (the main menu since v0.9.20)" width="460" />
 </p>
 
 The menu labels below are exactly as they appear in the UI.
@@ -33,6 +33,10 @@ The menu labels below are exactly as they appear in the UI.
 | **Automatic data refresh** | settings ⚡ | Catch up with BMW after Home Assistant starts — below. |
 | **Fetch from BMW now** | menu ⚡ | Ask BMW for data now instead of waiting for the daily refresh — the next table. |
 | **Connection** | menu | Keep the link to BMW working, and debug logging — the table after it. |
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-share-live-data.png" alt="The Share live data submenu: MQTT bridge (evcc & more) and ABRP (A Better Routeplanner)" width="460" />
+</p>
 
 **Configure → Fetch from BMW now**
 
@@ -226,6 +230,10 @@ ready-to-paste evcc configuration; sharing only the stream saves straight away.
 ## ABRP (A Better Routeplanner)
 
 Screen: **Configure → Share live data → ABRP (A Better Routeplanner)**.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-abrp.png" alt="ABRP settings: Send to ABRP, Car token, Include the position and Own API key (optional), both switches off and both fields empty" width="460" />
+</p>
 
 Sends the car's live state to [ABRP](https://abetterrouteplanner.com), so a
 route plan starts from the real battery instead of a guess. It goes straight off

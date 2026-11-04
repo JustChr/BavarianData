@@ -11,7 +11,7 @@
 //
 // Run from a directory with playwright-core installed (see the shoot skill):
 //   HA_URL=http://<host> HA_TOKEN=<token> \
-//     node mock_flow.js <trips|charging|bridge|phone> <real|staged> <lang> <width> <outdir>
+//     node mock_flow.js <trips|charging|bridge|phone|menu|share|abrp> <real|staged> <lang> <width> <outdir>
 // ``phone`` is staged only: Trips for a car on end-of-trip reports with Record
 // route on, and the follow-up Route from a phone screen its submit leads to.
 // A new per-car screen: add it to SCREENS, starting from the real step the
@@ -48,7 +48,23 @@ const SCREENS = {
     // Charged elsewhere: no wallbox meter, losses estimated instead.
     values: { grid_energy_entity: null, charging_loss_percent: 10 },
   },
+  // The Configure menu and the submenu, as they are (real only).
+  menu: {},
+  share: {
+    menu: { en: "Share live data", de: "Live-Daten teilen" },
+    step: "share_live_data",
+  },
+  abrp: {
+    via: { en: "Share live data", de: "Live-Daten teilen" },
+    menu: { en: "ABRP (A Better Routeplanner)", de: "ABRP (A Better Routeplanner)" },
+    step: "action_abrp",
+    // Shown as a newcomer meets it: switched off, no token, no own key.
+    values: { abrp_enabled: false, abrp_position: false },
+    secrets: ["abrp_token", "abrp_api_key"],
+    translate: "options.step.action_abrp",
+  },
   bridge: {
+    via: { en: "Share live data", de: "Live-Daten teilen" },
     menu: { en: "MQTT bridge (evcc & more)", de: "MQTT-Brücke (evcc & mehr)" },
     step: "action_evcc_bridge",
     picker: "bridge_vehicle",
@@ -78,7 +94,7 @@ const SCREENS = {
 const [screenName, mode, lang, width, outdir] = process.argv.slice(2);
 const screen = SCREENS[screenName];
 if (!screen || !["real", "staged"].includes(mode) || (screen.followup && mode !== "staged"))
-  throw new Error("usage: <trips|charging|bridge|phone> <real|staged> <lang> <width> <outdir>");
+  throw new Error("usage: <trips|charging|bridge|phone|menu|share|abrp> <real|staged> <lang> <width> <outdir>");
 const NEXT = { en: "Next", de: "Weiter" };
 
 // The working tree's strings for one step, as the frontend keys them.
@@ -101,7 +117,10 @@ let phase = "menu";
 function withoutEntities(schema) {
   return schema.map((field) => {
     if (field.type === "expandable") return { ...field, schema: withoutEntities(field.schema) };
-    if (!field.selector || !field.selector.entity) return field;
+    const secret = (screen.secrets || []).includes(field.name);
+    if (!secret && mode === "real" && field.name in (screen.values || {}))
+      return { ...field, default: screen.values[field.name] };
+    if (!secret && (!field.selector || !field.selector.entity)) return field;
     const copy = { ...field };
     delete copy.description;
     delete copy.default;
@@ -214,8 +233,29 @@ async function dialogRect(page) {
   });
 }
 
+// Strings the frontend had already cached slip past the overlay: swap each
+// installed text still on screen for the working tree's.
+async function retext(page) {
+  if (!screen.translate) return;
+  await page.evaluate(async ([stepPath, tree]) => {
+    const hass = document.querySelector("home-assistant").hass;
+    window.__installedStrings = true; // the overlay leaves this answer alone
+    const installed = (await hass.callWS({ type: "frontend/get_translations", language: hass.language, category: "options", integration: ["bavariandata"] })).resources;
+    window.__installedStrings = false;
+    const swaps = Object.entries(tree).filter(([key, text]) => installed[key] && installed[key] !== text).map(([key, text]) => [installed[key], text]);
+    const walk = (root) => {
+      const texts = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      for (let node = texts.nextNode(); node; node = texts.nextNode())
+        for (const [old, text] of swaps) if (node.nodeValue.includes(old)) node.nodeValue = node.nodeValue.replace(old, text);
+      for (const el of root.querySelectorAll("*")) if (el.shadowRoot) walk(el.shadowRoot);
+    };
+    walk(document);
+  }, [screen.translate, treeStrings(screen.translate)]);
+}
+
 async function shot(page, name) {
   await page.waitForTimeout(1200);
+  await retext(page);
   const clip = await dialogRect(page);
   if (!clip) throw new Error("no dialog for " + name);
   const file = path.join(outdir, `${screenName}-${mode}-${lang}-${width}-${name}.png`);
@@ -246,7 +286,7 @@ async function shot(page, name) {
       Object.defineProperty(MessageEvent.prototype, "data", {
         get() {
           const raw = data.get.call(this);
-          if (typeof raw !== "string" || !raw.includes("component.bavariandata.")) return raw;
+          if (window.__installedStrings || typeof raw !== "string" || !raw.includes("component.bavariandata.")) return raw;
           try {
             const message = JSON.parse(raw);
             const resources = message.result && message.result.resources;
@@ -320,8 +360,14 @@ async function shot(page, name) {
   await page.waitForTimeout(3000);
   await page.getByRole("button", { name: lang === "de" ? "Konfigurieren" : "Configure" }).first().click();
   await page.waitForTimeout(2000);
-  await page.getByText(screen.menu[lang], { exact: true }).first().click();
-  await page.waitForTimeout(2500);
+  if (screen.via) {
+    await page.getByText(screen.via[lang], { exact: true }).first().click();
+    await page.waitForTimeout(2000);
+  }
+  if (screen.menu) {
+    await page.getByText(screen.menu[lang], { exact: true }).first().click();
+    await page.waitForTimeout(2500);
+  }
 
   if (screen.followup) {
     await shot(page, "1-form");

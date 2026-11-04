@@ -15,7 +15,7 @@ Konto erlaubt und ein Neuladen mit dem Wiederverbinden kollidieren könnte.
 ## Das Menü Konfigurieren
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-menu.png?v=2026-10-17" alt="Optionsmenü von BavarianData (Hauptmenü seit v0.9.20)" width="460" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-menu.png?v=2026-11-04" alt="Optionsmenü von BavarianData (Hauptmenü seit v0.9.20)" width="460" />
 </p>
 
 Die Menüeinträge unten sind so geschrieben, wie sie in der deutschen Oberfläche
@@ -34,6 +34,10 @@ erscheinen (der Screenshot zeigt die englische).
 | **Automatische Aktualisierung** | Einstellungen ⚡ | Nach dem Start von Home Assistant bei BMW aufholen — unten. |
 | **Jetzt von BMW abrufen** | Menü ⚡ | Daten sofort bei BMW abfragen, statt auf die tägliche Aktualisierung zu warten — nächste Tabelle. |
 | **Verbindung** | Menü | Die Verbindung zu BMW am Laufen halten, dazu die Debug-Protokollierung — die Tabelle danach. |
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-share-live-data-de.png" alt="Das Untermenü Live-Daten teilen: MQTT-Brücke (evcc & mehr) und ABRP (A Better Routeplanner)" width="460" />
+</p>
 
 **Konfigurieren → Jetzt von BMW abrufen**
 
@@ -240,6 +244,10 @@ evcc-Konfiguration zum Einfügen; nur den Stream zu teilen speichert sofort.
 <a id="abrp-a-better-routeplanner"></a>
 
 Bildschirm: **Konfigurieren → Live-Daten teilen → ABRP (A Better Routeplanner)**.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-abrp-de.png" alt="ABRP-Einstellungen: An ABRP senden, Auto-Token, Position mitsenden und Eigener API-Schlüssel (optional), beide Schalter aus, beide Felder leer" width="460" />
+</p>
 
 Sendet den Live-Zustand des Autos an [ABRP](https://abetterrouteplanner.com),
 damit eine Routenplanung mit dem echten Akkustand beginnt statt mit einer
