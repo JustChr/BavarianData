@@ -100,7 +100,9 @@ export function remarkWiki() {
         const text = textOf(node).trim();
         let links = 0;
         visit(node, "link", () => void links++);
-        if (links === 1 && /^(🇩🇪|🇬🇧)/u.test(text) && text.length < 40) {
+        // The language line, and the wiki's pointer to this site ("🌐 …"):
+        // both mean nothing on the site itself.
+        if (links === 1 && ((/^(🇩🇪|🇬🇧)/u.test(text) && text.length < 40) || /^🌐/u.test(text))) {
           parent.children.splice(index, 1);
           return [SKIP, index];
         }

@@ -6,6 +6,8 @@
 
 > 🇬🇧 [English version](Home)
 
+> 🌐 Dieses Handbuch gibt es auch auf der Website, mit Suche und einer Live-Demo der Karte: **[justchr.github.io/BavarianData](https://justchr.github.io/BavarianData/de/docs/)**
+
 Verbindet Home Assistant direkt mit **BMW CarData**: über einen Live-MQTT-Stream
 und die REST-API, mit deiner eigenen BMW-Client-ID. Keine fremde Cloud
 dazwischen, kein Auslesen der MyBMW-App — Home Assistant ist der einzige Client.
