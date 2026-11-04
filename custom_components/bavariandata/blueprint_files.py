@@ -1,6 +1,6 @@
 """The automation blueprints the integration ships, kept in the user's blueprint folder.
 
-HACS installs only ``custom_components/bavariandata``, so the blueprints travel
+The Marketplace installs only ``custom_components/bavariandata``, so the blueprints travel
 inside it and are copied on setup to ``blueprints/automation/bavariandata`` in
 the configuration folder. They then appear under Settings -> Blueprints without
 an import, and an update of the integration updates them. A copy imported by URL

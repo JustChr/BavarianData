@@ -106,4 +106,4 @@ existiert.
   abgelehnt“?** Prüfe, ob die ID vollständig kopiert ist und für den Client sowohl
   **CarData API** als auch **CarData Stream** eingeschaltet sind.
 
-**Weiter:** [2. Installation über HACS →](DE-Getting-Started-2-Install)
+**Weiter:** [2. Installation aus dem Marketplace →](DE-Getting-Started-2-Install)

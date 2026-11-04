@@ -13,23 +13,29 @@
 **The card**
 - [The dashboard card](The-Dashboard-Card)
 
-**Features**
-- [Entities & devices](Feature-Entities-and-Devices)
+**Charging**
 - [Charging history & cost](Feature-Charging-History-and-Cost)
 - [State of charge while charging](Feature-State-of-Charge)
 - [Battery health](Feature-Battery-Health)
-- [Efficiency & range](Feature-Efficiency-and-Range)
-- [Trips](Feature-Trips)
-- [Mileage & allowance](Feature-Mileage)
-- [evcc & wallbox bridge](Feature-evcc-and-Wallbox-Bridge)
-- [ABRP live data](Feature-ABRP)
 - [Smart charging](Feature-Smart-Charging)
-- [Energy & statistics](Feature-Energy-and-Statistics)
-- [Export](Feature-Export)
+
+**Driving**
+- [Trips](Feature-Trips)
+- [Efficiency & range](Feature-Efficiency-and-Range)
+- [Mileage & allowance](Feature-Mileage)
+
+**Automate & connect**
 - [Events & blueprints](Feature-Automations)
 - [Ask Assist & AI](Feature-Assist-and-AI)
-- [API quota](Feature-API-Quota)
+- [Energy & statistics](Feature-Energy-and-Statistics)
+- [evcc & wallbox bridge](Feature-evcc-and-Wallbox-Bridge)
+- [ABRP live data](Feature-ABRP)
+- [Export](Feature-Export)
+
+**Your account**
+- [Entities & devices](Feature-Entities-and-Devices)
 - [Multiple cars & accounts](Feature-Multiple-Cars-and-Accounts)
+- [API quota](Feature-API-Quota)
 
 **Reference**
 - [Settings](Settings-Reference)
@@ -54,23 +60,29 @@
 **Die Karte**
 - [Die Dashboard-Karte](DE-The-Dashboard-Card)
 
-**Funktionen**
-- [Entitäten & Geräte](DE-Feature-Entities-and-Devices)
+**Laden**
 - [Ladeverlauf & Kosten](DE-Feature-Charging-History-and-Cost)
 - [Ladezustand beim Laden](DE-Feature-State-of-Charge)
 - [Batteriezustand](DE-Feature-Battery-Health)
-- [Effizienz & Reichweite](DE-Feature-Efficiency-and-Range)
-- [Fahrten](DE-Feature-Trips)
-- [Kilometer & Kontingent](DE-Feature-Mileage)
-- [evcc- & Wallbox-Brücke](DE-Feature-evcc-and-Wallbox-Bridge)
-- [ABRP-Live-Daten](DE-Feature-ABRP)
 - [Intelligent laden](DE-Feature-Smart-Charging)
-- [Energie & Statistiken](DE-Feature-Energy-and-Statistics)
-- [Export](DE-Feature-Export)
+
+**Fahren**
+- [Fahrten](DE-Feature-Trips)
+- [Effizienz & Reichweite](DE-Feature-Efficiency-and-Range)
+- [Kilometer & Kontingent](DE-Feature-Mileage)
+
+**Automatisieren & verbinden**
 - [Ereignisse & Blueprints](DE-Feature-Automations)
 - [Assist & KI fragen](DE-Feature-Assist-and-AI)
-- [API-Kontingent](DE-Feature-API-Quota)
+- [Energie & Statistiken](DE-Feature-Energy-and-Statistics)
+- [evcc- & Wallbox-Brücke](DE-Feature-evcc-and-Wallbox-Bridge)
+- [ABRP-Live-Daten](DE-Feature-ABRP)
+- [Export](DE-Feature-Export)
+
+**Dein Konto**
+- [Entitäten & Geräte](DE-Feature-Entities-and-Devices)
 - [Mehrere Fahrzeuge & Konten](DE-Feature-Multiple-Cars-and-Accounts)
+- [API-Kontingent](DE-Feature-API-Quota)
 
 **Nachschlagen**
 - [Einstellungen](DE-Settings-Reference)

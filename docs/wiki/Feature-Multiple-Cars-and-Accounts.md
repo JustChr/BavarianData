@@ -20,7 +20,7 @@ So:
 - **Two cars on one account** → add the integration **once**. Both cars appear.
 - **Two accounts** (yours and a partner's, or a BMW and a MINI account) → add
   the integration **twice**, once per Client ID.
-- **One account, added twice** is refused. Since **v0.9.11-beta.4** setup stops
+- **One account, added twice** is refused. Setup stops
   with *"This BMW account is already set up"* if another entry already has the
   same account, even when you generated a second Client ID for it in the portal.
   It is not a limitation we invented: BMW allows **one stream connection per
@@ -35,16 +35,15 @@ Buy a second BMW, or enrol an existing one in CarData after setup, and it simply
 turns up: it rides the same stream, so its entities appear on their own within
 minutes of the car sending anything.
 
-Two things used to be missed and are handled from **v0.9.11-beta.4**:
+Two things happen for it on their own:
 
 - **Its name and model.** Everything that turns a VIN into "i5 eDrive40" comes
-  from a one-off REST call that previously ran only at setup, so a later car
-  stayed a bare VIN on the device page. It is now fetched the first time the car
-  is seen on the stream (one request against that day's quota, once).
+  from a one-off REST call, fetched the first time the car is seen on the stream
+  (one request against that day's quota, once).
 - **Its coverage grace period.** The
   [stream self-test](Getting-Started-4-Choose-Data#did-it-work) gives a fresh
-  install a week before reporting a cluster as silent. That clock is now per
-  car, so a car added two years in is not declared incomplete on day one.
+  car a week before reporting a cluster as silent. That clock is per car, so a
+  car added two years in is not declared incomplete on day one.
 
 You still have to tick the new car's fields in **BMW's portal**: Data Selection
 is per vehicle and has no API. Run **Configure → Choose streamed data** again and
@@ -83,8 +82,7 @@ the same.)
   it is added by that message and the extra fetch is skipped.
 - **Adding the same account again keeps everything.** Running **Add device** with
   a Client ID that is already set up re-authorizes the existing entry in place,
-  history included (since v0.9.14-beta.4); before that, it deleted the entry and
-  its recorded trips and charging sessions.
+  history included.
 
 ## Quota with several cars
 

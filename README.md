@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <a href="https://hacs.xyz/"><img src="https://img.shields.io/badge/HACS-Default-41BDF5.svg" alt="HACS Default" /></a>
+  <a href="https://github.com/JustChr/BavarianData/wiki/Getting-Started-2-Install"><img src="https://img.shields.io/badge/Home%20Assistant-Marketplace-41BDF5.svg" alt="In the Home Assistant Marketplace" /></a>
   <a href="https://github.com/JustChr/BavarianData/releases/latest"><img src="https://img.shields.io/github/v/release/JustChr/BavarianData" alt="Latest release" /></a>
   <a href="https://github.com/JustChr/BavarianData/wiki/Getting-Started-2-Install"><img src="https://img.shields.io/badge/Home%20Assistant-2026.3%2B-41BDF5.svg" alt="Home Assistant 2026.3 or newer" /></a>
   <a href="https://github.com/JustChr/BavarianData/wiki/Feature-Entities-and-Devices#entity-names-and-your-language"><img src="https://img.shields.io/badge/languages-10-41BDF5" alt="Ten languages" /></a>
@@ -30,7 +30,7 @@
 </p>
 
 <p align="center">
-  <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=JustChr&repository=BavarianData&category=integration"><img src="https://my.home-assistant.io/badges/hacs_repository.svg" alt="Open your Home Assistant instance and open BavarianData in HACS." /></a>
+  <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=JustChr&repository=BavarianData&category=integration"><img src="https://my.home-assistant.io/badges/marketplace_repository.svg" alt="Open your Home Assistant instance and open BavarianData in the Marketplace." /></a>
 </p>
 
 ---
@@ -88,12 +88,10 @@ MCP ([Ask Assist & AI](https://github.com/JustChr/BavarianData/wiki/Feature-Assi
 </p>
 <p align="center"><sub>The overview, trips and efficiency are from the <a href="https://justchr.github.io/BavarianData/">website's live demo</a>: a real i5's data, made-up places.</sub></p>
 
-> **Status — actively developed.** A spare-time project, verified against a
-> limited number of vehicles and Home Assistant versions, so expect the odd
-> rough edge on a model it hasn't met yet. It is read-only by design — CarData
-> cannot command the car — so treat what it reports as informational rather than
-> as the trigger for a safety-critical automation. Track `main`; other branches
-> may be broken at any time.
+> **Status — actively developed.** Runs on electric, plug-in hybrid, petrol and
+> diesel BMWs and MINIs ([which cars](https://justchr.github.io/BavarianData/docs/supported-cars/)). It is read-only by
+> design — CarData cannot command the car — so treat what it reports as
+> informational rather than as the trigger for a safety-critical automation.
 
 ## 📖 Full documentation → [justchr.github.io/BavarianData](https://justchr.github.io/BavarianData/)
 
@@ -114,7 +112,8 @@ the quick overview.
   BMW Motorrad motorcycles). See [which cars work](https://justchr.github.io/BavarianData/docs/supported-cars/).
 - **CarData API** and **CarData Streaming** subscribed in the BMW portal, and a
   **client ID** generated for this integration.
-- Home Assistant **2026.3** or newer, with [HACS](https://hacs.xyz/).
+- Home Assistant **2026.3** or newer. From 2026.11 it installs from the
+  built-in **Marketplace**; on older versions, from [HACS](https://hacs.xyz/).
 
 ## Quick start
 
@@ -123,9 +122,9 @@ Five steps — the Wiki has the detail and screenshots for each.
 1. **[Set up BMW CarData in the portal](https://github.com/JustChr/BavarianData/wiki/Getting-Started-1-BMW-Portal-Setup)** —
    generate a **client ID** and give it both scopes (`cardata:api:read` and
    `cardata:streaming:read`). Don't touch Data Selection yet.
-2. **[Install via HACS](https://github.com/JustChr/BavarianData/wiki/Getting-Started-2-Install)** —
-   BavarianData is in the **HACS default store**: search for it in HACS,
-   install, and restart Home Assistant.
+2. **[Install from the Marketplace](https://github.com/JustChr/BavarianData/wiki/Getting-Started-2-Install)** —
+   open **Settings → Marketplace**, search for BavarianData, install, and
+   restart Home Assistant (before 2026.11: the same in HACS).
 3. **[Add & authorize](https://github.com/JustChr/BavarianData/wiki/Getting-Started-3-Add-and-Authorize)** —
    **Settings → Devices & Services → Add Integration → BavarianData**, paste the
    client ID, and approve the device on BMW's site. If BMW says *access denied*

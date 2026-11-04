@@ -47,12 +47,12 @@
   "Getting-Started-2-Install": {
     "slug": "install",
     "en": {
-      "title": "Install the BMW & MINI Home Assistant integration (HACS)",
-      "description": "Step 2: install BavarianData from the HACS default store, restart Home Assistant, and check the requirements (Home Assistant 2026.3 or newer)."
+      "title": "Install the BMW & MINI Home Assistant integration (Marketplace)",
+      "description": "Step 2: install BavarianData from the Home Assistant Marketplace (HACS before 2026.11), restart Home Assistant, and check the requirements (2026.3 or newer)."
     },
     "de": {
-      "title": "BMW- & MINI-Integration für Home Assistant installieren (HACS)",
-      "description": "Schritt 2: BavarianData aus dem HACS-Standard-Store installieren, Home Assistant neu starten und die Voraussetzungen prüfen (Home Assistant 2026.3 oder neuer)."
+      "title": "BMW- & MINI-Integration für Home Assistant installieren (Marketplace)",
+      "description": "Schritt 2: BavarianData aus dem Marketplace von Home Assistant installieren (vor 2026.11 aus HACS), Home Assistant neu starten und die Voraussetzungen prüfen (ab 2026.3)."
     }
   },
   "Getting-Started-3-Add-and-Authorize": {

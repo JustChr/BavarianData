@@ -4,7 +4,7 @@ import CardDemo from "./CardDemo.astro";
 import Stream from "./Stream.astro";
 import Flow from "./Flow.astro";
 import LiveCard from "./LiveCard.astro";
-import { url, localized, absolute, RELEASE, HA_MIN, DESCRIPTOR_COUNT, HACS_REDIRECT, REPO, STARS, SITE_URL, type Lang } from "../lib/site";
+import { url, localized, absolute, RELEASE, HA_MIN, DESCRIPTOR_COUNT, INSTALL_REDIRECT, REPO, STARS, SITE_URL, type Lang } from "../lib/site";
 
 interface Props {
   lang: Lang;
@@ -16,12 +16,12 @@ const copy = de
   ? {
       title: "BMW- & MINI-Integration für Home Assistant (CarData) | BavarianData",
       description:
-        "Kostenlose BMW- und MINI-Integration für Home Assistant: Live-Daten über BMW CarData, den Nachfolger von Connected Drive. Ladekosten, Fahrtenbuch, Batteriezustand, Assist. Aus HACS.",
+        "Kostenlose BMW- und MINI-Integration für Home Assistant: Live-Daten über BMW CarData, den Nachfolger von Connected Drive. Ladekosten, Fahrtenbuch, Batteriezustand, Assist. Aus dem Marketplace.",
       h1: "Dein BMW, live in Home Assistant.",
       lead: "BavarianData ist die BMW- und MINI-Integration für Home Assistant. Sie verbindet sich direkt mit BMW CarData, BMWs offiziellem Datendienst. Ladezustand, Türen, Reifen und Position kommen über einen Live-Stream binnen Sekunden an, und daraus entstehen Ladeverlauf, Fahrtenbuch und Batteriezustand.",
-      install: "Aus HACS installieren",
+      install: "Aus dem Marketplace installieren",
       guide: "Einrichtung lesen",
-      facts: ["Im HACS-Standard-Store", "Kostenlos, MIT-Lizenz", "Nur lesend: steuert nie das Auto", "BMW und MINI"],
+      facts: ["Im Home-Assistant-Marketplace", "Kostenlos, MIT-Lizenz", "Nur lesend: steuert nie das Auto", "BMW und MINI"],
       switchTitle: "Die Connected-Drive-Integration zeigt nur noch „nicht verfügbar“?",
       switchBody:
         "BMW hat sie am 29. September 2025 gesperrt. BMW CarData ist der offizielle Nachfolger. So ziehst du Dashboards und Automationen um.",
@@ -80,7 +80,7 @@ const copy = de
       setupTitle: "In vier Schritten eingerichtet",
       steps: [
         ["CarData-Client anlegen", "Im BMW- oder MINI-Portal einen Client erstellen und CarData API und Streaming abonnieren.", "docs/bmw-portal-setup"],
-        ["Aus HACS installieren", `BavarianData im HACS-Standard-Store suchen, installieren, Home Assistant neu starten. Ab Home Assistant ${HA_MIN}.`, "docs/install"],
+        ["Aus dem Marketplace installieren", `BavarianData unter Einstellungen → Marketplace suchen (vor 2026.11 in HACS), installieren, Home Assistant neu starten. Ab Home Assistant ${HA_MIN}.`, "docs/install"],
         ["Hinzufügen und autorisieren", "Integration hinzufügen und dein BMW-Konto einmal im Browser freigeben.", "docs/add-and-authorize"],
         ["Daten wählen, Karte platzieren", "Festlegen, was das Auto streamt, und die Karte auf ein Dashboard legen.", "docs/choose-data"],
       ],
@@ -108,12 +108,12 @@ const copy = de
   : {
       title: "BMW & MINI Home Assistant Integration (CarData) | BavarianData",
       description:
-        "Free BMW and MINI integration for Home Assistant: live car data over BMW CarData, the successor to Connected Drive. Charging cost, trip log, battery health, Assist. From HACS.",
+        "Free BMW and MINI integration for Home Assistant: live car data over BMW CarData, the successor to Connected Drive. Charging cost, trip log, battery health, Assist. From the Marketplace.",
       h1: "Your BMW, live in Home Assistant.",
       lead: "BavarianData is the BMW and MINI integration for Home Assistant. It connects directly to BMW CarData, BMW's official data service. Charge level, doors, tires and position arrive over a live stream within seconds, and a charging history, trip journal and battery-health figure are built from it.",
-      install: "Install from HACS",
+      install: "Install from the Marketplace",
       guide: "Read the setup guide",
-      facts: ["In the HACS default store", "Free, MIT licensed", "Read-only: never commands the car", "BMW and MINI"],
+      facts: ["In the Home Assistant Marketplace", "Free, MIT licensed", "Read-only: never commands the car", "BMW and MINI"],
       switchTitle: "Is the Connected Drive integration stuck on “unavailable”?",
       switchBody:
         "BMW blocked it on 29 September 2025. BMW CarData is the official successor. Here's how to move your dashboards and automations across.",
@@ -172,7 +172,7 @@ const copy = de
       setupTitle: "Set up in four steps",
       steps: [
         ["Create a CarData client", "In the BMW or MINI portal, create a client and subscribe it to CarData API and Streaming.", "docs/bmw-portal-setup"],
-        ["Install from HACS", `Find BavarianData in the HACS default store, install it, restart Home Assistant. Needs Home Assistant ${HA_MIN} or newer.`, "docs/install"],
+        ["Install from the Marketplace", `Find BavarianData under Settings → Marketplace (in HACS before 2026.11), install it, restart Home Assistant. Needs Home Assistant ${HA_MIN} or newer.`, "docs/install"],
         ["Add and authorize", "Add the integration and approve your BMW account once in the browser.", "docs/add-and-authorize"],
         ["Pick data, place the card", "Choose what the car streams and put the card on a dashboard.", "docs/choose-data"],
       ],
@@ -215,7 +215,7 @@ const jsonLd = [
     license: "https://opensource.org/licenses/MIT",
     codeRepository: REPO,
     downloadUrl: `${REPO}/releases`,
-    installUrl: HACS_REDIRECT,
+    installUrl: INSTALL_REDIRECT,
     screenshot: `${SITE_URL}${url("screenshots/wattfried-car.webp")}`,
     inLanguage: ["en", "de", "fr", "it", "es", "nl", "pl", "pt", "cs", "sv"],
     author: { "@type": "Person", name: "JustChr", url: "https://github.com/JustChr" },
@@ -255,8 +255,8 @@ const jsonLd = [
           <h1 class="display">{copy.h1}</h1>
           <p class="hero__lead">{copy.lead}</p>
           <div class="hero__cta">
-            <a class="hacs" href={HACS_REDIRECT} title={copy.install}>
-              <img src={url("badges/hacs-repository.svg")} alt={copy.install} width="363" height="50" />
+            <a class="my-badge" href={INSTALL_REDIRECT} title={copy.install}>
+              <img src={url("badges/marketplace-repository.svg")} alt={copy.install} width="443" height="50" />
             </a>
             <a class="btn btn--quiet" href={L("docs/bmw-portal-setup")}>{copy.guide}</a>
           </div>
@@ -431,22 +431,22 @@ const jsonLd = [
     margin-top: 32px;
   }
   /* The official My Home Assistant badge, unaltered, so it's recognised on sight. */
-  .hacs {
+  .my-badge {
     display: inline-block;
     border-radius: 999px;
     line-height: 0;
     transition: transform 0.15s, box-shadow 0.15s;
   }
-  .hacs img {
+  .my-badge img {
     height: 50px;
     width: auto;
     max-width: 100%;
   }
-  .hacs:hover {
+  .my-badge:hover {
     transform: translateY(-1px);
     box-shadow: 0 6px 18px rgb(24 188 242 / 35%);
   }
-  .hacs:focus-visible {
+  .my-badge:focus-visible {
     outline: 2px solid var(--brand);
     outline-offset: 3px;
   }

@@ -27,17 +27,12 @@ commits and pushes. Re-run it any time these files change.
 > `raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/…`, so those
 > image files must be **committed and pushed to `main`** for the images to load.
 
-## Pending passes
+## Screenshots
 
-- **Screenshots** — done: cluster picker, Configure menu, charging-costs
-  settings, and the charging & battery-health card views (in `screenshots/`).
-  Still marked with `<!-- screenshot: … -->` comments and pending:
-  - `config-flow-user` / `config-flow-authorize` — need a live onboarding (not
-    captured on the production instance to avoid disturbing the single stream).
-  - `card-trips` — the live car has no recorded trips yet (empty state); capture
-    once trips exist.
-  - `Trips` settings screen — captured, but showed a real work-zone name;
-    redact before publishing.
+Every card view and Configure screen has its picture. One placeholder is left,
+`<!-- screenshot: config-flow-authorize -->` on step 3: it needs a live
+onboarding, which can't be shot on the production instance without disturbing
+its one stream.
 
 ## German pages
 

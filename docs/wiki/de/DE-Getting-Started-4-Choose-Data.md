@@ -130,9 +130,9 @@ Ansichten — Ladeverlauf, Batteriezustand, Fahrten, Karte, Reifen und Öffnunge
 
 ---
 
-> **Welches Auto fährst du?** BavarianData wird an genau einem Fahrzeug gebaut
-> und getestet, einem i5 eDrive40. Welche Deskriptoren *dein* Modell streamt,
-> finden wir allein nicht heraus. Wenn du bis hierhin gekommen bist, hilft uns
-> sehr zu wissen, welches Modell du fährst, wie viele Entitäten ungefähr
-> erschienen sind und ob der Ein-Klick-Aktivator in deinem Browser geklappt hat.
+> **Welches Auto fährst du?** Steht es noch nicht in [der Liste der Autos, die
+> Besitzer bestätigt haben](DE-Supported-Cars#cars-owners-have-confirmed), erzähl
+> es uns: dein Modell, wie viele Entitäten ungefähr erschienen sind und ob der
+> Ein-Klick-Aktivator in deinem Browser geklappt hat. So findet der nächste
+> Besitzer deines Autos es dort.
 > [Erzähl es uns in den Discussions →](https://github.com/JustChr/BavarianData/discussions)

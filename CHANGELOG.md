@@ -9,6 +9,21 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Changed
+- **BavarianData is listed under Cars & EVs and EV charging in Home
+  Assistant's new Marketplace.** Home Assistant 2026.11 replaced HACS with the
+  built-in Marketplace (*Settings → Marketplace*); BavarianData now names its
+  categories, so it turns up when you browse them, not only by search. Nothing
+  changes for an existing install: the Marketplace takes it over from HACS by
+  itself, with its update entity and settings.
+- **The manual describes the Marketplace.** *Install* walks through
+  *Settings → Marketplace*, the pre-release switch and adding it from its
+  GitHub link, and keeps the HACS steps for Home Assistant 2026.3 to 2026.10.
+  The manual's menu now groups the features into Charging, Driving, Automate &
+  connect and Your account; Troubleshooting opens with an index of its
+  sections; the Trips and Map card views have their pictures; and notes about
+  problems old versions had are gone.
+
 ## [0.9.26] - 2026-11-04
 
 Promotes 0.9.26-beta.1. Your BMW's live battery can now go to ABRP (A Better Routeplanner), so a route plan starts from the real charge level, with a free ABRP account and no API quota.

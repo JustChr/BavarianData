@@ -118,9 +118,8 @@ charging history, battery health, trips, the map, tires and closures.
 
 ---
 
-> **Which car do you drive?** BavarianData is built and tested against exactly one
-> vehicle — an i5 eDrive40 — so which descriptors *your* model streams is something
-> we genuinely cannot find out on our own. If you made it this far, it would help a
-> lot to hear your model, roughly how many entities showed up, and whether the
-> one-click activator worked in your browser.
+> **Which car do you drive?** If it isn't in [the list of cars owners have
+> confirmed](Supported-Cars#cars-owners-have-confirmed) yet, tell us: your model,
+> roughly how many entities showed up, and whether the one-click activator worked
+> in your browser. That is how the next owner of your car finds it there.
 > [Tell us in Discussions →](https://github.com/JustChr/BavarianData/discussions)

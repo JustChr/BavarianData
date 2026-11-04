@@ -34,7 +34,7 @@ Daten auf zwei Wegen zu dir:
 
 BavarianData ist eine Home-Assistant-Integration, die mit beiden direkt spricht.
 Kein Server dazwischen: Home Assistant hält die Tokens und ist der einzige
-Client. Installiert wird sie aus dem **HACS-Standard-Store**.
+Client. Installiert wird sie aus dem **Marketplace** von Home Assistant (vor 2026.11 aus HACS).
 
 ## Was sich für dich ändert
 

@@ -24,8 +24,7 @@ Also:
   Beide Autos erscheinen.
 - **Zwei Konten** (deins und das des Partners, oder ein BMW- und ein
   MINI-Konto) → die Integration **zweimal** hinzufügen, je Client-ID einmal.
-- **Ein Konto zweimal** wird abgelehnt. Seit **v0.9.11-beta.4** bricht die
-  Einrichtung mit *„Dieses BMW-Konto ist bereits eingerichtet"* ab, wenn ein
+- **Ein Konto zweimal** wird abgelehnt. Die Einrichtung bricht mit *„Dieses BMW-Konto ist bereits eingerichtet"* ab, wenn ein
   anderer Eintrag dasselbe Konto nutzt — auch dann, wenn du dafür im Portal eine
   zweite Client-ID erzeugt hast. Das ist keine selbst erfundene Einschränkung:
   BMW erlaubt **eine Stream-Verbindung pro Konto**, zwei Einträge würden sich
@@ -43,18 +42,16 @@ Kaufst du einen zweiten BMW oder meldest ein vorhandenes Auto erst nach der
 Einrichtung bei CarData an, taucht es einfach auf: Es läuft über denselben
 Stream, seine Entitäten erscheinen also von selbst, sobald das Auto etwas sendet.
 
-Zwei Dinge fehlten dabei früher und sind ab **v0.9.11-beta.4** abgedeckt:
+Zwei Dinge geschehen dabei von selbst:
 
 - **Name und Modell.** Alles, was aus einer FIN einen „i5 eDrive40" macht, stammt
-  aus einem einmaligen REST-Aufruf, der bisher nur bei der Einrichtung lief — ein
-  später hinzugekommenes Auto blieb auf der Geräteseite eine nackte FIN. Er
-  erfolgt jetzt, sobald das Fahrzeug zum ersten Mal im Stream auftaucht (eine
-  Anfrage aus dem Tageskontingent, einmalig).
+  aus einem einmaligen REST-Aufruf. Er erfolgt, sobald das Fahrzeug zum ersten
+  Mal im Stream auftaucht (eine Anfrage aus dem Tageskontingent, einmalig).
 - **Die Schonfrist der Abdeckungsprüfung.** Der
-  [Stream-Selbsttest](DE-Getting-Started-4-Choose-Data#did-it-work) gibt einer
-  frischen Installation eine Woche, bevor er einen Cluster als stumm meldet.
-  Diese Uhr läuft jetzt pro Fahrzeug — ein nach zwei Jahren hinzugefügtes Auto
-  gilt also nicht ab dem ersten Tag als unvollständig.
+  [Stream-Selbsttest](DE-Getting-Started-4-Choose-Data#did-it-work) gibt einem
+  neuen Auto eine Woche, bevor er einen Cluster als stumm meldet. Diese Uhr
+  läuft pro Fahrzeug — ein nach zwei Jahren hinzugefügtes Auto gilt also nicht
+  ab dem ersten Tag als unvollständig.
 
 Die Felder des neuen Fahrzeugs musst du weiterhin **im BMW-Portal** ankreuzen:
 Die Datenauswahl gilt je Fahrzeug und hat keine API. Rufe dafür erneut
@@ -95,8 +92,7 @@ tut dasselbe.)
   Abruf entfällt.
 - **Dasselbe Konto erneut hinzuzufügen behält alles.** **Gerät hinzufügen** mit
   einer bereits eingerichteten Client-ID autorisiert den vorhandenen Eintrag an
-  Ort und Stelle neu, samt Verlauf (seit v0.9.14-beta.4); zuvor löschte es den
-  Eintrag samt aufgezeichneter Fahrten und Ladevorgänge.
+  Ort und Stelle neu, samt Verlauf.
 
 ## Kontingent mit mehreren Fahrzeugen
 

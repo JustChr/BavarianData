@@ -96,4 +96,4 @@ overview → your car → **BMW CarData** tile) for as long as the client exists
   ID was copied completely and that both **CarData API** and **CarData Stream**
   are switched on for the client.
 
-**Next:** [2. Install via HACS →](Getting-Started-2-Install)
+**Next:** [2. Install from the Marketplace →](Getting-Started-2-Install)

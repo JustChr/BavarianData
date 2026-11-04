@@ -441,6 +441,10 @@ type: custom:bavariandata-card
 view: trips
 ```
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-trips.png?v=2026-10-10" alt="Fahrten-Ansicht: Strecke und Durchschnittsverbrauch des Monats, der Privatanteil, häufige Ziele und die letzten Fahrten" width="360" />
+</p>
+
 Sie liest die Dienste `get_trips` und `get_driving_summary` und verbraucht daher
 **kein API-Kontingent**. Fahrten werden aus dem Stream rekonstruiert — keine
 Konfiguration nötig. Endpunkte werden als **Ortsnamen** gespeichert, nie als
@@ -473,6 +477,10 @@ wird sie auf einer kleinen Karte gezeichnet.
 type: custom:bavariandata-card
 view: map
 ```
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-map.png?v=2026-11-04" alt="Fahrtenkarte: Chips für diesen Monat, 3 Monate oder alle, und die Fahrtziele des Monats als gezählte Blasen auf der Karte" width="360" />
+</p>
 
 Die Karte hat erst etwas zu zeigen, wenn du unter **Konfigurieren → Fahrten** **Route
 aufzeichnen** einschaltest — diese optionale Einstellung speichert die GPS-Koordinaten
@@ -707,8 +715,7 @@ hast oder die Karte auf einen Helfer zeigen soll.
 
 ---
 
-> **Sieht das an deinem Auto richtig aus?** Wir sehen die Karte nur an einem
-> i5. Ein Screenshot an einem anderen Modell ist das Nützlichste, was du schicken
-> kannst — besonders, wenn eine Ansicht leer bleibt, ein Wert falsch aussieht oder eine
+> **Sieht das an deinem Auto richtig aus?** Ein Screenshot der Karte an deinem
+> Modell ist das Nützlichste, was du schicken kannst — besonders, wenn eine Ansicht leer bleibt, ein Wert falsch aussieht oder eine
 > erwartete Datengruppe fehlt.
 > [Poste ihn in den Discussions →](https://github.com/JustChr/BavarianData/discussions)

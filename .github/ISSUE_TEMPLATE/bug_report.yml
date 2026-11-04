@@ -65,7 +65,7 @@ body:
     id: integration-version
     attributes:
       label: BavarianData version
-      description: From HACS, or the `version` shown in the diagnostics download.
+      description: From Settings → Marketplace (HACS before 2026.11), or the `version` shown in the diagnostics download.
       placeholder: "0.9.0"
     validations:
       required: true
