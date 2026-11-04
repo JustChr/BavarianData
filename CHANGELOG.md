@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.26-beta.1] - 2026-11-04
+
 ### Added
 - **ABRP (A Better Routeplanner) live data.** *Configure → Share live data →
   ABRP* sends the car's charge level, charging (and whether from a DC charger),
