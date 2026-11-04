@@ -437,6 +437,13 @@ sensors and *Last Vehicle Report*; the budget of eight stays as it is.
 
 ### ABRP live push
 
+**Parked 2026-11-04.** A free ABRP account can no longer receive live data: the
+app asks for Premium before it saves a car or hands out a Generic token, and
+the OAuth login shows our self-service telemetry key as "Unknown Application"
+until Iternio registers it. The key exists (GitHub secret `ABRP_API_KEY`);
+pick this up again only if ABRP opens live data to free accounts, or for
+Premium users on purpose.
+
 - Opt-in, outbound, built like the evcc bridge: **unknown sends nothing**,
   heartbeat while parked, off clears nothing remote (ABRP keeps no retained
   state we own).
