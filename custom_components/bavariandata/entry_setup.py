@@ -24,9 +24,11 @@ from .const import (
     OPTION_HISTORY_RETAIN_MONTHS,
     OPTION_TRIP_DEBUG,
     OPTION_TRIP_GEOCODE,
+    OPTION_TRIP_WEATHER,
 )
 from .container import RETIRED_ENTRY_KEYS
 from .history.geocoding import ReverseGeocoder
+from .route_weather import RouteWeather
 from .history.pricing import PricingConfig, vehicle_pricing
 from .registry_repair import (
     entities_to_reenable,
@@ -103,6 +105,10 @@ def configure(coordinator: Any, options: Mapping[str, Any], session: Any) -> Non
     coordinator.vehicle_pricing = vehicle_pricing(options)
     # Trips: the shared client session drives the (opt-in) reverse geocoder.
     coordinator.geocoder = ReverseGeocoder(session, enabled=bool(options.get(OPTION_TRIP_GEOCODE)))
+    # And the (opt-in) weather along each trip.
+    coordinator.route_weather = RouteWeather(
+        session, enabled=bool(options.get(OPTION_TRIP_WEATHER))
+    )
     # Per car (trip_settings.py): every car without settings of its own uses
     # the account-wide ones.
     coordinator.trip_settings = account_trip_settings(options)

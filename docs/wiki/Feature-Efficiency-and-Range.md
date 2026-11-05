@@ -138,6 +138,24 @@ and each trip's energy. A car is treated as a hybrid once it has streamed both
 high-voltage battery data and fuel data. A hybrid that got a Real Range or Charging Cost
 per 100 km sensor from an earlier version has it removed at the next restart.
 
+## Consumption by outside temperature
+
+<a id="consumption-by-outside-temperature"></a>
+
+With [Weather along the route](Feature-Trips#weather-along-the-route-opt-in) on,
+every trip that has both a consumption figure and its weather lands in a 5 °C band
+of its outside temperature: below 0, 0–5, 5–10 … 25 and above. A band's figure is
+its energy over its distance, so a long motorway run counts for what it drove, and
+a band shows a figure only once 30 km stand behind it.
+
+The **cold penalty** compares the trips below 5 °C with those at 15–25 °C, once
+each side has 100 km: "Below 5 °C it uses 38% more than at 15–25 °C." Until then the
+card says what it is still waiting for.
+
+These figures are **per trip**: the battery drop over the drive, so charging losses
+are not in them, and they don't match the ledger figure above one to one. A plug-in
+hybrid gets none, for the same reason as above.
+
 ## Viewing it
 
 <p align="center">
@@ -148,7 +166,8 @@ Use the [`view: efficiency` card](The-Dashboard-Card#efficiency--range-view-effi
 the real range from here, the measured consumption, the charging loss, the
 capacity, your cost per 100 km with the month's solar share, and a bar chart of
 consumption by month — which is where the seasonal story shows up, since winter
-consumption on an EV is routinely a third higher than summer.
+consumption on an EV is routinely a third higher than summer. With route weather
+on, a second chart shows [consumption by outside temperature](#consumption-by-outside-temperature).
 
 Or call [`bavariandata.get_efficiency`](Services-Reference#get_efficiency)
 for the whole profile including the month trend.

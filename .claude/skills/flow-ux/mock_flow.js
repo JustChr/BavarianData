@@ -11,7 +11,7 @@
 //
 // Run from a directory with playwright-core installed (see the shoot skill):
 //   HA_URL=http://<host> HA_TOKEN=<token> \
-//     node mock_flow.js <trips|charging|bridge|phone|menu|share|abrp> <real|staged> <lang> <width> <outdir>
+//     node mock_flow.js <trips|trips_new|charging|bridge|phone|menu|share|abrp> <real|staged> <lang> <width> <outdir>
 // ``phone`` is staged only: Trips for a car on end-of-trip reports with Record
 // route on, and the follow-up Route from a phone screen its submit leads to.
 // A new per-car screen: add it to SCREENS, starting from the real step the
@@ -47,6 +47,17 @@ const SCREENS = {
     expanded: true,
     // Charged elsewhere: no wallbox meter, losses estimated instead.
     values: { grid_energy_entity: null, charging_loss_percent: 10 },
+  },
+  // Trips as it is, with a field the installed build doesn't have yet put in
+  // after another (real only): a new switch, shot before its release.
+  trips_new: {
+    menu: { en: "Trips", de: "Fahrten" },
+    step: "action_trips",
+    inject: {
+      after: "trip_geocode",
+      field: { name: "trip_weather", required: true, default: false, selector: { boolean: {} } },
+    },
+    translate: "options.step.action_trips",
   },
   // The Configure menu and the submenu, as they are (real only).
   menu: {},
@@ -94,7 +105,7 @@ const SCREENS = {
 const [screenName, mode, lang, width, outdir] = process.argv.slice(2);
 const screen = SCREENS[screenName];
 if (!screen || !["real", "staged"].includes(mode) || (screen.followup && mode !== "staged"))
-  throw new Error("usage: <trips|charging|bridge|phone|menu|share|abrp> <real|staged> <lang> <width> <outdir>");
+  throw new Error("usage: <trips|trips_new|charging|bridge|phone|menu|share|abrp> <real|staged> <lang> <width> <outdir>");
 const NEXT = { en: "Next", de: "Weiter" };
 
 // The working tree's strings for one step, as the frontend keys them.
@@ -351,6 +362,11 @@ async function shot(page, name) {
       const response = await route.fetch();
       const step = await response.json();
       if (step.data_schema) step.data_schema = withoutEntities(step.data_schema);
+      if (screen.inject && step.data_schema) {
+        const at = step.data_schema.findIndex((f) => f.name === screen.inject.after);
+        if (at < 0) throw new Error(`no ${screen.inject.after} on ${screen.step} to put the new field after`);
+        step.data_schema.splice(at + 1, 0, screen.inject.field);
+      }
       return route.fulfill({ json: step });
     });
   }

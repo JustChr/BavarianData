@@ -208,6 +208,21 @@ def test_trips_csv_exports_places_not_coordinates():
     assert not {"lat", "lon", "latitude", "longitude"} & set(header)
 
 
+def test_trips_csv_ends_with_the_weather_along_the_route():
+    trip = _trip()
+    trip.weather = {"source": "route", "temp_c": 3.44, "temp_min_c": -1.0, "temp_max_c": 6.0}
+    not_looked_up = _trip(start=trip.start - timedelta(days=1))
+    header, row, empty = _rows(export.trips_csv([trip, not_looked_up]))
+    assert header[-4:] == [
+        "outside_temp_c",
+        "outside_temp_min_c",
+        "outside_temp_max_c",
+        "weather_source",
+    ]
+    assert row[-4:] == ["3.4", "-1", "6", "route"]
+    assert empty[-4:] == ["", "", "", ""]
+
+
 def test_csv_of_an_empty_month_is_still_a_valid_file():
     rows = _rows(export.sessions_csv([]))
     assert len(rows) == 1 and rows[0][0] == "id"

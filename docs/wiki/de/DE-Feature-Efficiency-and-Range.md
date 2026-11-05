@@ -148,6 +148,24 @@ Hochvoltbatterie als auch Kraftstoffdaten gestreamt hat. Hat ein Hybrid aus eine
 früheren Version einen Sensor Reale Reichweite oder Ladekosten pro 100 km, wird er
 beim nächsten Neustart entfernt.
 
+## Verbrauch nach Außentemperatur
+
+<a id="consumption-by-outside-temperature"></a>
+
+Mit eingeschaltetem [Wetter entlang der Strecke](DE-Feature-Trips#weather-along-the-route-opt-in)
+landet jede Fahrt mit Verbrauchswert und Wetter in einem 5-°C-Band ihrer
+Außentemperatur: unter 0, 0–5, 5–10 … ab 25. Der Wert eines Bands ist seine Energie
+geteilt durch seine Strecke, eine lange Autobahnfahrt zählt also mit dem, was sie
+gefahren ist, und ein Band zeigt einen Wert erst, wenn 30 km dahinterstehen.
+
+Der **Kälteaufschlag** vergleicht die Fahrten unter 5 °C mit denen bei 15–25 °C,
+sobald beide Seiten 100 km haben: „Unter 5 °C verbraucht es 38 % mehr als bei
+15–25 °C.“ Bis dahin sagt die Karte, worauf sie noch wartet.
+
+Diese Werte gelten **je Fahrt**: der Akkurückgang während der Fahrt, also ohne
+Ladeverluste, und sie passen nicht eins zu eins zum Wert aus dem Ladeverlauf oben.
+Ein Plug-in-Hybrid bekommt keine, aus demselben Grund wie oben.
+
 ## Ansehen
 
 <p align="center">
@@ -158,7 +176,9 @@ Nutze die [Kartenansicht `view: efficiency`](DE-The-Dashboard-Card#efficiency--r
 die reale Reichweite von hier, der gemessene Verbrauch, der Ladeverlust, die
 Kapazität, deine Kosten pro 100 km mit dem Solaranteil des Monats und ein
 Balkendiagramm des Verbrauchs nach Monat — dort zeigt sich die Jahreszeit, denn
-der Winterverbrauch eines E-Autos liegt regelmäßig ein Drittel über dem Sommer.
+der Winterverbrauch eines E-Autos liegt regelmäßig ein Drittel über dem Sommer. Mit
+Wetter entlang der Strecke zeigt ein zweites Diagramm den
+[Verbrauch nach Außentemperatur](#consumption-by-outside-temperature).
 
 Oder rufe [`bavariandata.get_efficiency`](DE-Services-Reference#get_efficiency)
 auf, um das ganze Profil einschließlich des Monatsverlaufs zu bekommen.

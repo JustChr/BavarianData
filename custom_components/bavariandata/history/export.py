@@ -700,9 +700,16 @@ def trips_csv(trips: Iterable[Trip], *, localize: Localizer = _identity) -> str:
         "classification",
         "classification_source",
         "location_assumed",
+        # Appended, not slotted in, so a sheet that reads columns by position
+        # keeps working. Empty unless route weather looked the trip up.
+        "outside_temp_c",
+        "outside_temp_min_c",
+        "outside_temp_max_c",
+        "weather_source",
     ]
     rows: list[list[Any]] = [header]
     for trip in trips:
+        weather = trip.weather or {}
         rows.append(
             [
                 trip.id,
@@ -720,6 +727,10 @@ def trips_csv(trips: Iterable[Trip], *, localize: Localizer = _identity) -> str:
                 trip.classification or "",
                 trip.classification_source or "",
                 "yes" if trip.location_assumed else "no",
+                _num(weather.get("temp_c"), 1),
+                _num(weather.get("temp_min_c"), 1),
+                _num(weather.get("temp_max_c"), 1),
+                weather.get("source") or "",
             ]
         )
     return _write(rows)

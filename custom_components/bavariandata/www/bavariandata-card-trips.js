@@ -414,6 +414,20 @@ export default (Base, { TRIP_CLASS_COLORS, _lang }) => class TripsPart extends B
         `${this._dec(this._perDist(recup, unit), 1)} ${this._kwhPer(unit)}`,
       ]);
     }
+    // The weather along the drive (opt-in route weather): its time-weighted
+    // temperature, and the range when it varied on the way.
+    const weather = trip.weather;
+    if (weather && weather.temp_c != null) {
+      const tu = this._tempUnit(this._resolveDeviceId());
+      const spread =
+        weather.temp_min_c != null && weather.temp_max_c != null && weather.temp_max_c - weather.temp_min_c >= 1
+          ? ` (${this._dec(tu === "f" ? weather.temp_min_c * 1.8 + 32 : weather.temp_min_c, 0)}–${this._temp(
+              weather.temp_max_c,
+              tu
+            )})`
+          : "";
+      facts.push([this._t("tr_outside"), `${this._temp(weather.temp_c, tu)}${spread}`]);
+    }
     // Both ends or nothing. A car that never streams its SoC while driving
     // (issue #25's X3) records no end, and "38→?%" on every trip says nothing.
     const soc = trip.soc_start != null && trip.soc_end != null ? this._socArc(trip) : "";

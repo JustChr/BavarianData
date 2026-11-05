@@ -467,6 +467,7 @@ TRIPS = {
             "classification": "commute",
             "classification_source": "auto",
             "stats": {"recuperation_kwh_per_100km": 2.4},
+            "weather": {"source": "route", "temp_c": 3.4, "temp_min_c": 1.2, "temp_max_c": 5.0},
         }
     ],
     "open": None,
@@ -497,6 +498,27 @@ EFFICIENCY = {
 
 UNITS = {"km": None, "mi": {"distance": "mi", "fuel": "auto"}}
 
+# Route weather on: consumption per outside-temperature band and the cold penalty.
+BY_TEMPERATURE = {
+    "status": "ok",
+    "bands": [
+        {"from_c": None, "to_c": 0, "trips": 2, "km": 18.0, "kwh_per_100km": None},
+        {"from_c": 0, "to_c": 5, "trips": 9, "km": 240.0, "kwh_per_100km": 23.1},
+        {"from_c": 5, "to_c": 10, "trips": 6, "km": 130.0, "kwh_per_100km": 20.4},
+        {"from_c": 10, "to_c": 15, "trips": 0, "km": 0.0, "kwh_per_100km": None},
+        {"from_c": 15, "to_c": 20, "trips": 12, "km": 410.0, "kwh_per_100km": 16.2},
+        {"from_c": 20, "to_c": 25, "trips": 4, "km": 95.0, "kwh_per_100km": 15.8},
+        {"from_c": 25, "to_c": None, "trips": 0, "km": 0.0, "kwh_per_100km": None},
+    ],
+    "cold_penalty_percent": 43,
+    "cold_kwh_per_100km": 23.0,
+    "mild_kwh_per_100km": 16.1,
+    "trips": 33,
+}
+
+# Units for the same view in °C and in °F.
+TEMP_UNITS = {"c": None, "f": {"distance": "mi", "fuel": "auto", "temperature": "f"}}
+
 
 @pytest.mark.parametrize("unit", sorted(UNITS))
 def test_the_trips_view_with_figures(unit: str, snapshot) -> None:
@@ -511,6 +533,22 @@ def test_the_trips_view_with_figures(unit: str, snapshot) -> None:
     assert html == snapshot
     assert ("kWh/100 mi" in html) == (unit == "mi")
     assert ("kWh/100 km" in html) == (unit == "km")
+
+
+@pytest.mark.parametrize("unit", sorted(TEMP_UNITS))
+def test_the_efficiency_view_by_outside_temperature(unit: str, snapshot) -> None:
+    extra = {"display_units": TEMP_UNITS[unit]} if TEMP_UNITS[unit] else {}
+    efficiency = {**EFFICIENCY, "by_temperature": BY_TEMPERATURE}
+    html = _render(I5, SCREENS["efficiency"], efficiency=efficiency, **extra)
+    assert html == snapshot
+    assert "43% more" in html
+    assert ("°F" in html) == (unit == "f")
+
+
+def test_the_efficiency_view_waits_for_cold_and_mild_trips() -> None:
+    waiting = {**BY_TEMPERATURE, "cold_penalty_percent": None, "mild_kwh_per_100km": None}
+    html = _render(I5, SCREENS["efficiency"], efficiency={**EFFICIENCY, "by_temperature": waiting})
+    assert "needs 100 km of trips below 5 °C" in html
 
 
 @pytest.mark.parametrize("unit", sorted(UNITS))

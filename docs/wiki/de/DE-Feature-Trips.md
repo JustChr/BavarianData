@@ -252,6 +252,40 @@ Sind Routen aufgezeichnet, zeichnet die Ansicht **Fahrtenkarte** der Dashboard-K
 (`view: map`) sie auf einer Karte, eingefärbt nach Zuordnung und filterbar nach
 Zeitraum ([siehe Karte](DE-The-Dashboard-Card#trip-map-view-map)).
 
+## Wetter entlang der Strecke (optional)
+
+<a id="weather-along-the-route-opt-in"></a>
+
+CarData liefert keine Außentemperatur. Wie viel mehr das Auto in der Kälte braucht,
+lässt sich also nur am Wetter von außen messen. Schalte **Wetter entlang der Strecke**
+unter **Konfigurieren → Fahrten** ein (`trip_weather`, ein Schalter für alle Autos),
+und jede Fahrt bekommt das Wetter, durch das das Auto tatsächlich gefahren ist, von
+[Open-Meteo](https://open-meteo.com) (kostenlos, ohne Schlüssel, ohne BMW-Kontingent).
+
+- **Während der Fahrt** merkt sich die Integration alle 5 Minuten oder 5 km einen
+  Wegpunkt, auf etwa 1 km gerundet, **nur im Speicher**. Route aufzeichnen muss dafür
+  nicht an sein.
+- **Nach der Fahrt** schickt eine Anfrage diese Wegpunkte an Open-Meteo. Die Antwort
+  ist das Wetter im 15-Minuten-Takt an jedem Punkt, auf die Geländehöhe dort
+  umgerechnet. Ein Pass ist also kälter als das Tal, in dem die Fahrt begann.
+- **Was an der Fahrt gespeichert wird:** je Wegpunkt die Zeit seit Fahrtbeginn, die
+  Temperatur, Regen, Windstärke und -richtung, die Geländehöhe und die Fahrtrichtung,
+  dazu eine zeitgewichtete Temperatur für die ganze Fahrt mit tiefstem und höchstem
+  Wert. **Keine Koordinaten.** Die Wegpunkte werden nach der Anfrage verworfen.
+- **Fahrten von vorher** werden nach und nach nachgetragen: entlang ihrer
+  aufgezeichneten Route, wenn es eine gibt, sonst an ihren beiden Enden, wenn das
+  Zonen sind, sonst an deinem Zuhause. Jeder Datensatz sagt, woher (`source`: `route`,
+  `track`, `ends` oder `home`).
+- Eine fehlgeschlagene Abfrage wird 15 Minuten später noch einmal versucht.
+
+Was dein Zuhause verlässt, ist die Strecke jeder Fahrt auf etwa 1 km genau, einmal,
+an Open-Meteo. Deshalb ist der Schalter standardmäßig aus.
+
+Die Details einer Fahrt auf der Karte zeigen die Temperatur (mit Spanne, wenn sie
+unterwegs schwankte), `get_trips` liefert den ganzen Datensatz als `weather`, und der
+[CSV-Export](DE-Feature-Export#csv) hat ihn in vier Spalten. Was die Werte zusammen
+ergeben, steht unter [Effizienz & Reichweite](DE-Feature-Efficiency-and-Range#consumption-by-outside-temperature).
+
 ## Zuordnung
 
 Fahrten werden automatisch als **geschäftlich**, **privat** oder **Pendeln**

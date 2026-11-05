@@ -230,6 +230,39 @@ Once routes are recorded, the dashboard card's **Trip map** view (`view: map`)
 draws them on a map, colored by classification and filterable by time window
 ([see the card](The-Dashboard-Card#trip-map-view-map)).
 
+## Weather along the route (opt-in)
+
+<a id="weather-along-the-route-opt-in"></a>
+
+CarData has no outside temperature, so how much more the car uses in the cold can
+only be judged against the weather from outside. Turn on **Weather along the route**
+under **Configure → Trips** (`trip_weather`, one switch for every car) and each
+trip gets the weather the car actually drove through, from
+[Open-Meteo](https://open-meteo.com) (free, no key, no BMW quota).
+
+- **During the drive**, the integration keeps a waypoint every 5 minutes or 5 km,
+  rounded to about 1 km, **in memory only**. Route recording doesn't have to be on.
+- **After the trip**, one request sends those waypoints to Open-Meteo, which
+  answers with the 15-minute weather at each one, corrected to the ground height
+  there. A mountain pass reads colder than the valley it started in.
+- **What is stored on the trip:** per waypoint, the time into the trip, the
+  temperature, rain, wind speed and direction, the ground height and the car's
+  heading, plus a time-weighted temperature for the whole drive with its lowest
+  and highest value. **No coordinates.** The waypoints are dropped once asked.
+- **Trips stored before** you turned it on are filled in too, a few at a time:
+  along their recorded route if they have one, else at their two ends where those
+  are zones, else at your home location. Each record says which (`source`:
+  `route`, `track`, `ends` or `home`).
+- A failed lookup is tried once more 15 minutes later.
+
+What leaves your house is each trip's route at about 1 km precision, once, to
+Open-Meteo. That is why it is off by default.
+
+The trip's detail on the card shows the temperature (with its range when it
+varied on the way), `get_trips` returns the whole record as `weather`, and the
+[CSV export](Feature-Export#csv) carries it in four columns. What the figures add
+up to is in [Efficiency & range](Feature-Efficiency-and-Range#consumption-by-outside-temperature).
+
 ## Classification
 
 Drives auto-classify as **business**, **private** or **commute**:

@@ -53,6 +53,7 @@ from .const import (
     OPTION_TRIP_DEFAULT_CLASS,
     OPTION_TRIP_DETECTION,
     OPTION_TRIP_GEOCODE,
+    OPTION_TRIP_WEATHER,
     OPTION_TRIP_PHONE_IN_CAR,
     OPTION_TRIP_PHONE_IN_CAR_2,
     OPTION_TRIP_PHONE_TRACKER,
@@ -765,6 +766,10 @@ class PerCarScreens(_FlowBase):
                 default=options.get(OPTION_TRIP_GEOCODE, False),
             ): selector.BooleanSelector(),
             vol.Required(
+                OPTION_TRIP_WEATHER,
+                default=options.get(OPTION_TRIP_WEATHER, False),
+            ): selector.BooleanSelector(),
+            vol.Required(
                 OPTION_TRIP_DEBUG,
                 default=options.get(OPTION_TRIP_DEBUG, False),
             ): selector.BooleanSelector(),
@@ -794,7 +799,7 @@ class PerCarScreens(_FlowBase):
         submitted = dict(user_input)
         shared = submitted.pop(SHARED_SECTION, None) or {
             key: submitted[key]
-            for key in (OPTION_TRIP_GEOCODE, OPTION_TRIP_DEBUG)
+            for key in (OPTION_TRIP_GEOCODE, OPTION_TRIP_WEATHER, OPTION_TRIP_DEBUG)
             if key in submitted
         }
         # Not on this form: kept as they are unless the phone screen changes them.
@@ -861,6 +866,7 @@ class PerCarScreens(_FlowBase):
         options = dict(self._config_entry.options)
         options = store_values(options, submitted, TRIP_OPTIONS, vin=vin, per_vehicle=per_vehicle)
         options[OPTION_TRIP_GEOCODE] = bool(shared.get(OPTION_TRIP_GEOCODE))
+        options[OPTION_TRIP_WEATHER] = bool(shared.get(OPTION_TRIP_WEATHER))
         options[OPTION_TRIP_DEBUG] = bool(shared.get(OPTION_TRIP_DEBUG))
         # Apply immediately rather than reloading (one concurrent stream per
         # account means a reload risks racing the reconnect).
@@ -880,6 +886,14 @@ class PerCarScreens(_FlowBase):
             coordinator.watch_phone_routes()
             if coordinator.geocoder is not None:
                 coordinator.geocoder.enabled = options[OPTION_TRIP_GEOCODE]
+            # Route weather: waypoints from the next trip on, and the stored
+            # trips filled in soon after it is switched on.
+            if coordinator.route_weather is not None:
+                coordinator.route_weather.enabled = options[OPTION_TRIP_WEATHER]
+                if options[OPTION_TRIP_WEATHER]:
+                    coordinator.weather.schedule_backfill()
+                else:
+                    coordinator.weather.cancel_backfill()
             # Trip-capture diagnostics apply immediately (next message onward).
             coordinator.trip_debug = options[OPTION_TRIP_DEBUG]
         return self.async_create_entry(title="", data=options)

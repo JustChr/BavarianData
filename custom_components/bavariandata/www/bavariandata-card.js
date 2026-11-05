@@ -1092,6 +1092,22 @@ class BavarianDataCard extends CardParts {
     return this._lengthUnit(entities || this._deviceEntities(deviceId));
   }
 
+  /** "c" or "f" for an outside temperature: the Units setting when it names
+   * one, otherwise Home Assistant's own unit system. */
+  _tempUnit(deviceId) {
+    const choice = this._unitChoices(deviceId).temperature;
+    if (choice === "c" || choice === "f") return choice;
+    const system = this._hass && this._hass.config && this._hass.config.unit_system;
+    return system && system.temperature === "°F" ? "f" : "c";
+  }
+
+  /** A temperature recorded in °C, shown in `unit` ("c" or "f"). */
+  _temp(c, unit, digits = 0) {
+    const n = Number(c);
+    if (c == null || !Number.isFinite(n)) return "—";
+    return unit === "f" ? `${this._dec(n * 1.8 + 32, digits)} °F` : `${this._dec(n, digits)} °C`;
+  }
+
   /** "l", "l_mpg_uk" or "gal_us" for a car (the integration's `car_fuel_unit`). */
   _fuelUnit(deviceId, entities) {
     const system = this._hass && this._hass.config && this._hass.config.unit_system;

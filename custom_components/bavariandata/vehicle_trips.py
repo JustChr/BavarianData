@@ -70,6 +70,7 @@ if TYPE_CHECKING:
 
     from .history.geocoding import ReverseGeocoder
     from .history.store import HistoryStore
+    from .trip_weather import TripWeather
     from .vehicle_events import VehicleEvents
     from .vehicle_reports import VehicleReports
 
@@ -87,6 +88,7 @@ class TripHost(Protocol):
     trip_log: TripLog
     events: VehicleEvents
     reports: VehicleReports
+    weather: TripWeather
 
     @property
     def signal_trips(self) -> str: ...
@@ -445,6 +447,7 @@ class VehicleTrips:
                     # Record the route point too, stamped with this fix's time
                     # (opt-in; a no-op otherwise).
                     builder.add_track_point(latitude, longitude, now)
+                    self._host.weather.note_fix(vin, latitude, longitude, now)
                     self._host.events.check_zone_left(vin, latitude, longitude)
                 # The fixes are back and the car has moved on: the drive never
                 # ended, so drop any hold and keep going as one trip.
@@ -702,8 +705,10 @@ class VehicleTrips:
         # _trip_start_seed), stamped t=0 -- the seed is that moment's position, so
         # it carries the start's own time, not detection time. A no-op when route
         # recording is off or no position is available.
+        self._host.weather.trip_opened(vin)
         if seed is not None:
             builder.add_track_point(seed[0], seed[1], started_at)
+            self._host.weather.note_fix(vin, seed[0], seed[1], started_at)
         # Where "left a zone" is measured from: the parked spot, not the first
         # fix that registered as movement (already on its way out).
         self._host._car(vin).trip.zone_left_fired = False
@@ -780,6 +785,7 @@ class VehicleTrips:
                 self._host.odometer_km(vin),
                 self._host._current_soc(vin),
             )
+        waypoints = self._host.weather.take_waypoints(vin)
         cap_stats = self._host._peek(vin).trip.take("capture")
         start_zone = self._host._peek(vin).trip.take("start_zone")
         left_fired = self._host._peek(vin).trip.zone_left_fired
@@ -857,6 +863,16 @@ class VehicleTrips:
                 substrate=True,
             )
         self.store_trip(vin, trip, start_zone=start_zone, left_fired=left_fired, announce=announce)
+        end_lat = self._host._coordinate(vin, "latitude")
+        end_lon = self._host._coordinate(vin, "longitude")
+        # Not on the way out (the stop flush): the backfill fills that trip in
+        # after the restart, from its ends.
+        self._host.weather.trip_stored(
+            vin,
+            trip,
+            waypoints if announce else None,
+            None if end_lat is None or end_lon is None else (end_lat, end_lon),
+        )
         self._host._peek(vin).trip.take("late_reading_at")
         if dropped or not announce:
             self._host._peek(vin).trip.take("closed")

@@ -130,6 +130,12 @@ so it costs no BMW API quota.
   rather than shown as zero.
 - **`cost_per_100km` / `currency` / `energy_mix`** — this month's running cost
   and where its energy came from.
+- **`by_temperature`** — consumption per outside-temperature band, from trips with
+  [route weather](Feature-Trips#weather-along-the-route-opt-in): `bands` (each
+  `from_c`, `to_c`, `trips`, `km`, `kwh_per_100km`, the last `null` below 30 km),
+  `cold_kwh_per_100km` (below 5 °C), `mild_kwh_per_100km` (15–25 °C),
+  `cold_penalty_percent` and `trips`. Its `status` is `ok`, `no_weather` or
+  `plug_in_hybrid`.
 
 - **`bmw_lifetime`** — BMW's own lifetime figures from its OBFCM counters, or
   `null` when the car sends none: `fuel_l_per_100km` and `distance_km`, and on a

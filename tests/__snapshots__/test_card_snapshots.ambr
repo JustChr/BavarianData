@@ -1338,6 +1338,190 @@
         </ha-card>
   '''
 # ---
+# name: test_the_efficiency_view_by_outside_temperature[c]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:map-marker-distance">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Efficiency &amp; range</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          
+        <div class="ef">
+          <div class="ef__hero">
+            <div class="ef__hero-text">
+  <span class="ef__hero-val">311 <i>km</i>
+  </span>
+             <span class="ef__hero-lbl">Real range now · at 75% charge</span>
+  </div>
+            <span class="ef__vs ef__vs--over">4% further than the car predicts (395 km)</span>
+          </div>
+          <div class="ef__facts">
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Measured consumption</span>
+               <span class="ef__fact-val">18.2 kWh/100 km</span>
+               <span class="ef__fact-note">at the plug · last 90 days</span>
+             </div>
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Charging loss</span>
+               <span class="ef__fact-val">9 %</span>
+               <span class="ef__fact-note">20.1 kWh/100 km at the plug</span>
+             </div>
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Usable capacity</span>
+               <span class="ef__fact-val">75 kWh</span>
+               <span class="ef__fact-note">measured</span>
+             </div>
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Cost per 100 km</span>
+               <span class="ef__fact-val">4.1 EUR</span>
+               
+             </div>
+  </div>
+          <div class="ef__trend">
+  <span class="ef__trend-title">Consumption by month</span>
+        <svg class="ef__chart" viewBox="0 0 280 88" role="img">
+          <rect class="ef__bar" x="36.7" y="20.7"
+                    width="28" height="53.3" rx="2">
+  </rect>
+                  <text class="ef__bar-lbl" x="50.7" y="85" text-anchor="middle">07</text>
+  <rect class="ef__bar" x="126" y="18.8"
+                    width="28" height="55.2" rx="2">
+  </rect>
+                  <text class="ef__bar-lbl" x="140" y="85" text-anchor="middle">08</text>
+  <rect class="ef__bar" x="215.3" y="14.9"
+                    width="28" height="59.1" rx="2">
+  </rect>
+                  <text class="ef__bar-lbl" x="229.3" y="85" text-anchor="middle">09</text>
+          <text x="6" y="9" class="chg__chart-max">21 kWh/100 km</text>
+        </svg>
+      </div>
+          <div class="ef__trend">
+  <span class="ef__trend-title">Consumption by outside temperature (°C)</span>
+        <svg class="ef__chart" viewBox="0 0 280 88" role="img">
+          <rect class="ef__bar ef__bar--thin" x="15.4" y="72" width="25.9" height="2" rx="2">
+  </rect>
+                  <text class="ef__bar-lbl" x="28.3" y="85" text-anchor="middle">&lt; 0</text>
+  <rect class="ef__bar" x="60" y="14.9" width="25.9" height="59.1" rx="2">
+  </rect>
+                  <text class="ef__bar-lbl" x="73" y="85" text-anchor="middle">0–5</text>
+  <rect class="ef__bar" x="104.7" y="21.8" width="25.9" height="52.2" rx="2">
+  </rect>
+                  <text class="ef__bar-lbl" x="117.7" y="85" text-anchor="middle">5–10</text>
+  <rect class="ef__bar ef__bar--thin" x="149.4" y="72" width="25.9" height="2" rx="2">
+  </rect>
+                  <text class="ef__bar-lbl" x="162.3" y="85" text-anchor="middle">10–15</text>
+  <rect class="ef__bar" x="194" y="32.5" width="25.9" height="41.5" rx="2">
+  </rect>
+                  <text class="ef__bar-lbl" x="207" y="85" text-anchor="middle">15–20</text>
+  <rect class="ef__bar" x="238.7" y="33.6" width="25.9" height="40.4" rx="2">
+  </rect>
+                  <text class="ef__bar-lbl" x="251.7" y="85" text-anchor="middle">20–25</text>
+          <text x="6" y="9" class="chg__chart-max">27 kWh/100 km</text>
+        </svg>
+  <span class="ef__fact-note">Below 5 °C it uses 43% more than at 15–25 °C, measured on your trips.</span>
+  </div>
+          <span class="ef__note">Measured from the charging ledger: the distance between two charges and the energy that went in, not the car's own estimate.</span>
+        </div>
+      
+        </ha-card>
+  '''
+# ---
+# name: test_the_efficiency_view_by_outside_temperature[f]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:map-marker-distance">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Efficiency &amp; range</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          
+        <div class="ef">
+          <div class="ef__hero">
+            <div class="ef__hero-text">
+  <span class="ef__hero-val">193 <i>mi</i>
+  </span>
+             <span class="ef__hero-lbl">Real range now · at 75% charge</span>
+  </div>
+            <span class="ef__vs ef__vs--over">4% further than the car predicts (245 mi)</span>
+          </div>
+          <div class="ef__facts">
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Measured consumption</span>
+               <span class="ef__fact-val">29.3 kWh/100 mi</span>
+               <span class="ef__fact-note">at the plug · last 90 days</span>
+             </div>
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Charging loss</span>
+               <span class="ef__fact-val">9 %</span>
+               <span class="ef__fact-note">32.3 kWh/100 mi at the plug</span>
+             </div>
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Usable capacity</span>
+               <span class="ef__fact-val">75 kWh</span>
+               <span class="ef__fact-note">measured</span>
+             </div>
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Cost per 100 mi</span>
+               <span class="ef__fact-val">6.6 EUR</span>
+               
+             </div>
+  </div>
+          <div class="ef__trend">
+  <span class="ef__trend-title">Consumption by month</span>
+        <svg class="ef__chart" viewBox="0 0 280 88" role="img">
+          <rect class="ef__bar" x="36.7" y="20.7"
+                    width="28" height="53.3" rx="2">
+  </rect>
+                  <text class="ef__bar-lbl" x="50.7" y="85" text-anchor="middle">07</text>
+  <rect class="ef__bar" x="126" y="18.8"
+                    width="28" height="55.2" rx="2">
+  </rect>
+                  <text class="ef__bar-lbl" x="140" y="85" text-anchor="middle">08</text>
+  <rect class="ef__bar" x="215.3" y="14.9"
+                    width="28" height="59.1" rx="2">
+  </rect>
+                  <text class="ef__bar-lbl" x="229.3" y="85" text-anchor="middle">09</text>
+          <text x="6" y="9" class="chg__chart-max">34 kWh/100 mi</text>
+        </svg>
+      </div>
+          <div class="ef__trend">
+  <span class="ef__trend-title">Consumption by outside temperature (°F)</span>
+        <svg class="ef__chart" viewBox="0 0 280 88" role="img">
+          <rect class="ef__bar ef__bar--thin" x="15.4" y="72" width="25.9" height="2" rx="2">
+  </rect>
+                  <text class="ef__bar-lbl" x="28.3" y="85" text-anchor="middle">&lt; 32</text>
+  <rect class="ef__bar" x="60" y="14.9" width="25.9" height="59.1" rx="2">
+  </rect>
+                  <text class="ef__bar-lbl" x="73" y="85" text-anchor="middle">32–41</text>
+  <rect class="ef__bar" x="104.7" y="21.8" width="25.9" height="52.2" rx="2">
+  </rect>
+                  <text class="ef__bar-lbl" x="117.7" y="85" text-anchor="middle">41–50</text>
+  <rect class="ef__bar ef__bar--thin" x="149.4" y="72" width="25.9" height="2" rx="2">
+  </rect>
+                  <text class="ef__bar-lbl" x="162.3" y="85" text-anchor="middle">50–59</text>
+  <rect class="ef__bar" x="194" y="32.5" width="25.9" height="41.5" rx="2">
+  </rect>
+                  <text class="ef__bar-lbl" x="207" y="85" text-anchor="middle">59–68</text>
+  <rect class="ef__bar" x="238.7" y="33.6" width="25.9" height="40.4" rx="2">
+  </rect>
+                  <text class="ef__bar-lbl" x="251.7" y="85" text-anchor="middle">68–77</text>
+          <text x="6" y="9" class="chg__chart-max">43 kWh/100 mi</text>
+        </svg>
+  <span class="ef__fact-note">Below 41 °F it uses 43% more than at 59–77 °F, measured on your trips.</span>
+  </div>
+          <span class="ef__note">Measured from the charging ledger: the distance between two charges and the energy that went in, not the car's own estimate.</span>
+        </div>
+      
+        </ha-card>
+  '''
+# ---
 # name: test_the_efficiency_view_with_figures[km]
   '''
   <ha-card>
@@ -1399,6 +1583,7 @@
           <text x="6" y="9" class="chg__chart-max">21 kWh/100 km</text>
         </svg>
       </div>
+          
           <span class="ef__note">Measured from the charging ledger: the distance between two charges and the energy that went in, not the car's own estimate.</span>
         </div>
       
@@ -1466,6 +1651,7 @@
           <text x="6" y="9" class="chg__chart-max">34 kWh/100 mi</text>
         </svg>
       </div>
+          
           <span class="ef__note">Measured from the charging ledger: the distance between two charges and the energy that went in, not the car's own estimate.</span>
         </div>
       
@@ -2439,6 +2625,10 @@
   <span class="chg__fact-lbl">Recuperated</span>
   <span class="chg__fact-val">2.4 kWh/100 km</span>
   </div>
+  <div class="chg__fact">
+  <span class="chg__fact-lbl">Outside</span>
+  <span class="chg__fact-val">3 °C (1–5 °C)</span>
+  </div>
   </div>
           <div class="tr__classify">
             <span class="tr__classify-lbl">Classify</span>
@@ -2569,6 +2759,10 @@
   <div class="chg__fact">
   <span class="chg__fact-lbl">Recuperated</span>
   <span class="chg__fact-val">3.9 kWh/100 mi</span>
+  </div>
+  <div class="chg__fact">
+  <span class="chg__fact-lbl">Outside</span>
+  <span class="chg__fact-val">3 °C (1–5 °C)</span>
   </div>
   </div>
           <div class="tr__classify">

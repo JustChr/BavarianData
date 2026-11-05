@@ -389,7 +389,11 @@ MAX_TOTAL_KB = 4608
 
 def test_shipped_payload_stays_small() -> None:
     def _kb(paths) -> int:
-        return sum(p.stat().st_size for p in paths if p.is_file()) // 1024
+        # What a user downloads is git's LF copy; a Windows checkout's CRLF
+        # would read some 80 KB heavier and fail here alone.
+        return (
+            sum(len(p.read_bytes().replace(b"\r\n", b"\n")) for p in paths if p.is_file()) // 1024
+        )
 
     shipped = [p for p in _PKG.rglob("*") if "__pycache__" not in p.parts]
     www_kb = _kb(p for p in shipped if "www" in p.parts)

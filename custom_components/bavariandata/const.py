@@ -80,6 +80,8 @@ DEFAULT_HISTORY_RETAIN_MONTHS = 24
 # geocode toggle is off by default because it sends coordinates to OpenStreetMap.
 OPTION_TRIP_WORK_ZONE = "trip_work_zone"
 OPTION_TRIP_GEOCODE = "trip_geocode"
+# Look up the weather along each trip from Open-Meteo (``route_weather``); off by default.
+OPTION_TRIP_WEATHER = "trip_weather"
 # What a trip that isn't a recognised home <-> work commute is classified as.
 # Every automatic classification is a *default* the user can correct from the
 # card, so labelling beats leaving drives blank -- but "unclassified" stays

@@ -20,6 +20,7 @@ from .const import (
 )
 from .debug import debug_enabled, mask_vin
 from .history.efficiency import TREND_MONTHS, efficiency_profile
+from .history.weather_consumption import consumption_by_temperature
 from .history.fuel import litres_current
 from .history.health import usable_capacity
 from .history.obfcm import lifetime as obfcm_lifetime
@@ -60,6 +61,7 @@ from .trip_capture import TRIP_CAPTURE_FILE, TripLog
 from .vehicle_charging import VehicleCharging
 from .vehicle_events import VehicleEvents
 from .vehicle_reports import VehicleReports
+from .trip_weather import TripWeather
 from .vehicle_trips import VehicleTrips
 from .stream_health import (
     NO_DATA_REPAIR_AFTER_S,
@@ -77,6 +79,7 @@ from .vehicle_support import is_motorcycle, motorcycle_issue_id
 
 if TYPE_CHECKING:
     from .history.geocoding import ReverseGeocoder
+    from .route_weather import RouteWeather
     from .history.store import HistoryStore
 
 _LOGGER = logging.getLogger(__name__)
@@ -231,6 +234,9 @@ class CardataCoordinator:
     # Trip recording (roadmap Phase 3). ``geocoder`` is injected/updated from
     # options; optional, degrades quietly.
     geocoder: Optional[ReverseGeocoder] = None
+    # The weather along each trip (``route_weather``, opt-in); injected from
+    # options like the geocoder, ``None`` in tests that don't ask for it.
+    route_weather: Optional[RouteWeather] = None
     # How each car's trips are detected, recorded and classified (work zone,
     # default type, commute stop tolerance, detection mode, route recording).
     # ``trip_settings`` is every car without settings of its own; a car in
@@ -254,6 +260,8 @@ class CardataCoordinator:
     reports: VehicleReports = field(init=False, repr=False)
     # Trip detection and recording (``vehicle_trips``).
     trips: VehicleTrips = field(init=False, repr=False)
+    # The weather looked up along each trip (``trip_weather``).
+    weather: TripWeather = field(init=False, repr=False)
     # The SoC estimate, energy counters and charging sessions (``vehicle_charging``).
     charging: VehicleCharging = field(init=False, repr=False)
 
@@ -261,6 +269,7 @@ class CardataCoordinator:
         self.events = VehicleEvents(self)
         self.reports = VehicleReports(self)
         self.trips = VehicleTrips(self)
+        self.weather = TripWeather(self)
         self.charging = VehicleCharging(self)
 
     def async_flush_charging(self) -> None:
@@ -286,6 +295,7 @@ class CardataCoordinator:
     async def async_flush_trips(self) -> None:
         """Close and persist any in-progress trips (unload, reload, shutdown)."""
 
+        self.weather.cancel_backfill()
         await self.trips.async_flush_trips()
 
     def mark_trip_start(self, vin: str, at: datetime) -> None:
@@ -1147,7 +1157,7 @@ class CardataCoordinator:
             nominal_kwh=self.battery_nominal_kwh(vin),
             sanity_kwh=bmw_capacity,
         )
-        return efficiency_profile(
+        profile = efficiency_profile(
             sessions,
             battery_capacity_kwh=bmw_capacity,
             usable_capacity_kwh=health.usable_kwh if health.confident else None,
@@ -1158,6 +1168,13 @@ class CardataCoordinator:
             months=months,
             hybrid=self.is_plug_in_hybrid(vin),
         )
+        # Per trip rather than from the ledger: the cold penalty needs to know
+        # when the energy went, which only a trip with its weather can say.
+        profile["by_temperature"] = consumption_by_temperature(
+            [] if self.history is None else self.history.trips(vin),
+            hybrid=self.is_plug_in_hybrid(vin),
+        )
+        return profile
 
     def _charging_location(self, vin: str) -> Optional[Dict[str, Any]]:
         """Where the car is plugged in, as an HA zone name when we can tell.
@@ -1257,6 +1274,22 @@ class CardataCoordinator:
             return round(tracking.estimated_percent, 1)
         if tracking.last_soc_percent is not None:
             return round(tracking.last_soc_percent, 1)
+        return None
+
+    def _zone_location(self, name: str) -> Optional[tuple[float, float]]:
+        """Where the zone called ``name`` is, for a stored trip's weather."""
+
+        for state in self.hass.states.async_all("zone"):
+            if state.name == name:
+                lat, lon = state.attributes.get("latitude"), state.attributes.get("longitude")
+                if isinstance(lat, (int, float)) and isinstance(lon, (int, float)):
+                    return (float(lat), float(lon))
+        return None
+
+    def _home_location(self) -> Optional[tuple[float, float]]:
+        lat, lon = self.hass.config.latitude, self.hass.config.longitude
+        if isinstance(lat, (int, float)) and isinstance(lon, (int, float)):
+            return (float(lat), float(lon))
         return None
 
     def _home_zone_name(self) -> Optional[str]:

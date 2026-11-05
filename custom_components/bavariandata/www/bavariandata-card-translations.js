@@ -281,6 +281,11 @@ export const TRANSLATIONS = {
     ef_trend_title: "Consumption by month",
     ef_footnote:
       "Measured from the charging ledger: the distance between two charges and the energy that went in, not the car's own estimate.",
+    ef_temp_title: "Consumption by outside temperature ({u})",
+    ef_temp_more: "Below {cold} it uses {p}% more than at {mild}, measured on your trips.",
+    ef_temp_less: "Below {cold} it uses {p}% less than at {mild}, measured on your trips.",
+    ef_temp_waiting:
+      "The cold-weather comparison needs {d} of trips below {cold} and as much at {mild}.",
     // charging, battery health and efficiency on a petrol or diesel car
     ice_view_title: "Nothing to show for this car",
     ice_view_body:
@@ -305,6 +310,7 @@ export const TRANSLATIONS = {
     tr_at_battery: "at the battery",
     tr_charge_loss: "{n}% charging loss",
     tr_recuperation: "Recuperated",
+    tr_outside: "Outside",
     tr_style: "Driving style",
     tr_style_trend: "Style over time",
     tr_top_dest: "Top destinations",
@@ -671,6 +677,10 @@ export const TRANSLATIONS = {
     ef_trend_title: "Verbrauch nach Monat",
     ef_footnote:
       "Gemessen aus der Ladehistorie: die Strecke zwischen zwei Ladevorgängen und die Energie, die hineinging — nicht die Prognose des Fahrzeugs.",
+    ef_temp_title: "Verbrauch nach Außentemperatur ({u})",
+    ef_temp_more: "Unter {cold} verbraucht es {p} % mehr als bei {mild}, gemessen auf deinen Fahrten.",
+    ef_temp_less: "Unter {cold} verbraucht es {p} % weniger als bei {mild}, gemessen auf deinen Fahrten.",
+    ef_temp_waiting: "Für den Vergleich mit kaltem Wetter braucht es {d} Fahrten unter {cold} und ebenso viel bei {mild}.",
     // charging, battery health and efficiency on a petrol or diesel car
     ice_view_title: "Für dieses Fahrzeug gibt es hier nichts",
     ice_view_body:
@@ -695,6 +705,7 @@ export const TRANSLATIONS = {
     tr_at_battery: "ab Akku",
     tr_charge_loss: "{n}% Ladeverlust",
     tr_recuperation: "Rekuperiert",
+    tr_outside: "Außen",
     tr_style: "Fahrstil",
     tr_style_trend: "Fahrstil über Zeit",
     tr_top_dest: "Häufigste Ziele",
@@ -1045,6 +1056,10 @@ export const TRANSLATIONS = {
     ef_trend_title: "Consommation par mois",
     ef_footnote:
       "Mesuré à partir du registre de recharge : la distance entre deux recharges et l'énergie chargée, pas l'estimation de la voiture.",
+    ef_temp_title: "Consommation selon la température extérieure ({u})",
+    ef_temp_more: "En dessous de {cold}, elle consomme {p} % de plus qu'à {mild}, mesuré sur vos trajets.",
+    ef_temp_less: "En dessous de {cold}, elle consomme {p} % de moins qu'à {mild}, mesuré sur vos trajets.",
+    ef_temp_waiting: "La comparaison par temps froid demande {d} de trajets sous {cold} et autant à {mild}.",
     // charging, battery health and efficiency on a petrol or diesel car
     ice_view_title: "Rien à afficher pour cette voiture",
     ice_view_body:
@@ -1069,6 +1084,7 @@ export const TRANSLATIONS = {
     tr_at_battery: "à la batterie",
     tr_charge_loss: "{n} % de pertes de recharge",
     tr_recuperation: "Récupéré",
+    tr_outside: "Extérieur",
     tr_style: "Style de conduite",
     tr_style_trend: "Style dans le temps",
     tr_top_dest: "Destinations principales",
@@ -1419,6 +1435,10 @@ export const TRANSLATIONS = {
     ef_trend_title: "Consumo per mese",
     ef_footnote:
       "Misurato dal registro di ricarica: la distanza tra due ricariche e l'energia immessa, non la stima dell'auto.",
+    ef_temp_title: "Consumo per temperatura esterna ({u})",
+    ef_temp_more: "Sotto {cold} consuma il {p}% in più che a {mild}, misurato sui tuoi viaggi.",
+    ef_temp_less: "Sotto {cold} consuma il {p}% in meno che a {mild}, misurato sui tuoi viaggi.",
+    ef_temp_waiting: "Il confronto con il freddo richiede {d} di viaggi sotto {cold} e altrettanti a {mild}.",
     // charging, battery health and efficiency on a petrol or diesel car
     ice_view_title: "Niente da mostrare per quest'auto",
     ice_view_body:
@@ -1443,6 +1463,7 @@ export const TRANSLATIONS = {
     tr_at_battery: "alla batteria",
     tr_charge_loss: "{n}% di perdite di ricarica",
     tr_recuperation: "Recuperato",
+    tr_outside: "Esterno",
     tr_style: "Stile di guida",
     tr_style_trend: "Stile nel tempo",
     tr_top_dest: "Destinazioni principali",
@@ -1793,6 +1814,10 @@ export const TRANSLATIONS = {
     ef_trend_title: "Consumo por mes",
     ef_footnote:
       "Medido a partir del registro de cargas: la distancia entre dos cargas y la energía que entró, no la estimación del coche.",
+    ef_temp_title: "Consumo según la temperatura exterior ({u})",
+    ef_temp_more: "Por debajo de {cold} consume un {p} % más que a {mild}, medido en tus trayectos.",
+    ef_temp_less: "Por debajo de {cold} consume un {p} % menos que a {mild}, medido en tus trayectos.",
+    ef_temp_waiting: "La comparación con frío necesita {d} de trayectos por debajo de {cold} y otros tantos a {mild}.",
     // charging, battery health and efficiency on a petrol or diesel car
     ice_view_title: "Nada que mostrar para este coche",
     ice_view_body:
@@ -1817,6 +1842,7 @@ export const TRANSLATIONS = {
     tr_at_battery: "en la batería",
     tr_charge_loss: "{n} % de pérdidas de carga",
     tr_recuperation: "Recuperado",
+    tr_outside: "Exterior",
     tr_style: "Estilo de conducción",
     tr_style_trend: "Estilo a lo largo del tiempo",
     tr_top_dest: "Destinos principales",
@@ -2167,6 +2193,10 @@ export const TRANSLATIONS = {
     ef_trend_title: "Verbruik per maand",
     ef_footnote:
       "Gemeten uit het laadlogboek: de afstand tussen twee laadbeurten en de energie die erin ging, niet de schatting van de auto.",
+    ef_temp_title: "Verbruik per buitentemperatuur ({u})",
+    ef_temp_more: "Onder {cold} verbruikt hij {p}% meer dan bij {mild}, gemeten op je ritten.",
+    ef_temp_less: "Onder {cold} verbruikt hij {p}% minder dan bij {mild}, gemeten op je ritten.",
+    ef_temp_waiting: "De vergelijking bij koud weer heeft {d} aan ritten onder {cold} nodig, en evenveel bij {mild}.",
     // charging, battery health and efficiency on a petrol or diesel car
     ice_view_title: "Niets te tonen voor deze auto",
     ice_view_body:
@@ -2191,6 +2221,7 @@ export const TRANSLATIONS = {
     tr_at_battery: "aan de accu",
     tr_charge_loss: "{n}% laadverlies",
     tr_recuperation: "Teruggewonnen",
+    tr_outside: "Buiten",
     tr_style: "Rijstijl",
     tr_style_trend: "Rijstijl door de tijd",
     tr_top_dest: "Topbestemmingen",
@@ -2541,6 +2572,10 @@ export const TRANSLATIONS = {
     ef_trend_title: "Zużycie w poszczególnych miesiącach",
     ef_footnote:
       "Zmierzone z rejestru ładowań: dystans między dwoma ładowaniami i energia, która trafiła do akumulatora, a nie szacunek auta.",
+    ef_temp_title: "Zużycie wg temperatury na zewnątrz ({u})",
+    ef_temp_more: "Poniżej {cold} zużywa o {p}% więcej niż przy {mild}, według Twoich przejazdów.",
+    ef_temp_less: "Poniżej {cold} zużywa o {p}% mniej niż przy {mild}, według Twoich przejazdów.",
+    ef_temp_waiting: "Porównanie dla zimnej pogody wymaga {d} przejazdów poniżej {cold} i tyle samo przy {mild}.",
     // charging, battery health and efficiency on a petrol or diesel car
     ice_view_title: "Nic do pokazania dla tego auta",
     ice_view_body:
@@ -2565,6 +2600,7 @@ export const TRANSLATIONS = {
     tr_at_battery: "przy akumulatorze",
     tr_charge_loss: "{n}% strat ładowania",
     tr_recuperation: "Odzyskano",
+    tr_outside: "Na zewnątrz",
     tr_style: "Styl jazdy",
     tr_style_trend: "Styl jazdy w czasie",
     tr_top_dest: "Najczęstsze cele",
@@ -2915,6 +2951,10 @@ export const TRANSLATIONS = {
     ef_trend_title: "Consumo por mês",
     ef_footnote:
       "Medido a partir do registo de carregamentos: a distância entre dois carregamentos e a energia que entrou, não a estimativa do carro.",
+    ef_temp_title: "Consumo por temperatura exterior ({u})",
+    ef_temp_more: "Abaixo de {cold} consome mais {p}% do que a {mild}, medido nas suas viagens.",
+    ef_temp_less: "Abaixo de {cold} consome menos {p}% do que a {mild}, medido nas suas viagens.",
+    ef_temp_waiting: "A comparação com tempo frio precisa de {d} de viagens abaixo de {cold} e o mesmo a {mild}.",
     // charging, battery health and efficiency on a petrol or diesel car
     ice_view_title: "Nada para mostrar neste carro",
     ice_view_body:
@@ -2939,6 +2979,7 @@ export const TRANSLATIONS = {
     tr_at_battery: "na bateria",
     tr_charge_loss: "{n}% de perdas de carregamento",
     tr_recuperation: "Recuperado",
+    tr_outside: "Exterior",
     tr_style: "Estilo de condução",
     tr_style_trend: "Estilo ao longo do tempo",
     tr_top_dest: "Destinos principais",
@@ -3289,6 +3330,10 @@ export const TRANSLATIONS = {
     ef_trend_title: "Spotřeba po měsících",
     ef_footnote:
       "Naměřeno z knihy nabíjení: vzdálenost mezi dvěma nabitími a energie, která byla dobita, nikoli odhad vozu.",
+    ef_temp_title: "Spotřeba podle venkovní teploty ({u})",
+    ef_temp_more: "Pod {cold} spotřebuje o {p} % více než při {mild}, měřeno na vašich jízdách.",
+    ef_temp_less: "Pod {cold} spotřebuje o {p} % méně než při {mild}, měřeno na vašich jízdách.",
+    ef_temp_waiting: "Srovnání v chladu potřebuje {d} jízd pod {cold} a stejně tolik při {mild}.",
     // charging, battery health and efficiency on a petrol or diesel car
     ice_view_title: "Pro tento vůz není co zobrazit",
     ice_view_body:
@@ -3313,6 +3358,7 @@ export const TRANSLATIONS = {
     tr_at_battery: "z baterie",
     tr_charge_loss: "{n} % ztráty nabíjení",
     tr_recuperation: "Rekuperováno",
+    tr_outside: "Venku",
     tr_style: "Styl jízdy",
     tr_style_trend: "Styl jízdy v čase",
     tr_top_dest: "Nejčastější cíle",
@@ -3663,6 +3709,10 @@ export const TRANSLATIONS = {
     ef_trend_title: "Förbrukning per månad",
     ef_footnote:
       "Uppmätt från laddningsliggaren: sträckan mellan två laddningar och energin som gick in, inte bilens egen uppskattning.",
+    ef_temp_title: "Förbrukning efter utetemperatur ({u})",
+    ef_temp_more: "Under {cold} drar den {p} % mer än vid {mild}, mätt på dina resor.",
+    ef_temp_less: "Under {cold} drar den {p} % mindre än vid {mild}, mätt på dina resor.",
+    ef_temp_waiting: "Jämförelsen i kyla behöver {d} resor under {cold} och lika mycket vid {mild}.",
     // charging, battery health and efficiency on a petrol or diesel car
     ice_view_title: "Inget att visa för den här bilen",
     ice_view_body:
@@ -3687,6 +3737,7 @@ export const TRANSLATIONS = {
     tr_at_battery: "vid batteriet",
     tr_charge_loss: "{n} % laddförlust",
     tr_recuperation: "Återvunnet",
+    tr_outside: "Ute",
     tr_style: "Körstil",
     tr_style_trend: "Körstil över tid",
     tr_top_dest: "Vanligaste mål",
