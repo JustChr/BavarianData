@@ -33,6 +33,16 @@ bullets repeated across betas (fold intra-beta churn into the final state), and
 every Fixed bullet (keep it only if the bug was in the last stable). Edit the
 result; never rewrite an already-released section.
 
+**The draft is raw material, not the entry: rewrite it.** A stable's notes tell a
+stable user what changed since the *last stable*, as one sound account. Write
+each change once, in its final state. Betas that reverse or refine each other
+(added then removed, renamed, a default flipped back, a feature reworked) become
+the one bullet for the end result, or nothing if the net change is nothing. A fix
+to something only a beta introduced is not a Fixed bullet: the stable user never
+had that bug. No "now", "again" or "no longer" measured against a beta, and nothing
+that only makes sense to someone who ran the betas. Read the finished entry
+top to bottom as a stable user would before releasing.
+
 ## 2. Check for strays before the script stages everything
 
 `release.sh` runs `git add .`. Anything untracked ships.
