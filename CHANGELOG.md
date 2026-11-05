@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.27-beta.4] - 2026-11-05
+
 ### Changed
 - **The Efficiency view's bar charts show each bar's figure.** *Consumption by
   month* and *Consumption by outside temperature* labelled only the top of the
