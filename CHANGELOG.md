@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.27-beta.1] - 2026-11-05
+
 ### Fixed
 - **The BMW configurator picture shows older cars in their real paint, with
   their equipment (#277, thanks @jowi1968).** Some cars, such as a 2021 iX3,
