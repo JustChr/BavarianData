@@ -14,6 +14,10 @@
  */
 
 const CARD_VERSION = "1.16.0";
+// How long a view waits before asking a service again after it failed. Asked
+// again on the next paint instead, a refused call (an account reloading, for
+// one) repeated itself hundreds of times a second (#277).
+const FETCH_RETRY_MS = 30000;
 
 // Classification -> colour, shared by the trips legend and the trip map so a
 // route drawn on the map matches the colour of its row in the Trips view.
@@ -1138,6 +1142,22 @@ class BavarianDataCard extends HTMLElement {
    * the single configured entry -- correct for the one-account install, and
    * the only thing we can do when the device registry will not say.
    */
+  /** Whether a view's cached answer (`cache[field]`) has to be asked for again.
+   * A failure is asked again only once `FETCH_RETRY_MS` has passed. */
+  _wantsFetch(cache, field) {
+    if (cache[field] || cache.loading) return false;
+    return !cache.failedAt || Date.now() - cache.failedAt >= FETCH_RETRY_MS;
+  }
+
+  /** Paint again once a failed call may be retried; one timer for all views. */
+  _retryLater() {
+    if (this._retryTimer) return;
+    this._retryTimer = setTimeout(() => {
+      this._retryTimer = null;
+      this._render();
+    }, FETCH_RETRY_MS);
+  }
+
   _withEntry(data, entryId) {
     return entryId ? { ...data, entry_id: entryId } : data;
   }
@@ -2139,7 +2159,7 @@ class BavarianDataCard extends HTMLElement {
     const cache = this._chg;
     const current =
       cache && cache.vin === vin && cache.trigger === trigger && cache.month === month;
-    if (!current || (!cache.data && !cache.loading)) {
+    if (!current || this._wantsFetch(cache, "data")) {
       this._chg = {
         vin,
         trigger,
@@ -2182,7 +2202,8 @@ class BavarianDataCard extends HTMLElement {
       .catch(() => {
         if (!this._chg || this._chg.vin !== vin || this._chg.trigger !== req.trigger)
           return;
-        this._chg = { ...this._chg, loading: false, error: true };
+        this._chg = { ...this._chg, loading: false, error: true, failedAt: Date.now() };
+        this._retryLater();
         this._render();
       });
   }
@@ -2289,7 +2310,7 @@ class BavarianDataCard extends HTMLElement {
   _renderPlaces(deviceId, entities, vin, entryId, trigger) {
     const cache = this._plc;
     const current = cache && cache.vin === vin && cache.trigger === trigger;
-    if (!current || (!cache.data && !cache.loading)) {
+    if (!current || this._wantsFetch(cache, "data")) {
       this._plc = {
         vin,
         trigger,
@@ -2315,7 +2336,8 @@ class BavarianDataCard extends HTMLElement {
         })
         .catch(() => {
           if (!this._plc || this._plc.vin !== vin || this._plc.trigger !== req.trigger) return;
-          this._plc = { ...this._plc, loading: false, error: true };
+          this._plc = { ...this._plc, loading: false, error: true, failedAt: Date.now() };
+          this._retryLater();
           this._render();
         });
     }
@@ -3122,7 +3144,7 @@ class BavarianDataCard extends HTMLElement {
     const cache = this._trp;
     const current =
       cache && cache.vin === vin && cache.trigger === trigger && cache.month === month;
-    if (!current || (!cache.trips && !cache.loading)) {
+    if (!current || this._wantsFetch(cache, "trips")) {
       this._trp = {
         vin,
         trigger,
@@ -3184,7 +3206,8 @@ class BavarianDataCard extends HTMLElement {
       .catch(() => {
         if (!this._trp || this._trp.vin !== vin || this._trp.trigger !== req.trigger)
           return;
-        this._trp = { ...this._trp, loading: false, error: true };
+        this._trp = { ...this._trp, loading: false, error: true, failedAt: Date.now() };
+        this._retryLater();
         this._render();
       });
   }
@@ -3840,7 +3863,7 @@ class BavarianDataCard extends HTMLElement {
 
     const cache = this._mapData;
     const current = cache && cache.vin === vin && cache.trigger === trigger;
-    if (!current || (!cache.trips && !cache.loading)) {
+    if (!current || this._wantsFetch(cache, "trips")) {
       this._mapData = {
         vin,
         trigger,
@@ -3877,7 +3900,8 @@ class BavarianDataCard extends HTMLElement {
       .catch(() => {
         if (!this._mapData || this._mapData.vin !== vin || this._mapData.trigger !== req.trigger)
           return;
-        this._mapData = { ...this._mapData, loading: false, error: true };
+        this._mapData = { ...this._mapData, loading: false, error: true, failedAt: Date.now() };
+        this._retryLater();
         this._render();
       });
   }
@@ -4484,7 +4508,7 @@ class BavarianDataCard extends HTMLElement {
     ].join("|");
     const cache = this._eff;
     const current = cache && cache.vin === vin && cache.trigger === trigger;
-    if (!current || (!cache.data && !cache.loading)) {
+    if (!current || this._wantsFetch(cache, "data")) {
       this._eff = {
         vin,
         trigger,
@@ -4519,7 +4543,8 @@ class BavarianDataCard extends HTMLElement {
       .catch(() => {
         if (!this._eff || this._eff.vin !== vin || this._eff.trigger !== req.trigger)
           return;
-        this._eff = { ...this._eff, loading: false, error: true };
+        this._eff = { ...this._eff, loading: false, error: true, failedAt: Date.now() };
+        this._retryLater();
         this._render();
       });
   }
@@ -4849,7 +4874,7 @@ class BavarianDataCard extends HTMLElement {
     const trigger = [tank ? tank.state : "", Math.floor(Date.now() / 600000)].join("|");
     const cache = this._fuel;
     const current = cache && cache.vin === vin && cache.trigger === trigger;
-    if (!current || (!cache.data && !cache.loading)) {
+    if (!current || this._wantsFetch(cache, "data")) {
       this._fuel = {
         vin,
         trigger,
@@ -4881,7 +4906,8 @@ class BavarianDataCard extends HTMLElement {
       })
       .catch(() => {
         if (!this._fuel || this._fuel.vin !== vin || this._fuel.trigger !== req.trigger) return;
-        this._fuel = { ...this._fuel, loading: false, error: true };
+        this._fuel = { ...this._fuel, loading: false, error: true, failedAt: Date.now() };
+        this._retryLater();
         this._render();
       });
   }
@@ -5040,7 +5066,7 @@ class BavarianDataCard extends HTMLElement {
     ].join("|");
     const cache = this._mil;
     const current = cache && cache.vin === vin && cache.trigger === trigger;
-    if (!current || (!cache.data && !cache.loading)) {
+    if (!current || this._wantsFetch(cache, "data")) {
       this._mil = {
         vin,
         trigger,
@@ -5072,7 +5098,8 @@ class BavarianDataCard extends HTMLElement {
       })
       .catch(() => {
         if (!this._mil || this._mil.vin !== vin || this._mil.trigger !== req.trigger) return;
-        this._mil = { ...this._mil, loading: false, error: true };
+        this._mil = { ...this._mil, loading: false, error: true, failedAt: Date.now() };
+        this._retryLater();
         this._render();
       });
   }
