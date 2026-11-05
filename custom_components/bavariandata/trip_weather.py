@@ -24,6 +24,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Any, Optional, Protocol, Sequence
 
+from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.event import async_call_later
 
@@ -138,6 +139,9 @@ class TripWeather:
             if retry:
                 held = list(points)
 
+                # @callback keeps the timer on the loop; without it HA runs it in
+                # the executor, where async_create_task refuses.
+                @callback
                 def _again(_now: datetime) -> None:
                     self._host.hass.async_create_task(
                         self._look_up(vin, trip_id, start, held, source, retry=False)
@@ -171,6 +175,7 @@ class TripWeather:
         if not self.enabled or self._backfill_timer is not None:
             return
 
+        @callback
         def _run(_now: datetime) -> None:
             self._backfill_timer = None
             self._host.hass.async_create_task(self.async_backfill())
