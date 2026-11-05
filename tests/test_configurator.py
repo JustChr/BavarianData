@@ -53,7 +53,7 @@ def test_junk_codes_are_dropped_not_sent():
 
 
 def test_the_older_spelling_of_paint_and_options_is_read_too():
-    # A 2021 iX3 (G08) sends ``colourCodeRAW`` and ``saList`` (#277); read as
+    # A 2021 X3 sends ``colourCodeRAW`` and ``saList`` (#277); read as
     # nothing, the car was drawn in BMW's default paint with no equipment.
     g08 = {k: v for k, v in I5.items() if k not in ("colourCodeRaw", "fullSAList")}
     spec = CONF.spec_from_basic_data(

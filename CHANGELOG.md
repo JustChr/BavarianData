@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.27-beta.2] - 2026-11-05
+
 ### Added
 - **Weather along the route: how much more the car uses in the cold.** CarData
   sends no outside temperature, so the integration can now look it up. Turn on
@@ -37,7 +39,7 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ### Fixed
 - **The BMW configurator picture shows older cars in their real paint, with
-  their equipment (#277, thanks @jowi1968).** Some cars, such as a 2021 iX3,
+  their equipment (#277, thanks @jowi1968).** Some cars, such as a 2021 X3,
   name their paint and factory options differently in BMW's basic data. The
   configurator was then sent neither, drew the car in BMW's default blue and
   listed no equipment. Both spellings are read now, and the paint code and

@@ -225,7 +225,7 @@ def spec_from_basic_data(raw: Mapping[str, Any]) -> CarSpec:
     if not re.fullmatch(r"[0-9A-Z]{4}", model) or not date:
         raise ConfiguratorError("no_data", "model code or build date missing")
     options: list[str] = []
-    # Older cars spell both keys differently: a 2021 iX3 (G08) sends
+    # Older cars spell both keys differently: a 2021 X3 sends
     # ``colourCodeRAW`` and ``saList`` (#277).
     paint = str(raw.get("colourCodeRaw") or raw.get("colourCodeRAW") or "").strip().upper()
     if re.fullmatch(r"[0-9A-Z]{3}", paint):

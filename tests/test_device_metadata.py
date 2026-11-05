@@ -36,7 +36,7 @@ def test_text_basic_data_is_left_as_it_is() -> None:
 
 
 def test_the_older_spelling_of_paint_and_options_reaches_the_attributes() -> None:
-    # A 2021 iX3 (G08) sends ``colourCodeRAW`` and ``saList`` (#277).
+    # A 2021 X3 sends ``colourCodeRAW`` and ``saList`` (#277).
     with CoordinatorHarness() as h:
         metadata = h.coordinator.apply_basic_data(
             VIN, {"modelName": "iX3", "colourCodeRAW": "A90", "saList": "01VE,02PA"}
