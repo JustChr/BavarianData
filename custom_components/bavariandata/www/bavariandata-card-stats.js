@@ -532,7 +532,8 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
     const pad = 6;
     const bottom = 14;
     const values = bands.map((b) => (b.kwh_per_100km == null ? null : this._perDist(b.kwh_per_100km, unit)));
-    const max = Math.max(...values.filter((v) => v != null), 0) * 1.15 || 1;
+    // Headroom for the value printed over the tallest bar, clear of the unit.
+    const max = Math.max(...values.filter((v) => v != null), 0) * 1.3 || 1;
     const slot = (W - 2 * pad) / bands.length;
     const width = Math.min(28, Math.max(4, slot * 0.58));
     const bars = bands
@@ -545,6 +546,7 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
         return `<rect class="${cls}" x="${this._px(x)}" y="${this._px(y)}" width="${this._px(
           width
         )}" height="${this._px(Math.max(h, 1))}" rx="2"></rect>
+                ${values[i] == null ? "" : this._efBarValue(x + width / 2, y, values[i])}
                 <text class="ef__bar-lbl" x="${this._px(x + width / 2)}" y="${H - 3}" text-anchor="middle">${this._esc(
           label(b)
         )}</text>`;
@@ -553,7 +555,7 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
     const chart = `
       <svg class="ef__chart" viewBox="0 0 ${W} ${H}" role="img">
         ${bars}
-        <text x="${pad}" y="9" class="chg__chart-max">${this._dec(max, 0)} ${this._kwhPer(unit)}</text>
+        <text x="${pad}" y="9" class="chg__chart-max">${this._kwhPer(unit)}</text>
       </svg>`;
     const cold = this._temp(5, tempUnit);
     const mild = `${edge(15)}–${this._temp(25, tempUnit)}`;
@@ -577,7 +579,7 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
     const pad = 6;
     const bottom = 14;
     const values = trend.map((e) => this._perDist(e.kwh_per_100km, unit));
-    const max = Math.max(...values) * 1.15 || 1;
+    const max = Math.max(...values) * 1.3 || 1;
     const slot = (W - 2 * pad) / trend.length;
     // Capped as well as proportional: with two months on file a purely
     // proportional bar is 78 px wide and reads as a block, not a chart.
@@ -594,6 +596,7 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
                   width="${this._px(width)}" height="${this._px(
           Math.max(h, 1)
         )}" rx="2"></rect>
+                ${this._efBarValue(x + width / 2, y, values[i])}
                 <text class="ef__bar-lbl" x="${this._px(
                   x + width / 2
                 )}" y="${H - 3}" text-anchor="middle">${this._esc(label)}</text>`;
@@ -602,12 +605,16 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
     return `
       <svg class="ef__chart" viewBox="0 0 ${W} ${H}" role="img">
         ${bars}
-        <text x="${pad}" y="9" class="chg__chart-max">${this._dec(
-      max,
-      0
-    )} ${this._kwhPer(unit)}</text>
+        <text x="${pad}" y="9" class="chg__chart-max">${this._kwhPer(unit)}</text>
       </svg>
     `;
+  }
+
+  /** A bar's own figure, just above it; the unit stands once in the corner. */
+  _efBarValue(cx, top, value) {
+    return `<text class="ef__bar-val" x="${this._px(cx)}" y="${this._px(
+      top - 3
+    )}" text-anchor="middle">${this._dec(value, 1)}</text>`;
   }
 
   /* ---- mileage ---------------------------------------------------------- */

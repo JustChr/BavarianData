@@ -782,6 +782,7 @@ export default (Base) => class StylesPart extends Base {
       .ef__bar { fill: var(--bmw-charge); opacity: 0.85; }
       .ef__bar--thin { opacity: 0.35; }
       .ef__bar-lbl { fill: var(--secondary-text-color); font-size: 8px; }
+      .ef__bar-val { fill: var(--primary-text-color); font-size: 8px; }
       .ef__note { font-size: 0.72rem; color: var(--secondary-text-color); line-height: 1.35; }
       .mi__allowance { display: flex; flex-direction: column; gap: 6px; }
       .mi__bar {
