@@ -198,6 +198,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `trip_commute_gap` (commute stop tolerance) | Trips | ✅ |
 | `trip_geocode` | Trips | 🟡 |
 | `trip_track` (route recording) | Trips | ✅ |
+| `trip_weather` (weather along the route) | Trips, all vehicles | 🟢 Settings-Reference + Feature-Trips → "Weather along the route (opt-in)" + Feature-Efficiency-and-Range → "Consumption by outside temperature" + Feature-Export → CSV (EN + DE), screenshot `bavariandata-configure-trips.png` |
 | `trip_detection` (live / end-of-trip reports) | Trips | 🟢 Settings-Reference + Feature-Trips → "Older cars…" (EN + DE), screenshot `bavariandata-configure-trip-detection.png` |
 | `trip_phone_tracker` / `trip_phone_in_car` and `_2` (route from a phone, up to two) | Trips → Route from a phone | 🟢 Settings-Reference + Feature-Trips → "The route from a phone" (EN + DE), screenshot `bavariandata-configure-trips-phone.png` |
 | `trip_debug` (trip-capture diagnostics) | Trips | ✅ |

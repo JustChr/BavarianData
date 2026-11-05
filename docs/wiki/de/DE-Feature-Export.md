@@ -17,7 +17,10 @@ Eine Zeile pro Ladevorgang oder Fahrt:
 - Die **batterieseitige** und die **gemessene Netz**-Energie in getrennten
   Spalten.
 - Die Kosten und woher sie stammen.
-- Bei Fahrten die Endpunkte als **Ortsnamen**.
+- Bei Fahrten die Endpunkte als **Ortsnamen** und, mit
+  [Wetter entlang der Strecke](DE-Feature-Trips#weather-along-the-route-opt-in), die
+  Außentemperatur mit tiefstem und höchstem Wert und woher sie stammt
+  (`outside_temp_c`, `outside_temp_min_c`, `outside_temp_max_c`, `weather_source`).
 
 Die Spaltenüberschriften sind immer maschinenlesbares Englisch. Öffnet sich
 sauber in Excel und Numbers.

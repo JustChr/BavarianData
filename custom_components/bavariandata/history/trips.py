@@ -116,6 +116,10 @@ class Trip:
     # for a car that reports only once parked, whose route was taken from a
     # phone that rode along (``phone_route.py``). ``None`` is the car's own.
     track_source: Optional[str] = None
+    # The weather along the drive (``route_weather.summarize``): a time-weighted
+    # temperature, its range and the samples behind it -- never a coordinate.
+    # ``None`` until looked up, and always when the user hasn't opted in.
+    weather: Optional[dict[str, Any]] = None
 
     @property
     def id(self) -> str:
@@ -203,6 +207,7 @@ class Trip:
             "hybrid": self.hybrid,
             "duration_unknown": self.duration_unknown,
             "track_source": self.track_source,
+            "weather": self.weather,
         }
 
     @classmethod
@@ -234,6 +239,7 @@ class Trip:
             hybrid=bool(data.get("hybrid")),
             duration_unknown=bool(data.get("duration_unknown")),
             track_source=data.get("track_source") if data.get("track_source") == "phone" else None,
+            weather=data.get("weather") if isinstance(data.get("weather"), dict) else None,
         )
 
 
@@ -264,7 +270,14 @@ def merge_trip(trips: list[Trip], trip: Trip) -> list[Trip]:
     write for the same start time updates the record in place, never duplicates it.
     """
 
-    remaining = [item for item in trips if item.id != trip.id]
+    remaining = []
+    for item in trips:
+        if item.id != trip.id:
+            remaining.append(item)
+        elif trip.weather is None and item.weather is not None:
+            # Looked up after the trip was stored; a later write of the same
+            # trip (a late reading, a reclassification) must not lose it.
+            trip.weather = item.weather
     remaining.append(trip)
     remaining.sort(key=lambda item: item.start, reverse=True)
     return remaining

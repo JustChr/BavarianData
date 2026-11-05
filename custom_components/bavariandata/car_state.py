@@ -35,6 +35,7 @@ from .history.pricing import CostAccumulator
 from .history.sessions import SessionBuilder
 from .history.trip_builder import GpsTracker, TripBuilder
 from .phone_route import PhoneRoute
+from .route_weather import WaypointSampler
 from .soc_tracking import SocTracking
 
 Cancel = Callable[[], None]
@@ -166,6 +167,9 @@ class TripState(_ReadOnlyWhenEmpty):
     """The drive being recorded, and the evidence its open and close rest on."""
 
     builder: Optional[TripBuilder] = None
+    # The drive's weather waypoints (``trip_weather``), only while the user has
+    # route weather on. In memory only: dropped once looked up.
+    waypoints: Optional[WaypointSampler] = None
     # The stationary-close debounce's cancel callback.
     close_timer: Optional[Cancel] = None
     # When an unevidenced close was first held off. Set only while a trip is

@@ -9,6 +9,22 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **Weather along the route: how much more the car uses in the cold.** CarData
+  sends no outside temperature, so the integration can now look it up. Turn on
+  *Configure → Trips → Weather along the route* (off by default, one switch for
+  all cars). During a drive the integration keeps a waypoint every 5 minutes or
+  5 km. After the trip it asks Open-Meteo (free, no key, no BMW quota) for the
+  15-minute weather at each one, corrected for the ground height there. Each trip
+  then stores its temperature, rain and wind along the way, never the
+  coordinates. Trips stored before are filled in too. The *Efficiency* card view
+  gains a chart of consumption per 5 °C band, and once there are enough trips on
+  both sides it says how much more the car uses below 5 °C than at 15–25 °C. A
+  trip's detail shows its outside temperature, and `get_efficiency`, `get_trips`
+  and the CSV export carry the figures. What leaves your house is each trip's
+  route, to about 1 km, sent to Open-Meteo once.
+  [Trips](https://github.com/JustChr/BavarianData/wiki/Feature-Trips#weather-along-the-route-opt-in)
+
 ### Changed
 - **The dashboard card comes in several files now.** Its code is split into one
   file per group of views, which the card loads from beside itself. Nothing

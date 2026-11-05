@@ -344,6 +344,7 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
     const name = this._config.title || this._deviceName(deviceId);
     const unit = this._distUnit(deviceId);
     const fuel = this._fuelUnit(deviceId);
+    const tempUnit = this._tempUnit(deviceId);
     const state = this._eff || {};
     const profile = state.data;
     const f = this._efFigures(st, profile);
@@ -363,6 +364,8 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
       currency: profile && profile.currency,
       mix: profile && profile.energy_mix,
       life: profile && profile.bmw_lifetime,
+      temps: profile && profile.by_temperature,
+      tempUnit,
     });
     if (sig === this._sig) return;
     this._sig = sig;
@@ -391,7 +394,7 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
       // missing rather than showing the same "no data yet" as an empty ledger.
       body = `<div class="empty">${this._t("ef_no_capacity")}</div>`;
     } else {
-      body = this._efBody(f, trend, profile || {}, unit);
+      body = this._efBody(f, trend, profile || {}, unit, tempUnit);
     }
 
     this.shadowRoot.innerHTML = `
@@ -409,7 +412,7 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
     `;
   }
 
-  _efBody(f, trend, profile, unit) {
+  _efBody(f, trend, profile, unit, tempUnit = "c") {
     const unitLabel = unit === "mi" ? "mi" : "km";
     const hero =
       f.nowKm != null
@@ -504,9 +507,64 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
               )}</span>${chart}</div>`
             : ""
         }
+        ${this._efTemperature(profile.by_temperature, unit, tempUnit)}
         <span class="ef__note">${this._t("ef_footnote")}</span>
       </div>
     `;
+  }
+
+  /** Consumption per outside-temperature band (opt-in route weather), and how
+   * much more the car uses in the cold. Nothing at all until a trip has its
+   * weather: the switch is off by default, and an empty chart would nag. */
+  _efTemperature(byTemp, unit, tempUnit) {
+    if (!byTemp || byTemp.status !== "ok" || !Array.isArray(byTemp.bands)) return "";
+    // Empty bands are trimmed off the ends only: one missing in the middle
+    // stays as a stub, or the axis would skip it without saying so.
+    const used = byTemp.bands.map((b) => b.km > 0);
+    const first = used.indexOf(true);
+    if (first < 0) return "";
+    const bands = byTemp.bands.slice(first, used.lastIndexOf(true) + 1);
+    const edge = (c) => this._dec(tempUnit === "f" ? c * 1.8 + 32 : c, 0);
+    const label = (b) =>
+      b.from_c == null ? `< ${edge(b.to_c)}` : b.to_c == null ? `≥ ${edge(b.from_c)}` : `${edge(b.from_c)}–${edge(b.to_c)}`;
+    const W = 280;
+    const H = 88;
+    const pad = 6;
+    const bottom = 14;
+    const values = bands.map((b) => (b.kwh_per_100km == null ? null : this._perDist(b.kwh_per_100km, unit)));
+    const max = Math.max(...values.filter((v) => v != null), 0) * 1.15 || 1;
+    const slot = (W - 2 * pad) / bands.length;
+    const width = Math.min(28, Math.max(4, slot * 0.58));
+    const bars = bands
+      .map((b, i) => {
+        const x = pad + i * slot + (slot - width) / 2;
+        // A band with too few km behind it gets a stub, not a figure.
+        const h = values[i] == null ? 2 : (values[i] / max) * (H - bottom - pad);
+        const y = H - bottom - h;
+        const cls = values[i] == null ? "ef__bar ef__bar--thin" : "ef__bar";
+        return `<rect class="${cls}" x="${this._px(x)}" y="${this._px(y)}" width="${this._px(
+          width
+        )}" height="${this._px(Math.max(h, 1))}" rx="2"></rect>
+                <text class="ef__bar-lbl" x="${this._px(x + width / 2)}" y="${H - 3}" text-anchor="middle">${this._esc(
+          label(b)
+        )}</text>`;
+      })
+      .join("");
+    const chart = `
+      <svg class="ef__chart" viewBox="0 0 ${W} ${H}" role="img">
+        ${bars}
+        <text x="${pad}" y="9" class="chg__chart-max">${this._dec(max, 0)} ${this._kwhPer(unit)}</text>
+      </svg>`;
+    const cold = this._temp(5, tempUnit);
+    const mild = `${edge(15)}–${this._temp(25, tempUnit)}`;
+    const p = byTemp.cold_penalty_percent;
+    const line =
+      p == null
+        ? this._t("ef_temp_waiting", { cold, mild, d: unit === "mi" ? "60 mi" : "100 km" })
+        : this._t(p >= 0 ? "ef_temp_more" : "ef_temp_less", { p: this._dec(Math.abs(p), 0), cold, mild });
+    return `<div class="ef__trend"><span class="ef__trend-title">${this._t("ef_temp_title", {
+      u: tempUnit === "f" ? "°F" : "°C",
+    })}</span>${chart}<span class="ef__fact-note">${line}</span></div>`;
   }
 
   /** Monthly consumption as bars. Zero-based on purpose, unlike the capacity

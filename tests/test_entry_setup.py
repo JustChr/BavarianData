@@ -60,6 +60,7 @@ def test_configure_hands_the_coordinator_every_option() -> None:
         coordinator,
         {
             const.OPTION_TRIP_GEOCODE: True,
+            const.OPTION_TRIP_WEATHER: True,
             const.OPTION_TRIP_DEBUG: 1,
             const.OPTION_DIAGNOSTIC_INTERVAL: 42,
         },
@@ -68,6 +69,8 @@ def test_configure_hands_the_coordinator_every_option() -> None:
 
     assert coordinator.geocoder.enabled is True
     assert coordinator.geocoder._session is session
+    assert coordinator.route_weather.enabled is True
+    assert coordinator.route_weather._session is session
     assert coordinator.trip_debug is True
     assert coordinator.diagnostic_interval == 42
     assert coordinator.vehicle_pricing == {}
@@ -81,6 +84,7 @@ def test_configure_without_options_leaves_the_opt_ins_off() -> None:
     setup.configure(coordinator, {}, None)
 
     assert coordinator.geocoder.enabled is False
+    assert coordinator.route_weather.enabled is False
     assert coordinator.trip_debug is False
     assert coordinator.diagnostic_interval == const.DIAGNOSTIC_LOG_INTERVAL
 

@@ -312,7 +312,11 @@ und Fenster, den gemessenen Ladeverlust, wo ein Netzwert existiert, die nutzbare
 Kapazität, durch die geteilt wurde, deine Kosten pro 100 km mit dem Solaranteil des
 Monats und ein Balkendiagramm des Verbrauchs nach Kalendermonat. Daran siehst du
 die Jahreszeiten: Im Winter liegt der Verbrauch regelmäßig ein Drittel über dem
-Sommer.
+Sommer. Mit [Wetter entlang der Strecke](DE-Feature-Trips#weather-along-the-route-opt-in)
+zeigt ein zweites Diagramm den Verbrauch je 5-°C-Band der Außentemperatur und wie viel
+mehr das Auto unter 5 °C braucht als bei 15–25 °C
+([wie](DE-Feature-Efficiency-and-Range#consumption-by-outside-temperature)); die
+Details jeder Fahrt in der Fahrtenansicht zeigen dann auch ihre Außentemperatur.
 Bei einem Plug-in-Hybrid gibt es keinen Verbrauch und keine Reichweite aus dem
 Ladeverlauf ([warum](DE-Feature-Efficiency-and-Range#plug-in-hybride)); sie zeigt
 stattdessen BMWs eigene Werte über die Lebensdauer — den elektrischen Verbrauch mit

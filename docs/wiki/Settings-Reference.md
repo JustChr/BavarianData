@@ -272,14 +272,14 @@ has its own switch and token.
 Screen: **Configure → Trips**. See [Trips](Feature-Trips) for the concepts.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-trips.png?v=2026-10-11b" alt="Configure, Trips with one car: work zone, default type, commute stop tolerance, trip detection, record route, resolve addresses and trip-capture diagnostics" width="460" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-trips.png?v=2026-11-05" alt="Configure, Trips with one car: work zone, default type, commute stop tolerance, trip detection, record route, resolve addresses, weather along the route and trip-capture diagnostics" width="460" />
 </p>
 
 **Several cars on the account?** Trips first asks which vehicle, and each car
 keeps its own **Work zone**, **Default type**, **Commute stop tolerance**,
 **Trip detection** and **Record route**: a company car and a private one, or an
-older car next to one that streams while driving. **Resolve addresses** and
-**Trip-capture diagnostics** apply to every car; they sit in the collapsed
+older car next to one that streams while driving. **Resolve addresses**,
+**Weather along the route** and **Trip-capture diagnostics** apply to every car; they sit in the collapsed
 **All vehicles** section at the bottom of each car's form. A car added later
 starts with the settings that were in use before it arrived. With one car
 there is no vehicle question.
@@ -298,6 +298,7 @@ there is no vehicle question.
 | **Default type** | Private / Business / Leave unclassified | Default **Private**. What every trip that isn't a recognized home↔work commute is filed as. Always just a starting point: a correction on the card is never overwritten. Pick **Leave unclassified** to triage each trip by hand. |
 | **Commute stop tolerance** | 0–180 min | Default **30**. How long the car may stand between two drives for both to still count as one commute — the supermarket on the way to work. **0** switches chaining off. Stops under ~5 min never split a drive at all. |
 | **Resolve addresses** | on/off | Off by default. When on, trip endpoints **outside** any zone are reverse-geocoded via OpenStreetMap; the address string is stored, never the coordinates. |
+| **Weather along the route** | on/off | Off by default. When on, after each trip its route (to about 1 km) goes to Open-Meteo once, and the trip stores the temperature, rain and wind along it, never the coordinates. Stored trips are filled in too. See [Trips](Feature-Trips#weather-along-the-route-opt-in). |
 | **Trip detection** | Live / End-of-trip reports | Default **Live**: trips follow the car's position while it drives. **End-of-trip reports** is for cars that send nothing while driving (iDrive 6 and older): one trip per vehicle report, from where the car stood at the previous one, with the live detection off. Start times come from `bavariandata.mark_trip_start`. See [Trips](Feature-Trips#older-cars-that-report-only-at-the-end-of-a-trip). |
 | **Record route** | on/off | Off by default. When on, each new trip stores its GPS track — coordinates along the drive, each stamped with its time (`[lat, lon, t]`, `t` = seconds since start) — so a map can draw and replay the route. It persists raw coordinates, your exact start/end included, as does *Remember charging locations* for charges. Served via `get_trips`; never in the export. |
 | **Phone** / **Phone is in the car** | `device_tracker` / binary sensor | Only on the follow-up screen **Route from a phone**, shown for a car on **End-of-trip reports** with **Record route** on. The phone's positions draw the trip's route; distance and times stay the car's. The in-car sensor turning on marks the trip's start. See [Trips](Feature-Trips#the-route-from-a-phone). |

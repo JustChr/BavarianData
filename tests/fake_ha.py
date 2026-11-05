@@ -98,10 +98,23 @@ class FakeHass:
 
     def __post_init__(self) -> None:
         self.bus = types.SimpleNamespace(async_fire=self._fire)
-        # ``zone_at`` and friends read entity states; no zones exist here.
-        self.states = types.SimpleNamespace(get=self.entity_states.get, async_all=lambda *a: [])
+        # ``zone_at`` reads ``zones``; a zone's own state (where it is, by name)
+        # is what ``async_all("zone")`` lists.
+        self.states = types.SimpleNamespace(get=self.entity_states.get, async_all=self._all_states)
         self.config = types.SimpleNamespace(latitude=None, longitude=None, config_dir=".")
         self.config.path = lambda *parts: os.path.join(self.config.config_dir, *parts)
+
+    def _all_states(self, domain: Optional[str] = None) -> list[Any]:
+        if domain != "zone":
+            return []
+        return [
+            types.SimpleNamespace(
+                entity_id=zone.entity_id,
+                name=zone.name,
+                attributes={"latitude": zone.latitude, "longitude": zone.longitude},
+            )
+            for zone in self.zones
+        ]
 
     def _fire(self, event_type: str, data: Optional[dict] = None, **_kw) -> None:
         self.events.append((event_type, dict(data or {})))

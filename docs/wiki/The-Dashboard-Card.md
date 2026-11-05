@@ -292,6 +292,11 @@ side of the charger and the window it came from, the measured charging loss wher
 a grid figure exists, the usable capacity it divided into, your cost per 100 km
 with the month's solar share, and a bar chart of consumption by calendar month —
 the seasonal story, since winter consumption is routinely a third above summer.
+With [Weather along the route](Feature-Trips#weather-along-the-route-opt-in) on, a
+second chart shows consumption per 5 °C band of outside temperature and how much
+more the car uses below 5 °C than at 15–25 °C
+([how](Feature-Efficiency-and-Range#consumption-by-outside-temperature)); each
+trip's detail in the trips view then shows its outside temperature too.
 On a plug-in hybrid there is no consumption or range from the charging history
 ([why](Feature-Efficiency-and-Range#plug-in-hybrids)); it shows BMW's own lifetime
 figures instead — electric consumption with the engine off, the share driven

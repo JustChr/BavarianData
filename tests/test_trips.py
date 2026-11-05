@@ -149,6 +149,34 @@ def test_merge_replaces_by_id():
     assert merged[0].classification == "business"
 
 
+def test_a_rewrite_of_a_trip_keeps_the_weather_looked_up_after_it():
+    weather = {
+        "source": "route",
+        "temp_c": 4.2,
+        "temp_min_c": 1.0,
+        "temp_max_c": 6.0,
+        "samples": [],
+    }
+    looked_up = _trip(classification=None)
+    looked_up.weather = weather
+    late_reading = _trip(classification=None)  # the same drive, stored again
+    (merged,) = trips.merge_trip([looked_up], late_reading)
+    assert merged.weather == weather
+
+
+def test_the_weather_survives_a_save_and_load():
+    trip = _trip()
+    trip.weather = {
+        "source": "ends",
+        "temp_c": -3.5,
+        "temp_min_c": -4.0,
+        "temp_max_c": -3.0,
+        "samples": [],
+    }
+    assert trips.Trip.from_dict(trip.to_dict()).weather == trip.weather
+    assert trips.Trip.from_dict({**trip.to_dict(), "weather": "junk"}).weather is None
+
+
 # --- classification --------------------------------------------------------
 
 

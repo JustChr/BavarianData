@@ -137,6 +137,12 @@ Speicher und kostet daher kein BMW-API-Kontingent.
   erscheinen.
 - **`cost_per_100km` / `currency` / `energy_mix`** — die laufenden Kosten dieses
   Monats und woher seine Energie kam.
+- **`by_temperature`** — Verbrauch je Band der Außentemperatur, aus Fahrten mit
+  [Wetter entlang der Strecke](DE-Feature-Trips#weather-along-the-route-opt-in):
+  `bands` (je `from_c`, `to_c`, `trips`, `km`, `kwh_per_100km`, Letzteres `null` unter
+  30 km), `cold_kwh_per_100km` (unter 5 °C), `mild_kwh_per_100km` (15–25 °C),
+  `cold_penalty_percent` und `trips`. Sein `status` ist `ok`, `no_weather` oder
+  `plug_in_hybrid`.
 
 - **`bmw_lifetime`** — BMWs eigene Werte über die Lebensdauer aus den OBFCM-Zählern,
   oder `null`, wenn das Auto keine sendet: `fuel_l_per_100km` und `distance_km`, beim

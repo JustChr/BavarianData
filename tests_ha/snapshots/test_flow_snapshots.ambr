@@ -2843,6 +2843,15 @@
         }),
         dict({
           'default': False,
+          'name': 'trip_weather',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
           'name': 'trip_debug',
           'required': True,
           'selector': dict({
@@ -2871,6 +2880,7 @@
         'trip_phone_tracker': None,
         'trip_phone_tracker_2': None,
         'trip_track': False,
+        'trip_weather': False,
         'trip_work_zone': 'zone.work',
       }),
       'description_placeholders': None,
@@ -2960,6 +2970,15 @@
         dict({
           'default': True,
           'name': 'trip_geocode',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
+          'name': 'trip_weather',
           'required': True,
           'selector': dict({
             'boolean': dict({
@@ -3157,6 +3176,7 @@
         'trip_phone_tracker': 'device_tracker.phone',
         'trip_phone_tracker_2': None,
         'trip_track': True,
+        'trip_weather': False,
         'trip_work_zone': None,
       }),
       'description_placeholders': None,
@@ -3245,6 +3265,15 @@
         dict({
           'default': False,
           'name': 'trip_geocode',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
+          'name': 'trip_weather',
           'required': True,
           'selector': dict({
             'boolean': dict({
@@ -3401,6 +3430,15 @@
             }),
             dict({
               'default': False,
+              'name': 'trip_weather',
+              'required': True,
+              'selector': dict({
+                'boolean': dict({
+                }),
+              }),
+            }),
+            dict({
+              'default': False,
               'name': 'trip_debug',
               'required': True,
               'selector': dict({
@@ -3424,6 +3462,7 @@
       'data': dict({
         'trip_debug': False,
         'trip_geocode': True,
+        'trip_weather': False,
         'vehicles': dict({
           'WBATEST0000000002': dict({
             'trip_commute_gap': 15.0,
@@ -3622,6 +3661,7 @@
         'statistics_import': False,
         'trip_debug': False,
         'trip_geocode': True,
+        'trip_weather': False,
         'vehicles': dict({
           'WBATEST0000000001': dict({
             'charging_loss_percent': 5.0,
@@ -4207,6 +4247,15 @@
         dict({
           'default': False,
           'name': 'trip_geocode',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
+          'name': 'trip_weather',
           'required': True,
           'selector': dict({
             'boolean': dict({

@@ -15,7 +15,10 @@ One row per session or trip:
 
 - Both the **battery-side** and **measured grid** energy in separate columns.
 - The cost and where it came from.
-- For trips, the endpoints as **place names**.
+- For trips, the endpoints as **place names**, and, with
+  [route weather](Feature-Trips#weather-along-the-route-opt-in) on, the outside
+  temperature with its lowest and highest value and where it was looked up
+  (`outside_temp_c`, `outside_temp_min_c`, `outside_temp_max_c`, `weather_source`).
 
 Headers are always machine-readable English. Opens cleanly in Excel and Numbers.
 
