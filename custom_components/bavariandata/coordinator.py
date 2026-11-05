@@ -1719,7 +1719,10 @@ class CardataCoordinator:
             "series": raw_payload.get("series"),
             "series_development": raw_payload.get("seriesDevt"),
             "body_type": raw_payload.get("bodyType"),
-            "color": raw_payload.get("colourDescription") or raw_payload.get("colourCodeRaw"),
+            # Older cars send ``colourCodeRAW`` and ``saList`` (#277).
+            "color": raw_payload.get("colourDescription")
+            or raw_payload.get("colourCodeRaw")
+            or raw_payload.get("colourCodeRAW"),
             "country": raw_payload.get("countryCode"),
             "drive_train": raw_payload.get("driveTrain"),
             "propulsion_type": raw_payload.get("propulsionType"),
@@ -1734,7 +1737,7 @@ class CardataCoordinator:
             "head_unit": raw_payload.get("headUnit"),
             "sim_status": raw_payload.get("simStatus"),
             "construction_date": raw_payload.get("constructionDate"),
-            "special_equipment_codes": raw_payload.get("fullSAList"),
+            "special_equipment_codes": raw_payload.get("fullSAList") or raw_payload.get("saList"),
         }
         metadata: Dict[str, Any] = {
             "name": str(model_name),

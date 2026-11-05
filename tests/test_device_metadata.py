@@ -33,3 +33,14 @@ def test_text_basic_data_is_left_as_it_is() -> None:
     assert metadata["model"] == "i5 eDrive40"
     assert metadata["sw_version"] == "0723"
     assert metadata["hw_version"] == "G60"
+
+
+def test_the_older_spelling_of_paint_and_options_reaches_the_attributes() -> None:
+    # A 2021 iX3 (G08) sends ``colourCodeRAW`` and ``saList`` (#277).
+    with CoordinatorHarness() as h:
+        metadata = h.coordinator.apply_basic_data(
+            VIN, {"modelName": "iX3", "colourCodeRAW": "A90", "saList": "01VE,02PA"}
+        )
+
+    assert metadata["extra_attributes"]["color"] == "A90"
+    assert metadata["extra_attributes"]["special_equipment_codes"] == "01VE,02PA"
