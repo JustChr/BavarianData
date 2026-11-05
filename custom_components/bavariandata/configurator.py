@@ -2,8 +2,9 @@
 
 CarData's own vehicle image is a single side view. BMW's configurator draws any
 car it has ever sold from three things the car already reports in its basic
-data: the model code (``modelKey``), the paint (``colourCodeRaw``) and the
-factory options (``fullSAList``). From those this module fetches:
+data: the model code (``modelKey``), the paint (``colourCodeRaw``, on older
+cars ``colourCodeRAW``) and the factory options (``fullSAList``, or
+``saList``). From those this module fetches:
 
 * a 36-frame turntable with a transparent background, three times over: plain,
   with the lights on, and as the night scene (cut out with the plain spin, so
@@ -224,10 +225,12 @@ def spec_from_basic_data(raw: Mapping[str, Any]) -> CarSpec:
     if not re.fullmatch(r"[0-9A-Z]{4}", model) or not date:
         raise ConfiguratorError("no_data", "model code or build date missing")
     options: list[str] = []
-    paint = str(raw.get("colourCodeRaw") or "").strip().upper()
+    # Older cars spell both keys differently: a 2021 iX3 (G08) sends
+    # ``colourCodeRAW`` and ``saList`` (#277).
+    paint = str(raw.get("colourCodeRaw") or raw.get("colourCodeRAW") or "").strip().upper()
     if re.fullmatch(r"[0-9A-Z]{3}", paint):
         options.append(f"P0{paint}")
-    for code in str(raw.get("fullSAList") or "").split(","):
+    for code in str(raw.get("fullSAList") or raw.get("saList") or "").split(","):
         code = code.strip().upper()
         if re.fullmatch(r"[0-9A-Z]{4}", code):
             options.append(f"S{code}")

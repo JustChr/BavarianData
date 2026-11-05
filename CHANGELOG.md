@@ -9,6 +9,15 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **The BMW configurator picture shows older cars in their real paint, with
+  their equipment (#277, thanks @jowi1968).** Some cars, such as a 2021 iX3,
+  name their paint and factory options differently in BMW's basic data. The
+  configurator was then sent neither, drew the car in BMW's default blue and
+  listed no equipment. Both spellings are read now, and the paint code and
+  equipment codes in the car's basic vehicle info show for these cars too.
+  Choose *Configure → Vehicle image* and save once to draw the car again.
+
 ### Changed
 - **BavarianData is listed under Cars & EVs and EV charging in Home
   Assistant's new Marketplace.** Home Assistant 2026.11 replaced HACS with the
