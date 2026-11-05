@@ -208,8 +208,14 @@ EVENT_CHECK_CONTROL = f"{DOMAIN}_check_control"
 LOVELACE_CARD_FILENAME = "bavariandata-card.js"
 LOVELACE_CARD_URL = f"/{DOMAIN}/{LOVELACE_CARD_FILENAME}"
 # Every file the card loads, each served beside it at /<domain>/<name>: the card
-# imports its strings by a URL relative to its own.
-LOVELACE_CARD_FILES = (LOVELACE_CARD_FILENAME, "bavariandata-card-translations.js")
+# imports its strings and its class's parts (its CARD_PARTS) by a URL relative
+# to its own.
+LOVELACE_CARD_PARTS = ("overview", "clusters", "charging", "trips", "map", "stats", "car", "styles")
+LOVELACE_CARD_FILES = (
+    LOVELACE_CARD_FILENAME,
+    "bavariandata-card-translations.js",
+    *(f"bavariandata-card-{part}.js" for part in LOVELACE_CARD_PARTS),
+)
 
 HV_BATTERY_CONTAINER_NAME = "BMW CarData HV Battery"
 HV_BATTERY_CONTAINER_PURPOSE = "High voltage battery telemetry"

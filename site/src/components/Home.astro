@@ -4,6 +4,7 @@ import CardDemo from "./CardDemo.astro";
 import Stream from "./Stream.astro";
 import Flow from "./Flow.astro";
 import LiveCard from "./LiveCard.astro";
+import assets from "../generated/assets.json";
 import { url, localized, absolute, RELEASE, HA_MIN, DESCRIPTOR_COUNT, INSTALL_REDIRECT, REPO, STARS, SITE_URL, type Lang } from "../lib/site";
 
 interface Props {
@@ -236,12 +237,11 @@ const jsonLd = [
 ];
 ---
 <Base lang={lang} title={copy.title} description={copy.description} path="" jsonLd={jsonLd} rawTitle>
-  {/* The hero card needs all three; started here they load alongside the page
+  {/* The hero card needs all of these; started here they load alongside the page
       instead of after the demo runtime asks for them. The card is a module and
-      imports its strings, so both are module preloads. */}
+      imports its strings and its parts, so each is a module preload. */}
   <link slot="head" rel="preload" href={url("demo/i5.json")} as="fetch" crossorigin="anonymous" />
-  <link slot="head" rel="modulepreload" href={url("demo/bavariandata-card.js")} />
-  <link slot="head" rel="modulepreload" href={url("demo/bavariandata-card-translations.js")} />
+  {assets.cardFiles.map((name) => <link slot="head" rel="modulepreload" href={url(`demo/${name}`)} />)}
   <main id="main" data-pagefind-body>
     <section class="hero">
       <div class="hero__waves" aria-hidden="true">

@@ -26,12 +26,17 @@ for (const dir of [GEN, join(PUBLIC, "demo"), join(PUBLIC, "screenshots")]) mkdi
 rmSync(join(SITE, ".astro"), { recursive: true, force: true });
 
 // --- the card ---------------------------------------------------------------
-// Both files: the card imports its strings from beside itself.
+// Every file: the card imports its strings and its class's parts from beside itself.
 const WWW = join(ROOT, "custom_components", "bavariandata", "www");
-for (const name of ["bavariandata-card.js", "bavariandata-card-translations.js"]) {
+const cardFiles = readdirSync(WWW).filter((name) => /^bavariandata-card.*\.js$/.test(name)).sort();
+for (const name of cardFiles) {
   copyFileSync(join(WWW, name), join(PUBLIC, "demo", name));
 }
-const card = readFileSync(join(WWW, "bavariandata-card.js"), "utf8");
+// The card's own code, every part of it, for the icons it names.
+const card = cardFiles
+  .filter((name) => name !== "bavariandata-card-translations.js")
+  .map((name) => readFileSync(join(WWW, name), "utf8"))
+  .join("\n");
 const cardVersion = (card.match(/const CARD_VERSION = "([^"]+)"/) || [])[1];
 
 // --- icons ------------------------------------------------------------------
@@ -181,6 +186,6 @@ if (badge) writeFileSync(join(PUBLIC, "badges", "downloads.json"), badge);
 
 writeFileSync(
   join(GEN, "assets.json"),
-  JSON.stringify({ cardVersion, icons, screenshots: shots }, null, 1) + "\n"
+  JSON.stringify({ cardVersion, cardFiles, icons, screenshots: shots }, null, 1) + "\n"
 );
 console.log(`prepare: ${releases.length} releases in the changelog, card ${cardVersion}, ${Object.keys(icons).length} icons, ${Object.keys(shots).length} screenshots, ${downloads ?? "unknown"} downloads`);

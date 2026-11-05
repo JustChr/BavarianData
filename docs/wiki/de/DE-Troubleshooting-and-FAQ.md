@@ -465,8 +465,12 @@ Telefons deine Home-Assistant-Adresse mit angehängtem Pfad:
 ```
 
 - **Eine Wand aus JavaScript** → die Datei ist erreichbar, die Karte scheitert also beim
-  Laden. Bitte öffne ein Issue mit deiner iOS-/Android-Version und, wenn du drankommst,
-  den Fehlern aus der Browser-Konsole.
+  Laden. Die Karte lädt weitere Dateien von ihrem eigenen Ort nach, eine je Gruppe von
+  Ansichten. Sagt die Browser-Konsole *BavarianData card: could not load its parts*, ist
+  eine davon nicht angekommen: Probiere `/bavariandata/bavariandata-card-overview.js`
+  genauso. Ein 404 dort ist das Reverse-Proxy-Problem unten. Sonst öffne bitte ein Issue
+  mit deiner iOS-/Android-Version und, wenn du drankommst, den Fehlern aus der
+  Browser-Konsole.
 - **404 / „nicht gefunden“** → deine Verbindung erreicht den Pfad nicht. Das ist ein
   **Reverse Proxy** (Nginx, Traefik, Caddy, Cloudflare Tunnel …), der nur die bekannten
   Pfade weiterleitet — `/api/`, `/static/`, `/frontend_latest/` und Co. Eigene Karten
