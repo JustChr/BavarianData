@@ -17,6 +17,13 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   listed no equipment. Both spellings are read now, and the paint code and
   equipment codes in the car's basic vehicle info show for these cars too.
   Choose *Configure → Vehicle image* and save once to draw the car again.
+- **The dashboard card no longer floods the log while an account reloads
+  (#277, thanks @jowi1968).** Saving a *Configure* screen reloads the account
+  for a moment. A card view that asked for its history right then (charging,
+  places, trips, map, efficiency, fuel or mileage) asked again at once after
+  each refusal, and the log filled with "No loaded BavarianData account"
+  errors, 172 in one second. A view that couldn't load now tries again after
+  30 seconds.
 
 ### Changed
 - **BavarianData is listed under Cars & EVs and EV charging in Home
