@@ -9,6 +9,13 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Changed
+- **The Efficiency view's bar charts show each bar's figure.** *Consumption by
+  month* and *Consumption by outside temperature* labelled only the top of the
+  scale, which read like the first bar's value. Each bar now has its own
+  kWh/100 km above it, and the corner names the unit. A temperature band with too
+  few kilometres behind it still shows a stub without a figure.
+
 ## [0.9.27-beta.3] - 2026-11-05
 
 ### Fixed

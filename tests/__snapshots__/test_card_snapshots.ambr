@@ -1384,19 +1384,22 @@
           <div class="ef__trend">
   <span class="ef__trend-title">Consumption by month</span>
         <svg class="ef__chart" viewBox="0 0 280 88" role="img">
-          <rect class="ef__bar" x="36.7" y="20.7"
-                    width="28" height="53.3" rx="2">
+          <rect class="ef__bar" x="36.7" y="26.9"
+                    width="28" height="47.1" rx="2">
   </rect>
+                  <text class="ef__bar-val" x="50.7" y="23.9" text-anchor="middle">16.4</text>
                   <text class="ef__bar-lbl" x="50.7" y="85" text-anchor="middle">07</text>
-  <rect class="ef__bar" x="126" y="18.8"
-                    width="28" height="55.2" rx="2">
+  <rect class="ef__bar" x="126" y="25.1"
+                    width="28" height="48.9" rx="2">
   </rect>
+                  <text class="ef__bar-val" x="140" y="22.1" text-anchor="middle">17</text>
                   <text class="ef__bar-lbl" x="140" y="85" text-anchor="middle">08</text>
-  <rect class="ef__bar" x="215.3" y="14.9"
-                    width="28" height="59.1" rx="2">
+  <rect class="ef__bar" x="215.3" y="21.7"
+                    width="28" height="52.3" rx="2">
   </rect>
+                  <text class="ef__bar-val" x="229.3" y="18.7" text-anchor="middle">18.2</text>
                   <text class="ef__bar-lbl" x="229.3" y="85" text-anchor="middle">09</text>
-          <text x="6" y="9" class="chg__chart-max">21 kWh/100 km</text>
+          <text x="6" y="9" class="chg__chart-max">kWh/100 km</text>
         </svg>
       </div>
           <div class="ef__trend">
@@ -1404,23 +1407,29 @@
         <svg class="ef__chart" viewBox="0 0 280 88" role="img">
           <rect class="ef__bar ef__bar--thin" x="15.4" y="72" width="25.9" height="2" rx="2">
   </rect>
+                  
                   <text class="ef__bar-lbl" x="28.3" y="85" text-anchor="middle">&lt; 0</text>
-  <rect class="ef__bar" x="60" y="14.9" width="25.9" height="59.1" rx="2">
+  <rect class="ef__bar" x="60" y="21.7" width="25.9" height="52.3" rx="2">
   </rect>
+                  <text class="ef__bar-val" x="73" y="18.7" text-anchor="middle">23.1</text>
                   <text class="ef__bar-lbl" x="73" y="85" text-anchor="middle">0–5</text>
-  <rect class="ef__bar" x="104.7" y="21.8" width="25.9" height="52.2" rx="2">
+  <rect class="ef__bar" x="104.7" y="27.8" width="25.9" height="46.2" rx="2">
   </rect>
+                  <text class="ef__bar-val" x="117.7" y="24.8" text-anchor="middle">20.4</text>
                   <text class="ef__bar-lbl" x="117.7" y="85" text-anchor="middle">5–10</text>
   <rect class="ef__bar ef__bar--thin" x="149.4" y="72" width="25.9" height="2" rx="2">
   </rect>
+                  
                   <text class="ef__bar-lbl" x="162.3" y="85" text-anchor="middle">10–15</text>
-  <rect class="ef__bar" x="194" y="32.5" width="25.9" height="41.5" rx="2">
+  <rect class="ef__bar" x="194" y="37.3" width="25.9" height="36.7" rx="2">
   </rect>
+                  <text class="ef__bar-val" x="207" y="34.3" text-anchor="middle">16.2</text>
                   <text class="ef__bar-lbl" x="207" y="85" text-anchor="middle">15–20</text>
-  <rect class="ef__bar" x="238.7" y="33.6" width="25.9" height="40.4" rx="2">
+  <rect class="ef__bar" x="238.7" y="38.2" width="25.9" height="35.8" rx="2">
   </rect>
+                  <text class="ef__bar-val" x="251.7" y="35.2" text-anchor="middle">15.8</text>
                   <text class="ef__bar-lbl" x="251.7" y="85" text-anchor="middle">20–25</text>
-          <text x="6" y="9" class="chg__chart-max">27 kWh/100 km</text>
+          <text x="6" y="9" class="chg__chart-max">kWh/100 km</text>
         </svg>
   <span class="ef__fact-note">Below 5 °C it uses 43% more than at 15–25 °C, measured on your trips.</span>
   </div>
@@ -1476,19 +1485,22 @@
           <div class="ef__trend">
   <span class="ef__trend-title">Consumption by month</span>
         <svg class="ef__chart" viewBox="0 0 280 88" role="img">
-          <rect class="ef__bar" x="36.7" y="20.7"
-                    width="28" height="53.3" rx="2">
+          <rect class="ef__bar" x="36.7" y="26.9"
+                    width="28" height="47.1" rx="2">
   </rect>
+                  <text class="ef__bar-val" x="50.7" y="23.9" text-anchor="middle">26.4</text>
                   <text class="ef__bar-lbl" x="50.7" y="85" text-anchor="middle">07</text>
-  <rect class="ef__bar" x="126" y="18.8"
-                    width="28" height="55.2" rx="2">
+  <rect class="ef__bar" x="126" y="25.1"
+                    width="28" height="48.9" rx="2">
   </rect>
+                  <text class="ef__bar-val" x="140" y="22.1" text-anchor="middle">27.4</text>
                   <text class="ef__bar-lbl" x="140" y="85" text-anchor="middle">08</text>
-  <rect class="ef__bar" x="215.3" y="14.9"
-                    width="28" height="59.1" rx="2">
+  <rect class="ef__bar" x="215.3" y="21.7"
+                    width="28" height="52.3" rx="2">
   </rect>
+                  <text class="ef__bar-val" x="229.3" y="18.7" text-anchor="middle">29.3</text>
                   <text class="ef__bar-lbl" x="229.3" y="85" text-anchor="middle">09</text>
-          <text x="6" y="9" class="chg__chart-max">34 kWh/100 mi</text>
+          <text x="6" y="9" class="chg__chart-max">kWh/100 mi</text>
         </svg>
       </div>
           <div class="ef__trend">
@@ -1496,23 +1508,29 @@
         <svg class="ef__chart" viewBox="0 0 280 88" role="img">
           <rect class="ef__bar ef__bar--thin" x="15.4" y="72" width="25.9" height="2" rx="2">
   </rect>
+                  
                   <text class="ef__bar-lbl" x="28.3" y="85" text-anchor="middle">&lt; 32</text>
-  <rect class="ef__bar" x="60" y="14.9" width="25.9" height="59.1" rx="2">
+  <rect class="ef__bar" x="60" y="21.7" width="25.9" height="52.3" rx="2">
   </rect>
+                  <text class="ef__bar-val" x="73" y="18.7" text-anchor="middle">37.2</text>
                   <text class="ef__bar-lbl" x="73" y="85" text-anchor="middle">32–41</text>
-  <rect class="ef__bar" x="104.7" y="21.8" width="25.9" height="52.2" rx="2">
+  <rect class="ef__bar" x="104.7" y="27.8" width="25.9" height="46.2" rx="2">
   </rect>
+                  <text class="ef__bar-val" x="117.7" y="24.8" text-anchor="middle">32.8</text>
                   <text class="ef__bar-lbl" x="117.7" y="85" text-anchor="middle">41–50</text>
   <rect class="ef__bar ef__bar--thin" x="149.4" y="72" width="25.9" height="2" rx="2">
   </rect>
+                  
                   <text class="ef__bar-lbl" x="162.3" y="85" text-anchor="middle">50–59</text>
-  <rect class="ef__bar" x="194" y="32.5" width="25.9" height="41.5" rx="2">
+  <rect class="ef__bar" x="194" y="37.3" width="25.9" height="36.7" rx="2">
   </rect>
+                  <text class="ef__bar-val" x="207" y="34.3" text-anchor="middle">26.1</text>
                   <text class="ef__bar-lbl" x="207" y="85" text-anchor="middle">59–68</text>
-  <rect class="ef__bar" x="238.7" y="33.6" width="25.9" height="40.4" rx="2">
+  <rect class="ef__bar" x="238.7" y="38.2" width="25.9" height="35.8" rx="2">
   </rect>
+                  <text class="ef__bar-val" x="251.7" y="35.2" text-anchor="middle">25.4</text>
                   <text class="ef__bar-lbl" x="251.7" y="85" text-anchor="middle">68–77</text>
-          <text x="6" y="9" class="chg__chart-max">43 kWh/100 mi</text>
+          <text x="6" y="9" class="chg__chart-max">kWh/100 mi</text>
         </svg>
   <span class="ef__fact-note">Below 41 °F it uses 43% more than at 59–77 °F, measured on your trips.</span>
   </div>
@@ -1568,19 +1586,22 @@
           <div class="ef__trend">
   <span class="ef__trend-title">Consumption by month</span>
         <svg class="ef__chart" viewBox="0 0 280 88" role="img">
-          <rect class="ef__bar" x="36.7" y="20.7"
-                    width="28" height="53.3" rx="2">
+          <rect class="ef__bar" x="36.7" y="26.9"
+                    width="28" height="47.1" rx="2">
   </rect>
+                  <text class="ef__bar-val" x="50.7" y="23.9" text-anchor="middle">16.4</text>
                   <text class="ef__bar-lbl" x="50.7" y="85" text-anchor="middle">07</text>
-  <rect class="ef__bar" x="126" y="18.8"
-                    width="28" height="55.2" rx="2">
+  <rect class="ef__bar" x="126" y="25.1"
+                    width="28" height="48.9" rx="2">
   </rect>
+                  <text class="ef__bar-val" x="140" y="22.1" text-anchor="middle">17</text>
                   <text class="ef__bar-lbl" x="140" y="85" text-anchor="middle">08</text>
-  <rect class="ef__bar" x="215.3" y="14.9"
-                    width="28" height="59.1" rx="2">
+  <rect class="ef__bar" x="215.3" y="21.7"
+                    width="28" height="52.3" rx="2">
   </rect>
+                  <text class="ef__bar-val" x="229.3" y="18.7" text-anchor="middle">18.2</text>
                   <text class="ef__bar-lbl" x="229.3" y="85" text-anchor="middle">09</text>
-          <text x="6" y="9" class="chg__chart-max">21 kWh/100 km</text>
+          <text x="6" y="9" class="chg__chart-max">kWh/100 km</text>
         </svg>
       </div>
           
@@ -1636,19 +1657,22 @@
           <div class="ef__trend">
   <span class="ef__trend-title">Consumption by month</span>
         <svg class="ef__chart" viewBox="0 0 280 88" role="img">
-          <rect class="ef__bar" x="36.7" y="20.7"
-                    width="28" height="53.3" rx="2">
+          <rect class="ef__bar" x="36.7" y="26.9"
+                    width="28" height="47.1" rx="2">
   </rect>
+                  <text class="ef__bar-val" x="50.7" y="23.9" text-anchor="middle">26.4</text>
                   <text class="ef__bar-lbl" x="50.7" y="85" text-anchor="middle">07</text>
-  <rect class="ef__bar" x="126" y="18.8"
-                    width="28" height="55.2" rx="2">
+  <rect class="ef__bar" x="126" y="25.1"
+                    width="28" height="48.9" rx="2">
   </rect>
+                  <text class="ef__bar-val" x="140" y="22.1" text-anchor="middle">27.4</text>
                   <text class="ef__bar-lbl" x="140" y="85" text-anchor="middle">08</text>
-  <rect class="ef__bar" x="215.3" y="14.9"
-                    width="28" height="59.1" rx="2">
+  <rect class="ef__bar" x="215.3" y="21.7"
+                    width="28" height="52.3" rx="2">
   </rect>
+                  <text class="ef__bar-val" x="229.3" y="18.7" text-anchor="middle">29.3</text>
                   <text class="ef__bar-lbl" x="229.3" y="85" text-anchor="middle">09</text>
-          <text x="6" y="9" class="chg__chart-max">34 kWh/100 mi</text>
+          <text x="6" y="9" class="chg__chart-max">kWh/100 mi</text>
         </svg>
       </div>
           
