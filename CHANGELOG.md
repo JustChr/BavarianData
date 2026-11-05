@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.27-beta.3] - 2026-11-05
+
 ### Fixed
 - **Weather along the route never filled in older trips.** Two minutes after
   the switch went on (or after a restart), the look-up for trips stored before
