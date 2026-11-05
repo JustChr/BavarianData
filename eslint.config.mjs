@@ -26,8 +26,8 @@ export default [
     languageOptions: {
       ecmaVersion: 2023,
       // Home Assistant loads the card as a module resource, and the card
-      // imports its strings (bavariandata-card-translations.js) with a
-      // top-level await.
+      // imports its strings (bavariandata-card-translations.js) and its class's
+      // parts (bavariandata-card-<part>.js) with a top-level await.
       sourceType: "module",
       globals: {
         // Browser surface the card actually touches.

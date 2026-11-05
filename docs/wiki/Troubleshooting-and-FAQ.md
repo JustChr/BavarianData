@@ -440,8 +440,12 @@ open your Home Assistant address with this path appended:
 ```
 
 - **A wall of JavaScript** → the file is reachable, so the card is failing while
-  it loads. Please open an issue with your iOS/Android version and, if you can
-  get at them, the browser console errors.
+  it loads. The card loads more files from beside itself, one per group of
+  views. If the browser console says *BavarianData card: could not load its
+  parts*, one of them didn't arrive: try
+  `/bavariandata/bavariandata-card-overview.js` the same way. A 404 there is
+  the reverse proxy problem below. Otherwise, please open an issue with your
+  iOS/Android version and, if you can get at them, the browser console errors.
 - **404 / "not found"** → your connection can't reach the path. That's a
   **reverse proxy** (Nginx, Traefik, Caddy, Cloudflare Tunnel …) forwarding only
   the well-known paths — `/api/`, `/static/`, `/frontend_latest/` and friends.

@@ -23,7 +23,7 @@ import subprocess
 
 import pytest
 
-from .card_source import CARD, evaluable_card
+from .card_source import card_text, evaluable_card, where
 
 _CARD = evaluable_card()
 
@@ -139,15 +139,15 @@ def test_raw_rounding_never_reaches_the_page():
     # `_round` returns a number, and a number interpolated into a template prints
     # a point in every locale. Display text goes through `_dec`, SVG coordinates
     # through `_px`; nothing else may call `_round`.
-    source = CARD.read_text(encoding="utf-8")
+    source = card_text()
     allowed = [_method_body(source, "_dec"), _method_body(source, "_px")]
     stray = [
-        source.count("\n", 0, m.start()) + 1
+        where(source.count("\n", 0, m.start()) + 1)
         for m in re.finditer(r"this\._round\(", source)
         if not any(start <= m.start() < end for start, end in allowed)
     ]
     assert not stray, (
-        f"bavariandata-card.js calls _round() directly on line(s) {stray}: use "
+        f"the card calls _round() directly at {stray}: use "
         "_dec() for text shown to the user, _px() for an SVG coordinate"
     )
 

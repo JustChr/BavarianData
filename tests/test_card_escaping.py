@@ -30,15 +30,14 @@ not that the page is safe.
 
 from __future__ import annotations
 
-import pathlib
 import re
 
 import pytest
 
-_ROOT = pathlib.Path(__file__).resolve().parents[1]
-_CARD = _ROOT / "custom_components" / "bavariandata" / "www" / "bavariandata-card.js"
+from .card_source import card_text, where
 
-SOURCE = _CARD.read_text(encoding="utf-8")
+# Every file of the card's code, joined; `where()` names the file and line.
+SOURCE = card_text()
 
 # Calls that escape their own return value, so interpolating their result is
 # safe. Kept honest by ``test_self_escaping_helpers_actually_escape``.
@@ -280,7 +279,7 @@ def test_html_templates_escape_user_controlled_text() -> None:
 
     found = _violations()
     assert not found, "unescaped user-controlled text in card HTML:\n" + "\n".join(
-        f"  {_CARD.name}:{line}  ${{{expr}}}" for line, expr in found
+        f"  {where(line)}  ${{{expr}}}" for line, expr in found
     )
 
 
@@ -309,7 +308,7 @@ def test_leaflet_tooltips_are_escaped() -> None:
         line = _line_of(SOURCE, match.start())
         tail = SOURCE[match.end() : SOURCE.find("\n", match.end())]
         assert any(safe in tail for safe in SAFE_CALLS), (
-            f"{_CARD.name}:{line}: {match.group(1)}() content is not escaped"
+            f"{where(line)}: {match.group(1)}() content is not escaped"
         )
 
 
@@ -335,7 +334,7 @@ def test_the_overview_range_names_the_descriptor_it_wants() -> None:
     which one the overview card showed came down to entity-registry order.
     """
 
-    source = _CARD.read_text(encoding="utf-8")
+    source = SOURCE
     start = source.index("      range:\n        cfg.range ||")
     block = source[start : source.index("charging:", start)]
     assert "kombi remaining electric range" in block, (

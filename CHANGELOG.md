@@ -9,6 +9,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Changed
+- **The dashboard card comes in several files now.** Its code is split into one
+  file per group of views, which the card loads from beside itself. Nothing
+  looks or works differently. A reverse proxy has to forward everything under
+  `/bavariandata/`, as before; if the card stays missing, the
+  [Troubleshooting page](https://github.com/JustChr/BavarianData/wiki/Troubleshooting-and-FAQ#custom-element-doesnt-exist-app)
+  says how to check.
+
 ## [0.9.27-beta.1] - 2026-11-05
 
 ### Fixed

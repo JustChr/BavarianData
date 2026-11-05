@@ -77,8 +77,11 @@ const settle = async () => { for (let i = 0; i < 200; i++) await null; };
     card._deviceEntry = () => "entry";
     card._drivetrain = () => (view === "fuel" ? "ice" : "bev");
     card._ensureMapLib = () => {};
-    for (const name of Object.getOwnPropertyNames(Card.prototype)) {
-      if (/^_paint/.test(name)) card[name] = () => {};
+    // The views live in the card's parts, so walk the whole prototype chain.
+    for (let proto = Card.prototype; proto; proto = Object.getPrototypeOf(proto)) {
+      for (const name of Object.getOwnPropertyNames(proto)) {
+        if (/^_paint/.test(name)) card[name] = () => {};
+      }
     }
     card._render = () => paint(card);
     paint(card);

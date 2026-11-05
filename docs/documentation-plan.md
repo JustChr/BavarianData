@@ -332,6 +332,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | No dashboard is auto-created — the user places the card (issue #4) | 🟢 README quick start step 5 + Home → "Start here" + Getting-Started-4 outro + The-Dashboard-Card intro + Troubleshooting → "No dashboard appears after setup" |
 | Card missing in the companion app only — app cache / proxy path (issue #4) | 🟢 The-Dashboard-Card intro + Troubleshooting → "Custom element doesn't exist … in the mobile app" |
 | Card shows key names instead of text — its strings file (`bavariandata-card-translations.js`) didn't load: cache / proxy path | 🟢 Troubleshooting → "The card shows names like `no_vehicle_title` instead of text" (EN + DE) |
+| Card missing because one of its parts (`bavariandata-card-<part>.js`, console: *could not load its parts*) didn't load: proxy path | 🟢 Troubleshooting → "Custom element doesn't exist", test 2 (EN + DE) |
 | Diagnostics download (what it holds, what it redacts, no quota cost) | 🟢 Troubleshooting → "Download diagnostics" + "Where to get help" |
 | What appears in logs — masked VIN at default level, full VIN only under debug | 🟢 Troubleshooting → "Debug logging" + Settings-Reference → "Debug logging" |
 | Display units are the user's choice; values are stored as the car sends them (issue #7) | 🟢 Troubleshooting → "A sensor shows an absurd value, or reads unknown after an update" |

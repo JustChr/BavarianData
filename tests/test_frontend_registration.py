@@ -29,6 +29,7 @@ from dataclasses import dataclass
 import pytest
 from aiohttp import web
 
+from .card_source import card_parts
 from .conftest import load_module
 
 _FRONTEND = (
@@ -177,18 +178,26 @@ def test_concurrent_entry_setups_register_the_card_route_once(ha_http):
     assert len(_card_routes(hass)) == 1
 
 
-def test_the_card_and_its_strings_are_served_side_by_side(ha_http):
-    # The card imports its strings by a URL relative to its own, so both must be
-    # served from the same directory -- and both must exist in the package.
+def test_the_card_its_strings_and_its_parts_are_served_side_by_side(ha_http):
+    # The card imports its strings and its parts by a URL relative to its own, so
+    # all must be served from the same directory -- and all must exist in the package.
     register_card = _load_register_card()["async_register_frontend_card"]
     hass = _FakeHass()
 
     asyncio.run(register_card(hass))
 
     served = {route.resource.canonical for route in hass.http.app.router.routes()}
-    assert served == {CARD_URL, "/bavariandata/bavariandata-card-translations.js"}
+    parts = {f"/bavariandata/bavariandata-card-{part}.js" for part in card_parts()}
+    assert served == {CARD_URL, "/bavariandata/bavariandata-card-translations.js", *parts}
     www = _FRONTEND.parent / "www"
     assert all((www / name).is_file() for name in _CONST.LOVELACE_CARD_FILES)
+
+
+def test_every_card_file_in_the_package_is_served():
+    # A part written but left off the list would 404 and leave the card undefined.
+    www = _FRONTEND.parent / "www"
+    shipped = {path.name for path in www.glob("*.js")}
+    assert shipped == set(_CONST.LOVELACE_CARD_FILES)
 
 
 def test_failed_registration_lets_the_next_setup_retry(ha_http):

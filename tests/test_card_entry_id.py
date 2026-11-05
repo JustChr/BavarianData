@@ -29,7 +29,7 @@ import subprocess
 
 import pytest
 
-from .card_source import CARD, evaluable_card
+from .card_source import card_text, evaluable_card
 
 _CARD = evaluable_card()
 
@@ -179,7 +179,7 @@ def test_no_call_site_builds_entry_id_by_hand() -> None:
     aside.
     """
 
-    source = CARD.read_text(encoding="utf-8")
+    source = card_text()
     body = source.replace("{ ...data, entry_id: entryId }", "")
     offenders = re.findall(r"entry_id:\s*\w+", body)
     assert not offenders, f"entry_id set outside _withEntry: {offenders}"
