@@ -9,9 +9,9 @@ faithfully:
 =====================================  =========================================
 Home Assistant                          Stand-in
 =====================================  =========================================
-``core.HomeAssistant`` / ``callback``   a marker class / identity decorator
+``core.HomeAssistant`` / ``callback``   a marker class / HA's ``_hass_callback`` mark
 ``helpers.dispatcher``                  records every signal on the ``FakeHass``
-``helpers.event.async_call_later``      a timer on the virtual clock
+``helpers.event.async_call_later``      a timer on the virtual clock (``@callback`` only)
 ``helpers.event.async_track_state_...`` a listener ``FakeHass.set_state`` calls
 ``helpers.issue_registry``              records raised/cleared repair issues
 ``helpers.storage.Store``               an in-memory store on the ``FakeHass``
@@ -249,8 +249,17 @@ def _stub_modules() -> dict[str, types.ModuleType]:
     def dispatcher_send(hass, signal, *args) -> None:
         hass.signals.append((signal, args))
 
-    def call_later(hass, delay, callback):
-        return hass.call_later(delay, callback)
+    def mark_callback(func):
+        # As HA's own ``callback``: the mark is what keeps a timer on the loop.
+        func._hass_callback = True
+        return func
+
+    def call_later(hass, delay, action):
+        # HA runs a timer action without the mark in its executor, where every
+        # loop-only helper (async_create_task, the dispatcher) refuses to run.
+        if not getattr(action, "_hass_callback", False):
+            raise AssertionError(f"async_call_later got {action!r} without @callback")
+        return hass.call_later(delay, action)
 
     def track_state_change_event(hass, entity_ids, action):
         listener = (frozenset([entity_ids] if isinstance(entity_ids, str) else entity_ids), action)
@@ -282,7 +291,7 @@ def _stub_modules() -> dict[str, types.ModuleType]:
         "homeassistant.components": components,
         "homeassistant.components.zone": zone,
         "homeassistant.core": module(
-            "homeassistant.core", HomeAssistant=FakeHass, callback=lambda func: func
+            "homeassistant.core", HomeAssistant=FakeHass, callback=mark_callback
         ),
         "homeassistant.helpers": module("homeassistant.helpers"),
         "homeassistant.helpers.dispatcher": module(

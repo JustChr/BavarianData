@@ -9,6 +9,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Weather along the route never filled in older trips.** Two minutes after
+  the switch went on (or after a restart), the look-up for trips stored before
+  stopped at once, and Home Assistant logged a warning that BavarianData "calls
+  hass.async_create_task from a thread other than the event loop". A failed
+  look-up's one retry would have stopped the same way. Both now run as they
+  should. A trip's own look-up right after the drive was not affected.
+
 ## [0.9.27-beta.2] - 2026-11-05
 
 ### Added
