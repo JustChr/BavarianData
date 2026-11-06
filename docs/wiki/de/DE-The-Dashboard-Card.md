@@ -82,7 +82,7 @@ oder Finger) dreht es einmal ganz herum. Das Bild folgt auch dem Auto:
   [Zeichnung von oben](#security--closures-cluster-closures) in der Ecke, mit dem
   offenen Teil hervorgehoben.
 - **Innenraum.** Der Sitz-Knopf wechselt zu einem 360°-Panorama des Innenraums,
-  in der unter [Konfigurieren → Fahrzeugbild](DE-Settings-Reference#fahrzeugbild)
+  in der unter [Konfigurieren → Fahrzeugbild → Polsterung](DE-Settings-Reference#fahrzeugbild)
   gewählten Polsterung (sonst BMW-Standard); zum Umsehen ziehst du darüber.
 
 <p align="center">

@@ -204,9 +204,27 @@
           "image_source": "Officiell: en sidovy, 1 av dina 50 dagliga BMW-förfrågningar per bil. Konfigurator: exakt din bil i 360° med riktig lack, inga förfrågningar, men en inofficiell BMW-tjänst som kan sluta fungera."
         }
       },
-      "image_upholstery": {
+      "vehicle_image": {
+        "title": "Fordonsbild",
+        "description": "Var bilens bild kommer ifrån, och vilken klädsel BMW:s konfigurator ritar i den.",
+        "menu_options": {
+          "image_source": "Bildkälla",
+          "action_upholstery": "Klädsel"
+        }
+      },
+      "upholstery_vehicle": {
         "title": "Klädsel",
-        "description": "BMW skickar inte klädseln för {vehicle}, så konfiguratorn ritar BMW:s standard. Välj din för att se den i kortets 360°-interiör.",
+        "description": "Varje fordon har sin egen klädsel. Välj det du vill ändra.",
+        "data": {
+          "vehicle": "Fordon"
+        },
+        "data_description": {
+          "vehicle": "Nästa skärm visar fordonets klädsel."
+        }
+      },
+      "action_upholstery": {
+        "title": "Klädsel",
+        "description": "BMW skickar inte klädseln för {vehicle}, så konfiguratorn ritar BMW:s standard. Välj din för att se den i kortets 360°-interiör. Skicka ritar om bilens bild.",
         "data": {
           "configurator_upholstery": "Klädsel"
         },
@@ -570,7 +588,11 @@
       "reauth_device_code_failed": "BMW avvisade begäran om enhetsauktorisering ({error}). Kontrollera Client ID och försök igen.",
       "reauth_missing_client_id": "Client ID saknas för den här integrationsposten. Ta bort och lägg till integrationen igen för att auktorisera på nytt.",
       "reauth_failed": "Omauktoriseringen kunde inte startas. Försök igen från integrationens alternativ.",
-      "configurator_partial": "Sparat. BMW:s konfigurator ritar dina andra bilar, men inte {vehicles}: de behåller den officiella bilden, vilket kostar 1 av dina 50 dagliga BMW-förfrågningar per bil som ännu saknar en. Loggen säger varför."
+      "configurator_partial": "Sparat. BMW:s konfigurator ritar dina andra bilar, men inte {vehicles}: de behåller den officiella bilden, vilket kostar 1 av dina 50 dagliga BMW-förfrågningar per bil som ännu saknar en. Loggen säger varför.",
+      "upholstery_none": "BMW:s konfigurator anger ingen klädsel för {vehicle}, eller svarade inte. Försök igen senare.",
+      "configurator_saved": "Sparat. BMW:s konfigurator ritar nu dina bilar. För att se sätena som de är, öppna Fordonsbild igen och välj Klädsel.",
+      "runtime_missing": "Integrationen är inte redo än. Försök igen när installationen är klar.",
+      "no_vins": "Inga fordon är kända än. Kör \"Sök efter fordon\" först, eller vänta tills strömmen rapporterar ett."
     }
   },
   "selector": {

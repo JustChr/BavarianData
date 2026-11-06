@@ -155,7 +155,9 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `action_fetch_tyre` | Fetch tire diagnosis | 🟡 | — |
 | `action_fetch_location_charging` | Fetch location charging settings | 🟡 | — |
 | `action_fetch_image` | Vehicle image (picture source: BMW CarData or BMW's configurator, `image_source`) | 🟢 Settings-Reference → "Vehicle image" + Feature-Entities-and-Devices + The-Dashboard-Card (EN + DE) | 📷 (have, 2026-10-14: `bavariandata-vehicle-image.png`; card: `card-hero-spin.png`) |
-| `image_upholstery` | Vehicle image → Upholstery: one screen per car BMW's configurator lists upholstery for, after Submit with the configurator ("Next" until the last car) | 🟢 Settings-Reference → "Vehicle image" + The-Dashboard-Card → "Overview" (EN + DE) | 📷 (needed) |
+| `vehicle_image` | Vehicle image as a menu once the configurator is the source: Picture source (`image_source` → the `action_fetch_image` form) · Upholstery | 🟢 Settings-Reference → "Vehicle image" (EN + DE) | 📷 (needed) |
+| `upholstery_vehicle` | Upholstery: which vehicle (only with 2+ cars) | 🟢 Settings-Reference → "Vehicle image" (EN + DE) | 📷 (picker shared) |
+| `action_upholstery` | Vehicle image → Upholstery: one car's upholstery from its model's list; Submit redraws that car only | 🟢 Settings-Reference → "Vehicle image" + The-Dashboard-Card → "Overview" (EN + DE) | 📷 (needed) |
 | `action_data_refresh` | Automatic data refresh | 🟢 Settings-Reference → "Automatic data refresh" | 📷 |
 | `charging_vehicle` | Charging costs: which vehicle (only with 2+ cars) | 🟢 Settings-Reference → "Charging costs & history" + Feature-Multiple-Cars-and-Accounts (EN + DE) | 📷 (have, staged two-car: `bavariandata-charging-costs-second-car.png`; picker shared) |
 | `action_charging_costs` | Charging costs & history (per car with 2+ cars: meter and losses; price etc. in "All vehicles") | 🟡 | 📷 (have, 2026-10-11: `bavariandata-charging-costs.png`) |

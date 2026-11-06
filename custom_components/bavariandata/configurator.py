@@ -91,6 +91,8 @@ _BRANDS = {
 _SETTINGS_RE = re.compile(r"settings\.([0-9a-f]{6,})\.json")
 # An upholstery option: ``F`` and the four-character trim code (``FMAMU``).
 _UPHOLSTERY_RE = re.compile(r"F[0-9A-Z]{4}")
+# How long the Upholstery screen waits for a model's list before offering none.
+UPHOLSTERY_TIMEOUT = 20
 _SPIN = "walkaround-360"
 # The night spin, asked for the way each configurator asks: BMW draws its cars
 # at night only as ``nightview`` (a black studio, the car in shadow), while
@@ -722,29 +724,27 @@ async def async_fetch_upholstery(
 async def async_upholstery(
     session: aiohttp.ClientSession,
     raw_basic_data: Mapping[str, Any],
-    settings_by_site: Optional[dict[str, dict[str, Any]]] = None,
     languages: Sequence[str] = (),
+    timeout: float = UPHOLSTERY_TIMEOUT,
 ) -> list[tuple[str, str]]:
     """The upholstery to offer for one car: ``(code, name)``, or ``[]`` for none.
 
     Empty for a car the configurator doesn't draw, one without basic data, or
-    when BMW's services don't answer: the choice is an extra, never a reason to
-    fail. ``settings_by_site`` shares the settings lookup across a flow's cars.
+    when BMW's services don't answer within ``timeout`` seconds or answer in a
+    shape we don't know: the choice is an extra, never a reason to fail.
     """
 
-    cache = settings_by_site if settings_by_site is not None else {}
     try:
-        spec = spec_from_basic_data(raw_basic_data)
-        if spec.site not in cache:
-            cache[spec.site] = await async_fetch_settings(session, spec.site)
-        names = cache[spec.site].get("names")
-        if not names:
-            return []
-        return await async_fetch_upholstery(
-            session, spec, names, raw_basic_data.get("countryCode"), languages
-        )
-    except ConfiguratorError as err:
-        _LOGGER.debug("Configurator: no upholstery to offer: %s", err)
+        async with asyncio.timeout(timeout):
+            spec = spec_from_basic_data(raw_basic_data)
+            names = (await async_fetch_settings(session, spec.site)).get("names")
+            if not names:
+                return []
+            return await async_fetch_upholstery(
+                session, spec, names, raw_basic_data.get("countryCode"), languages
+            )
+    except ConfiguratorError, TimeoutError, KeyError, TypeError, AttributeError, ValueError:
+        _LOGGER.debug("Configurator: no upholstery to offer", exc_info=True)
         return []
 
 

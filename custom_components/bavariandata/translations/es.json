@@ -204,9 +204,27 @@
           "image_source": "Oficial: una vista lateral, 1 de tus 50 solicitudes diarias a BMW por coche. Configurador: tu coche exacto en 360° con su pintura real, sin solicitudes, pero un servicio de BMW no oficial que puede dejar de funcionar."
         }
       },
-      "image_upholstery": {
+      "vehicle_image": {
+        "title": "Imagen del vehículo",
+        "description": "De dónde viene la imagen de tu coche y qué tapicería dibuja en ella el configurador de BMW.",
+        "menu_options": {
+          "image_source": "Origen de la imagen",
+          "action_upholstery": "Tapicería"
+        }
+      },
+      "upholstery_vehicle": {
         "title": "Tapicería",
-        "description": "BMW no envía la tapicería de {vehicle}, así que el configurador dibuja la predeterminada de BMW. Elige la tuya para verla en el interior 360° de la tarjeta.",
+        "description": "Cada vehículo tiene su propia tapicería. Elige el que quieres cambiar.",
+        "data": {
+          "vehicle": "Vehículo"
+        },
+        "data_description": {
+          "vehicle": "La siguiente pantalla muestra la tapicería de este vehículo."
+        }
+      },
+      "action_upholstery": {
+        "title": "Tapicería",
+        "description": "BMW no envía la tapicería de {vehicle}, así que el configurador dibuja la predeterminada de BMW. Elige la tuya para verla en el interior 360° de la tarjeta. Enviar vuelve a dibujar la imagen de este coche.",
         "data": {
           "configurator_upholstery": "Tapicería"
         },
@@ -570,7 +588,11 @@
       "reauth_device_code_failed": "BMW rechazó la solicitud de autorización del dispositivo ({error}). Comprueba el Client ID e inténtalo de nuevo.",
       "reauth_missing_client_id": "Falta el Client ID de esta entrada de la integración. Elimina y vuelve a añadir la integración para autorizarla de nuevo.",
       "reauth_failed": "No se pudo iniciar la reautorización. Inténtalo de nuevo desde las opciones de la integración.",
-      "configurator_partial": "Guardado. El configurador de BMW dibuja tus otros coches, pero no {vehicles}: mantienen la imagen oficial, que cuesta 1 de tus 50 solicitudes diarias a BMW por cada coche que aún no la tenga. El registro explica por qué."
+      "configurator_partial": "Guardado. El configurador de BMW dibuja tus otros coches, pero no {vehicles}: mantienen la imagen oficial, que cuesta 1 de tus 50 solicitudes diarias a BMW por cada coche que aún no la tenga. El registro explica por qué.",
+      "upholstery_none": "El configurador de BMW no ofrece tapicería para {vehicle}, o no ha respondido. Inténtalo más tarde.",
+      "configurator_saved": "Guardado. El configurador de BMW dibuja ahora tus coches. Para ver tus asientos tal como son, vuelve a abrir Imagen del vehículo y elige Tapicería.",
+      "runtime_missing": "La integración aún no está lista. Inténtalo de nuevo cuando termine la configuración.",
+      "no_vins": "Todavía no se conoce ningún vehículo. Ejecuta primero \"Buscar vehículos\" o espera a que el stream informe de uno."
     }
   },
   "selector": {

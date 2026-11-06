@@ -761,9 +761,11 @@ export default (Base, { CAR, CAR_FLIP, UNAVAILABLE, _lang, carTones }) => class 
         </ha-card>`;
       return;
     }
-    const looks = items.filter((e) => e.shown !== false && ["paint", "rim", "trim"].includes(e.kind));
+    // The looks: paint, wheels, trim and the upholstery (BMW's "fabric").
+    const LOOKS = ["paint", "rim", "trim", "fabric"];
+    const looks = items.filter((e) => e.shown !== false && LOOKS.includes(e.kind));
     const packages = items.filter((e) => e.shown !== false && e.kind === "package");
-    const rest = items.filter((e) => e.shown !== false && !["paint", "rim", "trim", "package"].includes(e.kind));
+    const rest = items.filter((e) => e.shown !== false && !LOOKS.includes(e.kind) && e.kind !== "package");
     const technical = items.filter((e) => e.shown === false);
     const pic = (code) => {
       if (!sheet) return "";

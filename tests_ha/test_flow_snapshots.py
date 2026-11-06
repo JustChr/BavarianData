@@ -731,19 +731,25 @@ UPHOLSTERY = [
 
 
 async def test_configure_picture_upholstery(hass: HomeAssistant, no_bmw, snapshot) -> None:
-    """The configurator asks each car's upholstery in turn, then draws them."""
+    """Switching to the configurator, then one car's upholstery from its menu."""
 
     walk = _Walk()
     entry = await _account(hass, VIN, VIN_B)
+    entry.runtime_data.coordinator.device_metadata.setdefault(VIN_B, {})["raw_data"] = {
+        "vin": VIN_B
+    }
     result = await _configure(hass, entry, walk, "action_fetch_image")
     with (
-        patch(f"{PACKAGE}.options_flow.async_upholstery", AsyncMock(return_value=UPHOLSTERY)),
+        patch(f"{PACKAGE}.options_cars.async_upholstery", AsyncMock(return_value=UPHOLSTERY)),
         patch(f"{PACKAGE}.image.async_refresh_configurator_render", AsyncMock(return_value=None)),
         patch(f"{PACKAGE}.image.async_schedule_full_render"),
     ):
-        result = await _submit(hass, walk, result, {"image_source": "configurator"})
-        result = await _submit(hass, walk, result, {"configurator_upholstery": "FMAMU"})
-        await _submit(hass, walk, result, {"configurator_upholstery": "default"})
+        await _submit(hass, walk, result, {"image_source": "configurator"})
+        walk.note("opened again")
+        result = await _configure(hass, entry, walk, "action_fetch_image")
+        result = await _submit(hass, walk, result, {"next_step_id": "action_upholstery"})
+        result = await _submit(hass, walk, result, {"vehicle": VIN_B})
+        await _submit(hass, walk, result, {"configurator_upholstery": "FMAMU"})
 
     assert walk.steps == snapshot
 

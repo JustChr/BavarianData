@@ -204,9 +204,27 @@
           "image_source": "Oficjalne: jeden widok z boku, 1 z 50 dziennych zapytań do BMW na samochód. Konfigurator: dokładnie ten samochód w 360° z prawdziwym lakierem, bez zapytań, ale to nieoficjalna usługa BMW, która może przestać działać."
         }
       },
-      "image_upholstery": {
+      "vehicle_image": {
+        "title": "Zdjęcie pojazdu",
+        "description": "Skąd pochodzi zdjęcie samochodu i jaką tapicerkę rysuje w nim konfigurator BMW.",
+        "menu_options": {
+          "image_source": "Źródło zdjęcia",
+          "action_upholstery": "Tapicerka"
+        }
+      },
+      "upholstery_vehicle": {
         "title": "Tapicerka",
-        "description": "BMW nie przesyła tapicerki pojazdu {vehicle}, więc konfigurator rysuje domyślną tapicerkę BMW. Wybierz swoją, aby zobaczyć ją we wnętrzu 360° na karcie.",
+        "description": "Każdy pojazd ma własną tapicerkę. Wybierz ten, który chcesz zmienić.",
+        "data": {
+          "vehicle": "Pojazd"
+        },
+        "data_description": {
+          "vehicle": "Następny ekran pokazuje tapicerkę tego pojazdu."
+        }
+      },
+      "action_upholstery": {
+        "title": "Tapicerka",
+        "description": "BMW nie przesyła tapicerki pojazdu {vehicle}, więc konfigurator rysuje domyślną tapicerkę BMW. Wybierz swoją, aby zobaczyć ją we wnętrzu 360° na karcie. Zatwierdzenie rysuje zdjęcie tego samochodu od nowa.",
         "data": {
           "configurator_upholstery": "Tapicerka"
         },
@@ -570,7 +588,11 @@
       "reauth_device_code_failed": "BMW odrzuciło żądanie autoryzacji urządzenia ({error}). Sprawdź Client ID i spróbuj ponownie.",
       "reauth_missing_client_id": "Brak Client ID dla tego wpisu integracji. Usuń i dodaj integrację ponownie, aby ją ponownie autoryzować.",
       "reauth_failed": "Nie udało się rozpocząć ponownej autoryzacji. Spróbuj ponownie z opcji integracji.",
-      "configurator_partial": "Zapisano. Konfigurator BMW rysuje pozostałe samochody, ale nie {vehicles}: zostaje im oficjalne zdjęcie, co kosztuje 1 z 50 dziennych zapytań do BMW na każdy samochód, który go jeszcze nie ma. Przyczyna jest w dzienniku."
+      "configurator_partial": "Zapisano. Konfigurator BMW rysuje pozostałe samochody, ale nie {vehicles}: zostaje im oficjalne zdjęcie, co kosztuje 1 z 50 dziennych zapytań do BMW na każdy samochód, który go jeszcze nie ma. Przyczyna jest w dzienniku.",
+      "upholstery_none": "Konfigurator BMW nie podaje tapicerki dla pojazdu {vehicle} lub nie odpowiedział. Spróbuj później.",
+      "configurator_saved": "Zapisano. Konfigurator BMW rysuje teraz Twoje samochody. Aby zobaczyć fotele takie, jakie są, otwórz ponownie Zdjęcie pojazdu i wybierz Tapicerka.",
+      "runtime_missing": "Integracja nie jest jeszcze gotowa. Spróbuj ponownie po zakończeniu konfiguracji.",
+      "no_vins": "Nie są jeszcze znane żadne pojazdy. Najpierw uruchom \"Wyszukaj pojazdy\" lub poczekaj, aż strumień zgłosi pojazd."
     }
   },
   "selector": {

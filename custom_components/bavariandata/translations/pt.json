@@ -204,9 +204,27 @@
           "image_source": "Oficial: uma vista lateral, 1 dos seus 50 pedidos diários à BMW por carro. Configurador: o seu carro exato em 360° com a pintura real, sem pedidos, mas é um serviço BMW não oficial que pode deixar de funcionar."
         }
       },
-      "image_upholstery": {
+      "vehicle_image": {
+        "title": "Imagem do veículo",
+        "description": "De onde vem a imagem do seu carro e que estofos o configurador BMW desenha nela.",
+        "menu_options": {
+          "image_source": "Origem da imagem",
+          "action_upholstery": "Estofos"
+        }
+      },
+      "upholstery_vehicle": {
         "title": "Estofos",
-        "description": "A BMW não envia os estofos de {vehicle}, por isso o configurador desenha os predefinidos da BMW. Escolha os seus para os ver no interior 360° do cartão.",
+        "description": "Cada veículo tem os seus estofos. Escolha o que quer alterar.",
+        "data": {
+          "vehicle": "Veículo"
+        },
+        "data_description": {
+          "vehicle": "O ecrã seguinte mostra os estofos deste veículo."
+        }
+      },
+      "action_upholstery": {
+        "title": "Estofos",
+        "description": "A BMW não envia os estofos de {vehicle}, por isso o configurador desenha os predefinidos da BMW. Escolha os seus para os ver no interior 360° do cartão. Submeter volta a desenhar a imagem deste carro.",
         "data": {
           "configurator_upholstery": "Estofos"
         },
@@ -570,7 +588,11 @@
       "reauth_device_code_failed": "A BMW recusou o pedido de autorização do dispositivo ({error}). Verifique o Client ID e tente novamente.",
       "reauth_missing_client_id": "Falta o Client ID desta entrada da integração. Remova e adicione novamente a integração para voltar a autorizar.",
       "reauth_failed": "Não foi possível iniciar a reautorização. Tente novamente a partir das opções da integração.",
-      "configurator_partial": "Guardado. O configurador da BMW desenha os seus outros carros, mas não {vehicles}: mantêm a imagem oficial, que custa 1 dos seus 50 pedidos diários à BMW por cada carro que ainda não a tenha. O registo diz porquê."
+      "configurator_partial": "Guardado. O configurador da BMW desenha os seus outros carros, mas não {vehicles}: mantêm a imagem oficial, que custa 1 dos seus 50 pedidos diários à BMW por cada carro que ainda não a tenha. O registo diz porquê.",
+      "upholstery_none": "O configurador BMW não indica estofos para {vehicle}, ou não respondeu. Tente mais tarde.",
+      "configurator_saved": "Guardado. O configurador BMW desenha agora os seus carros. Para ver os bancos como são, abra novamente Imagem do veículo e escolha Estofos.",
+      "runtime_missing": "A integração ainda não está pronta. Tente novamente quando a configuração terminar.",
+      "no_vins": "Ainda não se conhece nenhum veículo. Execute primeiro \"Procurar veículos\" ou aguarde que o stream comunique um."
     }
   },
   "selector": {
