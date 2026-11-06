@@ -57,6 +57,22 @@ def test_finish_adds_where_the_drive_stopped() -> None:
     assert [(p.lat, p.lon, p.at) for p in points][-1] == (48.30, 11.60, _at(30))
 
 
+def test_finish_adds_no_second_point_where_the_last_one_was_kept() -> None:
+    # Live on beta.5: the last fix was kept 0.9 s before the trip's end at the
+    # same spot, and the end came out as a second sample at the same second.
+    sampler = rw.WaypointSampler()
+    sampler.add(48.38272, 16.21346, _at(0))
+    sampler.add(48.39306, 16.22676, _at(6))
+    end = _at(6) + timedelta(seconds=0.9)
+    points = sampler.finish(48.39306, 16.22676, end)
+    assert [p.at for p in points] == [_at(0), _at(6)]
+
+    # The same spot, but longer than the interval after the last point: kept.
+    sampler = rw.WaypointSampler()
+    sampler.add(48.10, 11.50, _at(0))
+    assert [p.at for p in sampler.finish(48.10, 11.50, _at(20))] == [_at(0), _at(20)]
+
+
 def test_a_stored_track_gives_waypoints_at_its_own_times() -> None:
     track = [[48.10, 11.50, 0], [48.10, 11.50, 60], [48.20, 11.50, 600]]
     points = rw.points_from_track(track, T0, _at(10))

@@ -107,9 +107,19 @@ class WaypointSampler:
 
         if lat is not None and lon is not None:
             self._newest = (at, lat, lon)
-        if self._newest is not None and (self._last is None or self._newest != self._last):
+        if self._newest is not None and not self._repeats_last(*self._newest):
             self._keep(*self._newest)
         return list(self.points)
+
+    def _repeats_last(self, at: datetime, lat: float, lon: float) -> bool:
+        """Whether this fix is the last kept one again: same spot, within the interval."""
+
+        if self._last is None:
+            return False
+        last_at, last_lat, last_lon = self._last
+        return (at - last_at).total_seconds() < SAMPLE_INTERVAL_S and _km(
+            last_lat, last_lon, lat, lon
+        ) <= 0.05
 
     def _keep(self, at: datetime, lat: float, lon: float) -> None:
         heading = None
