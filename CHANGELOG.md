@@ -9,11 +9,97 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.27] - 2026-11-06
+
+Promotes 0.9.27-beta.1 to beta.5. Trips can now record the weather along the way, and the Efficiency view shows how much more your car uses in the cold. The configurator picture can show your car's real upholstery, and charges in a carport zone count as home.
+
+After updating, reload Home Assistant in your browser once: a tab left open across the update can show *Configure* screens with empty lines ([Troubleshooting](https://github.com/JustChr/BavarianData/wiki/Troubleshooting-and-FAQ#configure-empty-after-update)).
+
+### Added
+- **Weather along the route: how much more the car uses in the cold.** CarData
+  sends no outside temperature, so the integration can now look it up. Turn on
+  *Configure → Trips → Weather along the route* (off by default, one switch for
+  all cars). During a drive the integration keeps a waypoint every 5 minutes or
+  5 km. After the trip it asks Open-Meteo (free, no key, no BMW quota) for the
+  15-minute weather at each one, corrected for the ground height there. Each trip
+  then stores its temperature, rain and wind along the way, never the
+  coordinates. Trips stored before are filled in too. The *Efficiency* card view
+  gains a chart of consumption per 5 °C band, each bar with its own figure, and
+  once there are 100 km of trips on both sides it says how much more the car
+  uses below 5 °C than at 15–25 °C. A trip's detail shows its outside
+  temperature, and `get_efficiency`, `get_trips` and the CSV export carry the
+  figures. What leaves your house is each trip's route, to about 1 km, sent to
+  Open-Meteo once.
+  [Trips](https://github.com/JustChr/BavarianData/wiki/Feature-Trips#weather-along-the-route-opt-in)
+- **The configurator picture can show your car's real upholstery.** BMW's
+  data doesn't say what a car's seats are covered in, so the 360° interior
+  always showed BMW's default, black on most cars. With *Configure → Vehicle
+  image* set to BMW's configurator, the screen now opens a menu with
+  **Upholstery**: pick the car, then its upholstery from the list BMW's
+  configurator has for that model, under BMW's own names in the language of the
+  market that sold the car. Submit redraws that car; the card's interior then
+  shows it, and the Equipment view lists it with the paint and wheels. Left at
+  *BMW's default*, the picture stays as it was. Thanks to @caribbeann, who
+  worked out how to ask BMW's configurator for it (#286).
+  [Settings](https://github.com/JustChr/BavarianData/wiki/Settings-Reference#vehicle-image)
+
+### Changed
+- **BavarianData is listed under Cars & EVs and EV charging in Home
+  Assistant's new Marketplace.** Home Assistant 2026.11 replaced HACS with the
+  built-in Marketplace (*Settings → Marketplace*); BavarianData now names its
+  categories, so it turns up when you browse them, not only by search. Nothing
+  changes for an existing install: the Marketplace takes it over from HACS by
+  itself, with its update entity and settings.
+- **The manual describes the Marketplace.** *Install* walks through
+  *Settings → Marketplace*, the pre-release switch and adding it from its
+  GitHub link, and keeps the HACS steps for Home Assistant 2026.3 to 2026.10.
+  The manual's menu now groups the features into Charging, Driving, Automate &
+  connect and Your account; Troubleshooting opens with an index of its
+  sections; the Trips, Map, Efficiency and Vehicle image screens have their
+  pictures; and notes about problems old versions had are gone.
+- **The dashboard card comes in several files now.** Its code is split into one
+  file per group of views, which the card loads from beside itself. Nothing
+  looks or works differently. A reverse proxy has to forward everything under
+  `/bavariandata/`, as before; if the card stays missing, the
+  [Troubleshooting page](https://github.com/JustChr/BavarianData/wiki/Troubleshooting-and-FAQ#custom-element-doesnt-exist-app)
+  says how to check.
+- **The Efficiency view's monthly chart shows each bar's figure.** *Consumption
+  by month* labelled only the top of the scale, which read like the first bar's
+  value. Each bar now has its own kWh/100 km above it, and the corner names the
+  unit.
+
 ### Fixed
-- **Weather along the route no longer looks up a trip's end twice.** When the
-  car's last position came in just before the trip ended, at the same spot, the
-  end was asked about again and stored as a second, identical weather sample.
-  The trip's temperature was not affected.
+- **The BMW configurator picture shows older cars in their real paint, with
+  their equipment (#277, thanks @jowi1968).** Some cars, such as a 2021 X3,
+  name their paint and factory options differently in BMW's basic data. The
+  configurator was then sent neither, drew the car in BMW's default blue and
+  listed no equipment. Both spellings are read now, and the paint code and
+  equipment codes in the car's basic vehicle info show for these cars too.
+  Choose *Configure → Vehicle image* and save once to draw the car again.
+- **The dashboard card no longer floods the log while an account reloads
+  (#277, thanks @jowi1968).** Saving a *Configure* screen reloads the account
+  for a moment. A card view that asked for its history right then (charging,
+  places, trips, map, efficiency, fuel or mileage) asked again at once after
+  each refusal, and the log filled with "No loaded BavarianData account"
+  errors, 172 in one second. A view that couldn't load now tries again after
+  30 seconds.
+- **A charge in a carport or driveway zone counts as home.** Home
+  Assistant files a car under the smallest zone it is in, so a zone drawn at the
+  house made every charge there look like one away from home: no wallbox meter,
+  no solar/grid split and no home tariff. A charge inside your Home zone and
+  within 150 m of its center is now home, whichever smaller zone it is in; trips
+  ending there show Home too. Zone triggers still name the smaller zone, and a
+  zone further out in a Home zone widened for presence stays a place of its own.
+  Charges already recorded keep what they had.
+- **A slow answer from BMW no longer stops the daily refresh.** A request that
+  ran out of time skipped the remaining cars and ended the daily refresh until
+  Home Assistant restarted. It now fails like any other refused request, that
+  car tries again the next day, and the refresh carries on.
+- **One wrong odometer reading can no longer hold up the mileage figures.** A
+  reading no car could have driven to, such as a value in the wrong unit, kept
+  every true reading after it out of the daily log until the car caught up,
+  which could take months. The next reading that follows on from the day before
+  it now takes its place.
 
 ## [0.9.27-beta.5] - 2026-11-06
 
