@@ -204,6 +204,16 @@
           "image_source": "Oficial: uma vista lateral, 1 dos seus 50 pedidos diários à BMW por carro. Configurador: o seu carro exato em 360° com a pintura real, sem pedidos, mas é um serviço BMW não oficial que pode deixar de funcionar."
         }
       },
+      "image_upholstery": {
+        "title": "Estofos",
+        "description": "A BMW não envia os estofos de {vehicle}, por isso o configurador desenha os predefinidos da BMW. Escolha os seus para os ver no interior 360° do cartão.",
+        "data": {
+          "configurator_upholstery": "Estofos"
+        },
+        "data_description": {
+          "configurator_upholstery": "Os estofos do seu modelo no configurador BMW, com os nomes na língua do mercado onde o carro foi vendido."
+        }
+      },
       "charging_vehicle": {
         "title": "Custos e histórico de carregamento",
         "description": "Cada veículo tem o seu próprio contador da wallbox e as suas perdas de carregamento; o preço aplica-se a todos. Escolha o veículo a alterar.",
@@ -588,6 +598,11 @@
       "options": {
         "official": "BMW CarData (oficial)",
         "configurator": "Configurador BMW (360°, não oficial)"
+      }
+    },
+    "upholstery": {
+      "options": {
+        "default": "Predefinidos da BMW"
       }
     },
     "mileage_kind": {

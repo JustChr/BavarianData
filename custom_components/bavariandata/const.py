@@ -166,6 +166,12 @@ OPTION_IMAGE_SOURCE = "image_source"
 IMAGE_SOURCE_OFFICIAL = "official"
 IMAGE_SOURCE_CONFIGURATOR = "configurator"
 DEFAULT_IMAGE_SOURCE = IMAGE_SOURCE_OFFICIAL
+# The upholstery the configurator draws a car's interior in: an option code such
+# as "FMAMU", picked on the screen after Vehicle image, because BMW's basic data
+# has none. Always the car's own (vehicle_options.UPHOLSTERY_OPTIONS); without
+# one, BMW draws its default. UPHOLSTERY_DEFAULT is that choice's form value.
+OPTION_CONFIGURATOR_UPHOLSTERY = "configurator_upholstery"
+UPHOLSTERY_DEFAULT = "default"
 
 # Dispatcher signal fired when a vehicle render is (re)cached, carrying the VIN.
 SIGNAL_VEHICLE_IMAGE = f"{DOMAIN}_vehicle_image_updated"

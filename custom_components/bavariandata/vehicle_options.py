@@ -30,6 +30,7 @@ from .const import (
     OPTION_BRIDGE_ENABLED,
     OPTION_BRIDGE_STREAM,
     OPTION_CHARGING_LOSS_PERCENT,
+    OPTION_CONFIGURATOR_UPHOLSTERY,
     OPTION_GRID_ENERGY_ENTITY,
     OPTION_MILEAGE_ALLOWANCE_KM,
     OPTION_MILEAGE_END,
@@ -77,6 +78,9 @@ MILEAGE_OPTIONS = (
 # Always stored under the car, like the mileage allowance: the token belongs to
 # the car saved in the ABRP app (``abrp_values``).
 ABRP_OPTIONS = (OPTION_ABRP_ENABLED, OPTION_ABRP_TOKEN, OPTION_ABRP_POSITION)
+# Always stored under the car too: seats belong to one car, and a car added
+# later starts from BMW's default, not another car's (``upholstery_for``).
+UPHOLSTERY_OPTIONS = (OPTION_CONFIGURATOR_UPHOLSTERY,)
 
 # Entity selectors: Home Assistant leaves a cleared one out of the submitted
 # data altogether, so its absence means "none", not "unchanged".
@@ -187,20 +191,42 @@ def store_mileage(
 
     if values.get(OPTION_MILEAGE_KIND) in (None, "none"):
         # No allowance: the car keeps no mileage keys at all.
-        updated = dict(options)
-        vehicles = {vin_: dict(own) for vin_, own in _vehicles(updated).items()}
-        rest = {k: v for k, v in vehicles.get(vin, {}).items() if k not in MILEAGE_OPTIONS}
-        if rest:
-            vehicles[vin] = rest
-        else:
-            vehicles.pop(vin, None)
-        if vehicles:
-            updated[OPTION_VEHICLES] = vehicles
-        else:
-            updated.pop(OPTION_VEHICLES, None)
-        return updated
+        return _without_group(options, vin, MILEAGE_OPTIONS)
     picked = {key: values.get(key) for key in MILEAGE_OPTIONS}
     return store_values(options, picked, MILEAGE_OPTIONS, vin=vin, per_vehicle=True)
+
+
+def _without_group(options: Mapping[str, Any], vin: str, keys: tuple[str, ...]) -> dict[str, Any]:
+    """New options in which ``vin`` holds none of ``keys`` (and nothing, if that was all)."""
+
+    updated = dict(options)
+    vehicles = {vin_: dict(own) for vin_, own in _vehicles(updated).items()}
+    rest = {k: v for k, v in vehicles.get(vin, {}).items() if k not in keys}
+    if rest:
+        vehicles[vin] = rest
+    else:
+        vehicles.pop(vin, None)
+    if vehicles:
+        updated[OPTION_VEHICLES] = vehicles
+    else:
+        updated.pop(OPTION_VEHICLES, None)
+    return updated
+
+
+def upholstery_for(options: Mapping[str, Any], vin: Optional[str]) -> Optional[str]:
+    """The upholstery code the car's configurator picture is drawn in, or None for BMW's default."""
+
+    value = (own_values(options, vin, UPHOLSTERY_OPTIONS) or {}).get(OPTION_CONFIGURATOR_UPHOLSTERY)
+    return value if isinstance(value, str) and value else None
+
+
+def store_upholstery(options: Mapping[str, Any], vin: str, code: Optional[str]) -> dict[str, Any]:
+    """New options with the car's upholstery set to ``code``; None returns it to BMW's default."""
+
+    if not code:
+        return _without_group(options, vin, UPHOLSTERY_OPTIONS)
+    picked = {OPTION_CONFIGURATOR_UPHOLSTERY: code}
+    return store_values(options, picked, UPHOLSTERY_OPTIONS, vin=vin, per_vehicle=True)
 
 
 def abrp_values(options: Mapping[str, Any], vin: Optional[str]) -> dict[str, Any]:

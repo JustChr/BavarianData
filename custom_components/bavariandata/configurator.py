@@ -34,7 +34,9 @@ Known traps, found by probing:
   answers it with plain white.
 * The exterior camera is always at eye level; only MINIs have a top view.
 * Basic data carries no upholstery code, so the interior shows BMW's default
-  trim, which may not be the car's.
+  trim unless the user picks the car's (Configure -> Vehicle image). The
+  option-name service lists each model's upholstery as ``optionType``
+  ``fabric``, codes ``F`` plus four (``FMAMU``), sent with the other options.
 * Option names exist only in the language of the market that sells the model
   (German for Germany and Austria, French for France); other markets use other
   model codes, so a German-market car has no English names. A market can also
@@ -64,12 +66,13 @@ import json
 import logging
 import re
 from dataclasses import dataclass, field, replace
-from typing import Any, Awaitable, Callable, Mapping, Optional, Sequence, cast
+from typing import Any, Awaitable, Callable, Mapping, Optional, Sequence, TypeVar, cast
 from urllib.parse import urlencode
 
 import aiohttp
 
 _LOGGER = logging.getLogger(__name__)
+_T = TypeVar("_T")
 
 DEFAULT_TIMEOUT = aiohttp.ClientTimeout(total=30)
 
@@ -86,6 +89,8 @@ _BRANDS = {
     "MINI": ("mini", ("mini",)),
 }
 _SETTINGS_RE = re.compile(r"settings\.([0-9a-f]{6,})\.json")
+# An upholstery option: ``F`` and the four-character trim code (``FMAMU``).
+_UPHOLSTERY_RE = re.compile(r"F[0-9A-Z]{4}")
 _SPIN = "walkaround-360"
 # The night spin, asked for the way each configurator asks: BMW draws its cars
 # at night only as ``nightview`` (a black studio, the car in shadow), while
@@ -207,12 +212,14 @@ class Render:
     crop: Optional[tuple[int, int, int, int]] = None
 
 
-def spec_from_basic_data(raw: Mapping[str, Any]) -> CarSpec:
+def spec_from_basic_data(raw: Mapping[str, Any], upholstery: Optional[str] = None) -> CarSpec:
     """Build the configurator request from a car's raw basic data.
 
-    Raises ``ConfiguratorError("unsupported")`` for a brand the configurator
-    does not draw (motorcycles, Supra, Rolls-Royce) and ``"no_data"`` when the
-    model code or build date is missing.
+    ``upholstery`` is the code the user picked for the car (basic data has
+    none); anything that isn't one is ignored. Raises
+    ``ConfiguratorError("unsupported")`` for a brand the configurator does not
+    draw (motorcycles, Supra, Rolls-Royce) and ``"no_data"`` when the model code
+    or build date is missing.
     """
 
     brand = str(raw.get("brand") or "").strip()
@@ -230,6 +237,9 @@ def spec_from_basic_data(raw: Mapping[str, Any]) -> CarSpec:
     paint = str(raw.get("colourCodeRaw") or raw.get("colourCodeRAW") or "").strip().upper()
     if re.fullmatch(r"[0-9A-Z]{3}", paint):
         options.append(f"P0{paint}")
+    fabric = str(upholstery or "").strip().upper()
+    if _UPHOLSTERY_RE.fullmatch(fabric):
+        options.append(fabric)
     for code in str(raw.get("fullSAList") or raw.get("saList") or "").split(","):
         code = code.strip().upper()
         if re.fullmatch(r"[0-9A-Z]{4}", code):
@@ -550,6 +560,29 @@ def equipment_list(names: Mapping[str, Any], spec: CarSpec) -> list[dict[str, An
     return out
 
 
+def upholstery_choices(names: Any) -> list[tuple[str, str]]:
+    """The model's upholstery from an option-name answer: ``(code, name)``, by name.
+
+    Each model has its own list (a 2024 320d Touring nine, an i5 eleven, a 2021
+    iX3 six). Entries without a name, or whose code isn't an upholstery code,
+    are left out.
+    """
+
+    if not isinstance(names, Mapping):
+        return []
+    found = []
+    for code, item in names.items():
+        if not isinstance(item, Mapping) or item.get("optionType") != "fabric":
+            continue
+        phrases = item.get("phrases")
+        if not _UPHOLSTERY_RE.fullmatch(str(code)) or not isinstance(phrases, Mapping):
+            continue
+        name = phrases.get("longDescription") or phrases.get("shortDescription")
+        if isinstance(name, str) and name.strip():
+            found.append((str(code), " ".join(name.split())))
+    return sorted(found, key=lambda choice: (choice[1].casefold(), choice[0]))
+
+
 def paint_color(side_view: Any) -> Optional[str]:
     """The car's paint as ``#rrggbb``, sampled from a side-profile frame.
 
@@ -663,6 +696,68 @@ async def async_fetch_equipment(
 ) -> tuple[list[dict[str, Any]], Optional[str]]:
     """Name the car's options in the first language its market answers in.
 
+    Returns ``([], None)`` when no market knows the model (see ``_first_named``).
+    """
+
+    return await _first_named(
+        session, spec, names, country, languages, lambda answer: equipment_list(answer, spec)
+    )
+
+
+async def async_fetch_upholstery(
+    session: aiohttp.ClientSession,
+    spec: CarSpec,
+    names: Mapping[str, Any],
+    country: Optional[str],
+    languages: Sequence[str] = (),
+) -> list[tuple[str, str]]:
+    """The upholstery the car's model comes in, named by the first market that knows it."""
+
+    found, _language = await _first_named(
+        session, spec, names, country, languages, upholstery_choices
+    )
+    return found
+
+
+async def async_upholstery(
+    session: aiohttp.ClientSession,
+    raw_basic_data: Mapping[str, Any],
+    settings_by_site: Optional[dict[str, dict[str, Any]]] = None,
+    languages: Sequence[str] = (),
+) -> list[tuple[str, str]]:
+    """The upholstery to offer for one car: ``(code, name)``, or ``[]`` for none.
+
+    Empty for a car the configurator doesn't draw, one without basic data, or
+    when BMW's services don't answer: the choice is an extra, never a reason to
+    fail. ``settings_by_site`` shares the settings lookup across a flow's cars.
+    """
+
+    cache = settings_by_site if settings_by_site is not None else {}
+    try:
+        spec = spec_from_basic_data(raw_basic_data)
+        if spec.site not in cache:
+            cache[spec.site] = await async_fetch_settings(session, spec.site)
+        names = cache[spec.site].get("names")
+        if not names:
+            return []
+        return await async_fetch_upholstery(
+            session, spec, names, raw_basic_data.get("countryCode"), languages
+        )
+    except ConfiguratorError as err:
+        _LOGGER.debug("Configurator: no upholstery to offer: %s", err)
+        return []
+
+
+async def _first_named(
+    session: aiohttp.ClientSession,
+    spec: CarSpec,
+    names: Mapping[str, Any],
+    country: Optional[str],
+    languages: Sequence[str],
+    pick: Callable[[Any], list[_T]],
+) -> tuple[list[_T], Optional[str]]:
+    """The first non-empty ``pick`` from an option-name answer, and its language.
+
     Tries the car's market (from basic data) with the caller's languages first
     and the market's own language last, then the German market, where the
     configurator lives, then the other markets that speak the car's market's
@@ -687,7 +782,7 @@ async def async_fetch_equipment(
             if status != 200:
                 continue
             try:
-                found = equipment_list(json.loads(body), spec)
+                found = pick(json.loads(body))
             except ValueError:
                 continue
             if found:
@@ -702,6 +797,7 @@ async def async_render(
     run_sync: Optional[Callable[..., Awaitable[Any]]] = None,
     languages: Sequence[str] = (),
     extras: bool = True,
+    upholstery: Optional[str] = None,
 ) -> Render:
     """Fetch everything for one car: spins, interior, top view, equipment, option pictures.
 
@@ -712,10 +808,11 @@ async def async_render(
     ``hass.async_add_executor_job``); without it, it runs inline.
     ``languages`` are tried first for the equipment names. ``extras=False``
     stops after the plain turntable (about 5 s rather than about a minute), for
-    a settings screen that shouldn't keep the user waiting.
+    a settings screen that shouldn't keep the user waiting. ``upholstery`` is
+    the code the user picked for the car; without it BMW draws its default.
     """
 
-    spec = spec_from_basic_data(raw_basic_data)
+    spec = spec_from_basic_data(raw_basic_data, upholstery)
     found = settings or await async_fetch_settings(session, spec.site)
     cosy = found["cosy"]
     semaphore = asyncio.Semaphore(_CONCURRENCY)

@@ -204,6 +204,16 @@
           "image_source": "Oficiální: jeden boční pohled, 1 z vašich 50 denních požadavků na BMW na auto. Konfigurátor: přesně vaše auto ve 360° se skutečným lakem, bez požadavků, ale jde o neoficiální službu BMW, která může přestat fungovat."
         }
       },
+      "image_upholstery": {
+        "title": "Čalounění",
+        "description": "BMW neposílá čalounění vozu {vehicle}, takže konfigurátor kreslí výchozí čalounění BMW. Vyberte své, abyste ho viděli v 360° interiéru na kartě.",
+        "data": {
+          "configurator_upholstery": "Čalounění"
+        },
+        "data_description": {
+          "configurator_upholstery": "Čalounění vašeho modelu v konfigurátoru BMW, pojmenovaná v jazyce trhu, kde bylo auto prodáno."
+        }
+      },
       "charging_vehicle": {
         "title": "Náklady a historie nabíjení",
         "description": "Každé vozidlo má vlastní měřič wallboxu a vlastní ztráty nabíjení; cena platí pro všechna. Vyberte vozidlo, které chcete změnit.",
@@ -588,6 +598,11 @@
       "options": {
         "official": "BMW CarData (oficiální)",
         "configurator": "Konfigurátor BMW (360°, neoficiální)"
+      }
+    },
+    "upholstery": {
+      "options": {
+        "default": "Výchozí od BMW"
       }
     },
     "mileage_kind": {

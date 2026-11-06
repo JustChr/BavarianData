@@ -25,7 +25,7 @@ import hashlib
 import logging
 import re
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple, cast
+from typing import Any, Dict, Mapping, Optional, Tuple, cast
 
 from aiohttp import web
 from homeassistant.components.http import HomeAssistantView
@@ -53,6 +53,7 @@ from .device_flow import CardataAuthError
 from .entity import CardataEntity
 from .refusal import Refusal, as_ha_error
 from .rest import CardataQuotaError
+from .vehicle_options import upholstery_for
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -148,21 +149,27 @@ async def async_refresh_configurator_render(
     vin: str,
     *,
     full: bool = True,
+    options: Optional[Mapping[str, Any]] = None,
 ) -> Optional[str]:
     """Draw ``vin`` with BMW's configurator and keep the result.
 
     ``full=False`` fetches only the plain turntable (about 5 s), for the
     settings screen; the full fetch (lights-on and night spins, interior, top
     view, equipment names; about a minute) then runs in the background. Spends
-    no CarData quota. Returns ``None`` on success, otherwise the
-    :class:`ConfiguratorError` reason (``unsupported``, ``no_data``,
-    ``unavailable``, ``no_render``) so the settings screen can say why.
+    no CarData quota. The car's upholstery comes from ``options``, which the
+    settings screen passes before it saves them; otherwise from the entry's.
+    Returns ``None`` on success, otherwise the :class:`ConfiguratorError`
+    reason (``unsupported``, ``no_data``, ``unavailable``, ``no_render``) so the
+    settings screen can say why.
     """
 
     metadata = runtime.coordinator.device_metadata.get(vin) or {}
     raw = metadata.get("raw_data")
     if not raw:
         return "no_data"
+    if options is None:
+        entry = hass.config_entries.async_get_entry(runtime.coordinator.entry_id)
+        options = entry.options if entry is not None else {}
     try:
         render = await async_render(
             runtime.session,
@@ -170,6 +177,7 @@ async def async_refresh_configurator_render(
             run_sync=hass.async_add_executor_job,
             languages=(hass.config.language,),
             extras=full,
+            upholstery=upholstery_for(options, vin),
         )
     except ConfiguratorError as err:
         _LOGGER.warning("Configurator picture for %s failed: %s", mask_vin(vin), err)

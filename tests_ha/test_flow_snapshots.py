@@ -723,6 +723,31 @@ async def test_configure_picture(hass: HomeAssistant, no_bmw, snapshot) -> None:
     assert walk.steps == snapshot
 
 
+# What BMW's configurator lists for a model (``configurator.async_upholstery``).
+UPHOLSTERY = [
+    ("FMAMU", "Leder Vernasca Mokka Dekorsteppung (SW)"),
+    ("FKHKC", "Sensatec perf Cognac"),
+]
+
+
+async def test_configure_picture_upholstery(hass: HomeAssistant, no_bmw, snapshot) -> None:
+    """The configurator asks each car's upholstery in turn, then draws them."""
+
+    walk = _Walk()
+    entry = await _account(hass, VIN, VIN_B)
+    result = await _configure(hass, entry, walk, "action_fetch_image")
+    with (
+        patch(f"{PACKAGE}.options_flow.async_upholstery", AsyncMock(return_value=UPHOLSTERY)),
+        patch(f"{PACKAGE}.image.async_refresh_configurator_render", AsyncMock(return_value=None)),
+        patch(f"{PACKAGE}.image.async_schedule_full_render"),
+    ):
+        result = await _submit(hass, walk, result, {"image_source": "configurator"})
+        result = await _submit(hass, walk, result, {"configurator_upholstery": "FMAMU"})
+        await _submit(hass, walk, result, {"configurator_upholstery": "default"})
+
+    assert walk.steps == snapshot
+
+
 @pytest.mark.parametrize(
     "action",
     [

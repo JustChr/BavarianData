@@ -204,6 +204,16 @@
           "image_source": "Oficjalne: jeden widok z boku, 1 z 50 dziennych zapytań do BMW na samochód. Konfigurator: dokładnie ten samochód w 360° z prawdziwym lakierem, bez zapytań, ale to nieoficjalna usługa BMW, która może przestać działać."
         }
       },
+      "image_upholstery": {
+        "title": "Tapicerka",
+        "description": "BMW nie przesyła tapicerki pojazdu {vehicle}, więc konfigurator rysuje domyślną tapicerkę BMW. Wybierz swoją, aby zobaczyć ją we wnętrzu 360° na karcie.",
+        "data": {
+          "configurator_upholstery": "Tapicerka"
+        },
+        "data_description": {
+          "configurator_upholstery": "Tapicerki tego modelu w konfiguratorze BMW, nazwane w języku rynku, na którym sprzedano samochód."
+        }
+      },
       "charging_vehicle": {
         "title": "Koszty i historia ładowania",
         "description": "Każdy pojazd ma własny licznik wallboxa i własne straty ładowania; cena dotyczy wszystkich. Wybierz pojazd, który chcesz zmienić.",
@@ -588,6 +598,11 @@
       "options": {
         "official": "BMW CarData (oficjalne)",
         "configurator": "Konfigurator BMW (360°, nieoficjalny)"
+      }
+    },
+    "upholstery": {
+      "options": {
+        "default": "Domyślna BMW"
       }
     },
     "mileage_kind": {

@@ -204,6 +204,16 @@
           "image_source": "Officielle : une vue de profil, 1 de vos 50 requêtes BMW quotidiennes par voiture. Configurateur : votre voiture exacte en 360° avec sa vraie teinte, sans requête, mais un service BMW non officiel qui peut cesser de fonctionner."
         }
       },
+      "image_upholstery": {
+        "title": "Sellerie",
+        "description": "BMW n'envoie pas la sellerie de {vehicle} : le configurateur dessine donc la sellerie par défaut de BMW. Choisissez la vôtre pour la voir dans l'intérieur à 360° de la carte.",
+        "data": {
+          "configurator_upholstery": "Sellerie"
+        },
+        "data_description": {
+          "configurator_upholstery": "Les selleries de votre modèle dans le configurateur BMW, nommées dans la langue du marché où la voiture a été vendue."
+        }
+      },
       "charging_vehicle": {
         "title": "Coûts et historique de recharge",
         "description": "Chaque véhicule a son propre compteur de borne et ses propres pertes de recharge ; le prix s'applique à tous. Choisissez le véhicule à modifier.",
@@ -588,6 +598,11 @@
       "options": {
         "official": "BMW CarData (officielle)",
         "configurator": "Configurateur BMW (360°, non officiel)"
+      }
+    },
+    "upholstery": {
+      "options": {
+        "default": "Par défaut (BMW)"
       }
     },
     "mileage_kind": {
