@@ -6,7 +6,8 @@
 
 - **Einrichtung:** [access denied](#onboarding-fails-with-access-denied) ·
   [Konto schon eingerichtet](#setup-says-this-bmw-account-is-already-set-up) ·
-  [neues Auto zeigt nur die FIN](#a-new-car-shows-up-as-its-vin-with-no-model)
+  [neues Auto zeigt nur die FIN](#a-new-car-shows-up-as-its-vin-with-no-model) ·
+  [leerer Konfigurieren-Bildschirm nach Update](#configure-empty-after-update)
 - **Der Stream:** [keine Daten](#no-data-arriving) ·
   [nicht autorisiert (rc=5)](#stream-authorization-failing) ·
   [ein Stream pro Konto](#only-one-stream-per-account)
@@ -264,6 +265,21 @@ umzustellen, nutze **Neu konfigurieren** an der Integration: Fahrzeuge und ihr
 Verlauf bleiben. Zwei *verschiedene* Konten dürfen
 problemlos nebeneinander bestehen — siehe
 [Mehrere Fahrzeuge & Konten](DE-Feature-Multiple-Cars-and-Accounts).
+
+## Ein Konfigurieren-Bildschirm zeigt nach einem Update leere Zeilen
+
+<a id="configure-empty-after-update"></a>
+
+Symptom: Nach einem Update von BavarianData öffnet sich ein **Konfigurieren**-Bildschirm
+mit Zeilen, Feldern oder Knöpfen ohne Text, und als Titel steht nur der Name der
+Integration. Das betrifft Bildschirme, die das Update neu gebracht hat (#287).
+
+Der Browser lädt die Texte der Bildschirme einer Integration einmal und behält sie,
+bis die Seite neu geladen wird. Ein Tab, der über Update und Neustart offen blieb,
+hat noch die alten Texte, und ein neuer Bildschirm hat dann nichts anzuzeigen.
+**Lade den Browser hart neu** (Strg+F5, auf dem Mac Cmd+Umschalt+R) oder setze den
+Frontend-Cache der App zurück (siehe [den Abschnitt zur App](#custom-element-doesnt-exist-app))
+und öffne den Bildschirm dann erneut.
 
 ## „BMW CarData Stream nicht autorisiert“ (MQTT rc=5, Not authorized)
 
