@@ -182,12 +182,20 @@ async def test_the_configurator_draws_a_car_and_the_card_gets_its_files(
 ) -> None:
     entry = _entry()
     entry.add_to_hass(hass)
-    hass.config_entries.async_update_entry(entry, options={"image_source": "configurator"})
+    hass.config_entries.async_update_entry(
+        entry,
+        options={
+            "image_source": "configurator",
+            "vehicles": {VIN: {"configurator_upholstery": "FMAMU"}},
+        },
+    )
     with patch(f"{PACKAGE}.image.async_render", AsyncMock(return_value=_render(**FULL))) as draw:
         await _set_up(hass, entry)
         entry.runtime_data.coordinator.device_metadata[VIN] = {"raw_data": {"vin": VIN}}
         entity_id = await _car(hass, entry)
     assert draw.await_args.kwargs["extras"] is True
+    # The upholstery picked for the car, read from the account's settings.
+    assert draw.await_args.kwargs["upholstery"] == "FMAMU"
 
     key = image._render_key(VIN)
     assert VIN not in key
@@ -327,7 +335,9 @@ async def test_the_full_fetch_runs_in_the_background(hass: HomeAssistant) -> Non
 
 async def test_a_car_without_basic_data_or_a_drawing_says_why(hass: HomeAssistant) -> None:
     runtime = SimpleNamespace(
-        coordinator=SimpleNamespace(device_metadata={VIN: {"raw_data": {"vin": VIN}}}),
+        coordinator=SimpleNamespace(
+            device_metadata={VIN: {"raw_data": {"vin": VIN}}}, entry_id="no-such-entry"
+        ),
         session=None,
     )
     assert await image.async_refresh_configurator_render(hass, runtime, "WBANODATA") == "no_data"

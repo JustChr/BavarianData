@@ -204,6 +204,16 @@
           "image_source": "Oficial: una vista lateral, 1 de tus 50 solicitudes diarias a BMW por coche. Configurador: tu coche exacto en 360° con su pintura real, sin solicitudes, pero un servicio de BMW no oficial que puede dejar de funcionar."
         }
       },
+      "image_upholstery": {
+        "title": "Tapicería",
+        "description": "BMW no envía la tapicería de {vehicle}, así que el configurador dibuja la predeterminada de BMW. Elige la tuya para verla en el interior 360° de la tarjeta.",
+        "data": {
+          "configurator_upholstery": "Tapicería"
+        },
+        "data_description": {
+          "configurator_upholstery": "Las tapicerías de tu modelo en el configurador de BMW, con el nombre en el idioma del mercado donde se vendió el coche."
+        }
+      },
       "charging_vehicle": {
         "title": "Costes e historial de carga",
         "description": "Cada vehículo tiene su propio contador de wallbox y sus propias pérdidas de carga; el precio se aplica a todos. Elige el vehículo que quieres cambiar.",
@@ -588,6 +598,11 @@
       "options": {
         "official": "BMW CarData (oficial)",
         "configurator": "Configurador de BMW (360°, no oficial)"
+      }
+    },
+    "upholstery": {
+      "options": {
+        "default": "Predeterminada de BMW"
       }
     },
     "mileage_kind": {

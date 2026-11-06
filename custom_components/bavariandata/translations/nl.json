@@ -204,6 +204,16 @@
           "image_source": "Officieel: één zijaanzicht, 1 van je 50 dagelijkse BMW-verzoeken per auto. Configurator: precies jouw auto in 360° met de echte lak, geen verzoeken, maar een onofficiële BMW-dienst die kan stoppen met werken."
         }
       },
+      "image_upholstery": {
+        "title": "Bekleding",
+        "description": "BMW stuurt de bekleding van {vehicle} niet mee, dus tekent de configurator de standaard van BMW. Kies de jouwe om die in het 360°-interieur van de kaart te zien.",
+        "data": {
+          "configurator_upholstery": "Bekleding"
+        },
+        "data_description": {
+          "configurator_upholstery": "De bekledingen van je model in de BMW-configurator, benoemd in de taal van de markt waar de auto is verkocht."
+        }
+      },
       "charging_vehicle": {
         "title": "Laadkosten en -geschiedenis",
         "description": "Elk voertuig heeft een eigen laadpaalmeter en eigen laadverliezen; de prijs geldt voor allemaal. Kies het voertuig dat je wilt wijzigen.",
@@ -588,6 +598,11 @@
       "options": {
         "official": "BMW CarData (officieel)",
         "configurator": "BMW-configurator (360°, onofficieel)"
+      }
+    },
+    "upholstery": {
+      "options": {
+        "default": "Standaard van BMW"
       }
     },
     "mileage_kind": {

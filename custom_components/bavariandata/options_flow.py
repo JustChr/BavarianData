@@ -33,6 +33,7 @@ from .const import (
     IMAGE_SOURCE_OFFICIAL,
     OPTION_BATTERY_POWER_ENTITY,
     OPTION_BATTERY_POWER_INVERT,
+    OPTION_CONFIGURATOR_UPHOLSTERY,
     OPTION_DEBUG_LOG,
     OPTION_GRID_POWER_ENTITY,
     OPTION_IMAGE_SOURCE,
@@ -45,7 +46,9 @@ from .const import (
     OPTION_UNIT_PRESSURE,
     OPTION_UNIT_TEMPERATURE,
     SIGNAL_VEHICLE_IMAGE,
+    UPHOLSTERY_DEFAULT,
 )
+from .configurator import async_upholstery
 from .container import KINDS, CardataContainerError
 from .debug import set_debug_enabled
 from .descriptors import default_sections, descriptors_for_sections, section_labels
@@ -56,6 +59,7 @@ from .flow_answers import in_catalogue_order, units_line
 from .history.pricing import PricingConfig, vehicle_pricing
 from .options_cars import PerCarScreens
 from .units import UNIT_CHOICES, unit_choices
+from .vehicle_options import store_upholstery, upholstery_for
 
 
 class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entries.OptionsFlow):
@@ -69,6 +73,11 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
         self._picked_vin: Optional[str] = None
         # A Trips form waiting for the phone screen: ``(car values, shared)``.
         self._trips_pending: tuple[Dict[str, Any], Dict[str, Any]] = ({}, {})
+        # Vehicle image with the configurator: the options to save once every car
+        # is drawn, and the cars whose upholstery is still to be asked, each
+        # with its model's choices ``(code, name)``.
+        self._image_options: Dict[str, Any] = {}
+        self._upholstery_queue: list[tuple[str, list[tuple[str, str]]]] = []
         self._init_activator_state()
 
     async def async_step_init(
@@ -580,10 +589,134 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
         The official picture is CarData's single side view (one request per
         car). The configurator draws the exact car as BMW's online configurator
         does, a 360-degree turntable plus its paint colour for the card: no
-        quota, but an unofficial BMW service (see configurator.py). It is
-        account-wide: saved when at least one car could be drawn, and a car the
-        configurator can't draw keeps its official picture, which the closing
-        message names. Nothing is saved when no car could be drawn.
+        quota, but an unofficial BMW service (see configurator.py). Its
+        Upholstery screens follow first (``image_upholstery``), because BMW's
+        basic data doesn't say what the seats are covered in; the cars are drawn
+        after the last one. It is account-wide: saved when at least one car
+        could be drawn, and a car the configurator can't draw keeps its official
+        picture, which the closing message names. Nothing is saved when no car
+        could be drawn.
+        """
+
+        runtime = self._get_runtime()
+        if runtime is None:
+            return self._show_confirm(
+                step_id="action_fetch_image", errors={"base": "runtime_missing"}
+            )
+        options = dict(self._config_entry.options)
+        source = options.get(OPTION_IMAGE_SOURCE, DEFAULT_IMAGE_SOURCE)
+        errors: Dict[str, str] = {}
+        error_text = ""
+        if user_input is not None:
+            source = user_input.get(OPTION_IMAGE_SOURCE, source)
+            vins = list(runtime.coordinator.data.keys())
+            if not vins:
+                errors["base"] = "no_vins"
+            elif source == IMAGE_SOURCE_CONFIGURATOR:
+                self._image_options = {**options, OPTION_IMAGE_SOURCE: source}
+                self._upholstery_queue = await self._upholstery_to_ask(runtime)
+                return await self.async_step_image_upholstery()
+            else:
+                for vin in vins:
+                    try:
+                        await self.hass.services.async_call(
+                            DOMAIN,
+                            "fetch_vehicle_image",
+                            {"entry_id": self._config_entry.entry_id, "vin": vin},
+                            blocking=True,
+                        )
+                    except HomeAssistantError as err:
+                        errors["base"] = "fetch_failed"
+                        error_text = str(err)
+                        break
+                if not errors:
+                    options[OPTION_IMAGE_SOURCE] = source
+                    # Saved before the entities are told, so they read the new source.
+                    self.hass.config_entries.async_update_entry(self._config_entry, options=options)
+                    for vin in vins:
+                        async_dispatcher_send(self.hass, SIGNAL_VEHICLE_IMAGE, vin)
+                    return self.async_create_entry(title="", data=options)
+        return self._image_form(source, errors, error=error_text)
+
+    async def async_step_image_upholstery(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> ConfigFlowResult:
+        """The upholstery each car's configurator picture shows, one screen per car.
+
+        BMW's basic data has no upholstery, so the configurator draws its
+        default unless the user picks the car's own. Only cars whose model
+        BMW's configurator lists upholstery for are asked, in name order; the
+        button says "Next" until the last. Then every car is drawn and the
+        setting saved (``_draw_configurator``).
+        """
+
+        if user_input is not None and self._upholstery_queue:
+            vin, choices = self._upholstery_queue.pop(0)
+            picked = user_input.get(OPTION_CONFIGURATOR_UPHOLSTERY)
+            code = picked if picked in dict(choices) else None
+            self._image_options = store_upholstery(self._image_options, vin, code)
+        if not self._upholstery_queue:
+            return await self._draw_configurator()
+        vin, choices = self._upholstery_queue[0]
+        current = upholstery_for(self._image_options, vin)
+        schema = vol.Schema(
+            {
+                vol.Required(
+                    OPTION_CONFIGURATOR_UPHOLSTERY,
+                    default=current if current in dict(choices) else UPHOLSTERY_DEFAULT,
+                ): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        # BMW's own names for the model, as BMW's market names
+                        # them; only "BMW's default" is translated.
+                        options=[
+                            selector.SelectOptionDict(
+                                value=UPHOLSTERY_DEFAULT, label=UPHOLSTERY_DEFAULT
+                            ),
+                            *(
+                                selector.SelectOptionDict(value=code, label=name)
+                                for code, name in choices
+                            ),
+                        ],
+                        translation_key="upholstery",
+                        mode=selector.SelectSelectorMode.DROPDOWN,
+                    )
+                ),
+            }
+        )
+        return self.async_show_form(
+            step_id="image_upholstery",
+            data_schema=schema,
+            description_placeholders={
+                "vehicle": self._vehicle_label(self._vehicles(), vin),
+            },
+            last_step=len(self._upholstery_queue) == 1,
+        )
+
+    async def _upholstery_to_ask(
+        self, runtime: CardataRuntimeData
+    ) -> list[tuple[str, list[tuple[str, str]]]]:
+        """Each car to ask the upholstery of, with its model's choices, in name order.
+
+        A car without basic data, or one BMW's configurator lists none for, is
+        drawn in BMW's default without asking.
+        """
+
+        by_site: Dict[str, Dict[str, Any]] = {}
+        queue = []
+        for vin, _label in self._vehicles():
+            raw = (runtime.coordinator.device_metadata.get(vin) or {}).get("raw_data") or {}
+            choices = await async_upholstery(
+                runtime.session, raw, by_site, (self.hass.config.language,)
+            )
+            if choices:
+                queue.append((vin, choices))
+        return queue
+
+    async def _draw_configurator(self) -> ConfigFlowResult:
+        """Draw every car with the configurator, then save the setting.
+
+        Only the plain spin is drawn while the dialog waits (about 5 s a car);
+        the rest (about a minute) follows in the background once saved.
         """
 
         # The image platform imports Home Assistant's image component; only
@@ -599,61 +732,46 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
             return self._show_confirm(
                 step_id="action_fetch_image", errors={"base": "runtime_missing"}
             )
-        options = dict(self._config_entry.options)
-        source = options.get(OPTION_IMAGE_SOURCE, DEFAULT_IMAGE_SOURCE)
-        errors: Dict[str, str] = {}
-        vehicle = ""
-        error_text = ""
+        options = self._image_options
+        vins = list(runtime.coordinator.data.keys())
+        if not vins:
+            return self._image_form(IMAGE_SOURCE_CONFIGURATOR, {"base": "no_vins"})
         failed: Dict[str, str] = {}
-        if user_input is not None:
-            source = user_input.get(OPTION_IMAGE_SOURCE, source)
-            vins = list(runtime.coordinator.data.keys())
-            if not vins:
-                errors["base"] = "no_vins"
-            elif source == IMAGE_SOURCE_CONFIGURATOR:
-                for vin in vins:
-                    # The plain spin only: the rest (about a minute) follows in
-                    # the background once the setting is saved.
-                    reason = await async_refresh_configurator_render(
-                        self.hass, runtime, vin, full=False
-                    )
-                    if reason:
-                        failed[vin] = reason
-                if len(failed) == len(vins):
-                    first = next(iter(failed))
-                    errors[OPTION_IMAGE_SOURCE] = f"configurator_{failed[first]}"
-                    vehicle = runtime.coordinator.names.get(first) or ""
-            else:
-                for vin in vins:
-                    try:
-                        await self.hass.services.async_call(
-                            DOMAIN,
-                            "fetch_vehicle_image",
-                            {"entry_id": self._config_entry.entry_id, "vin": vin},
-                            blocking=True,
-                        )
-                    except HomeAssistantError as err:
-                        errors["base"] = "fetch_failed"
-                        error_text = str(err)
-                        break
-            if not errors:
-                options[OPTION_IMAGE_SOURCE] = source
-                # Saved before the entities are told, so they read the new source.
-                self.hass.config_entries.async_update_entry(self._config_entry, options=options)
-                for vin in vins:
-                    if vin in failed:
-                        await async_official_fallback(self.hass, self._config_entry, runtime, vin)
-                    async_dispatcher_send(self.hass, SIGNAL_VEHICLE_IMAGE, vin)
-                    if source == IMAGE_SOURCE_CONFIGURATOR and vin not in failed:
-                        async_schedule_full_render(self.hass, runtime, vin)
-                if failed:
-                    # Saved already; this only closes the dialog with the news.
-                    vehicles = self._vehicles()
-                    names = ", ".join(self._vehicle_label(vehicles, vin) for vin in failed)
-                    return self.async_abort(
-                        reason="configurator_partial", description_placeholders={"vehicles": names}
-                    )
-                return self.async_create_entry(title="", data=options)
+        for vin in vins:
+            reason = await async_refresh_configurator_render(
+                self.hass, runtime, vin, full=False, options=options
+            )
+            if reason:
+                failed[vin] = reason
+        if len(failed) == len(vins):
+            first = next(iter(failed))
+            return self._image_form(
+                IMAGE_SOURCE_CONFIGURATOR,
+                {OPTION_IMAGE_SOURCE: f"configurator_{failed[first]}"},
+                vehicle=runtime.coordinator.names.get(first) or "",
+            )
+        # Saved before the entities are told, so they read the new source.
+        self.hass.config_entries.async_update_entry(self._config_entry, options=options)
+        for vin in vins:
+            if vin in failed:
+                await async_official_fallback(self.hass, self._config_entry, runtime, vin)
+            async_dispatcher_send(self.hass, SIGNAL_VEHICLE_IMAGE, vin)
+            if vin not in failed:
+                async_schedule_full_render(self.hass, runtime, vin)
+        if failed:
+            # Saved already; this only closes the dialog with the news.
+            vehicles = self._vehicles()
+            names = ", ".join(self._vehicle_label(vehicles, vin) for vin in failed)
+            return self.async_abort(
+                reason="configurator_partial", description_placeholders={"vehicles": names}
+            )
+        return self.async_create_entry(title="", data=options)
+
+    def _image_form(
+        self, source: str, errors: Dict[str, str], *, vehicle: str = "", error: str = ""
+    ) -> ConfigFlowResult:
+        """The Vehicle image screen, with ``source`` chosen and any errors."""
+
         schema = vol.Schema(
             {
                 vol.Required(OPTION_IMAGE_SOURCE, default=source): selector.SelectSelector(
@@ -669,7 +787,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
             step_id="action_fetch_image",
             data_schema=schema,
             errors=errors,
-            description_placeholders={"vehicle": vehicle, "error": error_text},
+            description_placeholders={"vehicle": vehicle, "error": error},
         )
 
     # --- streamed data ------------------------------------------------------

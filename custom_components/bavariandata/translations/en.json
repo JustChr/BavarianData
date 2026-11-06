@@ -204,6 +204,16 @@
           "image_source": "Official: one side view, 1 of your 50 daily BMW requests per car. Configurator: your exact car in 360° with its real paint, no requests, but an unofficial BMW service that may stop working."
         }
       },
+      "image_upholstery": {
+        "title": "Upholstery",
+        "description": "BMW doesn't send the upholstery of {vehicle}, so the configurator draws BMW's default. Pick yours to see it in the card's 360° interior.",
+        "data": {
+          "configurator_upholstery": "Upholstery"
+        },
+        "data_description": {
+          "configurator_upholstery": "Your model's upholstery in BMW's configurator, named in the language of the market that sold the car."
+        }
+      },
       "charging_vehicle": {
         "title": "Charging costs & history",
         "description": "Each vehicle has its own wallbox meter and charging losses; the price applies to all of them. Pick the vehicle to change.",
@@ -588,6 +598,11 @@
       "options": {
         "official": "BMW CarData (official)",
         "configurator": "BMW configurator (360°, unofficial)"
+      }
+    },
+    "upholstery": {
+      "options": {
+        "default": "BMW's default"
       }
     },
     "mileage_kind": {

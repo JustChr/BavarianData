@@ -204,6 +204,16 @@
           "image_source": "Officiell: en sidovy, 1 av dina 50 dagliga BMW-förfrågningar per bil. Konfigurator: exakt din bil i 360° med riktig lack, inga förfrågningar, men en inofficiell BMW-tjänst som kan sluta fungera."
         }
       },
+      "image_upholstery": {
+        "title": "Klädsel",
+        "description": "BMW skickar inte klädseln för {vehicle}, så konfiguratorn ritar BMW:s standard. Välj din för att se den i kortets 360°-interiör.",
+        "data": {
+          "configurator_upholstery": "Klädsel"
+        },
+        "data_description": {
+          "configurator_upholstery": "Klädslarna för din modell i BMW:s konfigurator, med namn på språket i marknaden där bilen såldes."
+        }
+      },
       "charging_vehicle": {
         "title": "Laddkostnader och historik",
         "description": "Varje fordon har sin egen laddboxmätare och egna laddförluster; priset gäller alla. Välj det fordon du vill ändra.",
@@ -588,6 +598,11 @@
       "options": {
         "official": "BMW CarData (officiell)",
         "configurator": "BMW-konfigurator (360°, inofficiell)"
+      }
+    },
+    "upholstery": {
+      "options": {
+        "default": "BMW:s standard"
       }
     },
     "mileage_kind": {

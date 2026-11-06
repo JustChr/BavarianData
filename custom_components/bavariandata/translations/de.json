@@ -204,6 +204,16 @@
           "image_source": "Offiziell: eine Seitenansicht, 1 deiner 50 täglichen BMW-Anfragen pro Auto. Konfigurator: genau dein Auto in 360° mit echter Lackfarbe, keine Anfragen, aber ein inoffizieller BMW-Dienst, der ausfallen kann."
         }
       },
+      "image_upholstery": {
+        "title": "Polsterung",
+        "description": "BMW übermittelt die Polsterung von {vehicle} nicht, deshalb zeichnet der Konfigurator den BMW-Standard. Wähle deine, um sie im 360°-Innenraum der Karte zu sehen.",
+        "data": {
+          "configurator_upholstery": "Polsterung"
+        },
+        "data_description": {
+          "configurator_upholstery": "Die Polsterungen deines Modells im BMW-Konfigurator, benannt in der Sprache des Markts, in dem das Auto verkauft wurde."
+        }
+      },
       "charging_vehicle": {
         "title": "Ladekosten & Verlauf",
         "description": "Jedes Fahrzeug hat seinen eigenen Wallbox-Zähler und eigene Ladeverluste; der Preis gilt für alle. Wähle das Fahrzeug, das du ändern möchtest.",
@@ -588,6 +598,11 @@
       "options": {
         "official": "BMW CarData (offiziell)",
         "configurator": "BMW-Konfigurator (360°, inoffiziell)"
+      }
+    },
+    "upholstery": {
+      "options": {
+        "default": "BMW-Standard"
       }
     },
     "mileage_kind": {

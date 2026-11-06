@@ -74,8 +74,10 @@ or finger) turns it all the way round. The photo also follows the car:
 - **Where it is open.** While something is open, the
   [top-down drawing](#security--closures-cluster-closures) appears in the corner
   with the open part lit up.
-- **Interior.** The seat button switches to a 360° panorama of the interior;
-  drag to look around.
+- **Interior.** The seat button switches to a 360° panorama of the interior,
+  in the upholstery picked under
+  [Configure → Vehicle image](Settings-Reference#vehicle-image) (BMW's default
+  otherwise); drag to look around.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hero-badges.png" alt="The overview at night with a door open, windows open and the car unlocked: badges under the name, and the top-down drawing in the corner with the open door and windows lit up" width="360" />

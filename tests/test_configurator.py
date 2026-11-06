@@ -414,8 +414,10 @@ _OPTION_PICTURES = {
 class _FakeBmwFull(_FakeBmw):
     """Also answers the interior, the top view, the option names and pictures."""
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, names: dict = NAMES, **kwargs) -> None:
         super().__init__(draws="bmwCar", **kwargs)
+        # What the option-name service answers for the model, in Austria.
+        self.names = names
         self.name_calls = []
         self.option_calls = []
 
@@ -442,7 +444,7 @@ class _FakeBmwFull(_FakeBmw):
             market, lang = re.search(r"/countries/([^/]+)/.*/languages/([^/]+)$", url).groups()
             # A German-market car: Austria answers in German only.
             if market == "at" and lang == "de":
-                return _Resp(200, json.dumps(NAMES).encode())
+                return _Resp(200, json.dumps(self.names).encode())
             return _Resp(404, b"{}")
         if "/collections/interior-mixed/" in url:
             faces = [
@@ -543,6 +545,107 @@ def test_no_market_knowing_the_model_leaves_the_names_out():
     )
     # France, then Germany, then the other French-speaking markets.
     assert list(dict.fromkeys(m for m, _ in session.calls)) == ["fr", "de", "lu", "be"]
+
+
+# --- The upholstery the user picks -------------------------------------------
+
+# A model's option names, upholstery included: BMW calls it ``fabric``.
+FABRICS = {
+    **NAMES,
+    "FMAMU": {
+        "optionType": "fabric",
+        "displayTypeId": "1",
+        "phrases": {"longDescription": "Leder Vernasca  Mokka Dekorsteppung (SW)"},
+    },
+    "FKHKC": {"optionType": "fabric", "phrases": {"longDescription": "Sensatec perf Cognac"}},
+    "FEHAT": {
+        "optionType": "fabric",
+        "phrases": {"shortDescription": "Stoff 'Hevelius' Anthrazit"},
+    },
+    "FNONE": {"optionType": "fabric", "phrases": {}},
+    "S0X12": {"optionType": "fabric", "phrases": {"longDescription": "Not an upholstery code"}},
+}
+
+
+class _Down:
+    """A configurator that doesn't answer at all."""
+
+    def __init__(self) -> None:
+        self.calls = []
+
+    def get(self, url: str, **kwargs):
+        self.calls.append(url)
+        return _Resp(503, b"")
+
+
+def test_the_picked_upholstery_is_sent_with_the_paint_and_options():
+    # BMW's basic data has no upholstery, so the configurator draws its default
+    # interior unless the user picks the car's own.
+    spec = CONF.spec_from_basic_data(I5, "fmamu")
+    assert spec.options == ("P0C4P", "FMAMU", "S0230", "S0248", "S02PA", "S0337")
+    assert spec.sorted_options == "FMAMU,P0C4P,S0230,S0248,S02PA,S0337"
+
+
+@pytest.mark.parametrize("junk", [None, "", "default", "MAMU", "FMAMUX", "S0337", "F-AMU"])
+def test_anything_but_an_upholstery_code_is_left_out(junk):
+    assert CONF.spec_from_basic_data(I5, junk).options == CONF.spec_from_basic_data(I5).options
+
+
+def test_a_models_upholstery_is_offered_by_name():
+    assert CONF.upholstery_choices(FABRICS) == [
+        ("FMAMU", "Leder Vernasca Mokka Dekorsteppung (SW)"),  # whitespace tidied
+        ("FKHKC", "Sensatec perf Cognac"),
+        ("FEHAT", "Stoff 'Hevelius' Anthrazit"),
+    ]  # FNONE has no name, S0X12 is no upholstery code
+    assert CONF.upholstery_choices(["not", "names"]) == []
+    assert CONF.upholstery_choices({"FMAMU": "?", "FKHKC": {"optionType": "fabric"}}) == []
+
+
+def test_a_car_is_offered_its_models_upholstery_from_its_market():
+    session = _FakeBmwFull(names=FABRICS)
+    choices = asyncio.run(
+        CONF.async_upholstery(session, {**I5, "countryCode": "AT"}, languages=("en",))
+    )
+    assert [code for code, _name in choices] == ["FMAMU", "FKHKC", "FEHAT"]
+    # Asked like the equipment names: the user's language first, then the market's.
+    assert [c.rsplit("/", 1)[1] for c in session.name_calls] == ["en", "de"]
+
+
+def test_one_settings_lookup_serves_every_car_of_a_brand():
+    session = _FakeBmwFull(names=FABRICS)
+    by_site: dict = {}
+    for _car in range(2):
+        assert asyncio.run(CONF.async_upholstery(session, {**I5, "countryCode": "AT"}, by_site))
+    assert sum(c.endswith("/model-ranges") for c in session.calls) == 1
+
+
+@pytest.mark.parametrize(
+    "raw", [{}, {**I5, "brand": "BMW Motorrad"}, {**I5, "constructionDate": None}]
+)
+def test_a_car_the_configurator_cannot_draw_is_offered_no_upholstery(raw):
+    session = _FakeBmwFull(names=FABRICS)
+    assert asyncio.run(CONF.async_upholstery(session, raw)) == []
+    assert session.calls == session.name_calls == []
+
+
+def test_no_upholstery_is_offered_when_bmw_does_not_say():
+    # The configurator down, or a settings file without the name service: the
+    # choice is an extra, so there is simply nothing to offer.
+    assert asyncio.run(CONF.async_upholstery(_Down(), I5)) == []
+    assert asyncio.run(CONF.async_upholstery(_FakeBmw(), I5)) == []
+    assert asyncio.run(CONF.async_upholstery(_FakeBmwFull(), {**I5, "countryCode": "AT"})) == []
+
+
+def test_the_picked_upholstery_reaches_every_picture_and_the_equipment():
+    session = _FakeBmwFull(names=FABRICS)
+    render = asyncio.run(
+        CONF.async_render(session, {**I5, "countryCode": "AT"}, upholstery="FMAMU")
+    )
+    spins = [c for c in session.calls if "/collections/walkaround-360/" in c]
+    assert spins and all("options=FMAMU%2CP0C4P%2C" in c for c in spins)
+    assert all("options=FMAMU%2CP0C4P%2C" in url for url, _headers in session.option_calls)
+    # Listed in the Equipment view after the paint, under BMW's own name.
+    assert [e["code"] for e in render.equipment] == ["P0C4P", "FMAMU", "S0230", "S0337"]
 
 
 def test_the_night_spin_is_cut_out_so_the_card_draws_the_backdrop():

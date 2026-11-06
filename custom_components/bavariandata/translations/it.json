@@ -204,6 +204,16 @@
           "image_source": "Ufficiale: una vista laterale, 1 delle tue 50 richieste BMW giornaliere per auto. Configuratore: esattamente la tua auto a 360° con la vernice reale, nessuna richiesta, ma un servizio BMW non ufficiale che può smettere di funzionare."
         }
       },
+      "image_upholstery": {
+        "title": "Rivestimenti",
+        "description": "BMW non invia i rivestimenti di {vehicle}, quindi il configuratore disegna quelli predefiniti di BMW. Scegli i tuoi per vederli negli interni a 360° della scheda.",
+        "data": {
+          "configurator_upholstery": "Rivestimenti"
+        },
+        "data_description": {
+          "configurator_upholstery": "I rivestimenti del tuo modello nel configuratore BMW, con i nomi nella lingua del mercato in cui è stata venduta l'auto."
+        }
+      },
       "charging_vehicle": {
         "title": "Costi e storico di ricarica",
         "description": "Ogni veicolo ha il proprio contatore della wallbox e le proprie perdite di ricarica; il prezzo vale per tutti. Scegli il veicolo da modificare.",
@@ -588,6 +598,11 @@
       "options": {
         "official": "BMW CarData (ufficiale)",
         "configurator": "Configuratore BMW (360°, non ufficiale)"
+      }
+    },
+    "upholstery": {
+      "options": {
+        "default": "Predefiniti BMW"
       }
     },
     "mileage_kind": {

@@ -81,10 +81,11 @@ Bildschirm: **Konfigurieren → Fahrzeugbild**.
 | Option | Werte | Bedeutung |
 | --- | --- | --- |
 | **Bildquelle** | BMW CarData (offiziell) · BMW-Konfigurator (360°, inoffiziell) | Standard **BMW CarData**: BMWs eine Seitenansicht des Autos, eine deiner [50 Anfragen am Tag](DE-Feature-API-Quota) pro Auto. **BMW-Konfigurator** zeichnet genau dein Auto so, wie es BMWs Online-Konfigurator tut, aus Modell, Lack und Werksausstattung in den Fahrzeug-Basisdaten: eine 360°-Drehansicht in der [Karte](DE-The-Dashboard-Card#übersicht), die du mit der Maus oder dem Finger drehst, und die echte Lackfarbe am [Auto von oben](DE-The-Dashboard-Card#die-form-des-autos). Das kostet keine Anfragen, gehört aber nicht zu CarData: Es ist der Dienst hinter BMWs Konfigurator-Webseite, den BMW jederzeit ändern oder sperren kann. |
+| **Polsterung** | BMW-Standard · die Polsterungen deines Modells, unter BMWs Namen | Wird nach **OK** mit dem Konfigurator abgefragt, ein Bildschirm pro Auto (**Weiter** bis zum letzten), weil BMWs Fahrzeugdaten nicht nennen, womit die Sitze bezogen sind. Die Liste ist die deines Modells, wie BMWs Konfigurator sie anbietet, benannt in der Sprache des Markts, in dem das Auto verkauft wurde (Deutsch für ein in Deutschland oder Österreich verkauftes Auto). Bleibt es bei **BMW-Standard**, zeigt das [Innenraum-Panorama](DE-The-Dashboard-Card#übersicht) BMWs Standard-Polsterung. Jedes Auto behält seine eigene Wahl, auch bei einem Konto mit nur einem Auto, ein später hinzukommendes Auto beginnt also bei BMW-Standard; ein Auto, für dessen Modell BMW keine Polsterung listet, wird nicht gefragt. |
 
 **OK** lädt das Bild sofort und behält es über Neustarts hinweg. Mit dem
-Konfigurator wartet es nur auf die 360°-Ansicht (einige Sekunden pro Auto); der
-Rest folgt innerhalb etwa einer Minute im Hintergrund: dieselbe Ansicht mit Licht
+Konfigurator fragt es zuerst die Polsterung jedes Autos ab und wartet dann nur
+auf die 360°-Ansicht (einige Sekunden pro Auto); der Rest folgt innerhalb etwa einer Minute im Hintergrund: dieselbe Ansicht mit Licht
 und bei Nacht, das Innenraum-Panorama, das Foto von oben (nur MINIs) und die
 Namen und Bilder der Werksoptionen für die
 [Ausstattungs-Ansicht](DE-The-Dashboard-Card#equipment-view-equipment) der Karte.
@@ -107,8 +108,8 @@ neuere Version hinzufügt).
 
 Der Konfigurator zeichnet BMW- und MINI-Autos, auch Modelle, die nicht mehr
 verkauft werden. Von BMW-Modellen hat er keine Ansicht von oben, und sein
-Innenraum zeigt BMWs Standard-Ausstattung, weil BMWs Fahrzeugdaten die Polsterung
-eines Autos nicht nennen.
+Innenraum zeigt die gewählte Polsterung oder BMWs Standard: BMWs Fahrzeugdaten
+nennen die Polsterung eines Autos nicht.
 Gibt es für ein Auto kein Konfigurator-Bild, zeigt die Karte das offizielle.
 
 ## Automatische Aktualisierung

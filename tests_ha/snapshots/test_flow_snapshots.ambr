@@ -2536,6 +2536,132 @@
     }),
   ])
 # ---
+# name: test_configure_picture_upholstery
+  list([
+    dict({
+      'data_schema': list([
+        dict({
+          'default': 'official',
+          'name': 'image_source',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                'official',
+                'configurator',
+              ]),
+              'sort': False,
+              'translation_key': 'image_source',
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'error': '',
+        'vehicle': '',
+      }),
+      'errors': dict({
+      }),
+      'last_step': None,
+      'step_id': 'action_fetch_image',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'default': 'default',
+          'name': 'configurator_upholstery',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                dict({
+                  'label': 'default',
+                  'value': 'default',
+                }),
+                dict({
+                  'label': 'Leder Vernasca Mokka Dekorsteppung (SW)',
+                  'value': 'FMAMU',
+                }),
+                dict({
+                  'label': 'Sensatec perf Cognac',
+                  'value': 'FKHKC',
+                }),
+              ]),
+              'sort': False,
+              'translation_key': 'upholstery',
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'i5 eDrive40',
+      }),
+      'errors': None,
+      'last_step': False,
+      'step_id': 'image_upholstery',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'default': 'default',
+          'name': 'configurator_upholstery',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                dict({
+                  'label': 'default',
+                  'value': 'default',
+                }),
+                dict({
+                  'label': 'Leder Vernasca Mokka Dekorsteppung (SW)',
+                  'value': 'FMAMU',
+                }),
+                dict({
+                  'label': 'Sensatec perf Cognac',
+                  'value': 'FKHKC',
+                }),
+              ]),
+              'sort': False,
+              'translation_key': 'upholstery',
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'iX1 xDrive30',
+      }),
+      'errors': None,
+      'last_step': True,
+      'step_id': 'image_upholstery',
+      'type': 'form',
+    }),
+    dict({
+      'data': dict({
+        'image_source': 'configurator',
+        'vehicles': dict({
+          'WBATEST0000000001': dict({
+            'configurator_upholstery': 'FMAMU',
+          }),
+        }),
+      }),
+      'description_placeholders': None,
+      'title': '',
+      'type': 'create_entry',
+    }),
+  ])
+# ---
 # name: test_configure_streamed_data
   list([
     'nothing chosen',

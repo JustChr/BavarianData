@@ -9,6 +9,18 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **The configurator picture can show your car's real upholstery.** BMW's
+  data doesn't say what a car's seats are covered in, so the 360° interior
+  always showed BMW's default, black on most cars. With *Configure → Vehicle
+  image* set to BMW's configurator, **Submit** now first asks each car's
+  upholstery, from the list BMW's configurator has for that model, under BMW's
+  own names in the language of the market that sold the car. The card's
+  interior then shows it, and the Equipment view lists it. Left at *BMW's
+  default*, the picture stays as it was. Choose *Configure → Vehicle image* and
+  submit once to pick it.
+  [Settings](https://github.com/JustChr/BavarianData/wiki/Settings-Reference#vehicle-image)
+
 ### Fixed
 
 - **A charge in a carport or driveway zone counts as home again.** Home

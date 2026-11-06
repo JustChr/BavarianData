@@ -234,6 +234,36 @@ def test_none_removes_the_allowance_and_keeps_the_cars_other_settings():
     )
 
 
+def test_a_cars_upholstery_is_its_own_even_on_a_single_car_account() -> None:
+    stored = OPTIONS.store_upholstery({"image_source": "configurator"}, "VIN1", "FMAMU")
+    assert stored == {
+        "image_source": "configurator",
+        "vehicles": {"VIN1": {"configurator_upholstery": "FMAMU"}},
+    }
+    assert OPTIONS.upholstery_for(stored, "VIN1") == "FMAMU"
+    # A car added later starts from BMW's default, not the other car's seats.
+    assert OPTIONS.upholstery_for(stored, "VIN2") is None
+    assert OPTIONS.upholstery_for({"configurator_upholstery": "FMAMU"}, "VIN1") is None
+
+
+def test_bmws_default_removes_the_upholstery_and_keeps_the_cars_other_settings() -> None:
+    options = {"vehicles": {"VIN1": {"bridge_enabled": True}}}
+    stored = OPTIONS.store_upholstery(options, "VIN1", "FKHKC")
+    assert stored["vehicles"]["VIN1"] == {
+        "bridge_enabled": True,
+        "configurator_upholstery": "FKHKC",
+    }
+    assert OPTIONS.store_upholstery(stored, "VIN1", None) == options
+    assert (
+        OPTIONS.store_upholstery(OPTIONS.store_upholstery({}, "VIN1", "FKHKC"), "VIN1", None) == {}
+    )
+    # What isn't a code reads as BMW's default.
+    assert (
+        OPTIONS.upholstery_for({"vehicles": {"VIN1": {"configurator_upholstery": 7}}}, "VIN1")
+        is None
+    )
+
+
 def test_a_deleted_car_takes_its_own_settings_along() -> None:
     options = {"vehicles": {"VIN1": {"x": 1}, "VIN2": {"y": 2}}, "shared": True}
     assert OPTIONS.without_vehicle(options, "VIN1") == {
