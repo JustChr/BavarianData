@@ -19,6 +19,11 @@ happened between two readings, their difference is exactly what was driven. On
 the day you upgrade, the log starts with the readings stored with your charging
 history, so most installs already have months of data.
 
+A reading lower than an earlier day's is a replay and is ignored. A reading no
+car could have driven to (more than 2,000 km a day since the last one, say a
+value in the wrong unit) is replaced by the next reading that follows on from
+the day before it, so one bad value can't hold the log up.
+
 - **This month / this year:** from the odometer at the start of the period to
   the latest reading. If the log started this year, *this year* is an estimate:
   the recorded distance plus the days before the log at your pace, shown as

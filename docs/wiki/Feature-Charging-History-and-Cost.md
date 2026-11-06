@@ -159,6 +159,11 @@ goes for the cost: your tariff is your home price, so a charge elsewhere gets no
 cost from it. Its energy still counts everywhere. If BMW billed the charge
 itself, [importing BMW's history](#importing-past-charges-from-bmw) adds that
 cost. A car that reports no position at all is treated as at home, as before.
+A smaller zone drawn at the house, such as a carport or the drive, counts as
+home too: a charge inside your Home zone and within 150 m of its center is
+filed under Home, whatever smaller zone Home Assistant puts the car in. A zone
+further out, inside a Home zone you widened for presence (a supermarket down
+the road), stays a place of its own.
 Charges recorded before v0.9.18 that got your home mix or tariff away from home
 are cleared the next time Home Assistant starts.
 

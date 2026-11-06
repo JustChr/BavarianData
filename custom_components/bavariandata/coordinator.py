@@ -30,6 +30,7 @@ from .history.pricing import (
 )
 from .evcc import PLUG_DESCRIPTORS, BridgeSnapshot, plug_state
 from .history.sessions import (
+    at_the_house,
     house_supplies_this_session,
 )
 from .history.trips import Trip
@@ -1218,8 +1219,20 @@ class CardataCoordinator:
         return self._zone_name(latitude, longitude)
 
     def _zone_name(self, latitude: float, longitude: float) -> Optional[str]:
+        """The place a charge or trip is filed under: Home wherever it is the house.
+
+        Only places, not zone events: those keep the zone Home Assistant names
+        (``_zone_at``), so an automation on a carport zone still fires.
+        """
+
         found = self._zone_at(latitude, longitude)
-        return None if found is None else found[0]
+        if found is None:
+            return None
+        if found[1] != "zone.home":
+            home = self.hass.states.get("zone.home")
+            if home is not None and at_the_house(latitude, longitude, home.attributes):
+                return self._home_zone_name()
+        return found[0]
 
     def _zone_at(self, latitude: float, longitude: float) -> Optional[tuple[str, str]]:
         """The zone a point lies in, as ``(name, entity_id)``, or ``None``."""

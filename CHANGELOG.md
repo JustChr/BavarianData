@@ -9,6 +9,26 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+
+- **A charge in a carport or driveway zone counts as home again.** Home
+  Assistant files a car under the smallest zone it is in, so a zone drawn at the
+  house made every charge there look like one away from home: no wallbox meter,
+  no solar/grid split and no home tariff. A charge inside your Home zone and
+  within 150 m of its center is now home, whichever smaller zone it is in; trips
+  ending there show Home too. Zone triggers still name the smaller zone, and a
+  zone further out in a Home zone widened for presence stays a place of its own.
+  Charges already recorded keep what they had.
+- **A slow answer from BMW no longer stops the daily refresh.** A request that
+  ran out of time skipped the remaining cars and ended the daily refresh until
+  Home Assistant restarted. It now fails like any other refused request, that
+  car tries again the next day, and the refresh carries on.
+- **One wrong odometer reading can no longer hold up the mileage figures.** A
+  reading no car could have driven to, such as a value in the wrong unit, kept
+  every true reading after it out of the daily log until the car caught up,
+  which could take months. The next reading that follows on from the day before
+  it now takes its place.
+
 ## [0.9.27-beta.4] - 2026-11-05
 
 ### Changed

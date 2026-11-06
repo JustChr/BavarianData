@@ -14,11 +14,12 @@ takes the final figure at close.
 from __future__ import annotations
 
 from datetime import datetime, timedelta
-from typing import Any, Optional
+from typing import Any, Mapping, Optional
 
 from .meter_reading import HOLD, RESET, judge
 from .models import ChargingSession, _iso, _parse  # shared ISO (de)serialisation helpers
 from .pricing import PARTIAL_TOLERANCE
+from .stations import distance_m
 
 # A point per minute is plenty to draw a charging curve, and keeps a typical AC
 # session well under a hundred points.
@@ -136,6 +137,32 @@ def measured_grid_kwh(
     ):
         return None
     return round(delta, 3)
+
+
+# How near Home's centre a point is the house itself, whatever Home's radius.
+# A wallbox or a carport is; a radius widened for presence takes in the
+# neighbourhood, and a public charger there is not the house (#97).
+AT_HOUSE_M = 150.0
+
+
+def at_the_house(latitude: float, longitude: float, home: Optional[Mapping[str, Any]]) -> bool:
+    """Whether a point is at the house: inside ``zone.home``, and near its centre.
+
+    Home Assistant names the *smallest* zone a point lies in, so a zone drawn
+    round the carport or the drive puts every charge at home in that zone
+    instead -- a known elsewhere to :func:`meter_counts_this_session`, which
+    then took the meter, the energy mix and the home tariff from it. ``home``
+    is ``zone.home``'s attributes; without them, nothing is at the house.
+    """
+
+    if not isinstance(home, Mapping):
+        return False
+    try:
+        centre = float(home["latitude"]), float(home["longitude"])
+        radius = float(home["radius"])
+    except KeyError, TypeError, ValueError:
+        return False
+    return distance_m(latitude, longitude, *centre) <= min(radius, AT_HOUSE_M)
 
 
 def meter_counts_this_session(location: Optional[dict[str, Any]], home_zone: Optional[str]) -> bool:

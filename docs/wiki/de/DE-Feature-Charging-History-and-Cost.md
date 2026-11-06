@@ -183,7 +183,12 @@ Ladung speichert daher keinen Mix. Dasselbe gilt für die Kosten: Dein Tarif ist
 dein Preis zu Hause, also bekommt eine Ladung woanders daraus keine Kosten. Ihre
 Energie zählt trotzdem überall. Hat BMW die Ladung selbst abgerechnet, ergänzt
 [der Import des BMW-Verlaufs](#importing-past-charges-from-bmw) diese Kosten. Ein
-Auto, das gar keine Position meldet, gilt wie bisher als zu Hause. Ladungen von
+Auto, das gar keine Position meldet, gilt wie bisher als zu Hause. Eine kleinere
+Zone direkt am Haus, etwa Carport oder Einfahrt, zählt ebenfalls als zu Hause:
+Eine Ladung innerhalb deiner Zone Home und höchstens 150 m von ihrem Mittelpunkt
+entfernt wird unter Home abgelegt, egal welche kleinere Zone Home Assistant
+meldet. Eine Zone weiter draußen, in einer für die Anwesenheit vergrößerten Zone
+Home (der Supermarkt die Straße runter), bleibt ein eigener Ort. Ladungen von
 vor v0.9.18, die unterwegs deinen Mix oder Tarif bekommen haben, werden beim
 nächsten Start von Home Assistant bereinigt.
 
