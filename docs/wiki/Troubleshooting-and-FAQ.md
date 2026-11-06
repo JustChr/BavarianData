@@ -6,7 +6,8 @@
 
 - **Setting up:** [access denied](#onboarding-fails-with-access-denied) ·
   [account already set up](#setup-says-this-bmw-account-is-already-set-up) ·
-  [a new car shows only its VIN](#a-new-car-shows-up-as-its-vin-with-no-model)
+  [a new car shows only its VIN](#a-new-car-shows-up-as-its-vin-with-no-model) ·
+  [empty Configure screen after an update](#configure-empty-after-update)
 - **The stream:** [no data arriving](#no-data-arriving) ·
   [not authorized (rc=5)](#stream-authorization-failing) ·
   [one stream per account](#only-one-stream-per-account)
@@ -249,6 +250,21 @@ to a new Client ID of the same account, use **Reconfigure** on the integration:
 it keeps the cars and their history. Two
 *different* accounts are fine side by side — see
 [Multiple cars & accounts](Feature-Multiple-Cars-and-Accounts).
+
+## A Configure screen shows empty lines after an update
+
+<a id="configure-empty-after-update"></a>
+
+Symptom: after updating BavarianData, a **Configure** screen opens with rows,
+fields or buttons that have no text, and its title is only the integration's
+name. It happens on screens the update added (#287).
+
+The browser loads an integration's screen texts once and keeps them until the
+page is reloaded. A tab that stayed open across the update and the restart still
+has the old texts, so a new screen has nothing to show. **Hard-refresh the
+browser** (Ctrl+F5, Cmd+Shift+R on a Mac), or reset the companion app's
+frontend cache (see [the mobile-app section](#custom-element-doesnt-exist-app)),
+then open the screen again.
 
 ## "BMW CarData stream not authorized" (MQTT rc=5, Not authorized)
 
