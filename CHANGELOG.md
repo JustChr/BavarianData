@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.28-beta.1] - 2026-11-06
+
 ### Changed
 - **Tapping the lock-screen card opens Home Assistant, or your car's
   dashboard.** Until now a tap on the *Charging on the lock screen* card opened
