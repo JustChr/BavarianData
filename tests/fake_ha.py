@@ -99,10 +99,15 @@ class FakeHass:
     def __post_init__(self) -> None:
         self.bus = types.SimpleNamespace(async_fire=self._fire)
         # ``zone_at`` reads ``zones``; a zone's own state (where it is, by name)
-        # is what ``async_all("zone")`` lists.
-        self.states = types.SimpleNamespace(get=self.entity_states.get, async_all=self._all_states)
+        # is what ``async_all("zone")`` lists and ``get("zone.home")`` returns.
+        self.states = types.SimpleNamespace(get=self._get_state, async_all=self._all_states)
         self.config = types.SimpleNamespace(latitude=None, longitude=None, config_dir=".")
         self.config.path = lambda *parts: os.path.join(self.config.config_dir, *parts)
+
+    def _get_state(self, entity_id: str) -> Any:
+        if entity_id in self.entity_states:
+            return self.entity_states[entity_id]
+        return next((st for st in self._all_states("zone") if st.entity_id == entity_id), None)
 
     def _all_states(self, domain: Optional[str] = None) -> list[Any]:
         if domain != "zone":
@@ -111,7 +116,12 @@ class FakeHass:
             types.SimpleNamespace(
                 entity_id=zone.entity_id,
                 name=zone.name,
-                attributes={"latitude": zone.latitude, "longitude": zone.longitude},
+                state="0",
+                attributes={
+                    "latitude": zone.latitude,
+                    "longitude": zone.longitude,
+                    "radius": zone.radius,
+                },
             )
             for zone in self.zones
         ]

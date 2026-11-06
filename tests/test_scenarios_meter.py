@@ -589,12 +589,12 @@ def test_a_meter_counting_less_than_the_soc_proves_is_not_believed(h):
 # --- the meter bills the session's mix and cost -------------------------------
 
 
-def _priced_home_harness() -> CoordinatorHarness:
+def _priced_home_harness(*, home_radius_m: float = 100) -> CoordinatorHarness:
     """A meter, a fixed tariff and the house's PV/grid power, at home."""
 
     home = (48.1, 11.5)
     harness = CoordinatorHarness(wallbox_meter=METER, home=home)
-    harness.hass.add_zone("Home", *home, radius_m=100)
+    harness.hass.add_zone("Home", *home, radius_m=home_radius_m)
     harness.coordinator.pricing = PricingConfig(
         mode="fixed",
         fixed_price=0.30,
@@ -734,3 +734,42 @@ def test_a_garbled_meter_reading_counts_as_the_meter_dropping_out():
             estimates.append(h.estimate())
 
     assert estimates[0] == estimates[1]
+
+
+# --- a zone inside Home -------------------------------------------------------
+
+
+def _charge_at(h: CoordinatorHarness, latitude: float, longitude: float):
+    h.fix(6, latitude, longitude)
+    _metered_charge(h, until=70)
+    h.send(70, soc=46, status="NOCHARGING", power=0, step="unplugged")
+    h.advance_to(72)
+    return _today(h)
+
+
+def test_a_carport_zone_is_still_the_house():
+    """Home Assistant names the smallest zone a point is in: a carport zone, not Home.
+
+    Filed under it, the charge counted as away: no meter, no mix, no tariff.
+    """
+
+    with _priced_home_harness() as h:
+        h.hass.add_zone("Carport", 48.1001, 11.5, radius_m=15)
+        session = _charge_at(h, 48.1001, 11.5)
+
+        assert session.location["zone"] == "Home"
+        assert session.grid_kwh == pytest.approx(7.4, abs=0.01)
+        assert session.energy_mix is not None
+        assert session.cost is not None
+
+
+def test_a_charger_inside_a_widened_home_is_not_the_house():
+    """Home widened to a kilometre for presence: the supermarket's charger in it is public."""
+
+    with _priced_home_harness(home_radius_m=1000) as h:
+        h.hass.add_zone("Supermarket", 48.1072, 11.5, radius_m=100)
+        session = _charge_at(h, 48.1072, 11.5)
+
+        assert session.location["zone"] == "Supermarket"
+        assert session.grid_kwh is None
+        assert session.energy_mix is None

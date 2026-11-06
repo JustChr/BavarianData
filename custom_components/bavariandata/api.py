@@ -155,6 +155,11 @@ async def async_request_json(
         raise CardataApiError(
             f"Network error for {method} {_shown(path)}: {_VIN_RE.sub('<VIN>', str(err))}"
         ) from err
+    except TimeoutError as err:
+        # Not a ClientError: aiohttp raises the builtin when the total timeout
+        # runs out, and every caller handles only CardataApiError -- a slow
+        # BMW stopped the other cars' refresh and ended the daily poll.
+        raise CardataApiError(f"Timed out for {method} {_shown(path)}") from err
 
 
 async def async_request_bytes(
@@ -179,6 +184,11 @@ async def async_request_bytes(
         raise CardataApiError(
             f"Network error for {method} {_shown(path)}: {_VIN_RE.sub('<VIN>', str(err))}"
         ) from err
+    except TimeoutError as err:
+        # Not a ClientError: aiohttp raises the builtin when the total timeout
+        # runs out, and every caller handles only CardataApiError -- a slow
+        # BMW stopped the other cars' refresh and ended the daily poll.
+        raise CardataApiError(f"Timed out for {method} {_shown(path)}") from err
 
 
 async def _async_collect_paginated(

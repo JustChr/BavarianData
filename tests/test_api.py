@@ -123,3 +123,25 @@ def test_vehicle_image_returns_bytes():
     data, content_type = _run(api.async_get_vehicle_image(session, "tok", "VIN0"))
     assert data == b"\x89PNG"
     assert content_type == "image/png"
+
+
+class _TimesOut(FakeResponse):
+    """A response whose body never arrives: aiohttp's total timeout runs out."""
+
+    async def text(self) -> str:
+        raise TimeoutError
+
+    async def read(self) -> bytes:
+        raise TimeoutError
+
+
+def test_a_timeout_is_an_api_error():
+    # aiohttp raises the builtin TimeoutError, not a ClientError, when the total
+    # timeout runs out. Callers handle only CardataApiError, so a slow BMW
+    # skipped the other cars' refresh and ended the daily poll for good.
+    session = FakeSession([_TimesOut(200, None)])
+    with pytest.raises(api.CardataApiError, match="Timed out for GET"):
+        _run(api.async_get_telematic_data(session, "tok", "WBA12345678901234", "c1"))
+    session = FakeSession([_TimesOut(200, None)])
+    with pytest.raises(api.CardataApiError, match="Timed out for GET"):
+        _run(api.async_get_vehicle_image(session, "tok", "WBA12345678901234"))

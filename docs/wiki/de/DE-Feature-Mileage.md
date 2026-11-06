@@ -23,6 +23,12 @@ Differenz ist genau das, was gefahren wurde. Am Tag des Updates beginnt das
 Protokoll mit den Ständen aus deinem Ladeverlauf, daher haben die meisten
 Installationen schon Monate an Daten.
 
+Ein Stand unter dem eines früheren Tages ist eine Wiederholung und wird
+ignoriert. Ein Stand, den kein Auto erreicht haben kann (mehr als 2.000 km pro
+Tag seit dem letzten, etwa ein Wert in der falschen Einheit), wird vom nächsten
+Stand ersetzt, der an den Tag davor anschließt. So kann ein falscher Wert das
+Protokoll nicht aufhalten.
+
 - **Dieser Monat / dieses Jahr:** vom Stand zu Beginn des Zeitraums bis zum
   letzten Stand. Begann das Protokoll erst in diesem Jahr, ist *dieses Jahr*
   eine Schätzung: die aufgezeichnete Strecke plus die Tage vor dem Protokoll in

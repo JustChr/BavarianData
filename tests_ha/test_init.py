@@ -498,3 +498,22 @@ async def test_the_daily_refresh_waits_its_turn_and_stops_with_the_entry(
 
     # An unloaded account ends the loop.
     await _POLL_LOOP(hass, "no-such-entry")
+
+
+async def test_a_failed_daily_refresh_does_not_end_the_loop(
+    hass: HomeAssistant, no_bmw, caplog: pytest.LogCaptureFixture
+) -> None:
+    # Ending there left the account without its daily refresh until a restart.
+    entry = _entry()
+    await _set_up(hass, entry)
+    with (
+        patch(f"{PACKAGE}.account.seconds_until_poll", side_effect=[0, 0, asyncio.CancelledError]),
+        patch(f"{PACKAGE}.account.TELEMATIC_POLL_INTERVAL", 0.001),
+        patch(
+            f"{PACKAGE}.account.AccountRest.daily_refresh",
+            AsyncMock(side_effect=[RuntimeError("boom"), None]),
+        ) as daily,
+    ):
+        await _POLL_LOOP(hass, entry.entry_id)
+    assert daily.await_count == 2
+    assert "Daily refresh for entry" in caplog.text

@@ -215,6 +215,10 @@ Zwei Dinge, bevor du darauf automatisierst:
 Endpunkte werden als **Ortsnamen gespeichert, nie als Koordinaten**:
 
 - Ein Punkt innerhalb einer **Zone** von Home Assistant zeigt den Namen der Zone.
+  Eine kleinere Zone am Haus (Carport, Einfahrt) zeigt Home, nach derselben Regel
+  wie beim [Laden](DE-Feature-Charging-History-and-Cost#where-the-energy-came-from): innerhalb
+  deiner Zone Home und höchstens 150 m von ihrem Mittelpunkt. Der Auslöser *in
+  Zone angekommen* nennt weiter die kleinere Zone.
 - Ein Punkt außerhalb jeder Zone wird **nur dann** als Adresse gespeichert, wenn du
   unter **Konfigurieren → Fahrten** **Adressen auflösen** einschaltest. Dabei werden
   die Koordinaten des Endpunkts an Nominatim von OpenStreetMap gesendet; gespeichert

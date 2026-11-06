@@ -194,7 +194,11 @@ Two things to know before you automate on it:
 
 Endpoints are stored as **place names, never coordinates**:
 
-- A point inside a Home Assistant **zone** shows that zone's name.
+- A point inside a Home Assistant **zone** shows that zone's name. A smaller
+  zone at the house (a carport, the drive) shows as Home, the same rule as
+  [charging](Feature-Charging-History-and-Cost#where-the-energy-came-from): inside your Home
+  zone and within 150 m of its center. The *arrived in zone* trigger still
+  names the smaller zone.
 - A point outside any zone is stored as an address **only if** you enable
   reverse geocoding under **Configure → Trips** (`trip_geocode`). That sends the
   endpoint coordinates to OpenStreetMap's Nominatim; the resulting address

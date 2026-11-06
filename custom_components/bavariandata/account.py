@@ -393,7 +393,13 @@ async def telematic_poll_loop(hass: HomeAssistant, entry_id: str) -> None:
             if wait > 0:
                 await asyncio.sleep(wait)
                 continue
-            await _account(hass, entry).daily_refresh()
+            try:
+                await _account(hass, entry).daily_refresh()
+            except Exception:  # noqa: BLE001 - the loop must outlive one bad day
+                # Ending here would leave the account without its daily refresh
+                # until a restart. The next try waits the whole interval, so a
+                # fault that keeps recurring still costs one request a day.
+                _LOGGER.exception("Daily refresh for entry %s failed", entry_id)
             await asyncio.sleep(TELEMATIC_POLL_INTERVAL)
     except asyncio.CancelledError:
         return
