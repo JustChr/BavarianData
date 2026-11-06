@@ -265,6 +265,11 @@ liegen, sodass Automationen daraus weiter funktionieren.
   - BMW schickt die Ladeleistung des Autos oft spät, manchmal eine Stunde lang
     nicht. Wähle unter *Wallbox power* den Leistungssensor deiner Wallbox: Steht
     das Auto zu Hause und die Wallbox liefert Strom, zeigt die Karte deren Wert.
+  - Ein Tippen auf die Karte öffnet die Startseite von Home Assistant. Soll
+    stattdessen das Dashboard deines Autos aufgehen, trag seinen Pfad unter
+    *Open on tap* ein, etwa `/dashboard-car`: kopier ihn aus der Adresszeile
+    des Browsers, während das Dashboard offen ist (die ganze Adresse geht
+    auch).
   - Ein iPhone beendet eine Live-Aktivität nach 8 Stunden; bei längerem Laden
     startet die nächste Aktualisierung eine neue.
 - **Ladekabel in einen Schalter spiegeln** —

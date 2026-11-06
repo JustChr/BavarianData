@@ -9,6 +9,15 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Changed
+- **Tapping the lock-screen card opens Home Assistant, or your car's
+  dashboard.** Until now a tap on the *Charging on the lock screen* card opened
+  the car's device page under Settings. It now opens Home Assistant's start
+  page, and the new *Open on tap* setting in the blueprint takes a dashboard of
+  your own, such as `/dashboard-car`. A whole address pasted from the browser
+  works too.
+  [Automations](https://github.com/JustChr/BavarianData/wiki/Feature-Automations#starter-blueprints)
+
 ### Fixed
 - **The configurator's other pictures no longer vanish for a minute after a
   redraw.** Submitting *Configure → Vehicle image* (or picking an upholstery)
