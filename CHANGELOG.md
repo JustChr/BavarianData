@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.27-beta.5] - 2026-11-06
+
 ### Added
 - **The configurator picture can show your car's real upholstery.** BMW's
   data doesn't say what a car's seats are covered in, so the 360° interior
