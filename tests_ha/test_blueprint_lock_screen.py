@@ -313,6 +313,45 @@ async def test_a_stop_short_of_the_target_says_so(hass: HomeAssistant) -> None:
     assert cleared.data["message"] == "clear_notification"
 
 
+async def test_a_tap_opens_the_start_page(hass: HomeAssistant) -> None:
+    await _car(hass)
+    calls = await _automation(hass, keep_minutes=0)
+
+    hass.bus.async_fire("bavariandata_charging_started", {"vin": VIN, "soc": 40, "target_soc": 80})
+    await _settle()
+    card = calls[0].data["data"]
+    assert (card["url"], card["clickAction"]) == ("/", "/")
+
+
+@pytest.mark.parametrize(
+    "picked",
+    [
+        "/dashboard-car/charging",
+        "dashboard-car/charging",
+        " http://ha.local:8123/dashboard-car/charging ",
+    ],
+)
+async def test_a_tap_opens_the_picked_dashboard(hass: HomeAssistant, picked: str) -> None:
+    await _car(hass)
+    calls = await _automation(hass, open_on_tap=picked, keep_minutes=0)
+
+    hass.bus.async_fire("bavariandata_charging_started", {"vin": VIN, "soc": 40, "target_soc": 80})
+    await _settle()
+    hass.bus.async_fire(
+        "bavariandata_charging_stopped",
+        {"vin": VIN, "soc": 80, "target_soc": 80, "energy_kwh": 20, "cost": None, "complete": True},
+    )
+    await _settle()
+
+    charging, result = calls[0], calls[-2]
+    assert result.data["message"].startswith("✓")
+    for card in (charging.data["data"], result.data["data"]):
+        assert (card["url"], card["clickAction"]) == (
+            "/dashboard-car/charging",
+            "/dashboard-car/charging",
+        )
+
+
 async def test_every_picked_phone_gets_the_card(hass: HomeAssistant) -> None:
     await _car(hass)
     other = async_mock_service(hass, "notify", "mobile_app_pixel_10")

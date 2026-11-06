@@ -251,6 +251,10 @@ integration leaves every copy, so an automation made from one keeps working.
   - BMW often sends the car's charging power late, sometimes not for an hour.
     Pick your wallbox's power sensor in *Wallbox power*, and while the car is at
     home and the wallbox draws power, the card shows the wallbox's figure.
+  - A tap on the card opens Home Assistant's start page. To open your car's
+    dashboard instead, put its path in *Open on tap*, such as
+    `/dashboard-car`: copy it from the browser's address bar while the
+    dashboard is open (the whole address works too).
   - An iPhone ends a Live Activity after 8 hours; on a longer charge the next
     refresh starts a new one.
 - **Mirror the charging cable into a switch** —

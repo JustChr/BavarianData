@@ -61,6 +61,16 @@ blueprint:
           max: 15
           step: 1
           unit_of_measurement: min
+    open_on_tap:
+      name: Open on tap
+      description: >
+        Optional: the dashboard that opens when you tap the card, such as
+        /dashboard-car. Copy it from your browser's address bar while the
+        dashboard is open; the part from the first / after the address is
+        enough. Empty opens Home Assistant's start page.
+      default: ""
+      selector:
+        text:
     keep_minutes:
       name: Keep the result for
       description: How long the finished card stays before it clears itself. 0 clears it at once.
@@ -105,7 +115,14 @@ variables:
   vehicles: !input vehicles
   wallbox_power: !input wallbox_power
   interval: !input interval
+  open_on_tap: !input open_on_tap
   keep_minutes: !input keep_minutes
+  # Where a tap on the card goes: the picked dashboard, or the start page. A
+  # whole address pasted from the browser is cut to its path, which the app
+  # opens inside itself.
+  tap_url: >-
+    {%- set path = (open_on_tap or '') | trim | regex_replace('^[a-zA-Z][a-zA-Z0-9+.-]*://[^/]*', '') -%}
+    {{ '/' ~ (path | regex_replace('^/+', '')) }}
   # Joins a number to its unit, so the phone never breaks "15.9 kWh" across lines.
   nbsp: "\u00A0"
   # The pause sign as text, in the card's own color: on its own an iPhone
@@ -209,7 +226,8 @@ actions:
                       notification_icon_color: "#4CAF50"
                       color: "#4CAF50"
                       progress_bar_direction: increasing
-                      url: /config/devices/device/{{ device }}
+                      url: "{{ tap_url }}"
+                      clickAction: "{{ tap_url }}"
                       alert_once: true
           - delay:
               minutes: "{{ keep_minutes }}"
@@ -338,7 +356,8 @@ actions:
                         notification_icon_color: "#4CAF50"
                         color: "#4CAF50"
                         progress_bar_direction: increasing
-                        url: /config/devices/device/{{ device }}
+                        url: "{{ tap_url }}"
+                        clickAction: "{{ tap_url }}"
                         silent: true
                         alert_once: true
             - wait_for_trigger:
