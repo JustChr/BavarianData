@@ -155,9 +155,9 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `action_fetch_tyre` | Fetch tire diagnosis | 🟡 | — |
 | `action_fetch_location_charging` | Fetch location charging settings | 🟡 | — |
 | `action_fetch_image` | Vehicle image (picture source: BMW CarData or BMW's configurator, `image_source`) | 🟢 Settings-Reference → "Vehicle image" + Feature-Entities-and-Devices + The-Dashboard-Card (EN + DE) | 📷 (have, 2026-10-14: `bavariandata-vehicle-image.png`; card: `card-hero-spin.png`) |
-| `vehicle_image` | Vehicle image as a menu once the configurator is the source: Picture source (`image_source` → the `action_fetch_image` form) · Upholstery | 🟢 Settings-Reference → "Vehicle image" (EN + DE) | 📷 (needed) |
+| `vehicle_image` | Vehicle image as a menu once the configurator is the source: Picture source (`image_source` → the `action_fetch_image` form) · Upholstery | 🟢 Settings-Reference → "Vehicle image" (EN + DE) | 📷 (have, 2026-11-06: `bavariandata-vehicle-image-menu.png`) |
 | `upholstery_vehicle` | Upholstery: which vehicle (only with 2+ cars) | 🟢 Settings-Reference → "Vehicle image" (EN + DE) | 📷 (picker shared) |
-| `action_upholstery` | Vehicle image → Upholstery: one car's upholstery from its model's list; Submit redraws that car only | 🟢 Settings-Reference → "Vehicle image" + The-Dashboard-Card → "Overview" (EN + DE) | 📷 (needed) |
+| `action_upholstery` | Vehicle image → Upholstery: one car's upholstery from its model's list; Submit redraws that car only | 🟢 Settings-Reference → "Vehicle image" + The-Dashboard-Card → "Overview" (EN + DE) | 📷 (have, 2026-11-06: `bavariandata-upholstery.png`) |
 | `action_data_refresh` | Automatic data refresh | 🟢 Settings-Reference → "Automatic data refresh" | 📷 |
 | `charging_vehicle` | Charging costs: which vehicle (only with 2+ cars) | 🟢 Settings-Reference → "Charging costs & history" + Feature-Multiple-Cars-and-Accounts (EN + DE) | 📷 (have, staged two-car: `bavariandata-charging-costs-second-car.png`; picker shared) |
 | `action_charging_costs` | Charging costs & history (per car with 2+ cars: meter and losses; price etc. in "All vehicles") | 🟡 | 📷 (have, 2026-10-11: `bavariandata-charging-costs.png`) |
@@ -221,7 +221,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `view: trips` | Driving journal | 🟡 | 📷 |
 | `view: map` | Trip map (routes) | 🟡 | 📷 (needs route data) |
 | `view: health` | Battery health | 🟡 | 📷 |
-| `view: efficiency` | Efficiency & real range | 🟢 The-Dashboard-Card + Feature-Efficiency-and-Range | 📷 (have, 2026-10-14: `card-efficiency.png`) |
+| `view: efficiency` | Efficiency & real range | 🟢 The-Dashboard-Card + Feature-Efficiency-and-Range | 📷 (have, 2026-11-06: `card-efficiency.png`, `wattfried-efficiency.png`, with the temperature chart) |
 | `view: mileage` | Mileage overview + allowance | 🟢 The-Dashboard-Card → "Mileage" + Feature-Mileage (EN + DE) | 📷 (have, 2026-10-14: `card-mileage.png`, live overview with an example lease) |
 | `view: fuel` | Fuel log for petrol/diesel/PHEV: tank now, refuels detected from tank jumps, l/100 km between refuels, BMW OBFCM lifetime figure; shown by `charging`/`efficiency` on a petrol or diesel car | 🟢 The-Dashboard-Card → "Fuel" (EN + DE) | 📷 (have, 2026-10-18: `card-fuel.png`, rendered from the shipped card; refuels staged through `history/fuel.py`) |
 | `view: equipment` | Factory equipment by name, with each option's picture where BMW has one (from the configurator picture source) | 🟢 The-Dashboard-Card → "Equipment" (EN + DE) | 📷 (have: `card-equipment.png`, with the option pictures, i5) |

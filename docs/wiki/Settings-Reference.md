@@ -70,7 +70,11 @@ refused and nothing changes.
 
 ## Vehicle image
 
-Screen: **Configure → Vehicle image**.
+Screen: **Configure → Vehicle image**. With the configurator as the picture source, it opens a menu first:
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-vehicle-image-menu.png" alt="Vehicle image menu: Picture source and Upholstery" width="460" />
+</p>
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-vehicle-image.png" alt="Vehicle image settings: one dropdown, Picture source, set to BMW configurator (360°, unofficial)" width="460" />
@@ -80,6 +84,10 @@ Screen: **Configure → Vehicle image**.
 | --- | --- | --- |
 | **Picture source** | BMW CarData (official) · BMW configurator (360°, unofficial) | Default **BMW CarData**: BMW's one side view of the car, one of your [50 requests a day](Feature-API-Quota) per car. **BMW configurator** draws your exact car the way BMW's online configurator does, from the model, paint and factory options in its basic vehicle info: a 360° turntable in the [card](The-Dashboard-Card#overview) you can drag to turn, and the real paint on the card's [top-down car](The-Dashboard-Card#the-cars-shape). It spends no requests, but it is not part of CarData: it is the service behind BMW's configurator web page, which BMW can change or block at any time. |
 | **Upholstery** | BMW's default · your model's upholstery, under BMW's names | With the configurator as the picture source, **Vehicle image** opens a menu: **Picture source** (the setting above) and **Upholstery**, because BMW's vehicle data doesn't say what the seats are covered in. With several cars, pick the car first; **Submit** redraws that car only. The list is your model's own, as BMW's configurator offers it, named in the language of the market that sold the car (German for a car sold in Germany or Austria). Left at **BMW's default**, the [interior panorama](The-Dashboard-Card#overview) shows BMW's standard upholstery. Each car keeps its own choice, even on an account with one car, so a car added later starts from BMW's default. If BMW's configurator lists no upholstery for a car's model, or doesn't answer, the screen says so. |
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-upholstery.png" alt="Upholstery screen for the i5 eDrive40: one dropdown, Upholstery, set to BMW's default, and a Submit button" width="460" />
+</p>
 
 **Submit** fetches the picture straight away and keeps it across restarts. With
 the configurator it waits only for the 360° view (a few seconds per car); the

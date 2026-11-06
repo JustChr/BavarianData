@@ -169,7 +169,7 @@ Ein Plug-in-Hybrid bekommt keine, aus demselben Grund wie oben.
 ## Ansehen
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-efficiency.png" alt="Karte Effizienz und Reichweite: reale Reichweite beim aktuellen Ladezustand, wie weit das unter der Prognose des Autos liegt, der gemessene Verbrauch mit Seite des Ladegeräts und Fenster, die nutzbare Kapazität und ihre Herkunft sowie ein Balkendiagramm des Verbrauchs nach Monat" width="420" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-efficiency.png?v=2026-11-06" alt="Karte Effizienz und Reichweite: reale Reichweite beim aktuellen Ladezustand, wie weit das unter der Prognose des Autos liegt, der gemessene Verbrauch mit Seite des Ladegeräts und Fenster, die nutzbare Kapazität und ihre Herkunft sowie ein Balkendiagramm des Verbrauchs nach Monat, und ein zweites Balkendiagramm des Verbrauchs nach Außentemperatur mit dem Kälteaufschlag darunter" width="420" />
 </p>
 
 Nutze die [Kartenansicht `view: efficiency`](DE-The-Dashboard-Card#efficiency--range-view-efficiency):

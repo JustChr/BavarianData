@@ -159,7 +159,7 @@ hybrid gets none, for the same reason as above.
 ## Viewing it
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-efficiency.png" alt="Efficiency and range card: real range now at the current charge, how far that is under the car's own prediction, the measured consumption with the side of the charger and the window it used, the usable capacity and where it came from, and a bar chart of consumption by month" width="420" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-efficiency.png?v=2026-11-06" alt="Efficiency and range card: real range now at the current charge, how far that is under the car's own prediction, the measured consumption with the side of the charger and the window it used, the usable capacity and where it came from, and a bar chart of consumption by month, and a second bar chart of consumption by outside temperature with the cold penalty under it" width="420" />
 </p>
 
 Use the [`view: efficiency` card](The-Dashboard-Card#efficiency--range-view-efficiency):

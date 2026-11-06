@@ -11,7 +11,7 @@
 //
 // Run from a directory with playwright-core installed (see the shoot skill):
 //   HA_URL=http://<host> HA_TOKEN=<token> \
-//     node mock_flow.js <trips|trips_new|charging|bridge|phone|menu|share|abrp> <real|staged> <lang> <width> <outdir>
+//     node mock_flow.js <trips|trips_new|charging|bridge|phone|menu|share|image|upholstery|abrp> <real|staged> <lang> <width> <outdir>
 // ``phone`` is staged only: Trips for a car on end-of-trip reports with Record
 // route on, and the follow-up Route from a phone screen its submit leads to.
 // A new per-car screen: add it to SCREENS, starting from the real step the
@@ -65,6 +65,16 @@ const SCREENS = {
     menu: { en: "Share live data", de: "Live-Daten teilen" },
     step: "share_live_data",
   },
+  // Vehicle image's menu, shown only with the configurator as the source (real only).
+  image: {
+    menu: { en: "Vehicle image", de: "Fahrzeugbild" },
+    step: "vehicle_image",
+  },
+  upholstery: {
+    via: { en: "Vehicle image", de: "Fahrzeugbild" },
+    menu: { en: "Upholstery", de: "Polsterung" },
+    step: "action_upholstery",
+  },
   abrp: {
     via: { en: "Share live data", de: "Live-Daten teilen" },
     menu: { en: "ABRP (A Better Routeplanner)", de: "ABRP (A Better Routeplanner)" },
@@ -105,7 +115,7 @@ const SCREENS = {
 const [screenName, mode, lang, width, outdir] = process.argv.slice(2);
 const screen = SCREENS[screenName];
 if (!screen || !["real", "staged"].includes(mode) || (screen.followup && mode !== "staged"))
-  throw new Error("usage: <trips|trips_new|charging|bridge|phone|menu|share|abrp> <real|staged> <lang> <width> <outdir>");
+  throw new Error("usage: <trips|trips_new|charging|bridge|phone|menu|share|image|upholstery|abrp> <real|staged> <lang> <width> <outdir>");
 const NEXT = { en: "Next", de: "Weiter" };
 
 // The working tree's strings for one step, as the frontend keys them.
