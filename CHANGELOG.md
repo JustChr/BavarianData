@@ -9,6 +9,12 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Weather along the route no longer looks up a trip's end twice.** When the
+  car's last position came in just before the trip ended, at the same spot, the
+  end was asked about again and stored as a second, identical weather sample.
+  The trip's temperature was not affected.
+
 ## [0.9.27-beta.5] - 2026-11-06
 
 ### Added
