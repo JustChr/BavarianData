@@ -611,12 +611,39 @@ def test_a_car_is_offered_its_models_upholstery_from_its_market():
     assert [c.rsplit("/", 1)[1] for c in session.name_calls] == ["en", "de"]
 
 
-def test_one_settings_lookup_serves_every_car_of_a_brand():
-    session = _FakeBmwFull(names=FABRICS)
-    by_site: dict = {}
-    for _car in range(2):
-        assert asyncio.run(CONF.async_upholstery(session, {**I5, "countryCode": "AT"}, by_site))
-    assert sum(c.endswith("/model-ranges") for c in session.calls) == 1
+class _Slow(_FakeBmwFull):
+    """A name service that answers, but far too late."""
+
+    class _Late(_Resp):
+        async def read(self) -> bytes:
+            await asyncio.sleep(60)
+            return b"{}"
+
+    def get(self, url: str, **kwargs):
+        if "/localisations/" in url:
+            return self._Late(200, b"")
+        return super().get(url, **kwargs)
+
+
+def test_a_slow_name_service_offers_no_upholstery_in_time():
+    # The screen waits for one car's list, never for BMW's 30 s per request.
+    found = asyncio.run(
+        CONF.async_upholstery(_Slow(names=FABRICS), {**I5, "countryCode": "AT"}, timeout=0.05)
+    )
+    assert found == []
+
+
+class _OddSettings(_FakeBmwFull):
+    """A settings file in a shape we don't know."""
+
+    def get(self, url: str, **kwargs):
+        if url.endswith("/de_DE/settings.abc123.json"):
+            return _Resp(200, json.dumps({"APP": {"backend": ["changed"]}}).encode())
+        return super().get(url, **kwargs)
+
+
+def test_an_unknown_answer_offers_no_upholstery_instead_of_failing():
+    assert asyncio.run(CONF.async_upholstery(_OddSettings(names=FABRICS), I5)) == []
 
 
 @pytest.mark.parametrize(

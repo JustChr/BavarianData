@@ -1,11 +1,12 @@
 """The Configure screens with settings a car holds for itself.
 
-Charging costs, the evcc bridge, Trips and the mileage allowance describe a
-car, so an account with more than one picks the car first and the screen
+Charging costs, the evcc bridge, Trips, the mileage allowance and the
+configurator picture's upholstery describe a car, so an account with more than one picks the car first and the screen
 stores that car's values (``vehicle_options.py``); a single-car account sees
 no picker. :class:`PerCarScreens` is mixed into ``CardataOptionsFlowHandler``
 (``options_flow.py``) and relies on its ``_config_entry``, ``_get_runtime``,
-``_picked_vin``, ``_trips_pending`` and ``_bridge_options``. The arithmetic
+``_picked_vin``, ``_trips_pending``, ``_bridge_options`` and
+``_upholstery_choices``. The arithmetic
 and checks are HA-free in ``flow_answers.py``.
 """
 
@@ -41,6 +42,7 @@ from .const import (
     OPTION_BRIDGE_STREAM_HIDE_POSITION,
     OPTION_CHARGE_LOCATIONS,
     OPTION_CHARGING_LOSS_PERCENT,
+    OPTION_CONFIGURATOR_UPHOLSTERY,
     OPTION_GRID_ENERGY_ENTITY,
     OPTION_HISTORY_RETAIN_MONTHS,
     OPTION_PRICE_CURRENCY,
@@ -60,11 +62,14 @@ from .const import (
     OPTION_TRIP_PHONE_TRACKER_2,
     OPTION_TRIP_TRACK,
     OPTION_TRIP_WORK_ZONE,
+    SIGNAL_VEHICLE_IMAGE,
     TRIP_DETECTION_CHOICES,
     TRIP_DETECTION_LIVE,
+    UPHOLSTERY_DEFAULT,
 )
 from .abrp import AbrpConfig, api_key, async_check
 from .bridge import async_clear_shared
+from .configurator import async_upholstery
 from .distance import car_distance_unit
 from .evcc import BridgeConfig, bridge_payloads, evcc_yaml
 from .flow_answers import (
@@ -114,7 +119,9 @@ from .vehicle_options import (
     mileage_values,
     store_abrp,
     store_mileage,
+    store_upholstery,
     store_values,
+    upholstery_for,
     values_for,
 )
 
@@ -147,6 +154,7 @@ class PerCarScreens(_FlowBase):
         _picked_vin: Optional[str]
         _trips_pending: tuple[Dict[str, Any], Dict[str, Any]]
         _bridge_options: Optional[Dict[str, Any]]
+        _upholstery_choices: tuple[Optional[str], list[tuple[str, str]]]
 
         def _get_runtime(self) -> Optional[CardataRuntimeData]: ...
 
@@ -251,6 +259,15 @@ class PerCarScreens(_FlowBase):
     ) -> ConfigFlowResult:
         return await self._vehicle_picker(
             step_id="mileage_vehicle", user_input=user_input, then=self.async_step_action_mileage
+        )
+
+    async def async_step_upholstery_vehicle(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> ConfigFlowResult:
+        return await self._vehicle_picker(
+            step_id="upholstery_vehicle",
+            user_input=user_input,
+            then=self.async_step_action_upholstery,
         )
 
     # --- charging costs -----------------------------------------------------
@@ -682,6 +699,101 @@ class PerCarScreens(_FlowBase):
             # In place, like every screen here: a reload would restart the stream.
             push.apply_config(AbrpConfig.from_options(options))
             push.async_schedule(vin)
+        return self.async_create_entry(title="", data=options)
+
+    # --- the configurator picture's upholstery -------------------------------
+
+    async def async_step_action_upholstery(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> ConfigFlowResult:
+        """What the car's seats are covered in, for its configurator picture.
+
+        BMW's basic data doesn't say, so the configurator draws BMW's default
+        unless the user picks the car's own from its model's list (asked once
+        per car, when the screen opens). Always the car's own setting, even on
+        a single-car account, so a car added later starts from the default.
+        Submit redraws this car only: the plain spin while the dialog waits,
+        the rest in the background. Nothing is saved when it can't be drawn;
+        the form stays, with the pick and the reason.
+        """
+
+        vehicles, _per_vehicle, vin = self._vehicle_context()
+        if vin is _PICK:
+            return await self.async_step_upholstery_vehicle()
+        runtime = self._get_runtime()
+        if runtime is None:
+            return self.async_abort(reason="runtime_missing")
+        if vin is None:
+            return self.async_abort(reason="no_vins")
+        label = self._vehicle_label(vehicles, vin)
+        if self._upholstery_choices[0] != vin:
+            raw = (runtime.coordinator.device_metadata.get(vin) or {}).get("raw_data") or {}
+            found = await async_upholstery(
+                runtime.session, raw, languages=(self.hass.config.language,)
+            )
+            self._upholstery_choices = (vin, found)
+        choices = self._upholstery_choices[1]
+        if not choices:
+            return self.async_abort(
+                reason="upholstery_none", description_placeholders={"vehicle": label}
+            )
+
+        def _form(
+            picked: Optional[str], errors: Optional[Dict[str, str]] = None
+        ) -> ConfigFlowResult:
+            schema = vol.Schema(
+                {
+                    vol.Required(
+                        OPTION_CONFIGURATOR_UPHOLSTERY,
+                        default=picked if picked in dict(choices) else UPHOLSTERY_DEFAULT,
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            # BMW's own names for the model, as BMW's market
+                            # names them; only "BMW's default" is translated.
+                            options=[
+                                selector.SelectOptionDict(
+                                    value=UPHOLSTERY_DEFAULT, label=UPHOLSTERY_DEFAULT
+                                ),
+                                *(
+                                    selector.SelectOptionDict(value=code, label=name)
+                                    for code, name in choices
+                                ),
+                            ],
+                            translation_key="upholstery",
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                        )
+                    ),
+                }
+            )
+            return self.async_show_form(
+                step_id="action_upholstery",
+                data_schema=schema,
+                errors=errors,
+                description_placeholders={"vehicle": label},
+            )
+
+        if user_input is None:
+            return _form(upholstery_for(self._config_entry.options, vin))
+        picked = user_input.get(OPTION_CONFIGURATOR_UPHOLSTERY)
+        code = picked if picked in dict(choices) else None
+
+        # The image platform imports Home Assistant's image component; only
+        # pull it in when this screen is actually used.
+        from .image import (  # noqa: PLC0415
+            async_refresh_configurator_render,
+            async_schedule_full_render,
+        )
+
+        options = store_upholstery(self._config_entry.options, vin, code)
+        reason = await async_refresh_configurator_render(
+            self.hass, runtime, vin, full=False, options=options
+        )
+        if reason:
+            return _form(code, {OPTION_CONFIGURATOR_UPHOLSTERY: f"configurator_{reason}"})
+        # Saved before the entity is told, so the full render reads the pick.
+        self.hass.config_entries.async_update_entry(self._config_entry, options=options)
+        async_dispatcher_send(self.hass, SIGNAL_VEHICLE_IMAGE, vin)
+        async_schedule_full_render(self.hass, runtime, vin)
         return self.async_create_entry(title="", data=options)
 
     # --- trips --------------------------------------------------------------

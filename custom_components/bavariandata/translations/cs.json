@@ -204,9 +204,27 @@
           "image_source": "Oficiální: jeden boční pohled, 1 z vašich 50 denních požadavků na BMW na auto. Konfigurátor: přesně vaše auto ve 360° se skutečným lakem, bez požadavků, ale jde o neoficiální službu BMW, která může přestat fungovat."
         }
       },
-      "image_upholstery": {
+      "vehicle_image": {
+        "title": "Obrázek vozidla",
+        "description": "Odkud pochází obrázek vašeho auta a jaké čalounění do něj kreslí konfigurátor BMW.",
+        "menu_options": {
+          "image_source": "Zdroj obrázku",
+          "action_upholstery": "Čalounění"
+        }
+      },
+      "upholstery_vehicle": {
         "title": "Čalounění",
-        "description": "BMW neposílá čalounění vozu {vehicle}, takže konfigurátor kreslí výchozí čalounění BMW. Vyberte své, abyste ho viděli v 360° interiéru na kartě.",
+        "description": "Každé vozidlo má vlastní čalounění. Vyberte to, které chcete změnit.",
+        "data": {
+          "vehicle": "Vozidlo"
+        },
+        "data_description": {
+          "vehicle": "Další obrazovka ukáže čalounění tohoto vozidla."
+        }
+      },
+      "action_upholstery": {
+        "title": "Čalounění",
+        "description": "BMW neposílá čalounění vozu {vehicle}, takže konfigurátor kreslí výchozí čalounění BMW. Vyberte své, abyste ho viděli v 360° interiéru na kartě. Odeslání znovu nakreslí obrázek tohoto auta.",
         "data": {
           "configurator_upholstery": "Čalounění"
         },
@@ -570,7 +588,11 @@
       "reauth_device_code_failed": "BMW odmítlo žádost o autorizaci zařízení ({error}). Zkontrolujte Client ID a zkuste to znovu.",
       "reauth_missing_client_id": "U tohoto záznamu integrace chybí Client ID. Odstraňte integraci a přidejte ji znovu, abyste ji znovu autorizovali.",
       "reauth_failed": "Opětovnou autorizaci se nepodařilo spustit. Zkuste to znovu z možností integrace.",
-      "configurator_partial": "Uloženo. Konfigurátor BMW vykreslí vaše ostatní auta, ale ne {vehicles}: ponechají si oficiální obrázek, což stojí 1 z vašich 50 denních požadavků na BMW za každé auto, které ho ještě nemá. Důvod je v protokolu."
+      "configurator_partial": "Uloženo. Konfigurátor BMW vykreslí vaše ostatní auta, ale ne {vehicles}: ponechají si oficiální obrázek, což stojí 1 z vašich 50 denních požadavků na BMW za každé auto, které ho ještě nemá. Důvod je v protokolu.",
+      "upholstery_none": "Konfigurátor BMW pro vůz {vehicle} neuvádí žádné čalounění, nebo neodpověděl. Zkuste to později.",
+      "configurator_saved": "Uloženo. Konfigurátor BMW nyní kreslí vaše auta. Aby sedadla vypadala jako ve skutečnosti, otevřete znovu Obrázek vozidla a zvolte Čalounění.",
+      "runtime_missing": "Integrace ještě není připravena. Zkuste to znovu po dokončení nastavení.",
+      "no_vins": "Zatím nejsou známa žádná vozidla. Nejprve spusťte \"Vyhledat vozidla\", nebo počkejte, až stream nějaké nahlásí."
     }
   },
   "selector": {

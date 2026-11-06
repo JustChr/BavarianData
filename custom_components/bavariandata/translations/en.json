@@ -204,9 +204,27 @@
           "image_source": "Official: one side view, 1 of your 50 daily BMW requests per car. Configurator: your exact car in 360° with its real paint, no requests, but an unofficial BMW service that may stop working."
         }
       },
-      "image_upholstery": {
+      "vehicle_image": {
+        "title": "Vehicle image",
+        "description": "Where your car's picture comes from, and the upholstery BMW's configurator draws inside it.",
+        "menu_options": {
+          "image_source": "Picture source",
+          "action_upholstery": "Upholstery"
+        }
+      },
+      "upholstery_vehicle": {
         "title": "Upholstery",
-        "description": "BMW doesn't send the upholstery of {vehicle}, so the configurator draws BMW's default. Pick yours to see it in the card's 360° interior.",
+        "description": "Each vehicle has its own upholstery. Pick the one to change.",
+        "data": {
+          "vehicle": "Vehicle"
+        },
+        "data_description": {
+          "vehicle": "The next screen shows this vehicle's upholstery."
+        }
+      },
+      "action_upholstery": {
+        "title": "Upholstery",
+        "description": "BMW doesn't send the upholstery of {vehicle}, so the configurator draws BMW's default. Pick yours to see it in the card's 360° interior. Submit redraws this car's picture.",
         "data": {
           "configurator_upholstery": "Upholstery"
         },
@@ -570,7 +588,11 @@
       "reauth_device_code_failed": "BMW rejected the device authorization request ({error}). Check the Client ID and try again.",
       "reauth_missing_client_id": "Client ID is missing for this integration entry. Remove and re-add the integration to authorize again.",
       "reauth_failed": "Re-authorization could not be started. Try again from the integration options.",
-      "configurator_partial": "Saved. BMW's configurator draws your other cars, but not {vehicles}: they keep the official picture, which costs 1 of your 50 daily BMW requests per car that has none yet. The log says why."
+      "configurator_partial": "Saved. BMW's configurator draws your other cars, but not {vehicles}: they keep the official picture, which costs 1 of your 50 daily BMW requests per car that has none yet. The log says why.",
+      "upholstery_none": "BMW's configurator lists no upholstery for {vehicle}, or didn't answer. Try again later.",
+      "configurator_saved": "Saved. BMW's configurator now draws your cars. To show your seats as they are, open Vehicle image again and choose Upholstery.",
+      "runtime_missing": "The integration isn't ready yet. Try again once setup has finished.",
+      "no_vins": "No vehicles are known yet. Run \"Discover vehicles\" first, or wait for the stream to report one."
     }
   },
   "selector": {

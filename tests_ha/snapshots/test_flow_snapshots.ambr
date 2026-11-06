@@ -2570,10 +2570,42 @@
       'type': 'form',
     }),
     dict({
+      'description_placeholders': None,
+      'reason': 'configurator_saved',
+      'type': 'abort',
+    }),
+    'opened again',
+    dict({
       'data_schema': list([
         dict({
-          'default': 'default',
-          'name': 'configurator_upholstery',
+          'name': 'next_step_id',
+          'options': list([
+            list([
+              'image_source',
+              'image_source',
+            ]),
+            list([
+              'action_upholstery',
+              'action_upholstery',
+            ]),
+          ]),
+          'required': False,
+          'type': 'select',
+        }),
+      ]),
+      'description_placeholders': None,
+      'menu_options': list([
+        'image_source',
+        'action_upholstery',
+      ]),
+      'step_id': 'vehicle_image',
+      'type': 'menu',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'default': 'WBATEST0000000001',
+          'name': 'vehicle',
           'required': True,
           'selector': dict({
             'select': dict({
@@ -2582,30 +2614,23 @@
               'multiple': False,
               'options': list([
                 dict({
-                  'label': 'default',
-                  'value': 'default',
+                  'label': 'i5 eDrive40',
+                  'value': 'WBATEST0000000001',
                 }),
                 dict({
-                  'label': 'Leder Vernasca Mokka Dekorsteppung (SW)',
-                  'value': 'FMAMU',
-                }),
-                dict({
-                  'label': 'Sensatec perf Cognac',
-                  'value': 'FKHKC',
+                  'label': 'iX1 xDrive30',
+                  'value': 'WBATEST0000000002',
                 }),
               ]),
               'sort': False,
-              'translation_key': 'upholstery',
             }),
           }),
         }),
       ]),
-      'description_placeholders': dict({
-        'vehicle': 'i5 eDrive40',
-      }),
+      'description_placeholders': None,
       'errors': None,
       'last_step': False,
-      'step_id': 'image_upholstery',
+      'step_id': 'upholstery_vehicle',
       'type': 'form',
     }),
     dict({
@@ -2643,15 +2668,15 @@
         'vehicle': 'iX1 xDrive30',
       }),
       'errors': None,
-      'last_step': True,
-      'step_id': 'image_upholstery',
+      'last_step': None,
+      'step_id': 'action_upholstery',
       'type': 'form',
     }),
     dict({
       'data': dict({
         'image_source': 'configurator',
         'vehicles': dict({
-          'WBATEST0000000001': dict({
+          'WBATEST0000000002': dict({
             'configurator_upholstery': 'FMAMU',
           }),
         }),

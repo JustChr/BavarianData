@@ -274,6 +274,15 @@ def test_the_equipment_view_groups_and_folds_the_technical_codes():
     assert "3 items" in html
 
 
+def test_the_upholstery_sits_with_the_looks():
+    # BMW calls it "fabric"; the user picked it under Vehicle image -> Upholstery.
+    fabric = {"code": "FMAMU", "name": "Vernasca leather Mocha", "kind": "fabric", "shown": True}
+    html = _render(
+        {**I5, "image.car": _image(equipment=[*EQUIPMENT, fabric])}, {"view": "equipment"}
+    )
+    assert html.index("Paint, wheels & trim") < html.index("Vernasca") < html.index("Packages")
+
+
 def test_the_equipment_view_says_how_to_turn_it_on():
     html = _render({**I5, "image.car": _image()}, {"view": "equipment"})
     assert "Vehicle image" in html and "eq__row" not in html

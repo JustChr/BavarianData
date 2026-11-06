@@ -76,7 +76,7 @@ or finger) turns it all the way round. The photo also follows the car:
   with the open part lit up.
 - **Interior.** The seat button switches to a 360° panorama of the interior,
   in the upholstery picked under
-  [Configure → Vehicle image](Settings-Reference#vehicle-image) (BMW's default
+  [Configure → Vehicle image → Upholstery](Settings-Reference#vehicle-image) (BMW's default
   otherwise); drag to look around.
 
 <p align="center">

@@ -43,24 +43,46 @@ async def test_the_configurator_picture_is_saved_and_drawn_in_full(
     ):
         result = await _send(hass, result, {"image_source": "configurator"})
 
-    assert result["type"] is FlowResultType.CREATE_ENTRY
+    # Saved; the closing message says where the upholstery is now set.
+    assert (result["type"], result["reason"]) == (FlowResultType.ABORT, "configurator_saved")
     assert entry.options["image_source"] == "configurator"
     assert [call.args[2] for call in full.call_args_list] == [VIN]
 
 
-async def test_the_official_picture_is_saved_once_bmw_sends_it(hass: HomeAssistant, no_bmw) -> None:
+async def test_with_the_configurator_vehicle_image_is_a_menu(hass: HomeAssistant, no_bmw) -> None:
     no_bmw["rest_bytes"].side_effect = None
     no_bmw["rest_bytes"].return_value = (b"\x89PNG-official", "image/png")
     entry = await _account(hass, VIN)
     hass.config_entries.async_update_entry(entry, options={"image_source": "configurator"})
     result = await _open(hass, entry, "action_fetch_image")
-    with patch(f"{PACKAGE}.options_flow.async_upholstery") as upholstery:
+    assert (result["type"], result["step_id"]) == (FlowResultType.MENU, "vehicle_image")
+    assert result["menu_options"] == ["image_source", "action_upholstery"]
+
+    result = await _send(hass, result, {"next_step_id": "image_source"})
+    assert (result["step_id"], _default(result, "image_source")) == (
+        "action_fetch_image",
+        "configurator",
+    )
+    with patch(f"{PACKAGE}.options_cars.async_upholstery") as upholstery:
         result = await _send(hass, result, {"image_source": "official"})
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert entry.options["image_source"] == "official"
-    # No upholstery to ask: the official picture is BMW's own photo.
     upholstery.assert_not_called()
+
+
+async def test_resubmitting_the_configurator_closes_quietly(hass: HomeAssistant, no_bmw) -> None:
+    entry = await _account(hass, VIN)
+    hass.config_entries.async_update_entry(entry, options={"image_source": "configurator"})
+    result = await _open(hass, entry, "action_fetch_image", "image_source")
+    with (
+        patch(f"{PACKAGE}.image.async_refresh_configurator_render", AsyncMock(return_value=None)),
+        patch(f"{PACKAGE}.image.async_schedule_full_render"),
+    ):
+        result = await _send(hass, result, {"image_source": "configurator"})
+
+    # Already the configurator: no hint about Upholstery again.
+    assert result["type"] is FlowResultType.CREATE_ENTRY
 
 
 async def test_a_car_the_configurator_cannot_draw_keeps_its_official_picture(
@@ -87,10 +109,10 @@ async def test_a_car_the_configurator_cannot_draw_keeps_its_official_picture(
 def _offers(*models: str):
     """BMW's configurator listing ``UPHOLSTERY`` for the cars of ``models`` only."""
 
-    async def offer(_session, raw, _by_site, _languages):
+    async def offer(_session, raw, languages=()):
         return UPHOLSTERY if raw.get("modelName") in models else []
 
-    return patch(f"{PACKAGE}.options_flow.async_upholstery", side_effect=offer)
+    return patch(f"{PACKAGE}.options_cars.async_upholstery", side_effect=offer)
 
 
 def _default(result: dict, key: str):
@@ -99,19 +121,33 @@ def _default(result: dict, key: str):
     return next(marker.default() for marker in result["data_schema"].schema if marker == key)
 
 
+async def _configurator_account(hass: HomeAssistant, *vins: str, **options):
+    """An account drawn by the configurator, whose cars BMW has described."""
+
+    entry = await _account(hass, *vins)
+    names = {VIN: "i5 eDrive40", VIN_B: "iX1 xDrive30"}
+    metadata = entry.runtime_data.coordinator.device_metadata
+    for vin in vins:
+        metadata.setdefault(vin, {})["raw_data"] = {"vin": vin, "modelName": names[vin]}
+    hass.config_entries.async_update_entry(
+        entry, options={"image_source": "configurator", **options}
+    )
+    return entry
+
+
 async def test_the_picked_upholstery_is_drawn_and_kept_for_the_car(
     hass: HomeAssistant, no_bmw
 ) -> None:
-    entry = await _account(hass, VIN)
-    result = await _open(hass, entry, "action_fetch_image")
+    entry = await _configurator_account(hass, VIN)
     render = AsyncMock(return_value=None)
     with (
         _offers("i5 eDrive40"),
         patch(f"{PACKAGE}.image.async_refresh_configurator_render", render),
         patch(f"{PACKAGE}.image.async_schedule_full_render") as full,
     ):
-        result = await _send(hass, result, {"image_source": "configurator"})
-        assert (result["step_id"], result["last_step"]) == ("image_upholstery", True)
+        # One car: no picker.
+        result = await _open(hass, entry, "action_fetch_image", "action_upholstery")
+        assert result["step_id"] == "action_upholstery"
         assert result["description_placeholders"] == {"vehicle": "i5 eDrive40"}
         assert _default(result, "configurator_upholstery") == "default"
         result = await _send(hass, result, {"configurator_upholstery": "FMAMU"})
@@ -120,84 +156,124 @@ async def test_the_picked_upholstery_is_drawn_and_kept_for_the_car(
     assert entry.options["image_source"] == "configurator"
     assert entry.options["vehicles"] == {VIN: {"configurator_upholstery": "FMAMU"}}
     # Drawn in it before it was saved, and drawn in full once saved.
-    assert render.call_args.kwargs["options"]["vehicles"] == entry.options["vehicles"]
+    assert render.call_args.kwargs == {"full": False, "options": dict(entry.options)}
     assert [call.args[2] for call in full.call_args_list] == [VIN]
 
 
-async def test_only_the_cars_bmw_lists_upholstery_for_are_asked(
-    hass: HomeAssistant, no_bmw
-) -> None:
-    entry = await _account(hass, VIN, VIN_B)
-    result = await _open(hass, entry, "action_fetch_image")
+async def test_only_the_picked_car_is_asked_and_redrawn(hass: HomeAssistant, no_bmw) -> None:
+    entry = await _configurator_account(hass, VIN, VIN_B)
+    render = AsyncMock(return_value=None)
     with (
-        _offers("iX1 xDrive30"),
-        patch(f"{PACKAGE}.image.async_refresh_configurator_render", AsyncMock(return_value=None)),
-        patch(f"{PACKAGE}.image.async_schedule_full_render"),
+        _offers("i5 eDrive40", "iX1 xDrive30") as offer,
+        patch(f"{PACKAGE}.image.async_refresh_configurator_render", render),
+        patch(f"{PACKAGE}.image.async_schedule_full_render") as full,
     ):
-        result = await _send(hass, result, {"image_source": "configurator"})
+        result = await _open(hass, entry, "action_fetch_image", "action_upholstery")
+        assert result["step_id"] == "upholstery_vehicle"
+        result = await _send(hass, result, {"vehicle": VIN_B})
         assert result["description_placeholders"] == {"vehicle": "iX1 xDrive30"}
-        assert result["last_step"] is True
         result = await _send(hass, result, {"configurator_upholstery": "FKHKC"})
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert entry.options["vehicles"] == {VIN_B: {"configurator_upholstery": "FKHKC"}}
+    assert offer.call_count == 1
+    assert [call.args[2] for call in render.call_args_list] == [VIN_B]
+    assert [call.args[2] for call in full.call_args_list] == [VIN_B]
 
 
 async def test_the_upholstery_screen_shows_the_one_in_use(hass: HomeAssistant, no_bmw) -> None:
-    entry = await _account(hass, VIN, VIN_B)
     own = {"bridge_enabled": True}
-    hass.config_entries.async_update_entry(
-        entry,
-        options={
-            "vehicles": {
-                VIN: {**own, "configurator_upholstery": "FKHKC"},
-                VIN_B: {"configurator_upholstery": "FGONE"},  # BMW no longer lists it
-            }
+    entry = await _configurator_account(
+        hass,
+        VIN,
+        VIN_B,
+        vehicles={
+            VIN: {**own, "configurator_upholstery": "FKHKC"},
+            VIN_B: {"configurator_upholstery": "FGONE"},  # BMW no longer lists it
         },
     )
-    result = await _open(hass, entry, "action_fetch_image")
     with (
         _offers("i5 eDrive40", "iX1 xDrive30"),
         patch(f"{PACKAGE}.image.async_refresh_configurator_render", AsyncMock(return_value=None)),
         patch(f"{PACKAGE}.image.async_schedule_full_render"),
     ):
-        result = await _send(hass, result, {"image_source": "configurator"})
+        result = await _open(hass, entry, "action_fetch_image", "action_upholstery")
+        result = await _send(hass, result, {"vehicle": VIN})
         assert _default(result, "configurator_upholstery") == "FKHKC"
         result = await _send(hass, result, {"configurator_upholstery": "default"})
+        assert result["type"] is FlowResultType.CREATE_ENTRY
+
         # A code BMW stopped listing would be drawn as BMW's default, so says so.
+        result = await _open(hass, entry, "action_fetch_image", "action_upholstery")
+        result = await _send(hass, result, {"vehicle": VIN_B})
         assert _default(result, "configurator_upholstery") == "default"
-        result = await _send(hass, result, {"configurator_upholstery": "default"})
 
     # BMW's default leaves no upholstery behind; the car's other settings stay.
+    assert entry.options["vehicles"] == {VIN: own, VIN_B: {"configurator_upholstery": "FGONE"}}
+
+
+async def test_a_car_that_cannot_be_drawn_keeps_the_form_and_the_pick(
+    hass: HomeAssistant, no_bmw
+) -> None:
+    entry = await _configurator_account(hass, VIN)
+    with (
+        _offers("i5 eDrive40") as offer,
+        patch(
+            f"{PACKAGE}.image.async_refresh_configurator_render",
+            AsyncMock(side_effect=["unavailable", None]),
+        ),
+        patch(f"{PACKAGE}.image.async_schedule_full_render"),
+    ):
+        result = await _open(hass, entry, "action_fetch_image", "action_upholstery")
+        result = await _send(hass, result, {"configurator_upholstery": "FMAMU"})
+        assert result["errors"] == {"configurator_upholstery": "configurator_unavailable"}
+        assert _default(result, "configurator_upholstery") == "FMAMU"
+        assert "vehicles" not in entry.options
+        result = await _send(hass, result, {"configurator_upholstery": "FMAMU"})
+
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert entry.options["vehicles"] == {VIN: own}
+    assert entry.options["vehicles"] == {VIN: {"configurator_upholstery": "FMAMU"}}
+    # BMW's list was asked for once, not again for the retry.
+    assert offer.call_count == 1
 
 
-async def test_an_account_unloaded_before_the_drawing_says_so(hass: HomeAssistant, no_bmw) -> None:
-    entry = await _account(hass, VIN)
+async def test_a_change_made_meanwhile_is_kept(hass: HomeAssistant, no_bmw) -> None:
+    entry = await _configurator_account(hass, VIN)
+    with (
+        _offers("i5 eDrive40"),
+        patch(f"{PACKAGE}.image.async_refresh_configurator_render", AsyncMock(return_value=None)),
+        patch(f"{PACKAGE}.image.async_schedule_full_render"),
+    ):
+        result = await _open(hass, entry, "action_fetch_image", "action_upholstery")
+        # Another dialog saves something while this one is open.
+        hass.config_entries.async_update_entry(entry, options={**entry.options, "debug_log": True})
+        result = await _send(hass, result, {"configurator_upholstery": "FMAMU"})
+
+    assert entry.options["debug_log"] is True
+    assert entry.options["vehicles"] == {VIN: {"configurator_upholstery": "FMAMU"}}
+
+
+async def test_a_car_bmw_lists_no_upholstery_for_says_so(hass: HomeAssistant, no_bmw) -> None:
+    entry = await _configurator_account(hass, VIN)
+    with _offers():
+        result = await _open(hass, entry, "action_fetch_image", "action_upholstery")
+
+    assert (result["type"], result["reason"]) == (FlowResultType.ABORT, "upholstery_none")
+    assert result["description_placeholders"] == {"vehicle": "i5 eDrive40"}
+
+
+async def test_upholstery_needs_a_running_account(hass: HomeAssistant, no_bmw) -> None:
+    entry = await _configurator_account(hass, VIN)
     result = await _open(hass, entry, "action_fetch_image")
-    with _offers("i5 eDrive40"):
-        result = await _send(hass, result, {"image_source": "configurator"})
     await hass.config_entries.async_unload(entry.entry_id)
-    result = await _send(hass, result, {"configurator_upholstery": "FMAMU"})
-
-    assert (result["step_id"], result["errors"]) == (
-        "action_fetch_image",
-        {"base": "runtime_missing"},
-    )
-    assert "image_source" not in entry.options
+    result = await _send(hass, result, {"next_step_id": "action_upholstery"})
+    assert (result["type"], result["reason"]) == (FlowResultType.ABORT, "runtime_missing")
 
 
-async def test_cars_gone_before_the_drawing_need_a_car_again(hass: HomeAssistant, no_bmw) -> None:
-    entry = await _account(hass, VIN)
-    result = await _open(hass, entry, "action_fetch_image")
-    with _offers("i5 eDrive40"):
-        result = await _send(hass, result, {"image_source": "configurator"})
-    entry.runtime_data.coordinator.data.clear()
-    result = await _send(hass, result, {"configurator_upholstery": "FMAMU"})
-
-    assert (result["step_id"], result["errors"]) == ("action_fetch_image", {"base": "no_vins"})
-    assert "image_source" not in entry.options
+async def test_upholstery_needs_a_car(hass: HomeAssistant, no_bmw) -> None:
+    entry = await _configurator_account(hass)
+    result = await _open(hass, entry, "action_fetch_image", "action_upholstery")
+    assert (result["type"], result["reason"]) == (FlowResultType.ABORT, "no_vins")
 
 
 async def test_a_picture_needs_a_car(hass: HomeAssistant, no_bmw) -> None:

@@ -204,9 +204,27 @@
           "image_source": "Offiziell: eine Seitenansicht, 1 deiner 50 täglichen BMW-Anfragen pro Auto. Konfigurator: genau dein Auto in 360° mit echter Lackfarbe, keine Anfragen, aber ein inoffizieller BMW-Dienst, der ausfallen kann."
         }
       },
-      "image_upholstery": {
+      "vehicle_image": {
+        "title": "Fahrzeugbild",
+        "description": "Woher das Bild deines Autos kommt und welche Polsterung der BMW-Konfigurator darin zeichnet.",
+        "menu_options": {
+          "image_source": "Bildquelle",
+          "action_upholstery": "Polsterung"
+        }
+      },
+      "upholstery_vehicle": {
         "title": "Polsterung",
-        "description": "BMW übermittelt die Polsterung von {vehicle} nicht, deshalb zeichnet der Konfigurator den BMW-Standard. Wähle deine, um sie im 360°-Innenraum der Karte zu sehen.",
+        "description": "Jedes Fahrzeug hat seine eigene Polsterung. Wähle das, das du ändern willst.",
+        "data": {
+          "vehicle": "Fahrzeug"
+        },
+        "data_description": {
+          "vehicle": "Der nächste Schritt zeigt die Polsterung dieses Fahrzeugs."
+        }
+      },
+      "action_upholstery": {
+        "title": "Polsterung",
+        "description": "BMW übermittelt die Polsterung von {vehicle} nicht, deshalb zeichnet der Konfigurator den BMW-Standard. Wähle deine, um sie im 360°-Innenraum der Karte zu sehen. Absenden zeichnet das Bild dieses Autos neu.",
         "data": {
           "configurator_upholstery": "Polsterung"
         },
@@ -570,7 +588,11 @@
       "reauth_device_code_failed": "BMW hat die Anfrage zur Geräteautorisierung abgelehnt ({error}). Prüfe die Client-ID und versuche es erneut.",
       "reauth_missing_client_id": "Für diesen Integrationseintrag fehlt die Client-ID. Entferne die Integration und füge sie neu hinzu, um erneut zu autorisieren.",
       "reauth_failed": "Die Neuautorisierung konnte nicht gestartet werden. Versuche es erneut über die Optionen der Integration.",
-      "configurator_partial": "Gespeichert. Der BMW-Konfigurator zeichnet deine anderen Autos, aber nicht {vehicles}: Sie behalten das offizielle Bild. Das kostet 1 deiner 50 täglichen BMW-Anfragen pro Auto, das noch keins hat. Das Protokoll sagt, warum."
+      "configurator_partial": "Gespeichert. Der BMW-Konfigurator zeichnet deine anderen Autos, aber nicht {vehicles}: Sie behalten das offizielle Bild. Das kostet 1 deiner 50 täglichen BMW-Anfragen pro Auto, das noch keins hat. Das Protokoll sagt, warum.",
+      "upholstery_none": "Der BMW-Konfigurator nennt keine Polsterung für {vehicle} oder hat nicht geantwortet. Versuche es später erneut.",
+      "configurator_saved": "Gespeichert. Der BMW-Konfigurator zeichnet jetzt deine Autos. Damit die Sitze so aussehen wie bei dir, öffne Fahrzeugbild erneut und wähle Polsterung.",
+      "runtime_missing": "Die Integration ist noch nicht bereit. Versuche es erneut, sobald die Einrichtung abgeschlossen ist.",
+      "no_vins": "Es sind noch keine Fahrzeuge bekannt. Führe zuerst **Fahrzeuge suchen** aus, oder warte, bis der Stream eines meldet."
     }
   },
   "selector": {
