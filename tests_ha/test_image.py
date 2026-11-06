@@ -246,14 +246,22 @@ async def test_the_configurator_draws_a_car_and_the_card_gets_its_files(
     assert (await (await hass_client_no_auth()).get(spin["path"])).status == 401
 
     # The settings screen's quick fetch replaces the plain spin only and keeps the schema.
+    # The other pictures stay shown until the full fetch behind it replaces them.
     with patch(f"{PACKAGE}.image.async_render", AsyncMock(return_value=_render())):
         assert (
             await image.async_refresh_configurator_render(hass, entry.runtime_data, VIN, full=False)
             is None
         )
+        await hass.async_block_till_done()
     assert (renders_dir / f"{key}_night.webp").exists()
-    assert hass_storage[RENDERS]["data"][VIN]["schema"] == 3
-    assert hass_storage[RENDERS]["data"][VIN]["parts"] == []
+    record = hass_storage[RENDERS]["data"][VIN]
+    assert record["schema"] == 3
+    assert record["parts"] == ["lights", "night", "interior", "top", "options"]
+    attrs = hass.states.get(entity_id).attributes
+    assert attrs["configurator_spin"]["night_path"].startswith(f"{image.SPIN_PATH}/{key}_night/")
+    assert attrs["configurator_interior"]["columns"] == 3
+    assert attrs["configurator_options"]["rows"] == 2
+    assert attrs["equipment"] == [{"code": "S0", "name": "Seats"}]
 
     # A removed car takes its pictures with it.
     await image.async_forget_vehicles(hass, [])

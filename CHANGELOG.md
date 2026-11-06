@@ -9,6 +9,13 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **The configurator's other pictures no longer vanish for a minute after a
+  redraw.** Submitting *Configure → Vehicle image* (or picking an upholstery)
+  redraws the plain 360° spin first and the rest behind it. Until then the card
+  lost the interior, lights-on and night spins, the top view and the equipment
+  names for about a minute. They now stay until the new ones are ready.
+
 ## [0.9.27] - 2026-11-06
 
 Promotes 0.9.27-beta.1 to beta.5. Trips can now record the weather along the way, and the Efficiency view shows how much more your car uses in the cold. The configurator picture can show your car's real upholstery, and charges in a carport zone count as home.

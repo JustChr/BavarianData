@@ -207,7 +207,12 @@ async def async_refresh_configurator_render(
     await hass.async_add_executor_job(_write)
     renders = await _async_load_renders(hass)
     previous = renders.get(vin) or {}
-    parts = [part for part in _PARTS if f"{key}_{part}" in files]
+    if full:
+        parts = [part for part in _PARTS if f"{key}_{part}" in files]
+    else:
+        # A quick fetch leaves the other files alone, so the car keeps showing
+        # them until the full fetch behind it replaces them.
+        parts = list(previous.get("parts") or ()) if previous.get("key") == key else []
     record: dict[str, Any] = {
         "key": key,
         "columns": render.columns,
@@ -231,6 +236,10 @@ async def async_refresh_configurator_render(
                 "columns": OPTION_COLUMNS,
                 "rows": -(-len(render.option_codes) // OPTION_COLUMNS),
             }
+    elif parts:
+        for field in ("equipment", "equipment_language", "options"):
+            if field in previous:
+                record[field] = previous[field]
     renders[vin] = record
     await _domain_data(hass)[_RENDER_STORE_HANDLE_KEY].async_save(renders)
     _LOGGER.info(
