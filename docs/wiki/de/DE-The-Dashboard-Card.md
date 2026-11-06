@@ -304,7 +304,7 @@ view: efficiency
 ```
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-efficiency.png" alt="Karte Effizienz und Reichweite: reale Reichweite beim aktuellen Ladezustand, Abstand zur Prognose des Autos, gemessener Verbrauch mit Seite des Ladegeräts und Fenster, nutzbare Kapazität und Herkunft sowie ein Balkendiagramm des Verbrauchs nach Monat" width="360" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-efficiency.png?v=2026-11-06" alt="Karte Effizienz und Reichweite: reale Reichweite beim aktuellen Ladezustand, Abstand zur Prognose des Autos, gemessener Verbrauch mit Seite des Ladegeräts und Fenster, nutzbare Kapazität und Herkunft sowie ein Balkendiagramm des Verbrauchs nach Monat, und ein zweites Balkendiagramm des Verbrauchs nach Außentemperatur mit dem Kälteaufschlag darunter" width="360" />
 </p>
 
 Sie zeigt die reale Reichweite von hier (und mit vollem Akku), den Vergleich mit der

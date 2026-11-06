@@ -72,7 +72,11 @@ abgelehnt, und nichts ändert sich.
 
 ## Fahrzeugbild
 
-Bildschirm: **Konfigurieren → Fahrzeugbild**.
+Bildschirm: **Konfigurieren → Fahrzeugbild**. Mit dem Konfigurator als Bildquelle öffnet sich zuerst ein Menü:
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-vehicle-image-menu.png" alt="Menü Fahrzeugbild: Picture source und Upholstery (Screenshot englisch)" width="460" />
+</p>
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-vehicle-image.png" alt="Einstellungen zum Fahrzeugbild: ein Auswahlfeld, Picture source, auf BMW configurator (360°, unofficial) gestellt (Screenshot englisch)" width="460" />
@@ -82,6 +86,10 @@ Bildschirm: **Konfigurieren → Fahrzeugbild**.
 | --- | --- | --- |
 | **Bildquelle** | BMW CarData (offiziell) · BMW-Konfigurator (360°, inoffiziell) | Standard **BMW CarData**: BMWs eine Seitenansicht des Autos, eine deiner [50 Anfragen am Tag](DE-Feature-API-Quota) pro Auto. **BMW-Konfigurator** zeichnet genau dein Auto so, wie es BMWs Online-Konfigurator tut, aus Modell, Lack und Werksausstattung in den Fahrzeug-Basisdaten: eine 360°-Drehansicht in der [Karte](DE-The-Dashboard-Card#übersicht), die du mit der Maus oder dem Finger drehst, und die echte Lackfarbe am [Auto von oben](DE-The-Dashboard-Card#die-form-des-autos). Das kostet keine Anfragen, gehört aber nicht zu CarData: Es ist der Dienst hinter BMWs Konfigurator-Webseite, den BMW jederzeit ändern oder sperren kann. |
 | **Polsterung** | BMW-Standard · die Polsterungen deines Modells, unter BMWs Namen | Mit dem Konfigurator als Bildquelle öffnet **Fahrzeugbild** ein Menü: **Bildquelle** (die Einstellung oben) und **Polsterung**, weil BMWs Fahrzeugdaten nicht nennen, womit die Sitze bezogen sind. Mit mehreren Autos wählst du zuerst das Auto; **OK** zeichnet nur dieses Auto neu. Die Liste ist die deines Modells, wie BMWs Konfigurator sie anbietet, benannt in der Sprache des Markts, in dem das Auto verkauft wurde (Deutsch für ein in Deutschland oder Österreich verkauftes Auto). Bleibt es bei **BMW-Standard**, zeigt das [Innenraum-Panorama](DE-The-Dashboard-Card#übersicht) BMWs Standard-Polsterung. Jedes Auto behält seine eigene Wahl, auch bei einem Konto mit nur einem Auto, ein später hinzukommendes Auto beginnt also bei BMW-Standard. Nennt BMWs Konfigurator für das Modell keine Polsterung oder antwortet nicht, sagt der Bildschirm das. |
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-upholstery.png" alt="Bildschirm Polsterung für den i5 eDrive40: ein Auswahlfeld, Upholstery, auf BMW's default gestellt, und ein Submit-Knopf (Screenshot englisch)" width="460" />
+</p>
 
 **OK** lädt das Bild sofort und behält es über Neustarts hinweg. Mit dem
 Konfigurator wartet es nur auf die 360°-Ansicht (einige Sekunden pro Auto); der
