@@ -9,6 +9,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **The diagnostics download says whether BMW granted the REST API.** It now
+  lists the permissions BMW gave your client: their names, never a token. A
+  client without *CarData API* still streams, but BMW refuses every fetch,
+  the car's picture and *Discover vehicles* with HTTP 403. Until now nothing
+  in the download told those two apart. Thanks to @strybushnyi (#296).
+  [Download diagnostics](https://github.com/JustChr/BavarianData/wiki/Troubleshooting-and-FAQ#download-diagnostics)
+
 ### Fixed
 - **One failed address lookup no longer makes the next trip from the same
   place "Unknown" too.** With *Resolve addresses* on, a lookup at

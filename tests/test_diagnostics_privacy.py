@@ -72,3 +72,42 @@ def test_fingerprint_is_stable_and_skips_what_is_no_identifier():
     assert privacy.fingerprint(None) is None
     assert privacy.fingerprint("") is None
     assert privacy.fingerprint(12345) is None
+
+
+def test_the_granted_scopes_say_whether_bmw_allows_the_rest_api() -> None:
+    # Issue #296: a token the stream accepts while BMW refuses every REST call
+    # with a 403. The download has to say which half BMW granted.
+    both = privacy.granted_scopes(
+        "authenticate_user openid cardata:api:read cardata:streaming:read"
+    )
+    assert both == {
+        "granted": ["authenticate_user", "cardata:api:read", "cardata:streaming:read", "openid"],
+        "unrecognized": 0,
+        "api": True,
+        "streaming": True,
+    }
+    stream_only = privacy.granted_scopes("openid cardata:streaming:read")
+    assert stream_only["api"] is False
+    assert stream_only["streaming"] is True
+
+
+def test_nothing_but_a_scope_name_leaves_the_box() -> None:
+    # Whatever is stored under ``scope``, a token (base64, dots, digits) or any
+    # other text is counted, never shown.
+    jwt = "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxMjM0In0.c2lnbmF0dXJl"
+    vin = "WBA00000000000001"
+    scopes = privacy.granted_scopes(f"openid {jwt} {vin} cardata:api:read")
+    assert scopes["granted"] == ["cardata:api:read", "openid"]
+    assert scopes["unrecognized"] == 2
+    assert jwt not in repr(scopes) and vin not in repr(scopes)
+
+
+def test_an_entry_without_a_stored_scope_says_unknown_not_refused() -> None:
+    for missing in (None, 42, ["openid"]):
+        assert privacy.granted_scopes(missing) == {
+            "granted": None,
+            "unrecognized": 0,
+            "api": None,
+            "streaming": None,
+        }
+    assert privacy.granted_scopes("")["api"] is False
