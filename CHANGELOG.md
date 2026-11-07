@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.28-beta.2] - 2026-11-07
+
 ### Added
 - **The diagnostics download says whether BMW granted the REST API.** It now
   lists the permissions BMW gave your client: their names, never a token. A
