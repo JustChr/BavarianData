@@ -19,6 +19,17 @@ summary of commits.
 git log --oneline "$(git describe --tags --abbrev=0)"..HEAD
 ```
 
+**Say what other integrations will notice.** SpotNav, maintenance_supporter,
+ha-vehicle-consumption, ha-mennekes-amtron and others find our entities by
+`unique_id` (`<VIN>_<descriptor>`), `translation_key`, English name or state
+value. Any change to one of those (a renamed entity, a retired or re-keyed
+`unique_id`, a new or changed enum state, an entity moving platform) gets its
+own bullet naming the old and new value, so their maintainers can follow:
+
+```bash
+git diff "$(git describe --tags --abbrev=0)"..HEAD --stat -- tools/curated_titles.json tools/derived_entities.json custom_components/bavariandata/sensor_plan.py custom_components/bavariandata/binary_sensor_plan.py
+```
+
 ### A stable release: consolidate the betas first
 
 ```bash
