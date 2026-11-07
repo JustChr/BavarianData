@@ -32,7 +32,7 @@ from .const import (
     OPTION_STREAM_SECTIONS,
     REQUEST_LIMIT,
 )
-from .diagnostics_privacy import fingerprint, safe_options
+from .diagnostics_privacy import fingerprint, granted_scopes, safe_options
 
 # Redacted by key wherever they appear in the payload (including inside the
 # stream ``parameters`` and each vehicle entry). ``topic`` is here because its
@@ -146,6 +146,8 @@ async def async_get_config_entry_diagnostics(
             "bootstrap_complete": bool(entry.data.get(BOOTSTRAP_COMPLETE)),
             "selected_clusters": entry.data.get(OPTION_STREAM_SECTIONS) or [],
             "options": safe_options(entry.options),
+            # Scope names only: whether BMW granted the REST API at all.
+            "scopes": granted_scopes(entry.data.get("scope")),
         },
         "quota": quota_info,
         "stream": {

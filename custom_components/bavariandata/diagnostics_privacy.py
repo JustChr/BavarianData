@@ -7,6 +7,7 @@ Home Assistant-free, so the rules are unit-tested without an HA install;
 from __future__ import annotations
 
 import hashlib
+import re
 from typing import Any, Optional
 
 from .const import (
@@ -82,3 +83,35 @@ def safe_options(options: Any) -> dict[str, Any]:
         else:
             safe[key] = value
     return safe
+
+
+# A scope name as BMW spells them (``openid``, ``cardata:api:read``): letters,
+# ``_`` and ``:``, nothing else. A token is base64 with dots and digits, so it
+# can never pass for one, whatever ends up stored under ``scope``.
+_SCOPE_NAME = re.compile(r"[A-Za-z_:]{1,64}")
+API_SCOPE = "cardata:api:read"
+STREAMING_SCOPE = "cardata:streaming:read"
+
+
+def granted_scopes(scope: Any) -> dict[str, Any]:
+    """Which scopes BMW granted the stored token -- names only, never a token.
+
+    BMW answers every authorization and token refresh with the scopes it really
+    granted, which can be fewer than the ones asked for: a client subscribed to
+    CarData Stream but not CarData API gets a token the stream accepts and every
+    REST endpoint refuses with HTTP 403 (issue #296). From the outside that
+    looks like a broken integration; this answers it from the download.
+    """
+
+    if not isinstance(scope, str):
+        # Nothing stored: an entry from before BMW was asked, or an answer without one.
+        return {"granted": None, "unrecognized": 0, "api": None, "streaming": None}
+    words = scope.split()
+    names = sorted({word for word in words if _SCOPE_NAME.fullmatch(word)})
+    return {
+        "granted": names,
+        # Counted, never shown: whatever it is, it isn't a scope name.
+        "unrecognized": sum(1 for word in words if not _SCOPE_NAME.fullmatch(word)),
+        "api": API_SCOPE in names,
+        "streaming": STREAMING_SCOPE in names,
+    }

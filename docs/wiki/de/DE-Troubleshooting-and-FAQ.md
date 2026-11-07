@@ -353,6 +353,7 @@ Konto stammen — was zählt, weil BMW pro Konto nur einen laufenden Stream erla
 | Ankünfte und letzter Zeitpunkt pro Deskriptor | Ob der Stream liefert, und was. |
 | Verbindungsverlauf mit MQTT-`rc`-Codes | Autorisierungsfehler und ein anderer Client, der den einzigen Stream belegt. |
 | Bootstrap-Zustand und deine Optionen | Eine nie abgeschlossene Einrichtung; eine Einstellung, die anders steht, als du dachtest. |
+| Die Berechtigungen, die BMW erteilt hat (nur ihre Namen, nie ein Token) | Ob dein Client BMWs REST-API überhaupt nutzen darf. Ohne **CarData API** läuft der Stream weiter, aber jeder Abruf wird mit HTTP 403 abgelehnt. |
 | Modell und Antrieb des Autos | Welche Übersicht die Karte zeichnen soll und welche reinen E-Entitäten es geben darf. |
 | Wie das Auto meldet, seit dem letzten Neustart (nur Zählungen, keine Werte) | Ob der Ladestand gestreamt wird oder nur mit einem Abruf kommt, ob das Auto während der Fahrt meldet oder einmal nach dem Parken, und welche Felder unverändert wiederkommen. |
 

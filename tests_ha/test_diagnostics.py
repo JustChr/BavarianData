@@ -20,7 +20,7 @@ SOC = "vehicle.drivetrain.batteryManagement.header"
 
 
 async def test_the_download_says_what_arrived_and_names_no_one(hass: HomeAssistant, no_bmw) -> None:
-    entry = _entry()
+    entry = _entry(scope="openid cardata:streaming:read cardata:api:read")
     await _set_up(hass, entry)
     coordinator = entry.runtime_data.coordinator
     await coordinator.async_handle_message(
@@ -32,6 +32,8 @@ async def test_the_download_says_what_arrived_and_names_no_one(hass: HomeAssista
 
     assert payload["integration"]["domain"] == "bavariandata"
     assert payload["config_entry"]["bootstrap_complete"] is True
+    scopes = payload["config_entry"]["scopes"]
+    assert scopes["api"] is True and scopes["streaming"] is True
     assert payload["quota"]["configured"] is True
     assert payload["quota"]["limit"] == 50
     (car,) = payload["vehicles"]
