@@ -223,6 +223,13 @@ Endpunkte werden als **Ortsnamen gespeichert, nie als Koordinaten**:
   unter **Konfigurieren → Fahrten** **Adressen auflösen** einschaltest. Dabei werden
   die Koordinaten des Endpunkts an Nominatim von OpenStreetMap gesendet; gespeichert
   wird die Adresse, die Koordinaten selbst nie.
+- Sonst zeigt der Endpunkt **Unbekannt**, und die Fahrt trägt
+  `location_assumed: true`. Das passiert, wenn es gar keine Position gab, oder
+  wenn die Position außerhalb jeder Zone lag und keine Adresse hat: Entweder ist
+  **Adressen auflösen** aus, oder OpenStreetMap hat nicht geantwortet. Eine
+  Abfrage, die scheitert (Zeitüberschreitung oder überlasteter Server), wird
+  wenige Sekunden später noch einmal versucht. Weil Koordinaten nie gespeichert
+  werden, lässt sich ein unbekannter Endpunkt nachträglich nicht auflösen.
 
 ## Die Route aufzeichnen (optional)
 

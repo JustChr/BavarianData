@@ -203,6 +203,13 @@ Endpoints are stored as **place names, never coordinates**:
   reverse geocoding under **Configure → Trips** (`trip_geocode`). That sends the
   endpoint coordinates to OpenStreetMap's Nominatim; the resulting address
   string is stored, and the coordinates themselves are never persisted.
+- Otherwise the endpoint reads **Unknown**, and the trip carries
+  `location_assumed: true`. That happens when there was no position at all, or
+  when the position lay outside every zone and has no address: either
+  **Resolve addresses** is off, or OpenStreetMap gave no answer. A lookup that
+  fails (a timeout or a busy server) is tried once more a few seconds later.
+  Because coordinates are never stored, an Unknown endpoint can't be resolved
+  afterwards.
 
 ## Recording the route (opt-in)
 
