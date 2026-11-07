@@ -12,6 +12,11 @@ lives only in memory (it is never persisted), so no coordinate ever reaches disk
 The address-formatting logic is a pure function so it is unit-tested; the network
 call is deliberately thin and swallows every error (a missing address must never
 break trip recording).
+
+Only a real answer is remembered. A timeout, a network error, a busy (429) or
+failing (5xx) server says nothing about the place, so it is retried once and then
+left uncached: remembering it turned one bad moment into "Unknown" for every
+later trip through the same spot until Home Assistant restarted (issue #294).
 """
 
 from __future__ import annotations
@@ -33,6 +38,15 @@ MIN_INTERVAL_S = 1.1
 # coarse enough that repeat visits to the same place don't re-query.
 CACHE_PRECISION = 3
 REQUEST_TIMEOUT_S = 10
+# One more try after a failure that says nothing about the place. The caller
+# holds only its own car's trip lock while it waits.
+RETRY_DELAY_S = 3.0
+# Answers a retry can change: the request timed out or the server was busy.
+_TRANSIENT_STATUSES = frozenset({408, 429})
+
+
+class _Transient(Exception):
+    """A lookup that failed for a reason unrelated to the place itself."""
 
 
 def format_address(payload: Optional[dict[str, Any]]) -> Optional[str]:
@@ -109,10 +123,17 @@ class ReverseGeocoder:
             # Re-check inside the lock: a concurrent close may have filled it.
             if key in self._cache:
                 return self._cache[key]
-            await self._throttle()
-            address = await self._request(latitude, longitude)
-            self._cache[key] = address
-            return address
+            for attempt in range(2):
+                if attempt:
+                    await asyncio.sleep(RETRY_DELAY_S)
+                await self._throttle()
+                try:
+                    address = await self._request(latitude, longitude)
+                except _Transient:
+                    continue
+                self._cache[key] = address
+                return address
+            return None
 
     async def _throttle(self) -> None:
         wait = MIN_INTERVAL_S - (time.monotonic() - self._last_call)
@@ -121,6 +142,11 @@ class ReverseGeocoder:
         self._last_call = time.monotonic()
 
     async def _request(self, latitude: float, longitude: float) -> Optional[str]:
+        """The place's address, ``None`` for a definite "none here".
+
+        Raises :class:`_Transient` when the answer says nothing about the place.
+        """
+
         params = {
             "format": "jsonv2",
             "lat": f"{latitude:.5f}",
@@ -137,11 +163,16 @@ class ReverseGeocoder:
                 headers={"User-Agent": USER_AGENT},
                 timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_S),
             ) as response:
-                if response.status != 200:
-                    _LOGGER.debug("Nominatim returned HTTP %s", response.status)
+                status = response.status
+                if status != 200:
+                    _LOGGER.debug("Nominatim returned HTTP %s", status)
+                    if status in _TRANSIENT_STATUSES or status >= 500:
+                        raise _Transient
                     return None
                 payload = await response.json()
-        except Exception:  # noqa: BLE001 - geocoding must never break recording
+        except _Transient:
+            raise
+        except Exception as err:  # noqa: BLE001 - geocoding must never break recording
             _LOGGER.debug("Reverse geocode failed", exc_info=True)
-            return None
+            raise _Transient from err
         return format_address(payload)

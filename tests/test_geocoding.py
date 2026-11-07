@@ -11,6 +11,9 @@ not, and it is the half that carries the promises:
   integration blocked, not just whoever broke it.
 * **Never breaking a trip.** A missing address must leave the trip recorded
   without one; no network failure may propagate.
+* **Only a real answer is remembered.** A timeout or a busy server says nothing
+  about the place: it is retried once and never cached, or one bad moment
+  reads "Unknown" for every later trip through that spot (issue #294).
 
 The rate limit is asserted by capturing what the code asks to sleep for, so the
 suite does not actually wait a second per test.
@@ -72,11 +75,27 @@ class _Session:
         self.calls.append({"url": url, **kwargs})
         if self._raises is not None:
             raise self._raises
-        return self._responses.pop(0)
+        response = self._responses.pop(0)
+        if isinstance(response, BaseException):
+            raise response
+        return response
 
 
 def _run(coro):
     return asyncio.run(coro)
+
+
+@pytest.fixture(autouse=True)
+def slept(monkeypatch):
+    """Every wait the geocoder asks for, without waiting."""
+
+    waits = []
+
+    async def fake_sleep(seconds):
+        waits.append(seconds)
+
+    monkeypatch.setattr(geocoding.asyncio, "sleep", fake_sleep)
+    return waits
 
 
 # --------------------------------------------------------------------------
@@ -116,13 +135,7 @@ def test_the_request_identifies_itself_as_nominatim_requires():
     assert "github.com" in agent, "the policy wants a contactable agent"
 
 
-def test_consecutive_lookups_wait_out_the_rate_limit(monkeypatch):
-    slept = []
-
-    async def fake_sleep(seconds):
-        slept.append(seconds)
-
-    monkeypatch.setattr(geocoding.asyncio, "sleep", fake_sleep)
+def test_consecutive_lookups_wait_out_the_rate_limit(slept):
     session = _Session(_Response(200, PAYLOAD), _Response(200, PAYLOAD))
     geo = ReverseGeocoder(session, enabled=True)
 
@@ -161,7 +174,7 @@ def test_nearby_points_share_a_cache_entry():
     assert len(session.calls) == 1
 
 
-def test_a_failed_lookup_is_cached_too():
+def test_a_definite_no_is_cached_too():
     """Otherwise an unresolvable spot is re-queried on every trip through it."""
 
     session = _Session(_Response(404, None))
@@ -173,6 +186,34 @@ def test_a_failed_lookup_is_cached_too():
 
     _run(twice())
     assert len(session.calls) == 1
+
+
+@pytest.mark.parametrize(
+    "failure",
+    [_Response(503, None), _Response(429, None), TimeoutError(), _Broken(200, None)],
+    ids=["server-error", "rate-limited", "timeout", "unparseable-body"],
+)
+def test_a_passing_failure_is_retried_once(failure, slept):
+    session = _Session(failure, _Response(200, PAYLOAD))
+    geo = ReverseGeocoder(session, enabled=True)
+    assert _run(geo.resolve(*MUNICH)) == LABEL
+    assert len(session.calls) == 2
+    assert geocoding.RETRY_DELAY_S in slept
+
+
+def test_a_passing_failure_is_not_remembered():
+    """Issue #294: a failure at the charger made the next trip from it "Unknown" too."""
+
+    session = _Session(_Response(503, None), OSError("no route to host"), _Response(200, PAYLOAD))
+    geo = ReverseGeocoder(session, enabled=True)
+
+    async def leave_and_come_back():
+        return await geo.resolve(*MUNICH), await geo.resolve(*MUNICH)
+
+    arrived, left = _run(leave_and_come_back())
+    assert arrived is None
+    assert left == LABEL, "the failed lookup was remembered as no address"
+    assert len(session.calls) == 3
 
 
 # --------------------------------------------------------------------------

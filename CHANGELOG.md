@@ -9,6 +9,16 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **One failed address lookup no longer makes the next trip from the same
+  place "Unknown" too.** With *Resolve addresses* on, a lookup at
+  OpenStreetMap that timed out or found the server busy was remembered as
+  "no address" for that spot until Home Assistant restarted. So the trip
+  that ended there and the next one starting there both read Unknown. Such
+  a lookup is now tried once more a few seconds later, and only a real answer
+  is remembered. Thanks to @mihabo1 (#294).
+  [Trips](https://github.com/JustChr/BavarianData/wiki/Feature-Trips#privacy-by-default)
+
 ## [0.9.28-beta.1] - 2026-11-06
 
 ### Changed
