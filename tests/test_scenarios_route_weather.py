@@ -61,6 +61,7 @@ def _drive(h: CoordinatorHarness, start: float, fixes: int, *, every: float = 2)
     return here
 
 
+@pytest.mark.solo  # counts the account's weather lookups, every car's
 def test_a_drive_is_looked_up_once_along_its_route(h):
     weather = h.coordinator.route_weather = _FakeWeather()
     _drive(h, 5, 10)  # 20 minutes, ~13 km
@@ -91,6 +92,7 @@ def test_nothing_is_kept_or_asked_while_the_switch_is_off(h):
     assert h.trips()[0].weather is None
 
 
+@pytest.mark.solo  # counts the account's weather lookups, every car's
 def test_a_failed_lookup_is_tried_once_more_then_left(h):
     weather = h.coordinator.route_weather = _FakeWeather(failing=5)
     _drive(h, 5, 10)
@@ -103,6 +105,7 @@ def test_a_failed_lookup_is_tried_once_more_then_left(h):
     assert h.trips()[0].weather is None
 
 
+@pytest.mark.solo  # counts the account's weather lookups, every car's
 def test_an_older_trip_is_filled_in_at_its_zones(h):
     _drive(h, 5, 10)  # Home -> Work, stored while the switch was off
     h.advance_to(90)
@@ -118,6 +121,7 @@ def test_an_older_trip_is_filled_in_at_its_zones(h):
     assert h.trips()[0].weather["source"] == "ends"
 
 
+@pytest.mark.solo  # counts the account's weather lookups, every car's
 def test_a_trip_just_closed_is_left_to_its_own_lookup(h):
     weather = h.coordinator.route_weather = _FakeWeather(failing=1)
     _drive(h, 5, 10)
