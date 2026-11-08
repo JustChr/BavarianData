@@ -72,7 +72,7 @@ export default (Base) => class StylesPart extends Base {
       .eq { padding: 4px 16px 14px; }
       .eq__group + .eq__group, .eq__more { margin-top: 12px; }
       .eq__title {
-        font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+        font-size: 0.72rem; font-weight: 600;
         color: var(--secondary-text-color);
         margin: 4px 0 4px;
       }
@@ -419,7 +419,7 @@ export default (Base) => class StylesPart extends Base {
       .list__head {
         padding: 12px 20px 0;
         color: var(--secondary-text-color);
-        font-size: 0.78rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+        font-size: 0.78rem; font-weight: 600;
       }
       .item--msg { justify-content: flex-start; align-items: flex-start; text-align: left; }
       .item__icon { --mdc-icon-size: 20px; color: var(--warning-color, #ffa600); flex: 0 0 auto; }
@@ -475,7 +475,7 @@ export default (Base) => class StylesPart extends Base {
         background: var(--secondary-background-color);
       }
       .tsum__k {
-        font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase;
+        font-size: 0.62rem;
         color: var(--secondary-text-color);
       }
       .tsum__v {
@@ -759,7 +759,6 @@ export default (Base) => class StylesPart extends Base {
         color: var(--secondary-text-color); }
       .bh__usable-lbl {
         font-size: 0.7rem; color: var(--secondary-text-color);
-        text-transform: uppercase; letter-spacing: 0.04em;
       }
       .bh__vsnew { font-size: 0.82rem; color: var(--bmw-high); font-weight: 500; }
       .bh__learn { display: flex; flex-direction: column; gap: 8px; padding: 10px 0; }
@@ -778,7 +777,6 @@ export default (Base) => class StylesPart extends Base {
       .bh__trend { display: flex; flex-direction: column; gap: 4px; }
       .bh__trend-title {
         font-size: 0.68rem; color: var(--secondary-text-color);
-        text-transform: uppercase; letter-spacing: 0.04em;
       }
       .bh__chart { width: 100%; height: 70px; display: block; }
 
@@ -796,7 +794,6 @@ export default (Base) => class StylesPart extends Base {
       }
       .ef__hero-lbl {
         font-size: 0.7rem; color: var(--secondary-text-color);
-        text-transform: uppercase; letter-spacing: 0.04em;
       }
       .ef__vs { font-size: 0.82rem; color: var(--secondary-text-color); font-weight: 500; }
       .ef__vs--over { color: var(--bmw-high); }
@@ -809,14 +806,12 @@ export default (Base) => class StylesPart extends Base {
       }
       .ef__fact-lbl {
         font-size: 0.68rem; color: var(--secondary-text-color);
-        text-transform: uppercase; letter-spacing: 0.04em;
       }
       .ef__fact-val { font-size: 1.05rem; font-weight: 600; font-variant-numeric: tabular-nums; }
       .ef__fact-note { font-size: 0.72rem; color: var(--secondary-text-color); }
       .ef__trend { display: flex; flex-direction: column; gap: 4px; }
       .ef__trend-title {
         font-size: 0.68rem; color: var(--secondary-text-color);
-        text-transform: uppercase; letter-spacing: 0.04em;
       }
       .ef__chart { width: 100%; height: 88px; display: block; }
       .ef__bar { fill: var(--bmw-charge); opacity: 0.85; }
@@ -842,16 +837,13 @@ export default (Base) => class StylesPart extends Base {
       .tr__review { padding: 8px 14px 4px; display: flex; flex-direction: column; gap: 12px; }
       .tr__tiles { display: flex; gap: 8px; flex-wrap: wrap; }
       .tr__tile {
-        flex: 1 1 40%; display: flex; flex-direction: column; gap: 2px;
-        padding: 8px 10px; border-radius: 12px;
-        background: var(--secondary-background-color);
+        flex: 1 1 40%; display: flex; flex-direction: column; gap: 3px;
+        padding: 10px 12px; border-radius: 14px;
+        background: var(--bd-sub);
       }
-      .tr__tile-val { font-size: 1.05rem; font-weight: 600; font-variant-numeric: tabular-nums; }
-      .tr__tile-val i { font-style: normal; font-size: 0.72rem; color: var(--secondary-text-color); }
-      .tr__tile-lbl {
-        font-size: 0.68rem; color: var(--secondary-text-color);
-        text-transform: uppercase; letter-spacing: 0.04em;
-      }
+      .tr__tile-val { font-size: 1.15rem; font-weight: 650; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+      .tr__tile-val i { font-style: normal; font-size: 0.78rem; font-weight: 550; color: var(--bd-muted); }
+      .tr__tile-lbl { font-size: 0.76rem; color: var(--bd-muted); }
       /* The secondary reading under a headline figure (battery-side consumption
          beneath the plug-side one). Deliberately quieter than the label. */
       .tr__tile-sub {
@@ -859,8 +851,8 @@ export default (Base) => class StylesPart extends Base {
         font-variant-numeric: tabular-nums; opacity: 0.85;
       }
       .tr__delta { font-size: 0.7rem; font-variant-numeric: tabular-nums; }
-      .tr__delta--up { color: var(--bmw-charge, #34c759); }
-      .tr__delta--down { color: var(--error-color, #ff453a); }
+      /* Neither more nor fewer kilometers is good or bad news. */
+      .tr__delta--up, .tr__delta--down { color: var(--bd-muted); }
       .tr__split { display: flex; flex-direction: column; gap: 6px; }
       .tr__bar {
         display: flex; height: 12px; border-radius: 999px; overflow: hidden;
@@ -872,12 +864,22 @@ export default (Base) => class StylesPart extends Base {
       .tr__seg--private, .tr__dot.tr__seg--private { background: #7ac142; }
       .tr__seg--unc, .tr__dot.tr__seg--unc { background: var(--disabled-text-color, #8a8a8a); }
       .tr__legend { display: flex; flex-wrap: wrap; gap: 10px; }
+      .tr__legend { gap: 6px; }
       .tr__leg {
-        display: inline-flex; align-items: center; gap: 5px;
-        font-size: 0.72rem; color: var(--secondary-text-color);
-        font-variant-numeric: tabular-nums;
+        display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 11px;
+        font-size: 0.78rem; color: var(--bd-muted); font-variant-numeric: tabular-nums;
+        border: 1px solid var(--bd-line); border-radius: 999px; background: none; cursor: pointer;
       }
-      .tr__dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+      .tr__leg b { color: var(--primary-text-color); font-weight: 600; }
+      .tr__leg.is-active { background: var(--bd-sub); color: var(--primary-text-color); border-color: var(--bd-muted); }
+      .tr__dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
+      .chg__date .tr__dot { margin-right: 8px; vertical-align: 1px; }
+      .tr__day {
+        display: flex; justify-content: space-between; gap: 8px;
+        padding: 14px 10px 4px; font-size: 0.78rem; font-weight: 650; color: var(--bd-muted);
+      }
+      .t-ok { color: var(--bmw-high); }
+      .t-warn { color: var(--bmw-mid); }
 
       /* ---- trip map ---- */
       .map__filters {
@@ -907,13 +909,12 @@ export default (Base) => class StylesPart extends Base {
       .tr__style-head { display: flex; align-items: center; justify-content: space-between; }
       .tr__style-lbl {
         font-size: 0.68rem; color: var(--secondary-text-color);
-        text-transform: uppercase; letter-spacing: 0.04em;
       }
       .tr__stars { font-size: 0.95rem; color: #f5a623; letter-spacing: 1px; }
       .tr__dests { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
       .tr__dests-lbl {
         font-size: 0.68rem; color: var(--secondary-text-color);
-        text-transform: uppercase; letter-spacing: 0.04em; width: 100%;
+ width: 100%;
       }
       .tr__dest {
         display: inline-flex; align-items: center; gap: 6px;
@@ -923,7 +924,7 @@ export default (Base) => class StylesPart extends Base {
       .tr__dest-n { color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }
       .tr__badge {
         font-size: 0.66rem; padding: 1px 7px; border-radius: 999px;
-        color: #fff; text-transform: uppercase; letter-spacing: 0.03em;
+        color: #fff;
       }
       .tr__badge--business { background: #0066b1; }
       .tr__badge--commute { background: #00a1e0; }
@@ -955,13 +956,12 @@ export default (Base) => class StylesPart extends Base {
       .tr__classify { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 2px 2px; }
       .tr__classify-lbl {
         font-size: 0.68rem; color: var(--secondary-text-color);
-        text-transform: uppercase; letter-spacing: 0.04em;
       }
       .tr__cls-btns { display: inline-flex; gap: 6px; flex-wrap: wrap; }
       .tr__cls-btn {
         border: 1px solid var(--divider-color); background: none; cursor: pointer;
         font-size: 0.66rem; padding: 3px 9px; border-radius: 999px;
-        color: var(--primary-text-color); text-transform: uppercase; letter-spacing: 0.03em;
+        color: var(--primary-text-color);
         opacity: 0.6;
       }
       .tr__cls-btn:hover { opacity: 1; }

@@ -355,6 +355,9 @@ export default {
   tr_open: "Resa pågår",
   tr_open_hint: "En resa pågår",
   tr_min: "{n} min",
+  tr_tab_list: "Lista",
+  tr_tab_map: "Karta",
+  tr_rain: "regn",
   tr_open_note:
     "Den här resan pågår fortfarande. Sträcka och förbrukning är preliminära, och resan kan klassas när den är slut.",
   // map

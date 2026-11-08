@@ -355,6 +355,9 @@ export default {
   tr_open: "Viagem em curso",
   tr_open_hint: "Há uma viagem em curso",
   tr_min: "{n} min",
+  tr_tab_list: "Lista",
+  tr_tab_map: "Mapa",
+  tr_rain: "chuva",
   tr_open_note:
     "Esta viagem ainda está em curso. A distância e o consumo são provisórios, e a viagem pode ser classificada quando terminar.",
   // map

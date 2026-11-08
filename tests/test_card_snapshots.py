@@ -110,6 +110,7 @@ if (input.places) {
   card._plcExpanded = input.placesExpanded || null;
   card._render = () => { card._sig = null; card._paintPlaces("device"); };
 }
+if (input.mapTab) card._trpTab = "map";
 if (input.sessions) {
   card._chgMonth = input.month || "2026-09";
   card._chg = { vin: "WBS1", trigger: "", month: card._chgMonth, data: input.sessions, loading: false };
@@ -119,6 +120,7 @@ if (input.sessions) {
 if (input.trips) {
   card._trp = { vin: "WBS1", trigger: "", loading: false, ...input.trips };
   card._trpExpanded = input.tripsExpanded || null;
+  card._trpFilter = input.tripsFilter || null;
   card._render = () => {
     card._sig = null;
     card._paintTrips("device", Object.keys(input.states));
@@ -644,6 +646,25 @@ def test_the_trips_view_with_figures(unit: str, snapshot) -> None:
     assert html == snapshot
     assert ("kWh/100 mi" in html) == (unit == "mi")
     assert ("kWh/100 km" in html) == (unit == "km")
+
+
+def test_a_trip_type_filters_the_list() -> None:
+    rows = 'class="tr__dot tr__seg--commute" title'
+    assert rows in _render(I5, SCREENS["trips"], trips=TRIPS)
+    # Private: none of the month's listed trips, so no rows, but the summary stays.
+    html = _render(I5, SCREENS["trips"], trips=TRIPS, tripsFilter="private")
+    assert rows not in html and "tr__review" in html
+    assert 'data-trip-filter="private" aria-pressed="true"' in html
+
+
+def test_the_trips_view_switches_to_its_map() -> None:
+    listed = _render(I5, SCREENS["trips"], trips=TRIPS)
+    assert 'data-trp-tab="map"' in listed
+    # The Map tab is the trip map, drawn inside the trips card under its header.
+    html = _render(I5, {**SCREENS["trips"]}, mapTab=True)
+    assert 'data-trp-tab="map" aria-pressed="true"' in html and "Trips" in html
+    # Alone, the map view has no switch.
+    assert "data-trp-tab" not in _render(I5, SCREENS["map"])
 
 
 @pytest.mark.parametrize("unit", sorted(TEMP_UNITS))

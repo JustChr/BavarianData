@@ -319,6 +319,8 @@ export default (Base, { _lang }) => class MapPart extends Base {
   }
 
   _buildMapChrome(deviceId, phase, name) {
+    // Drawn as the Map tab of the trips view, it keeps that view's header.
+    const inTrips = this._config.view === "trips";
     const count = phase === "data" ? this._mapWindowTrips().length : 0;
     const countLabel =
       count === 1 ? this._t("tr_trip_one") : this._t("tr_trip_many", { n: count });
@@ -342,12 +344,13 @@ export default (Base, { _lang }) => class MapPart extends Base {
       ${this._styles()}
       <ha-card>
         <div class="chead">
-          <ha-icon icon="mdi:map-marker-multiple"></ha-icon>
+          <ha-icon icon="${inTrips ? "mdi:road-variant" : "mdi:map-marker-multiple"}"></ha-icon>
           <div class="chead__text">
-            <span class="chead__title">${this._esc(this._config.title || this._t("mp_title"))}</span>
+            <span class="chead__title">${this._esc(this._config.title || this._t(inTrips ? "tr_title" : "mp_title"))}</span>
             <span class="chead__sub">${this._esc(name)}${count ? " · " + countLabel : ""}</span>
           </div>
         </div>
+        ${this._tripsTabs("map")}
         ${body}
       </ha-card>
     `;
@@ -371,6 +374,7 @@ export default (Base, { _lang }) => class MapPart extends Base {
       this._clusterMap = null;
     }
     this._wireMapFilters();
+    this._wireTripsTabs();
   }
 
   /** The time-window chip row (This month / 3 months / All). */
