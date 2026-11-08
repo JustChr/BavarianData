@@ -244,9 +244,12 @@ liegen, sodass Automationen daraus weiter funktionieren.
   zeigt die Karte ✓ und den erreichten Ladestand (oder,
   wenn das Ziel nicht erreicht wurde, beides), was geladen wurde, wie lange es
   gedauert hat (und mit Tarif, was es gekostet hat), und verschwindet nach den
-  eingestellten Minuten. Sie wird alle paar Minuten aktualisiert (*Update
-  every*), und sofort, wenn sich die Ladeleistung um ein Zehntel oder mehr
-  ändert; nach einem Neustart nimmt sie einen noch laufenden Ladevorgang
+  eingestellten Minuten. Sie wird alle 5 Minuten aktualisiert (*Update
+  every*), und früher, wenn sich die Ladeleistung um ein Zehntel oder mehr
+  ändert, aber nie innerhalb von 3 Minuten nach der letzten Aktualisierung:
+  Ein Handy bekommt von Home Assistant höchstens 500 Benachrichtigungen am
+  Tag, und jede Aktualisierung zählt mit. Ein Stopp oder eine Pause erscheint
+  sofort. Nach einem Neustart nimmt sie einen noch laufenden Ladevorgang
   wieder auf. Die Karte nutzt Symbole und Einheiten statt
   Wörter und liest sich so in jeder Sprache gleich.
 

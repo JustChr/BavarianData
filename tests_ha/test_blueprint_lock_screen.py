@@ -34,6 +34,8 @@ SOURCE = Path(__file__).parents[1] / "blueprints" / "automation" / "bavariandata
 # The card joins numbers and units with a no-break space.
 NB = "\u00a0"
 OTHER_VIN = "WBATEST0000000002"
+# Minutes after a send in which only a stop or the car's status refreshes the card.
+HOLD = 3
 
 STATES = {
     "soc_estimate": "52",
@@ -89,11 +91,30 @@ def _phone(hass: HomeAssistant, name: str) -> str:
     )
 
 
+def _phone_calls(hass: HomeAssistant, service: str) -> list:
+    """What a phone is sent, less the clear a new charge opens with.
+
+    A start first ends any card the car had (see
+    ``test_a_new_charge_ends_a_card_left_over``); every other test reads the
+    charge's own cards from the first one on.
+    """
+
+    calls: list = []
+
+    async def phone(call) -> None:
+        if call.data["message"] == "clear_notification" and not calls:
+            return
+        calls.append(call)
+
+    hass.services.async_register("notify", service, phone)
+    return calls
+
+
 async def _automation(hass: HomeAssistant, **inputs):
     target = Path(hass.config.path("blueprints", "automation", "bavariandata", BLUEPRINT))
     target.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy(SOURCE, target)
-    calls = async_mock_service(hass, "notify", "mobile_app_iphone")
+    calls = _phone_calls(hass, "mobile_app_iphone")
     inputs.setdefault("phones", [_phone(hass, "iPhone")])
     assert await async_setup_component(
         hass,
@@ -116,11 +137,20 @@ async def _settle() -> None:
 
 
 async def _after_power(hass: HomeAssistant) -> None:
-    """A change in power refreshes the card after a 3 s pause (a charge ending
-    drops its power a moment before the car reports the end)."""
+    """A change in power refreshes the card once the 3 minutes after the last
+    send have passed, after a 3 s pause (a charge ending drops its power a
+    moment before the car reports the end)."""
 
     await _settle()
+    await _later(hass, HOLD + 0.05)
     await _later(hass, 0.06)
+
+
+async def _next_round(hass: HomeAssistant) -> None:
+    """The hold, then the rest of the default 5-minute round."""
+
+    await _later(hass, HOLD + 0.05)
+    await _later(hass, 5 - HOLD + 0.05)
 
 
 async def _later(hass: HomeAssistant, minutes: float) -> None:
@@ -150,7 +180,7 @@ async def test_a_charge_runs_from_start_to_cleared(hass: HomeAssistant, tmp_path
     assert card["chronometer"] is True
     assert (card["when"], card["when_relative"]) == (3600, True)
 
-    await _later(hass, 2.1)
+    await _next_round(hass)
     assert len(calls) == 2
 
     hass.bus.async_fire(
@@ -284,7 +314,7 @@ async def test_the_wallbox_power_is_shown_while_the_car_is_at_home(hass: HomeAss
 
     # Away from home the wallbox isn't this car's: BMW's value again.
     hass.states.async_set(tracker, "not_home")
-    await _later(hass, 2.1)
+    await _next_round(hass)
     assert calls[-1].data["data"]["critical_text"] == f"52{NB}→{NB}80{NB}% · 10.8{NB}kW"
 
 
@@ -374,7 +404,8 @@ async def test_every_picked_phone_gets_the_card(hass: HomeAssistant) -> None:
     )
     await _settle()
 
-    for phone in (calls, other):
+    assert other[0].data["message"] == "clear_notification"
+    for phone in (calls, other[1:]):
         assert [c.data["message"] for c in phone] == [
             f"→{NB}80{NB}% · +6.3{NB}kWh",
             f"✓{NB}80{NB}% · +20.0{NB}kWh",
@@ -553,7 +584,7 @@ async def test_a_start_before_the_status_follows_still_shows_the_card(
 
     (first,) = calls
     assert first.data["data"]["critical_text"] == f"52{NB}→{NB}80{NB}% · 10.8{NB}kW"
-    await _later(hass, 2.1)
+    await _next_round(hass)
     assert len(calls) == 2
 
 
@@ -578,7 +609,7 @@ async def test_a_start_does_not_show_the_last_charges_energy(hass: HomeAssistant
         "1.24",
         {**hass.states.get(counter).attributes, "last_reset": dt_util.utcnow().isoformat()},
     )
-    await _later(hass, 2.1)
+    await _next_round(hass)
     assert calls[-1].data["message"] == f"→{NB}80{NB}% · +1.2{NB}kWh"
 
 
@@ -611,8 +642,8 @@ async def test_a_stop_short_of_the_target_stops_the_countdown_at_once(
     # It stops again, and the result follows five minutes later; nothing covers it.
     hass.states.async_set(status, "nocharging", {**hass.states.get(status).attributes})
     await _settle()
-    for _ in range(3):
-        await _later(hass, 2.1)
+    for _ in range(2):
+        await _next_round(hass)
     hass.bus.async_fire("bavariandata_charging_stopped", _ended(complete=False, soc=52.0))
     await _settle()
     await _later(hass, 1)
@@ -631,3 +662,78 @@ async def test_at_the_target_the_corner_drops_the_arrow(hass: HomeAssistant) -> 
     await _settle()
 
     assert calls[0].data["data"]["critical_text"] == f"80{NB}% · 10.8{NB}kW"
+
+
+async def test_a_jump_in_power_at_the_start_waits_for_the_hold(hass: HomeAssistant) -> None:
+    """Live, 8 Nov: the wallbox went from 0.1 to 2.4 kW 11 s after the start, and
+    the card was sent three times in a minute. An iPhone had not yet told Home
+    Assistant where the card's updates go, so each send started a card of its
+    own, and the one on the screen took no update for the rest of the charge."""
+
+    await _car(hass)
+    calls = await _automation(hass)
+    power = _entity(hass, "vehicle.powertrain.electric.battery.charging.power")
+
+    hass.bus.async_fire("bavariandata_charging_started", {"vin": VIN, "soc": 40, "target_soc": 80})
+    await _settle()
+    hass.states.async_set(power, "2.4", {**hass.states.get(power).attributes})
+    await _settle()
+    await _later(hass, 0.06)
+    await _later(hass, HOLD - 0.5)
+    assert len(calls) == 1
+
+    # The hold passed: the move shows now, not at the end of the round.
+    await _after_power(hass)
+    assert len(calls) == 2
+    assert calls[-1].data["data"]["critical_text"] == f"52{NB}→{NB}80{NB}% · 2.4{NB}kW"
+
+
+async def test_a_new_charge_ends_a_card_left_over(hass: HomeAssistant) -> None:
+    """Home Assistant sends a card's updates to the last card it heard of under
+    its tag. A card whose run was cut short keeps that place, so a new charge
+    ends it first; a pick-up after a restart carries the running card on."""
+
+    device = await _car(hass)
+    pixel = async_mock_service(hass, "notify", "mobile_app_pixel_10")
+    await _automation(hass, phones=[_phone(hass, "Pixel 10")])
+
+    hass.bus.async_fire("bavariandata_charging_started", {"vin": VIN, "soc": 40, "target_soc": 80})
+    await _settle()
+    cleared, card = pixel
+    assert cleared.data == {
+        "message": "clear_notification",
+        "data": {"tag": f"bavariandata-charging-{device}"},
+    }
+    assert card.data["data"]["tag"] == f"bavariandata-charging-{device}"
+
+    pixel.clear()
+    hass.bus.async_fire("bavariandata_lock_screen_resume", {"vin": VIN})
+    await _settle()
+    assert [c.data["message"] for c in pixel] == [f"→{NB}80{NB}% · +6.3{NB}kWh"]
+
+
+async def test_a_swinging_charge_stays_inside_a_phones_daily_limit(
+    hass: HomeAssistant, freezer
+) -> None:
+    """A phone gets at most 500 notifications a day from Home Assistant, and every
+    refresh of the card counts. On 6 Nov a charge on a swinging wallbox sent
+    about 570: the phone was told the limit was reached, over and over."""
+
+    await _car(hass)
+    calls = await _automation(hass)
+    power = _entity(hass, "vehicle.powertrain.electric.battery.charging.power")
+
+    hass.bus.async_fire("bavariandata_charging_started", {"vin": VIN, "soc": 40, "target_soc": 80})
+    await _settle()
+    for minute in range(24 * 60):
+        # Solar-led charging: the power swings by a third every minute.
+        hass.states.async_set(
+            power, "2.0" if minute % 2 else "3.0", {**hass.states.get(power).attributes}
+        )
+        freezer.tick(timedelta(minutes=1))
+        async_fire_time_changed(hass)
+        await _settle()
+        if minute == 59:
+            assert len(calls) <= 60 // HOLD + 1
+
+    assert len(calls) <= 24 * 60 // HOLD + 1 < 500

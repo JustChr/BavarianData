@@ -232,9 +232,11 @@ integration leaves every copy, so an automation made from one keeps working.
   when it does, the countdown comes back. When the charge ends, the card shows ✓ and the level reached (or, short of
   the target, both), what went in, how long it took (and the cost, with a
   tariff set), then clears itself after the minutes you set. It refreshes
-  every few minutes (*Update every*), and at once when the charging power
-  changes by a tenth or more; after a restart it picks up a charge that is
-  still running. The card uses symbols and units
+  every 5 minutes (*Update every*), and sooner when the charging power
+  changes by a tenth or more, but never within 3 minutes of the last
+  refresh: a phone gets at most 500 notifications a day from Home Assistant,
+  and every refresh counts. A stop or a pause shows at once. After a restart
+  it picks up a charge that is still running. The card uses symbols and units
   rather than words, so it reads the same in every language.
 
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-charged.png?v=2026-11-04" alt="The same card once a charge stopped short of its target: 82 % / 85 % · +2.7 kWh · 0.66 EUR · 21 min, 82 % in the corner, the bar nearly at the target" width="420" />
