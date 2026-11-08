@@ -622,6 +622,53 @@ def test_a_charge_at_home_keeps_the_house_mix_and_tariff():
         assert session.cost["source"] == "tariff"
 
 
+def test_a_charge_at_home_tells_its_cost_and_sun_while_it_runs():
+    """The card's charging tiles: what this charge has cost and drawn so far."""
+
+    home = (48.1, 11.5)
+    with _house_harness(home) as h:
+        h.fix(5, *home)
+        assert h.coordinator.session_progress(h.vin) is None, "no charge, nothing to tell"
+        _start_charge(h)
+        h.send(70, soc=42, status="CHARGINGACTIVE", power=3480)
+
+        early = h.coordinator.session_progress(h.vin)
+        assert early["soc_start"] == 38
+        assert early["currency"] == "EUR"
+        assert early["cost_so_far"] > 0
+        # 4 kW off the roof and 2 kW imported while it charged.
+        assert early["solar_percent"] == pytest.approx(66.7, abs=0.5)
+        assert early["cost_partial"] is False
+
+        h.send(100, soc=44, status="CHARGINGACTIVE", power=3480)
+        later = h.coordinator.session_progress(h.vin)
+        assert later["cost_so_far"] > early["cost_so_far"], "the cost climbs with the charge"
+
+        h.send(130, status="NOCHARGING", power=0, step="unplugged")
+        h.advance_to(133)
+        assert h.coordinator.session_progress(h.vin) is None, "a finished charge is not running"
+        (session,) = h.sessions()
+        assert session.cost["amount"] >= later["cost_so_far"]
+
+
+def test_a_charge_elsewhere_tells_no_cost_and_no_sun_while_it_runs():
+    """Away the house's tariff and meters say nothing about this charge (#97)."""
+
+    with _house_harness((48.1, 11.5)) as h:
+        h.fix(5, 48.3, 11.9)  # a public charger, inside no zone
+        _start_charge(h)
+        h.send(70, soc=42, status="CHARGINGACTIVE", power=3480)
+
+        progress = h.coordinator.session_progress(h.vin)
+        assert progress == {
+            "soc_start": 38,
+            "cost_so_far": None,
+            "currency": None,
+            "cost_partial": False,
+            "solar_percent": None,
+        }
+
+
 def test_a_night_charge_keeps_its_mix_when_the_inverter_sleeps():
     """The maintainer's i5, 2026-10-22: every night charge filed with no mix.
 

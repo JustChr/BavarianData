@@ -17,7 +17,14 @@ power over time into two sensors per vehicle:
   charge, at home or not. For the **Energy dashboard**, use the
   [charging energy at home](Feature-Energy-and-Statistics#adding-to-the-energy-dashboard)
   series instead.
-- **Charged Energy (Session)** — resets at the start of every session.
+- **Charged Energy (Session)** — resets at the start of every session. While
+  a charge runs it also carries what that charge has done so far, which the
+  dashboard card shows: `soc_start` (the charge it began at), `cost_so_far`
+  and `currency` (at your tariff, at home only), `cost_partial` (some energy
+  went in while the price was unknown) and `solar_percent` (the share from your
+  roof, with [energy sources](#where-the-energy-came-from) set). A figure that
+  can't be told is empty, never 0; away from home cost and solar stay empty.
+  Between charges these attributes are gone.
 
 Both work on any vehicle that streams charging power.
 
