@@ -36,6 +36,11 @@ Direct links to the vehicle overview per market:
 | BMW   | [vehicle overview](https://www.bmw.co.uk/en-gb/mybmw/vehicle-overview) | [Fahrzeugübersicht](https://www.bmw.de/de-de/mybmw/vehicle-overview) | [Fahrzeugübersicht](https://www.bmw.at/de-at/mybmw/vehicle-overview) |
 | Mini  | [vehicle overview](https://www.mini.co.uk/en-gb/mymini/vehicle-overview) | [Fahrzeugübersicht](https://www.mini.de/de-de/mymini/vehicle-overview) | [Fahrzeugübersicht](https://www.mini.at/de-at/mymini/vehicle-overview) |
 
+**No BMW CarData tile on your country's site?** Sign in with the same BMW login
+on the English (UK) vehicle overview above and look there. An owner in Australia,
+whose local site has no tile, found it on the UK page, and the client ID it gave
+authorized their car.
+
 ## Create the client ID
 
 <a id="steps"></a>

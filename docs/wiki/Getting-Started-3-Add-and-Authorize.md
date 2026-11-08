@@ -38,8 +38,9 @@ again — see [step 4](Getting-Started-4-Choose-Data).
 ## Guided path
 
 1. Choose **Guided setup (recommended)**. Home Assistant serves a small
-   activation page. **Drag the *Activate BMW data* button to your bookmarks bar**
-   (once):
+   activation page. **Drag the *Activate BMW data* button to your bookmarks bar**,
+   replacing any older one. Each setup makes a new button, and one kept from an
+   earlier try can't reach Home Assistant:
 
    <p align="center">
      <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-setup-bookmarklet.png" alt="The served activation page with a draggable 'Activate BMW data' bookmarklet button and a console fallback" width="600" />

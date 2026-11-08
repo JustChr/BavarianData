@@ -9,6 +9,15 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Setup no longer waits forever when you click an old bookmark.** Every
+  setup makes a new **Activate BMW data** button. One kept from an earlier
+  try reported to an address Home Assistant had already closed, but the
+  portal still said "Home Assistant will continue automatically" while the
+  setup dialog kept waiting. The bookmark now tells you it is from an earlier
+  setup and asks you to drag the new one, and the setup steps say to replace
+  an older bookmark instead of "once". Thanks to @cloudbr34k84 (#293).
+
 ## [0.9.28-beta.3] - 2026-11-08
 
 ### Fixed

@@ -23,8 +23,9 @@ lassen dich zuerst die Datengruppen wählen.
    </p>
 
 2. Der nächste Bildschirm verlinkt die Aktivierungsseite. Ziehe die Schaltfläche
-   **Activate BMW data** in deine Lesezeichenleiste, falls sie dort noch nicht
-   liegt.
+   **Activate BMW data** in deine Lesezeichenleiste und ersetze dabei ein älteres
+   Lesezeichen: Jeder Durchlauf erzeugt eine neue Schaltfläche, eine alte erreicht
+   Home Assistant nicht mehr.
 3. Öffne im BMW-Portal die Seite **BMW CarData** des Fahrzeugs und klicke unter
    **CarData Stream** auf **Datenauswahl ändern**:
 

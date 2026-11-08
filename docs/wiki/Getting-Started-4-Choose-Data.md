@@ -21,7 +21,8 @@ and **Configure → Choose streamed data** let you pick the clusters first.
    </p>
 
 2. The next screen links to the activation page. Drag the **Activate BMW data**
-   button to your bookmarks bar if it isn't there yet.
+   button to your bookmarks bar, replacing any older one: each run makes a new
+   button, and an old one can't reach Home Assistant.
 3. In the BMW portal, open the vehicle's **BMW CarData** page and press
    **Change data selection** (*Datenauswahl ändern*) under **CarData Stream**:
 
