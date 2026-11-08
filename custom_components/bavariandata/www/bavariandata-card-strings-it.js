@@ -307,8 +307,10 @@ export default {
   ef_cost: "Costo per {per}",
   ef_solar: "{p}% fotovoltaico questo mese",
   ef_trend_title: "Consumo per mese",
-  ef_footnote:
-    "Misurato dal registro di ricarica: la distanza tra due ricariche e l'energia immessa, non la stima dell'auto.",
+  ef_cmp_you: "Come guidi tu",
+  ef_cmp_bmw: "Stima dell'auto",
+  ef_cmp_mild: "A {mild}",
+  ef_footnote: "Misurato dallo storico delle ricariche: la distanza tra due ricariche e l'energia immessa, non la stima dell'auto. Conta tutto ciò che la batteria ha dato tra due ricariche, soste e precondizionamento compresi, quindi risulta più alto dei valori dei singoli viaggi, che contano solo la guida.",
   ef_temp_title: "Consumo per temperatura esterna ({u})",
   ef_temp_more: "Sotto {cold} consuma il {p}% in più che a {mild}, misurato sui tuoi viaggi.",
   ef_temp_less: "Sotto {cold} consuma il {p}% in meno che a {mild}, misurato sui tuoi viaggi.",

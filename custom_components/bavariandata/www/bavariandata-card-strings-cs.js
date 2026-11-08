@@ -307,8 +307,10 @@ export default {
   ef_cost: "Náklady na {per}",
   ef_solar: "{p} % ze soláru tento měsíc",
   ef_trend_title: "Spotřeba po měsících",
-  ef_footnote:
-    "Naměřeno z knihy nabíjení: vzdálenost mezi dvěma nabitími a energie, která byla dobita, nikoli odhad vozu.",
+  ef_cmp_you: "Při vaší jízdě",
+  ef_cmp_bmw: "Odhad vozu",
+  ef_cmp_mild: "Při {mild}",
+  ef_footnote: "Změřeno z historie nabíjení: vzdálenost mezi dvěma nabitími a energie, která se dobila, ne vlastní odhad vozu. Započítává vše, co baterie mezi dvěma nabitími vydala, včetně stání a předklimatizace, a proto vychází výš než hodnoty jednotlivých jízd, které počítají jen jízdu.",
   ef_temp_title: "Spotřeba podle venkovní teploty ({u})",
   ef_temp_more: "Pod {cold} spotřebuje o {p} % více než při {mild}, měřeno na vašich jízdách.",
   ef_temp_less: "Pod {cold} spotřebuje o {p} % méně než při {mild}, měřeno na vašich jízdách.",

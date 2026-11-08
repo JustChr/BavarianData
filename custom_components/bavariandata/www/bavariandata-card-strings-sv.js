@@ -307,8 +307,10 @@ export default {
   ef_cost: "Kostnad per {per}",
   ef_solar: "{p} % sol den här månaden",
   ef_trend_title: "Förbrukning per månad",
-  ef_footnote:
-    "Uppmätt från laddningsliggaren: sträckan mellan två laddningar och energin som gick in, inte bilens egen uppskattning.",
+  ef_cmp_you: "Som du kör",
+  ef_cmp_bmw: "Bilens uppskattning",
+  ef_cmp_mild: "Vid {mild}",
+  ef_footnote: "Mätt ur laddhistoriken: sträckan mellan två laddningar och energin som gick in, inte bilens egen uppskattning. Den räknar allt batteriet gav mellan två laddningar, parkerad tid och förklimatisering inräknade, och blir därför högre än värdena för enskilda resor, som bara räknar körningen.",
   ef_temp_title: "Förbrukning efter utetemperatur ({u})",
   ef_temp_more: "Under {cold} drar den {p} % mer än vid {mild}, mätt på dina resor.",
   ef_temp_less: "Under {cold} drar den {p} % mindre än vid {mild}, mätt på dina resor.",

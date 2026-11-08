@@ -307,8 +307,10 @@ export default {
   ef_cost: "Coût aux {per}",
   ef_solar: "{p} % solaire ce mois-ci",
   ef_trend_title: "Consommation par mois",
-  ef_footnote:
-    "Mesuré à partir du registre de recharge : la distance entre deux recharges et l'énergie chargée, pas l'estimation de la voiture.",
+  ef_cmp_you: "Selon votre conduite",
+  ef_cmp_bmw: "Estimation de la voiture",
+  ef_cmp_mild: "À {mild}",
+  ef_footnote: "Mesurée à partir de l'historique de charge : la distance entre deux charges et l'énergie qui y est entrée, pas l'estimation de la voiture. Elle compte tout ce que la batterie a fourni entre deux charges, heures à l'arrêt et préconditionnement compris, et dépasse donc les valeurs des trajets, qui ne comptent que la conduite.",
   ef_temp_title: "Consommation selon la température extérieure ({u})",
   ef_temp_more: "En dessous de {cold}, elle consomme {p} % de plus qu'à {mild}, mesuré sur vos trajets.",
   ef_temp_less: "En dessous de {cold}, elle consomme {p} % de moins qu'à {mild}, mesuré sur vos trajets.",

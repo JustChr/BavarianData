@@ -499,6 +499,7 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
           <div class="ef__hero-text">${hero}</div>
           ${vsBmw}
         </div>
+        ${this._efCompare(f, profile.by_temperature, unit, tempUnit)}
         <div class="ef__facts">${factRow}</div>
         ${
           chart
@@ -511,6 +512,37 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
         <span class="ef__note">${this._t("ef_footnote")}</span>
       </div>
     `;
+  }
+
+  /** The real range against the car's own estimate and, where the trips'
+   * weather says it, against what the same charge would go in mild weather
+   * (15-25 degrees). Bars on one scale, so the gap is seen, not just read. */
+  _efCompare(f, byTemp, unit, tempUnit) {
+    const now = f.nowKm != null ? f.nowKm : f.fullKm;
+    if (now == null) return "";
+    const rows = [["ef_cmp_you", now, "var(--bmw-charge)"]];
+    if (f.bmwKm != null) rows.push(["ef_cmp_bmw", f.bmwKm, "var(--bd-grid)"]);
+    const mild = byTemp && byTemp.status === "ok" ? byTemp.mild_kwh_per_100km : null;
+    if (mild > 0 && f.capacity != null) {
+      const full = (f.capacity / mild) * 100;
+      rows.push(["ef_cmp_mild", f.nowKm != null && f.soc != null ? (full * f.soc) / 100 : full, "color-mix(in srgb, var(--bd-grid) 50%, transparent)"]);
+    }
+    if (rows.length < 2) return "";
+    const max = Math.max(...rows.map((r) => r[1])) || 1;
+    const mildLabel = `${this._dec(tempUnit === "f" ? 59 : 15, 0)}–${this._temp(25, tempUnit)}`;
+    return `<div class="cmp" role="img" aria-label="${this._esc(
+      rows.map(([k, v]) => `${this._t(k, { mild: mildLabel })} ${this._distance(v, unit)}`).join(", ")
+    )}">${rows
+      .map(
+        ([k, v, c], i) =>
+          `<div class="cmp__row${i ? " cmp__row--quiet" : ""}"><span class="cmp__lbl">${this._t(k, {
+            mild: mildLabel,
+          })}</span><span class="cmp__track"><span style="width:${((v / max) * 100).toFixed(1)}%;background:${c}"></span></span><span class="cmp__v">${this._distance(
+            v,
+            unit
+          )}</span></div>`
+      )
+      .join("")}</div>`;
   }
 
   /** Consumption per outside-temperature band (opt-in route weather), and how
@@ -552,9 +584,13 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
         )}</text>`;
       })
       .join("");
+    // Mild weather as a dashed line across: each band reads against it.
+    const mildV = byTemp.mild_kwh_per_100km == null ? null : this._perDist(byTemp.mild_kwh_per_100km, unit);
+    const mildY = mildV == null ? null : H - bottom - (mildV / max) * (H - bottom - pad);
     const chart = `
       <svg class="ef__chart" viewBox="0 0 ${W} ${H}" role="img">
         ${bars}
+        ${mildY == null ? "" : `<line class="chg__chart-avg" x1="${pad}" x2="${W - pad}" y1="${this._px(mildY)}" y2="${this._px(mildY)}"></line>`}
         <text x="${pad}" y="9" class="chg__chart-max">${this._kwhPer(unit)}</text>
       </svg>`;
     const cold = this._temp(5, tempUnit);

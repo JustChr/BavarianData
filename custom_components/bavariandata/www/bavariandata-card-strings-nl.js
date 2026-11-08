@@ -307,8 +307,10 @@ export default {
   ef_cost: "Kosten per {per}",
   ef_solar: "{p}% zon deze maand",
   ef_trend_title: "Verbruik per maand",
-  ef_footnote:
-    "Gemeten uit het laadlogboek: de afstand tussen twee laadbeurten en de energie die erin ging, niet de schatting van de auto.",
+  ef_cmp_you: "Zoals jij rijdt",
+  ef_cmp_bmw: "Schatting van de auto",
+  ef_cmp_mild: "Bij {mild}",
+  ef_footnote: "Gemeten uit de laadhistorie: de afstand tussen twee laadbeurten en de energie die erin ging, niet de eigen schatting van de auto. Het telt alles wat de accu tussen twee laadbeurten gaf, stilstaan en voorconditioneren inbegrepen, en ligt daarom hoger dan de waarden van losse ritten, die alleen het rijden tellen.",
   ef_temp_title: "Verbruik per buitentemperatuur ({u})",
   ef_temp_more: "Onder {cold} verbruikt hij {p}% meer dan bij {mild}, gemeten op je ritten.",
   ef_temp_less: "Onder {cold} verbruikt hij {p}% minder dan bij {mild}, gemeten op je ritten.",

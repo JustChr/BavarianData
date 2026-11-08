@@ -307,8 +307,10 @@ export default {
   ef_cost: "Kosten pro {per}",
   ef_solar: "{p} % Solar diesen Monat",
   ef_trend_title: "Verbrauch nach Monat",
-  ef_footnote:
-    "Gemessen aus der Ladehistorie: die Strecke zwischen zwei Ladevorgängen und die Energie, die hineinging — nicht die Prognose des Fahrzeugs.",
+  ef_cmp_you: "So, wie du fährst",
+  ef_cmp_bmw: "Schätzung des Autos",
+  ef_cmp_mild: "Bei {mild}",
+  ef_footnote: "Gemessen aus der Ladehistorie: die Strecke zwischen zwei Ladungen und die Energie, die hineinging, nicht die eigene Schätzung des Autos. Sie zählt alles, was die Batterie zwischen zwei Ladungen abgegeben hat, Standzeiten und Vorklimatisierung eingeschlossen, und liegt deshalb höher als die Werte einzelner Fahrten, die nur das Fahren zählen.",
   ef_temp_title: "Verbrauch nach Außentemperatur ({u})",
   ef_temp_more: "Unter {cold} verbraucht es {p} % mehr als bei {mild}, gemessen auf deinen Fahrten.",
   ef_temp_less: "Unter {cold} verbraucht es {p} % weniger als bei {mild}, gemessen auf deinen Fahrten.",

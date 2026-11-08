@@ -799,6 +799,14 @@ export default (Base) => class StylesPart extends Base {
       .ef__vs--over { color: var(--bmw-high); }
       .ef__vs--under { color: var(--bmw-mid); }
       .ef__facts { display: flex; flex-wrap: wrap; gap: 8px; }
+      /* the real range against the car's and the mild-weather one */
+      .cmp { display: grid; gap: 9px; }
+      .cmp__row { display: grid; grid-template-columns: minmax(0, 9.5em) 1fr auto; align-items: center; gap: 10px; font-size: 0.8rem; }
+      .cmp__row--quiet .cmp__lbl, .cmp__row--quiet .cmp__v { color: var(--bd-muted); }
+      .cmp__lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .cmp__track { position: relative; height: 10px; border-radius: 999px; background: var(--bd-sub); }
+      .cmp__track > span { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; }
+      .cmp__v { font-weight: 650; font-variant-numeric: tabular-nums; text-align: right; }
       .ef__fact {
         flex: 1 1 44%; display: flex; flex-direction: column; gap: 2px;
         padding: 8px 10px; border-radius: 12px;
@@ -809,6 +817,7 @@ export default (Base) => class StylesPart extends Base {
       }
       .ef__fact-val { font-size: 1.05rem; font-weight: 600; font-variant-numeric: tabular-nums; }
       .ef__fact-note { font-size: 0.72rem; color: var(--secondary-text-color); }
+      .ef__fact-note::first-letter { text-transform: uppercase; }
       .ef__trend { display: flex; flex-direction: column; gap: 4px; }
       .ef__trend-title {
         font-size: 0.68rem; color: var(--secondary-text-color);

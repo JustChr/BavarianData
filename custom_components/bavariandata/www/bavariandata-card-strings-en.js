@@ -307,8 +307,10 @@ export default {
   ef_cost: "Cost per {per}",
   ef_solar: "{p}% solar this month",
   ef_trend_title: "Consumption by month",
-  ef_footnote:
-    "Measured from the charging ledger: the distance between two charges and the energy that went in, not the car's own estimate.",
+  ef_cmp_you: "The way you drive",
+  ef_cmp_bmw: "Car's estimate",
+  ef_cmp_mild: "At {mild}",
+  ef_footnote: "Measured from the charging ledger: the distance between two charges and the energy that went in, not the car's own estimate. It counts everything the battery gave between two charges, parked hours and preconditioning included, so it reads higher than the figures of single trips, which count only the drives.",
   ef_temp_title: "Consumption by outside temperature ({u})",
   ef_temp_more: "Below {cold} it uses {p}% more than at {mild}, measured on your trips.",
   ef_temp_less: "Below {cold} it uses {p}% less than at {mild}, measured on your trips.",

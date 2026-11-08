@@ -307,8 +307,10 @@ export default {
   ef_cost: "Koszt na {per}",
   ef_solar: "{p}% ze słońca w tym miesiącu",
   ef_trend_title: "Zużycie w poszczególnych miesiącach",
-  ef_footnote:
-    "Zmierzone z rejestru ładowań: dystans między dwoma ładowaniami i energia, która trafiła do akumulatora, a nie szacunek auta.",
+  ef_cmp_you: "Przy twojej jeździe",
+  ef_cmp_bmw: "Szacunek auta",
+  ef_cmp_mild: "Przy {mild}",
+  ef_footnote: "Zmierzone z historii ładowania: dystans między dwoma ładowaniami i energia, która trafiła do baterii, a nie szacunek samego auta. Liczy wszystko, co bateria oddała między dwoma ładowaniami, łącznie z postojem i klimatyzacją wstępną, dlatego wychodzi wyżej niż wartości pojedynczych przejazdów, które liczą tylko jazdę.",
   ef_temp_title: "Zużycie wg temperatury na zewnątrz ({u})",
   ef_temp_more: "Poniżej {cold} zużywa o {p}% więcej niż przy {mild}, według Twoich przejazdów.",
   ef_temp_less: "Poniżej {cold} zużywa o {p}% mniej niż przy {mild}, według Twoich przejazdów.",
