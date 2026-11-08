@@ -106,8 +106,11 @@ The next real reading replaces it. See
 **Time to full** is
 [the integration's own figure](Feature-evcc-and-Wallbox-Bridge#time-to-the-charge-target)
 while the car charges at home with a wallbox meter bound, and BMW's anywhere
-else. Outside a charge it is labelled *Charge time*, and it is hidden when that
-time is 0.
+else. While the car charges, the tile shows the clock time the charge will be
+done, as *Done at 05:40* (with the weekday when that isn't today); tap it for the
+minutes left. If that figure has stopped updating and its time has already
+passed, the tile shows the minutes instead. Outside a charge it is labelled
+*Charge time*, and it is hidden when that time is 0.
 
 BMW's basic data decides first: it names the drivetrain as electric, plug-in
 hybrid or combustion. Without it, a car that sends high-voltage battery data *and*
@@ -175,7 +178,7 @@ the order you want. Leave it empty for the grid that fits the drivetrain.
 | `total_range` | Range on fuel and battery together (plug-in hybrids) |
 | `target` | The charge target |
 | `plug` | Whether the cable is in |
-| `time_to_full` | Time to the charge target |
+| `time_to_full` | When the charge will be done (the clock time) |
 | `tires` | The lowest and highest tire pressure, green, amber or red as in the [Tires view](#tires-cluster-tire) |
 | `location` | The zone the car is in, from its device tracker |
 | `lock` | Locked, unlocked or secured |
