@@ -20,7 +20,7 @@ charges whenever the wallbox gives it power.
 | --- | --- | --- |
 | State of charge (%) | **State Of Charge (Predicted on Integration side)** | While charging, BMW can go quiet for an hour or more, so its own figure stands still. This one keeps counting, from the wallbox meter once you have [bound one](Feature-evcc-and-Wallbox-Bridge#inbound-your-wallboxs-meter-for-the-charging-history). A planner that stops at a target stops on time. When parked it equals the car's own reading. |
 | Target state of charge (%) | **Battery EV Target state of charge** | The limit set in the car or the My BMW app. |
-| Car connected | **Charging Port plug state** (`connected` / `disconnected`) | Streamed as the cable goes in or out, no polling. |
+| Car connected | **Charging Port plug state** (`connected` / `disconnected`), or **Charging Cable** (`on` / `off`) where the planner wants a binary sensor | Streamed as the cable goes in or out, no polling. Both follow the same reading. |
 | Battery size (kWh), if asked | **Range EV Battery energy max**, or the usable capacity from your car's data sheet | Only needed to turn percentages into kWh. |
 
 On a few iX3 cars the target briefly jumps to 100 % next to the real value

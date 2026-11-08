@@ -20,7 +20,7 @@ lädt, sobald die Wallbox Strom gibt.
 | --- | --- | --- |
 | Ladezustand (%) | **Ladezustand (integrationsseitig vorhergesagt)** | Beim Laden schweigt BMW manchmal eine Stunde und länger, dann steht sein eigener Wert still. Dieser zählt weiter, mit dem Zähler der Wallbox, sobald du einen [verbunden hast](DE-Feature-evcc-and-Wallbox-Bridge#eingehend-der-zähler-deiner-wallbox-für-den-ladeverlauf). Ein Planer, der beim Ziel aufhört, hört damit rechtzeitig auf. Im Stand ist er gleich dem Wert des Autos. |
 | Ziel-Ladezustand (%) | **Zielwert des Ladezustands der Hochvoltbatterie** | Das Ladeziel aus dem Auto oder der My-BMW-App. |
-| Auto angesteckt | **Status der Ladesteckverbindung** (`connected` / `disconnected`) | Kommt mit dem Stream, sobald das Kabel ein- oder ausgesteckt wird, ohne Abfragen. |
+| Auto angesteckt | **Status der Ladesteckverbindung** (`connected` / `disconnected`), oder **Ladekabel** (`on` / `off`), wenn der Planer einen Binärsensor will | Kommt mit dem Stream, sobald das Kabel ein- oder ausgesteckt wird, ohne Abfragen. Beide folgen demselben Wert. |
 | Akkugröße (kWh), falls gefragt | **Maximaler Energieinhalt der Hochvoltbatterie** oder die nutzbare Kapazität aus dem Datenblatt | Nur nötig, um Prozent in kWh umzurechnen. |
 
 Bei einigen iX3 springt das Ladeziel kurz auf 100 %, neben dem echten Wert
