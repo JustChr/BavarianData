@@ -16,6 +16,12 @@ export default (Base, { TRIP_CLASS_COLORS, _lang }) => class TripsPart extends B
       return;
     }
 
+    // The Map tab is the trip map, inside this card (see _buildMapChrome).
+    if (this._trpTab === "map") {
+      this._renderMap(deviceId, entities);
+      return;
+    }
+
     const entryId = this._deviceEntry(deviceId);
 
     // Like charging, trips come from services (a list + the month-in-review),
@@ -112,6 +118,7 @@ export default (Base, { TRIP_CLASS_COLORS, _lang }) => class TripsPart extends B
     const summary = state.summary;
     const open = state.open || null;
     const expanded = this._trpExpanded || null;
+    const filter = this._trpFilter || null;
 
     const month = this._month("trips");
     const sig = this._signature({
@@ -124,6 +131,7 @@ export default (Base, { TRIP_CLASS_COLORS, _lang }) => class TripsPart extends B
       error: state.error,
       summary,
       expanded,
+      filter,
       // Elapsed minutes so the in-progress row's duration ticks between fetches.
       open: open
         ? [open.start, open.distance_km, this._elapsedMin(open.start), open.held]
@@ -149,11 +157,14 @@ export default (Base, { TRIP_CLASS_COLORS, _lang }) => class TripsPart extends B
         month === this._monthKey() ? "tr_empty" : "tr_empty_month"
       )}</div>`;
     } else {
-      body = `${this._tripReview(summary, unit)}<div class="chg__list">${openRow}${(
-        trips || []
-      )
-        .map((t) => this._tripRow(t, expanded, unit))
-        .join("")}</div>`;
+      const avg = summary && summary.avg_consumption_kwh_per_100km;
+      const shown = (trips || []).filter((t) => !filter || (t.classification || "unclassified") === filter);
+      body = `${this._tripReview(summary, unit)}<div class="chg__list">${openRow}${this._tripDays(
+        shown,
+        expanded,
+        unit,
+        avg
+      )}</div>`;
     }
 
     const count = trips ? trips.length : 0;
@@ -171,6 +182,7 @@ export default (Base, { TRIP_CLASS_COLORS, _lang }) => class TripsPart extends B
           </div>
           ${this._exportButtons("trips")}
         </div>
+        ${this._tripsTabs("list")}
         ${this._monthNav("trips")}
         ${body}
       </ha-card>
@@ -276,13 +288,15 @@ export default (Base, { TRIP_CLASS_COLORS, _lang }) => class TripsPart extends B
         ([, v, cls]) => `<span class="tr__seg ${cls}" style="width:${(v / total) * 100}%"></span>`
       )
       .join("");
+    // Each type in the legend filters the list to its trips; again shows all.
+    const filter = this._trpFilter || null;
     const legend = segs
       .filter(([, v]) => v)
       .map(
         ([key, v, cls]) =>
-          `<span class="tr__leg"><i class="tr__dot ${cls}"></i>${this._t(
-            "tr_" + key
-          )} ${km(v)}</span>`
+          `<button class="tr__leg${filter === key ? " is-active" : ""}" data-trip-filter="${key}" aria-pressed="${
+            filter === key
+          }"><i class="tr__dot ${cls}"></i>${this._t("tr_" + key)} <b>${km(v)}</b></button>`
       )
       .join("");
     const splitBlock = barSegs
@@ -331,6 +345,65 @@ export default (Base, { TRIP_CLASS_COLORS, _lang }) => class TripsPart extends B
       </div>`;
   }
 
+  /** The month's trips under a header per day, with the day's distance. */
+  _tripDays(trips, expanded, unit, avg) {
+    const lang = _lang(this._hass);
+    const days = [];
+    for (const t of trips) {
+      const d = new Date(t.start || "");
+      const key = Number.isFinite(d.getTime()) ? d.toDateString() : "";
+      if (!days.length || days[days.length - 1].key !== key) days.push({ key, d, trips: [] });
+      days[days.length - 1].trips.push(t);
+    }
+    return days
+      .map((day) => {
+        let label;
+        try {
+          label = day.key ? day.d.toLocaleDateString(lang, { weekday: "long", day: "numeric", month: "long" }) : "";
+        } catch (_e) {
+          label = day.key;
+        }
+        const km = day.trips.reduce((a, t) => a + (Number(t.distance_km) || 0), 0);
+        return `<div class="tr__day"><span>${this._esc(label)}</span><span>${this._distance(km, unit, 0)}</span></div>${day.trips
+          .map((t) => this._tripRow(t, expanded, unit, avg, true))
+          .join("")}`;
+      })
+      .join("");
+  }
+
+  /** The weather along a drive as a chip: its temperature, and rain if any
+   * fell on the way (opt-in route weather). Empty without it. */
+  _weatherChip(trip) {
+    const w = trip.weather;
+    if (!w || w.temp_c == null) return "";
+    const tu = this._tempUnit(this._resolveDeviceId());
+    const rain = Array.isArray(w.samples) && w.samples.some((s) => Number(s.rain_mm) >= 0.1);
+    return `<span class="chg__tag">${this._temp(w.temp_c, tu)}${rain ? ` · ${this._t("tr_rain")}` : ""}</span>`;
+  }
+
+  /** The List | Map switch at the top of the trips view. */
+  _tripsTabs(active) {
+    if (this._config.view !== "trips") return "";
+    const tab = (key, label) =>
+      `<button class="ctabs__btn${active === key ? " is-active" : ""}" data-trp-tab="${key}" aria-pressed="${
+        active === key
+      }">${this._t(label)}</button>`;
+    return `<div class="ctabs" role="group">${tab("list", "tr_tab_list")}${tab("map", "tr_tab_map")}</div>`;
+  }
+
+  _wireTripsTabs() {
+    this.shadowRoot.querySelectorAll("[data-trp-tab]").forEach((el) => {
+      el.addEventListener("click", () => {
+        const tab = el.getAttribute("data-trp-tab");
+        if ((this._trpTab || "list") === tab) return;
+        this._trpTab = tab;
+        this._sig = null;
+        this._mapChromeSig = null;
+        this._render();
+      });
+    });
+  }
+
   /** Five glyphs filled to the nearest half for a 0–5 style score. */
   _styleStars(score) {
     const s = Math.max(0, Math.min(5, score));
@@ -343,7 +416,7 @@ export default (Base, { TRIP_CLASS_COLORS, _lang }) => class TripsPart extends B
     return out;
   }
 
-  _tripRow(trip, expanded, unit) {
+  _tripRow(trip, expanded, unit, avg = null, grouped = false) {
     const id = trip.start || "";
     const isOpen = expanded === id;
     const live = !!trip.in_progress;
@@ -374,17 +447,31 @@ export default (Base, { TRIP_CLASS_COLORS, _lang }) => class TripsPart extends B
         ? ""
         : this._t("tr_min", { n: min })
       : this._durationLabel(trip);
+    // Inside a day group the day is the header, so the row shows the time.
+    const when = grouped ? this._clock(trip.start) : date;
+    const kind = trip.classification || "unclassified";
+    const dot = live
+      ? ""
+      : `<i class="tr__dot tr__seg--${kind === "unclassified" ? "unc" : this._attr(kind)}" title="${this._attr(
+          this._t("tr_" + kind)
+        )}"></i>`;
+    // Against the month's average: greener when it took less, amber when more.
+    const cons = trip.consumption_kwh_per_100km;
+    const tone =
+      cons == null || avg == null ? "" : cons <= avg - 0.5 ? " t-ok" : cons >= avg + 1.5 ? " t-warn" : "";
+    const consTxt =
+      cons == null ? "" : `<span class="chg__cost-sub${tone}">${this._dec(this._perDist(cons, unit), 1)} ${this._kwhPer(unit)}</span>`;
 
     return `
       <div class="chg__session${isOpen ? " is-open" : ""}${live ? " is-live" : ""}">
         <button class="chg__row" data-trip="${this._attr(id)}">
           <span class="chg__row-main">
-            <span class="chg__date">${this._esc(from)} → ${to}</span>
-            <span class="chg__meta"><span class="chg__soc">${date}</span>${cls}</span>
+            <span class="chg__date">${dot}${this._esc(from)} → ${to}</span>
+            <span class="chg__meta"><span class="chg__soc">${when}${dur ? ` · ${dur}` : ""}</span>${live ? cls : ""}${this._weatherChip(trip)}</span>
           </span>
           <span class="chg__figures">
-            <span class="chg__energy">${dist}</span>
-            <span class="chg__cost">${dur || ""}</span>
+            <span class="chg__energy chg__energy--lead">${dist}</span>
+            ${consTxt}
           </span>
         </button>
         ${isOpen ? this._tripDetail(trip, unit) : ""}
@@ -568,6 +655,16 @@ export default (Base, { TRIP_CLASS_COLORS, _lang }) => class TripsPart extends B
 
   _wireTripTaps() {
     this._wireExport();
+    this._wireTripsTabs();
+    this.shadowRoot.querySelectorAll("[data-trip-filter]").forEach((el) => {
+      el.addEventListener("click", () => {
+        const key = el.getAttribute("data-trip-filter");
+        this._trpFilter = this._trpFilter === key ? null : key;
+        this._sig = null;
+        const deviceId = this._resolveDeviceId();
+        this._paintTrips(deviceId, this._deviceEntities(deviceId));
+      });
+    });
     this.shadowRoot.querySelectorAll("[data-trip]").forEach((el) => {
       el.addEventListener("click", () => {
         const id = el.getAttribute("data-trip");

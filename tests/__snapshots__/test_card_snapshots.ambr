@@ -1095,6 +1095,7 @@
               <span class="chead__sub">Car</span>
             </div>
           </div>
+          
           <div class="empty">The map couldn't be loaded in this browser.</div>
         </ha-card>
   '''
@@ -1110,6 +1111,7 @@
               <span class="chead__sub">Car</span>
             </div>
           </div>
+          
           <div class="empty">The map couldn't be loaded in this browser.</div>
         </ha-card>
   '''
@@ -1125,6 +1127,7 @@
               <span class="chead__sub">Car</span>
             </div>
           </div>
+          
           <div class="empty">The map couldn't be loaded in this browser.</div>
         </ha-card>
   '''
@@ -1140,6 +1143,7 @@
               <span class="chead__sub">Car</span>
             </div>
           </div>
+          
           <div class="empty">The map couldn't be loaded in this browser.</div>
         </ha-card>
   '''
@@ -1478,6 +1482,10 @@
           </button>
         </div>
           </div>
+          <div class="ctabs" role="group">
+  <button class="ctabs__btn is-active" data-trp-tab="list" aria-pressed="true">List</button>
+  <button class="ctabs__btn" data-trp-tab="map" aria-pressed="false">Map</button>
+  </div>
           
         <div class="mnav">
           <button class="mnav__btn" data-month-kind="trips" data-month-step="-1"
@@ -1521,6 +1529,10 @@
           </button>
         </div>
           </div>
+          <div class="ctabs" role="group">
+  <button class="ctabs__btn is-active" data-trp-tab="list" aria-pressed="true">List</button>
+  <button class="ctabs__btn" data-trp-tab="map" aria-pressed="false">Map</button>
+  </div>
           
         <div class="mnav">
           <button class="mnav__btn" data-month-kind="trips" data-month-step="-1"
@@ -1564,6 +1576,10 @@
           </button>
         </div>
           </div>
+          <div class="ctabs" role="group">
+  <button class="ctabs__btn is-active" data-trp-tab="list" aria-pressed="true">List</button>
+  <button class="ctabs__btn" data-trp-tab="map" aria-pressed="false">Map</button>
+  </div>
           
         <div class="mnav">
           <button class="mnav__btn" data-month-kind="trips" data-month-step="-1"
@@ -1607,6 +1623,10 @@
           </button>
         </div>
           </div>
+          <div class="ctabs" role="group">
+  <button class="ctabs__btn is-active" data-trp-tab="list" aria-pressed="true">List</button>
+  <button class="ctabs__btn" data-trp-tab="map" aria-pressed="false">Map</button>
+  </div>
           
         <div class="mnav">
           <button class="mnav__btn" data-month-kind="trips" data-month-step="-1"
@@ -2846,6 +2866,10 @@
           </button>
         </div>
           </div>
+          <div class="ctabs" role="group">
+  <button class="ctabs__btn is-active" data-trp-tab="list" aria-pressed="true">List</button>
+  <button class="ctabs__btn" data-trp-tab="map" aria-pressed="false">Map</button>
+  </div>
           
         <div class="mnav">
           <button class="mnav__btn" data-month-kind="trips" data-month-step="-1"
@@ -2892,34 +2916,42 @@
   </span>
   </div>
   <div class="tr__legend">
-  <span class="tr__leg">
+  <button class="tr__leg" data-trip-filter="business" aria-pressed="false">
   <i class="tr__dot tr__seg--business">
-  </i>Business 120 km</span>
-  <span class="tr__leg">
+  </i>Business <b>120 km</b>
+  </button>
+  <button class="tr__leg" data-trip-filter="commute" aria-pressed="false">
   <i class="tr__dot tr__seg--commute">
-  </i>Commute 300 km</span>
-  <span class="tr__leg">
+  </i>Commute <b>300 km</b>
+  </button>
+  <button class="tr__leg" data-trip-filter="private" aria-pressed="false">
   <i class="tr__dot tr__seg--private">
-  </i>Private 62 km</span>
+  </i>Private <b>62 km</b>
+  </button>
   </div>
   </div>
           
           
         </div>
   <div class="chg__list">
+  <div class="tr__day">
+  <span>Tuesday, September 8</span>
+  <span>23 km</span>
+  </div>
         <div class="chg__session is-open">
           <button class="chg__row" data-trip="2026-09-08T06:10:00+00:00">
             <span class="chg__row-main">
-              <span class="chg__date">Work → Home</span>
+              <span class="chg__date">
+  <i class="tr__dot tr__seg--commute" title="Commute">
+  </i>Work → Home</span>
               <span class="chg__meta">
-  <span class="chg__soc">Sep 8, 06:10 AM</span>
-  <span class="tr__badge tr__badge--commute">Commute <i class="tr__auto">auto</i>
-  </span>
+  <span class="chg__soc">06:10 AM · 21 min</span>
+  <span class="chg__tag">3 °C</span>
   </span>
             </span>
             <span class="chg__figures">
-              <span class="chg__energy">22.5 km</span>
-              <span class="chg__cost">21 min</span>
+              <span class="chg__energy chg__energy--lead">22.5 km</span>
+              <span class="chg__cost-sub t-warn">24.9 kWh/100 km</span>
             </span>
           </button>
           
@@ -2981,6 +3013,10 @@
           </button>
         </div>
           </div>
+          <div class="ctabs" role="group">
+  <button class="ctabs__btn is-active" data-trp-tab="list" aria-pressed="true">List</button>
+  <button class="ctabs__btn" data-trp-tab="map" aria-pressed="false">Map</button>
+  </div>
           
         <div class="mnav">
           <button class="mnav__btn" data-month-kind="trips" data-month-step="-1"
@@ -3027,34 +3063,42 @@
   </span>
   </div>
   <div class="tr__legend">
-  <span class="tr__leg">
+  <button class="tr__leg" data-trip-filter="business" aria-pressed="false">
   <i class="tr__dot tr__seg--business">
-  </i>Business 75 mi</span>
-  <span class="tr__leg">
+  </i>Business <b>75 mi</b>
+  </button>
+  <button class="tr__leg" data-trip-filter="commute" aria-pressed="false">
   <i class="tr__dot tr__seg--commute">
-  </i>Commute 186 mi</span>
-  <span class="tr__leg">
+  </i>Commute <b>186 mi</b>
+  </button>
+  <button class="tr__leg" data-trip-filter="private" aria-pressed="false">
   <i class="tr__dot tr__seg--private">
-  </i>Private 39 mi</span>
+  </i>Private <b>39 mi</b>
+  </button>
   </div>
   </div>
           
           
         </div>
   <div class="chg__list">
+  <div class="tr__day">
+  <span>Tuesday, September 8</span>
+  <span>14 mi</span>
+  </div>
         <div class="chg__session is-open">
           <button class="chg__row" data-trip="2026-09-08T06:10:00+00:00">
             <span class="chg__row-main">
-              <span class="chg__date">Work → Home</span>
+              <span class="chg__date">
+  <i class="tr__dot tr__seg--commute" title="Commute">
+  </i>Work → Home</span>
               <span class="chg__meta">
-  <span class="chg__soc">Sep 8, 06:10 AM</span>
-  <span class="tr__badge tr__badge--commute">Commute <i class="tr__auto">auto</i>
-  </span>
+  <span class="chg__soc">06:10 AM · 21 min</span>
+  <span class="chg__tag">3 °C</span>
   </span>
             </span>
             <span class="chg__figures">
-              <span class="chg__energy">14 mi</span>
-              <span class="chg__cost">21 min</span>
+              <span class="chg__energy chg__energy--lead">14 mi</span>
+              <span class="chg__cost-sub t-warn">40.1 kWh/100 mi</span>
             </span>
           </button>
           

@@ -355,6 +355,9 @@ export default {
   tr_open: "Fahrt aktiv",
   tr_open_hint: "Eine Fahrt ist im Gange",
   tr_min: "{n} Min.",
+  tr_tab_list: "Liste",
+  tr_tab_map: "Karte",
+  tr_rain: "Regen",
   tr_open_note:
     "Diese Fahrt läuft noch. Strecke und Verbrauch sind vorläufig; zuordnen lässt sich die Fahrt, sobald sie beendet ist.",
   // map

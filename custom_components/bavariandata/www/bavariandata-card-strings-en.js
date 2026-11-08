@@ -356,6 +356,9 @@ export default {
   tr_open: "Trip in progress",
   tr_open_hint: "A drive is under way",
   tr_min: "{n} min",
+  tr_tab_list: "List",
+  tr_tab_map: "Map",
+  tr_rain: "rain",
   tr_open_note:
     "This drive is still under way. Distance and consumption are provisional, and the trip can be classified once it ends.",
   // map

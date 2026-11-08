@@ -44,6 +44,15 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   small bar and its cost under the kWh; an open one draws its average power
   as a dashed line. The charge in progress sits on top while it runs, with
   what it added and cost so far.
+- **Trips by day, and the map as a tab.** The trips view lists each day under
+  its own heading with the day's distance; a trip shows its type as a colored
+  dot, its time, duration and the weather on the way, and its consumption
+  beside the distance, green when it took less than the month's average and
+  amber when more. Tap a type under the month's split to list only those
+  trips. A *List | Map* switch opens the trip map inside the same card
+  (`view: map` still shows it alone). Labels across the card are no longer in
+  capitals, and the change against last month is no longer colored as if
+  fewer kilometers were bad news.
 - **The card shows when a charge will be done.** While the car charges, the
   overview's *Time to full* tile now reads *Done at 05:40* (with the weekday
   when that isn't today) instead of the minutes left, which are a tap away.

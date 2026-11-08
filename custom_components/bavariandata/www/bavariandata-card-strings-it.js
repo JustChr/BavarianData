@@ -355,6 +355,9 @@ export default {
   tr_open: "Viaggio in corso",
   tr_open_hint: "Un viaggio è in corso",
   tr_min: "{n} min",
+  tr_tab_list: "Elenco",
+  tr_tab_map: "Mappa",
+  tr_rain: "pioggia",
   tr_open_note:
     "Questo viaggio è ancora in corso. Distanza e consumo sono provvisori, e il viaggio potrà essere classificato al termine.",
   // map

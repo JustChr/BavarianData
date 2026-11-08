@@ -355,6 +355,9 @@ export default {
   tr_open: "Rit bezig",
   tr_open_hint: "Er is een rit bezig",
   tr_min: "{n} min",
+  tr_tab_list: "Lijst",
+  tr_tab_map: "Kaart",
+  tr_rain: "regen",
   tr_open_note:
     "Deze rit is nog bezig. Afstand en verbruik zijn voorlopig, en de rit kan worden ingedeeld zodra hij eindigt.",
   // map

@@ -355,6 +355,9 @@ export default {
   tr_open: "Probíhá jízda",
   tr_open_hint: "Právě probíhá jízda",
   tr_min: "{n} min",
+  tr_tab_list: "Seznam",
+  tr_tab_map: "Mapa",
+  tr_rain: "déšť",
   tr_open_note:
     "Tato jízda stále probíhá. Vzdálenost a spotřeba jsou předběžné a jízdu lze zařadit, až skončí.",
   // map

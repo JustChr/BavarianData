@@ -355,6 +355,9 @@ export default {
   tr_open: "Przejazd w toku",
   tr_open_hint: "Trwa przejazd",
   tr_min: "{n} min",
+  tr_tab_list: "Lista",
+  tr_tab_map: "Mapa",
+  tr_rain: "deszcz",
   tr_open_note:
     "Ten przejazd wciąż trwa. Dystans i zużycie są wstępne, a przejazd można sklasyfikować po jego zakończeniu.",
   // map

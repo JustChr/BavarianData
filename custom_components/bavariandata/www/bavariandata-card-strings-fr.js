@@ -355,6 +355,9 @@ export default {
   tr_open: "Trajet en cours",
   tr_open_hint: "Un trajet est en cours",
   tr_min: "{n} min",
+  tr_tab_list: "Liste",
+  tr_tab_map: "Carte",
+  tr_rain: "pluie",
   tr_open_note:
     "Ce trajet est toujours en cours. La distance et la consommation sont provisoires, et le trajet pourra être classé une fois terminé.",
   // map
