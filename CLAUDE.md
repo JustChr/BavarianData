@@ -74,7 +74,11 @@ the project-authored `tools/curated_titles.json` and
 
 Entities without a BMW descriptor (derived/diagnostic sensors, device tracker,
 vehicle image) are named from `tools/derived_entities.json` — never a hardcoded
-`_attr_name`, or non-English installs silently fall back to English.
+`_attr_name`, or non-English installs silently fall back to English. Their
+states are labeled in its `states` section; BMW's enum values in `_STATE_ROWS`
+(`generate_translations.py`), one row per raw token in all ten languages. A
+state Home Assistant should translate is a lowercase slug, and
+`tests/test_catalogue.py` fails on any state label missing in any language (#300).
 
 To change an entity name, edit `title_en` in `tools/curated_titles.json`, then
 re-run steps 1–5 from `tools/README.md` (`build_catalogue.py`,
