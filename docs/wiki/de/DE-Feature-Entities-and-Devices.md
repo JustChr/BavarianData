@@ -324,7 +324,7 @@ Daten:
 | Ein BMW-Feld | Die nächste Meldung des Autos. Gestreamte Felder füllen sich von selbst; ein Ver- oder Entriegeln in der MyBMW App stößt meist eine an. **Nur-REST**-Felder ([welche](DE-Getting-Started-4-Choose-Data#some-fields-never-arrive-on-the-stream)) brauchen die tägliche Aktualisierung oder einen `fetch_*`-Dienst. Ein Feld, das dein Auto nicht hat, bleibt dauerhaft `unbekannt`. |
 | **Reale Reichweite** | Mindestens ~50 km zwischen zwei aufgezeichneten Ladungen und eine Akkukapazität vom Auto. Das Attribut `status` nennt, was fehlt: `not_enough_history` oder `no_capacity`. |
 | **Ladekosten pro 100 km** | Eine [Preisquelle](DE-Feature-Charging-History-and-Cost#setting-up-cost) und zwei Ladungen mit einer Fahrt dazwischen. |
-| **Batteriezustand** | Nicht `unbekannt`: Er zeigt `Learning (n/10)`, bis er zehn gute Ladungen hat ([warum](DE-Feature-Battery-Health)). |
+| **Batteriezustand** | Nicht `unbekannt`: Er zeigt `Lernt (n/10)`, bis er zehn gute Ladungen hat ([warum](DE-Feature-Battery-Health)). |
 | **Vorhergesagte Zeit bis zum Ladeziel** | Eine Ladung zu Hause mit verknüpftem Wallbox-Zähler ([Details](DE-Feature-evcc-and-Wallbox-Bridge#time-to-the-charge-target)). |
 
 **`nicht verfügbar`: Diese Entität kann keine Daten bekommen.** Die Entitäten

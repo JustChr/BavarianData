@@ -74,6 +74,10 @@ Schätzung zu BMWs eigener Kapazitätsangabe passt. Ein verdächtiger Wert wird
 **zurückgehalten statt angezeigt** — ein springender Wert wäre schlimmer als ein
 ehrliches „noch nicht sicher“.
 
+In einer Automation oder einem Template ist der Zustand selbst `learning_0` …
+`learning_10`; *Lernt (n/10)* ist das, was Home Assistant daraus in deiner
+Sprache anzeigt.
+
 Schneller zu einem sicheren Wert kommst du mit ein paar **Ladungen über einen
 weiten Bereich** (ein großer Sprung im Ladezustand in einem Ladevorgang) statt
 vieler kleiner Nachladungen.

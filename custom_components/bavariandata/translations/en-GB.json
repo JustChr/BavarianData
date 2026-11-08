@@ -128,7 +128,7 @@
         "state": {
           "authorization_successful": "Authorisation successful",
           "authorization_error": "Authorisation error",
-          "authorization_timeout": "Authorisation timeout"
+          "authorization_timeout": "Authorisation timed out"
         }
       },
       "vehicle_drivetrain_electricengine_charging_profile_climatizationactive": {
@@ -137,8 +137,8 @@
       "vehicle_drivetrain_electricengine_charging_routeoptimizedchargingstatus": {
         "name": "Charging EV Route optimised charging state",
         "state": {
-          "route_optimized_charging_in_progress": "Route optimised charging in progress",
-          "route_optimized_soc_target_reached": "Route optimised soc target reached"
+          "route_optimized_charging_in_progress": "Route-optimised charging in progress",
+          "route_optimized_soc_target_reached": "Route-optimised charging target reached"
         }
       },
       "vehicle_drivetrain_electricengine_charging_status": {
@@ -148,24 +148,36 @@
       },
       "vehicle_powertrain_electric_battery_charging_preferencesmartcharging": {
         "state": {
-          "price_optimized": "Price optimised",
-          "co2_optimized": "Co2 optimised"
+          "price_optimized": "Price-optimised",
+          "co2_optimized": "CO₂-optimised"
         }
       },
       "tyre_status": {
         "name": "Tyre Condition"
       },
       "tyre_front_left": {
-        "name": "Tyre Front Left"
+        "name": "Tyre Front Left",
+        "state": {
+          "grey": "Grey"
+        }
       },
       "tyre_front_right": {
-        "name": "Tyre Front Right"
+        "name": "Tyre Front Right",
+        "state": {
+          "grey": "Grey"
+        }
       },
       "tyre_rear_left": {
-        "name": "Tyre Rear Left"
+        "name": "Tyre Rear Left",
+        "state": {
+          "grey": "Grey"
+        }
       },
       "tyre_rear_right": {
-        "name": "Tyre Rear Right"
+        "name": "Tyre Rear Right",
+        "state": {
+          "grey": "Grey"
+        }
       }
     },
     "binary_sensor": {

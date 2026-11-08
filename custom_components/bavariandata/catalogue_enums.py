@@ -64,6 +64,25 @@ _DESCRIPTOR_ENUM_OVERRIDES: dict[str, tuple[str, ...]] = {
         "UNLOCKED",
         "UNKNOWN",
     ),
+    # value_range is right, but its 1-/2-/3-PHASES are digit-led and fail the
+    # token rule, so only NO_CHARGING and INVALID survived and the phase count
+    # showed raw (issue #300).
+    "vehicle.drivetrain.electricEngine.charging.phaseNumber": (
+        "NO_CHARGING",
+        "1-PHASES",
+        "2-PHASES",
+        "3-PHASES",
+        "INVALID",
+    ),
+    # The car also sends NO_DISPLAY_DEPARTURE_TIME, which value_range does not
+    # list (seen on an iX, issue #300).
+    "vehicle.powertrain.electric.departureTime.displayControl": (
+        "DONT_DISPLAY",
+        "DISPLAY_DEPARTURE_TIME",
+        "DISPLAY_DEPARTURE_TIME_WITH_V2XSOE",
+        "NO_DISPLAY_DEPARTURE_TIME",
+        "UNKNOWN",
+    ),
 }
 
 

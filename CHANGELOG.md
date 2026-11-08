@@ -9,6 +9,29 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Every BMW status now shows in your language.** 202 states of 40 sensors
+  (charging end reason, cable lock, charging mode, preconditioning, bidirectional
+  charging and more) showed in English on a German, French or any other
+  non-English install, and many read awkwardly in English too ("Dont display").
+  All of them now have proper labels in all ten languages. The German ones were
+  written and checked by @stepas72, a native speaker (#300).
+- **The phase count, the departure-time display and the tyre sensors no longer
+  show raw values.** *3-PHASES* reads *3 phases*, an iX's
+  *NO_DISPLAY_DEPARTURE_TIME* has a label, the tyre traffic light (*green*) and
+  *Tire Condition* (*DATA_OK*) are translated, and *Battery Health*'s
+  *Learning (n/10)* is shown in your language. Thanks to @stepas72 (#300).
+
+### Changed
+- **State values other integrations and automations may read** (#300):
+  - *Battery Health* while learning: `Learning (3/10)` → `learning_3`
+    (`learning_0` … `learning_10`); it still displays as *Learning (3/10)*.
+  - *Tire Condition*: `GOOD` → `good`, `DATA_OK` → `data_ok` (lowercase, like
+    every other enum state).
+  - *Phase number* gains the options `1-phases`, `2-phases`, `3-phases`, and
+    the departure-time display `no_display_departure_time`. The values the car
+    sends are unchanged.
+
 ## [0.9.28-beta.2] - 2026-11-07
 
 ### Added

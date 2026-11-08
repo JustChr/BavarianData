@@ -709,6 +709,8 @@
       "vehicle_body_chargingport_ishospitalityactive": {
         "name": "Vergrendelingsstatus van de oplaadstekker na volledig opladen",
         "state": {
+          "hospitality_inactive": "Comfortfunctie inactief",
+          "hospitality_active": "Comfortfunctie actief",
           "invalid": "Ongeldig"
         }
       },
@@ -718,6 +720,9 @@
       "vehicle_body_chargingport_lockedstatus": {
         "name": "Vergrendelstatus laadpoort",
         "state": {
+          "charging_cable_not_locked": "Laadkabel niet vergrendeld",
+          "charging_cable_locked": "Laadkabel vergrendeld",
+          "charging_cable_locking_error_detected": "Fout bij kabelvergrendeling",
           "unknown": "Onbekend"
         }
       },
@@ -742,6 +747,8 @@
       "vehicle_body_flap_islocked": {
         "name": "Status van de laadklep",
         "state": {
+          "flap_unlocked": "Klep ontgrendeld",
+          "flap_locked": "Klep vergrendeld",
           "invalid": "Ongeldig"
         }
       },
@@ -749,6 +756,8 @@
         "name": "Sluitingsstatus van de laadklep",
         "state": {
           "no_action": "Geen actie",
+          "flap_unlocked": "Klep ontgrendeld",
+          "flap_locked": "Klep vergrendeld",
           "invalid": "Ongeldig"
         }
       },
@@ -843,7 +852,11 @@
         "name": "Status cabriodak"
       },
       "vehicle_cabin_convertible_roofstatus": {
-        "name": "Status van het cabriodak"
+        "name": "Status van het cabriodak",
+        "state": {
+          "closedsecured": "Gesloten en beveiligd",
+          "opensecured": "Open en beveiligd"
+        }
       },
       "vehicle_cabin_door_lock_status": {
         "name": "Status van de portieren",
@@ -1158,7 +1171,15 @@
         "name": "Disclaimer klimaatregeling op afstand"
       },
       "vehicle_cabin_hvac_preconditioning_status_comfortstate": {
-        "name": "Comforttoestand voorklimatisering"
+        "name": "Comforttoestand voorklimatisering",
+        "state": {
+          "not_active": "Niet actief",
+          "comfort_heating": "Comfort verwarmen",
+          "comfort_cooling": "Comfort koelen",
+          "comfort_ventilation": "Comfort ventileren",
+          "defrost": "Ontdooien",
+          "comfort_undefined": "Niet gedefinieerd"
+        }
       },
       "vehicle_cabin_hvac_preconditioning_status_isexteriormirrorheatingactive": {
         "name": "Buitenspiegelverwarming actief"
@@ -1175,6 +1196,9 @@
       "vehicle_cabin_hvac_statusairpurification": {
         "name": "Status HVAC-luchtverfrisser",
         "state": {
+          "unfiltered": "Ongefilterd",
+          "purifying_ongoing": "Reiniging bezig",
+          "purified": "Gereinigd",
           "invalid": "Ongeldig"
         }
       },
@@ -1199,7 +1223,12 @@
         "name": "Positie van het voertuig boven zeeniveau"
       },
       "vehicle_cabin_infotainment_navigation_currentlocation_fixstatus": {
-        "name": "Status navigatiebepaling"
+        "name": "Status navigatiebepaling",
+        "state": {
+          "no_fix": "Geen GPS-ontvangst",
+          "gps_fix_2d": "GPS-positie 2D",
+          "gps_fix_3d": "GPS-positie 3D"
+        }
       },
       "vehicle_cabin_infotainment_navigation_currentlocation_heading": {
         "name": "Richting van het voertuig"
@@ -1278,6 +1307,8 @@
         "state": {
           "invalid": "Ongeldig",
           "open": "Open",
+          "open_tilt": "Gekanteld",
+          "intermediate_tilt": "Gedeeltelijk gekanteld",
           "closed": "Gesloten"
         }
       },
@@ -1344,7 +1375,10 @@
       "vehicle_channel_ista_obfcm_lasttransmissionstatus": {
         "name": "Statusinformatie over de laatste overdracht van OBFCM*-waarden",
         "state": {
-          "ok": "OK"
+          "ok": "OK",
+          "ecu_communication_error": "Communicatiefout regeleenheid",
+          "vehicle_manipulation_detected": "Manipulatie van het voertuig gedetecteerd",
+          "manufacturer_excluded": "Uitgesloten door de fabrikant"
         }
       },
       "vehicle_channel_ngtp_timevehicle": {
@@ -1363,7 +1397,13 @@
         "name": "Teleservice Report"
       },
       "vehicle_channel_teleservice_status": {
-        "name": "Beschikbaarheid van Teleservices"
+        "name": "Beschikbaarheid van Teleservices",
+        "state": {
+          "pending": "In behandeling",
+          "idle": "Gereed",
+          "successful": "Geslaagd",
+          "error": "Fout"
+        }
       },
       "vehicle_chassis_axle_row1_wheel_left_tire_pressure": {
         "name": "Gemeten bandspanning linksvoor"
@@ -1420,11 +1460,20 @@
         "name": "AC-laadstroom"
       },
       "vehicle_drivetrain_electricengine_charging_acrestriction_factor": {
-        "name": "Beperkingsfactor AC-laden"
+        "name": "Beperkingsfactor AC-laden",
+        "state": {
+          "maxcharging": "Maximale laadstroom",
+          "reducedcharging": "Verlaagde laadstroom",
+          "mincharging": "Minimale laadstroom"
+        }
       },
       "vehicle_drivetrain_electricengine_charging_acrestriction_ischosen": {
         "name": "AC-laadstroombegrenzing en -selectie",
         "state": {
+          "notchosen": "Niet gekozen",
+          "chosen": "Gekozen",
+          "reducedcharging": "Verlaagde laadstroom",
+          "mincharging": "Minimale laadstroom",
           "invalid": "Ongeldig"
         }
       },
@@ -1432,19 +1481,41 @@
         "name": "AC-laadspanning"
       },
       "vehicle_drivetrain_electricengine_charging_authentication_status": {
-        "name": "Authentificatiestatus laden"
+        "name": "Authentificatiestatus laden",
+        "state": {
+          "authorization_successful": "Autorisatie geslaagd",
+          "transport_layer_error": "Fout in de transportlaag",
+          "high_level_communication_error": "Communicatiefout (high level)",
+          "contract_service_not_supported_error": "Contractdienst niet ondersteund",
+          "authorization_error": "Autorisatiefout",
+          "authorization_timeout": "Time-out bij autorisatie",
+          "nvm_read_certificate_error": "Fout bij lezen van het certificaat",
+          "certificate_update_error": "Fout bij bijwerken van het certificaat",
+          "xml_security_error": "XML-beveiligingsfout"
+        }
       },
       "vehicle_drivetrain_electricengine_charging_chargingmode": {
-        "name": "Laadmodus"
+        "name": "Laadmodus",
+        "state": {
+          "normal_prognose_based": "Normaal (op basis van prognose)",
+          "step_based": "Stapsgewijs",
+          "plc_mode": "PLC-modus"
+        }
       },
       "vehicle_drivetrain_electricengine_charging_connectiontype": {
-        "name": "Laadmethode van de hoogvoltage-accu (inductief/conductief)"
+        "name": "Laadmethode van de hoogvoltage-accu (inductief/conductief)",
+        "state": {
+          "conductive": "Via kabel",
+          "inductive": "Inductief",
+          "signal_invalid": "Signaal ongeldig"
+        }
       },
       "vehicle_drivetrain_electricengine_charging_connectorstatus": {
         "name": "Status laadstekker",
         "state": {
           "connected": "Verbonden",
-          "disconnected": "Losgekoppeld"
+          "disconnected": "Losgekoppeld",
+          "error": "Fout"
         }
       },
       "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineoff_gridenergy": {
@@ -1468,13 +1539,28 @@
       "vehicle_drivetrain_electricengine_charging_hvstatus": {
         "name": "Status HV-laadsysteem",
         "state": {
-          "invalid": "Ongeldig"
+          "invalid": "Ongeldig",
+          "charging": "Laden",
+          "error": "Fout",
+          "not_charging": "Laadt niet",
+          "waiting_for_charging": "Wacht op laden",
+          "finished_fully_charged": "Voltooid, volledig geladen",
+          "finished_not_full": "Voltooid, niet vol"
         }
       },
       "vehicle_drivetrain_electricengine_charging_hvpmfinishreason": {
         "name": "Oorzaak voor de beëindiging van een laadproces",
         "state": {
           "unknown": "Onbekend",
+          "charging_goal_reached": "Laaddoel bereikt",
+          "end_requested_by_driver": "Beëindigd door de bestuurder",
+          "connector_removed": "Stekker verwijderd",
+          "powergrid_failed": "Stroomnet uitgevallen",
+          "hv_system_failure": "Storing hoogspanningssysteem",
+          "charging_station_failure": "Storing laadstation",
+          "parking_lock_failed": "Parkeerblokkering mislukt",
+          "no_parking_lock": "Geen parkeerblokkering",
+          "signal_invalid": "Signaal ongeldig",
           "invalid": "Ongeldig"
         }
       },
@@ -1484,18 +1570,30 @@
       "vehicle_drivetrain_electricengine_charging_issingleimmediatecharging": {
         "name": "Status van de functie voor direct opladen",
         "state": {
+          "direct_chg_once_not_active": "Eenmalig direct laden niet actief",
+          "direct_chg_once_active": "Eenmalig direct laden actief",
           "invalid": "Ongeldig"
         }
       },
       "vehicle_drivetrain_electricengine_charging_lastchargingreason": {
         "name": "Laatste reden voor opladen",
         "state": {
+          "charging_goal_reached": "Laaddoel bereikt",
+          "end_requested_by_driver": "Beëindigd door de bestuurder",
+          "connector_removed": "Stekker verwijderd",
+          "powergrid_failed": "Stroomnet uitgevallen",
+          "hv_system_failure": "Storing hoogspanningssysteem",
+          "charging_station_failure": "Storing laadstation",
+          "parking_lock_failed": "Parkeerblokkering mislukt",
+          "no_parking_lock": "Geen parkeerblokkering",
           "invalid": "Ongeldig"
         }
       },
       "vehicle_drivetrain_electricengine_charging_lastchargingresult": {
         "name": "Laatste laadresultaat",
         "state": {
+          "success": "Geslaagd",
+          "failed": "Mislukt",
           "unknown": "Onbekend"
         }
       },
@@ -1505,12 +1603,25 @@
       "vehicle_drivetrain_electricengine_charging_method": {
         "name": "Laadmethode en type stekker",
         "state": {
+          "ac_type1plug": "AC type 1-stekker",
+          "ac_type2plug": "AC type 2-stekker",
           "nocharging": "Laadt niet"
         }
       },
       "vehicle_drivetrain_electricengine_charging_modedeviation": {
         "name": "Afwijking laadmodus",
         "state": {
+          "no_deviation": "Geen afwijking",
+          "dc_dynamic_malibu": "DC dynamisch (Malibu)",
+          "dc_dynamic_min_soe_protection": "DC dynamisch (bescherming minimale lading)",
+          "immediate_charging_not_supported_by_evse": "Direct laden niet ondersteund door het laadstation",
+          "immediate_charging_wake_up_limit_reached": "Direct laden: wekgrens bereikt",
+          "immediate_charging": "Direct laden",
+          "charging_timeslot": "Laadvenster",
+          "charging_in_timeslot": "Laden binnen het tijdvenster",
+          "smart_charging": "Slim laden",
+          "dc_dynamic": "DC dynamisch",
+          "bidirectional_charging": "Bidirectioneel laden",
           "no_action": "Geen actie",
           "unknown": "Onbekend"
         }
@@ -1518,6 +1629,10 @@
       "vehicle_drivetrain_electricengine_charging_phasenumber": {
         "name": "Laadmethode van de hoogvoltage-accu (fasen)",
         "state": {
+          "no_charging": "Laadt niet",
+          "1-phases": "1 fase",
+          "2-phases": "2 fasen",
+          "3-phases": "3 fasen",
           "invalid": "Ongeldig"
         }
       },
@@ -1531,7 +1646,12 @@
         "name": "Laadprofiel"
       },
       "vehicle_drivetrain_electricengine_charging_profile_preference": {
-        "name": "Voorkeur laadprofiel"
+        "name": "Voorkeur laadprofiel",
+        "state": {
+          "charging_window": "Laadvenster",
+          "smart_charging": "Slim laden",
+          "no_preselection": "Geen voorkeuze"
+        }
       },
       "vehicle_drivetrain_electricengine_charging_profile_settings_bidirectionalcharging_departuretimerelevant": {
         "name": "Relevante vertrektijd"
@@ -1543,10 +1663,73 @@
         "name": "Type laadtimer"
       },
       "vehicle_drivetrain_electricengine_charging_reasonchargingend": {
-        "name": "Reden waarom het opladen is beëindigd"
+        "name": "Reden waarom het opladen is beëindigd",
+        "state": {
+          "no_charging_end_since_ipf_wakeup": "Geen laadeinde sinds het ontwaken",
+          "customer_interaction_hmi_unplug_cable_once": "Bestuurder: kabel eenmalig ontgrendeld (auto)",
+          "customer_interaction_hmi_charging_target_reached": "Bestuurder: laaddoel bereikt (auto)",
+          "customer_interaction_app_unplug_cable_once": "Bestuurder: kabel eenmalig ontgrendeld (app)",
+          "customer_interaction_app_charging_target_reached": "Bestuurder: laaddoel bereikt (app)",
+          "customer_interaction_charging_stop_via_charging_stop_button_socket": "Bestuurder: stopknop op de laadaansluiting",
+          "customer_interaction_ac_charging_stop_via_key": "Bestuurder: AC-laden gestopt met de sleutel",
+          "customer_interaction_ac_charging_stop_wallbox": "Bestuurder: AC-laden gestopt bij de wallbox",
+          "customer_interaction_ac_charging_stop_latch": "Bestuurder: AC-laden gestopt via de vergrendeling",
+          "hv_battery_fully_charged": "Hoogspanningsaccu volledig geladen",
+          "infrastructure_physical_limits_reached_target_soe_not_reachable": "Laadstation: grens bereikt, laaddoel niet haalbaar",
+          "infrastructure_dc_ccs_evse_shutdown": "Laadstation: DC-CCS uitgeschakeld",
+          "infrastructure_dc_gbt_cst_message": "Laadstation: DC-GB/T-stopmelding",
+          "infrastructure_dc_ccs_static_pilot": "Laadstation: DC-CCS statisch pilotsignaal",
+          "infrastructure_dc_ccs_communication_error_failed_response_code": "Laadstation: DC-CCS-communicatiefout (antwoordcode)",
+          "infrastructure_dc_ccs_communication_error": "Laadstation: DC-CCS-communicatiefout",
+          "infrastructure_no_energy_transfer": "Laadstation: geen energieoverdracht",
+          "infrastructure_dc_ccs_precharge_error": "Laadstation: DC-CCS-voorlaadfout",
+          "infrastructure_dc_ccs_evse_malfunction_emergency_shutdown": "Laadstation: DC-CCS-storing, noodstop",
+          "infrastructure_station_not_compatible": "Laadstation niet compatibel",
+          "infrastructure_charge_readiness_timeout": "Laadstation: time-out laadgereedheid",
+          "infrastructure_ac_maximum_grid_error_reached": "Laadstation: maximaal aantal AC-netfouten bereikt",
+          "infrastructure_dc_gbt_isolation_error_detected": "Laadstation: DC-GB/T-isolatiefout",
+          "infrastructure_authentification_error": "Laadstation: authenticatiefout",
+          "vehicle_hv_battery_error": "Voertuig: storing hoogspanningsaccu",
+          "vehicle_hv_battery_communication_error": "Voertuig: communicatiefout hoogspanningsaccu",
+          "vehicle_dcdc_error": "Voertuig: storing DC/DC-omvormer",
+          "vehicle_plc_bootup_error": "Voertuig: PLC-opstartfout",
+          "vehicle_hv_battery_maximal_current_overshoot": "Voertuig: maximale stroom hoogspanningsaccu overschreden",
+          "vehicle_isolation_error": "Voertuig: isolatiefout",
+          "vehicle_maximum_temperature_charging_socket_overshoot": "Voertuig: laadaansluiting oververhit",
+          "vehicle_lt3_overshoot": "Voertuig: LT3-grens overschreden",
+          "vehicle_fusi_cable_lock_error": "Voertuig: fout kabelvergrendeling (veiligheid)",
+          "vehicle_plc_communication_not_possible": "Voertuig: PLC-communicatie niet mogelijk",
+          "flexcharger_grid_error": "Flexibele lader: netfout",
+          "flexcharger_grid_temperature_error": "Flexibele lader: temperatuurfout net",
+          "flexcharger_evse_temperature_error": "Flexibele lader: temperatuurfout",
+          "flexcharger_evse_internal_error": "Flexibele lader: interne fout",
+          "flexcharger_ac_dc_fault_current": "Flexibele lader: AC/DC-lekstroom",
+          "flexcharger_incorrect_reaction_time_pwm": "Flexibele lader: onjuiste PWM-reactietijd",
+          "flexcharger_charging_current_too_high": "Flexibele lader: laadstroom te hoog",
+          "flexcharger_pe_fault": "Flexibele lader: aardingsfout",
+          "infrastructure_inefficient_charging_low_power": "Laadstation: inefficiënt laden, te weinig vermogen",
+          "vehicle_cable_locking_error": "Voertuig: fout kabelvergrendeling",
+          "vehicle_configuration_error_400v_800v": "Voertuig: configuratiefout 400 V / 800 V",
+          "infrastructure_no_ac_voltage": "Laadstation: geen AC-spanning",
+          "plug_and_charge_tls_error": "Plug & Charge: TLS-fout",
+          "plug_and_charge_contract_error": "Plug & Charge: contractfout",
+          "smart_charging_tariff_selection_invalid": "Slim laden: tariefkeuze ongeldig",
+          "smart_charging_charging_profile_invalid": "Slim laden: laadprofiel ongeldig",
+          "customer_interaction_ac_charging_stop_via_app": "Bestuurder: AC-laden gestopt via de app",
+          "charging_paused": "Laden gepauzeerd",
+          "discharge_not_possible_voltage_too_high": "Ontladen niet mogelijk: spanning te hoog",
+          "discharge_not_possible_soe_too_low": "Ontladen niet mogelijk: laadniveau te laag",
+          "discharge_not_possible_internal_error": "Ontladen niet mogelijk: interne fout",
+          "discharge_not_possible_incompatible_adapter": "Ontladen niet mogelijk: adapter niet compatibel",
+          "discharge_not_possible_incompatible_consumer": "Ontladen niet mogelijk: verbruiker niet compatibel"
+        }
       },
       "vehicle_drivetrain_electricengine_charging_routeoptimizedchargingstatus": {
-        "name": "Laadstatus geoptimaliseerd voor de route"
+        "name": "Laadstatus geoptimaliseerd voor de route",
+        "state": {
+          "route_optimized_charging_in_progress": "Routegeoptimaliseerd laden bezig",
+          "route_optimized_soc_target_reached": "Routegeoptimaliseerd laaddoel bereikt"
+        }
       },
       "vehicle_drivetrain_electricengine_charging_smeenergydeltafullycharged": {
         "name": "Vereiste energie voor de volledige restlading van de hoogvoltage-accu"
@@ -1571,7 +1754,11 @@
         "name": "Berekende resterende laadtijd van de hoogvoltage-accu"
       },
       "vehicle_drivetrain_electricengine_charging_windowselection": {
-        "name": "Selectie van het gunstige tijdsbestek voor het opladen (Charging Window Selection)"
+        "name": "Selectie van het gunstige tijdsbestek voor het opladen (Charging Window Selection)",
+        "state": {
+          "chosen": "Gekozen",
+          "notchosen": "Niet gekozen"
+        }
       },
       "vehicle_drivetrain_electricengine_hvsmaxenergyabsolute": {
         "name": "Maximale energie-inhoud van de hoogvoltage-accu"
@@ -1658,11 +1845,23 @@
         "name": "Voertuigafbeelding"
       },
       "vehicle_powertrain_electric_battery_bidirectionalcharging_availability": {
-        "name": "Bidirectionele laadmogelijkheid"
+        "name": "Bidirectionele laadmogelijkheid",
+        "state": {
+          "available": "Beschikbaar",
+          "not_available": "Niet beschikbaar",
+          "disabled_malibu": "Uitgeschakeld (Malibu)",
+          "disabled_hvs": "Uitgeschakeld (hoogspanningsaccu)",
+          "bpt_and_imo_disabled": "Terugleveren en startonderbreker uitgeschakeld",
+          "bpt_only_for_emergency_power_supply": "Terugleveren alleen voor noodstroom",
+          "disabled_imo_possible": "Uitgeschakeld, startonderbreker mogelijk",
+          "disabled_long_term": "Permanent uitgeschakeld"
+        }
       },
       "vehicle_powertrain_electric_battery_charging_aclimit_isactive": {
         "name": "Status van de oplaadbegrenzing",
         "state": {
+          "ac_limit_inactive": "AC-begrenzing inactief",
+          "ac_limit_active": "AC-begrenzing actief",
           "invalid": "Ongeldig"
         }
       },
@@ -1679,12 +1878,23 @@
         "name": "Akoestische begrenzing van het laadproces",
         "state": {
           "no_action": "Geen actie",
-          "automatic": "Automatisch"
+          "automatic": "Automatisch",
+          "unlimited": "Onbeperkt",
+          "limited": "Beperkt"
         }
       },
       "vehicle_powertrain_electric_battery_charging_authenticationstatus": {
         "name": "Authentificatiestatus laden",
         "state": {
+          "not_started": "Niet gestart",
+          "started_eim": "Gestart (EIM)",
+          "started_pnc": "Gestart (Plug & Charge)",
+          "started_plc_eim": "Gestart (PLC-EIM)",
+          "done_eim": "Voltooid (EIM)",
+          "done_plc_eim": "Voltooid (PLC-EIM)",
+          "done_pnc": "Voltooid (Plug & Charge)",
+          "failed_plc_eim": "Mislukt (PLC-EIM)",
+          "failed_pnc": "Mislukt (Plug & Charge)",
           "unknown": "Onbekend"
         }
       },
@@ -1701,7 +1911,12 @@
         "name": "Kabelcontrolespanning"
       },
       "vehicle_powertrain_electric_battery_charging_dcchargingmodeactive": {
-        "name": "DC-oplaadmodus actief"
+        "name": "DC-oplaadmodus actief",
+        "state": {
+          "efficient": "Efficiënt",
+          "standard": "Standaard",
+          "performance": "Prestatie"
+        }
       },
       "vehicle_powertrain_electric_battery_charging_history_sessionslist": {
         "name": "Oplaadgeschiedenis"
@@ -1712,6 +1927,9 @@
       "vehicle_powertrain_electric_battery_charging_preferencesmartcharging": {
         "name": "\"Smart Charging\" oplaadoptie",
         "state": {
+          "price_optimized": "Prijsgeoptimaliseerd",
+          "renewable_energey": "Hernieuwbare energie",
+          "co2_optimized": "CO₂-geoptimaliseerd",
           "invalid": "Ongeldig"
         }
       },
@@ -1723,6 +1941,7 @@
         "state": {
           "off": "Uit",
           "on": "Aan",
+          "temp_off": "Tijdelijk uit",
           "unknown": "Onbekend"
         }
       },
@@ -1730,6 +1949,8 @@
         "name": "Feedback status handmatige voorklimatisering",
         "state": {
           "off": "Uit",
+          "on_charge": "Tijdens het laden",
+          "on_drive": "Tijdens het rijden",
           "unknown": "Onbekend"
         }
       },
@@ -1737,6 +1958,12 @@
         "name": "Status voorklimatisering",
         "state": {
           "off": "Uit",
+          "on_legacy": "Aan (oudere methode)",
+          "manual_on_charge": "Handmatig tijdens het laden",
+          "automatic_on": "Automatisch aan",
+          "remote_on_charge": "Op afstand gestart tijdens het laden",
+          "remote_on_drive": "Op afstand gestart voor de rit",
+          "remote_off": "Op afstand uit",
           "unknown": "Onbekend"
         }
       },
@@ -1758,12 +1985,19 @@
       "vehicle_powertrain_electric_chargingduration_displaycontrol": {
         "name": "Weergave van de oplaadtijd",
         "state": {
+          "no_display_time_for_charging": "Geen laadtijd tonen",
+          "display_charging_duration": "Laadduur tonen",
+          "no_display_charging_duration": "Laadduur niet tonen",
           "invalid": "Ongeldig"
         }
       },
       "vehicle_powertrain_electric_departuretime_displaycontrol": {
         "name": "Weergave van de vertrektijd",
         "state": {
+          "dont_display": "Niet tonen",
+          "display_departure_time": "Vertrektijd tonen",
+          "display_departure_time_with_v2xsoe": "Vertrektijd met V2X-laadniveau tonen",
+          "no_display_departure_time": "Vertrektijd niet tonen",
           "unknown": "Onbekend"
         }
       },
@@ -2031,7 +2265,20 @@
         "name": "Laadkosten per 100 km"
       },
       "battery_health": {
-        "name": "Accugezondheid"
+        "name": "Accugezondheid",
+        "state": {
+          "learning_0": "Aan het leren (0/10)",
+          "learning_1": "Aan het leren (1/10)",
+          "learning_2": "Aan het leren (2/10)",
+          "learning_3": "Aan het leren (3/10)",
+          "learning_4": "Aan het leren (4/10)",
+          "learning_5": "Aan het leren (5/10)",
+          "learning_6": "Aan het leren (6/10)",
+          "learning_7": "Aan het leren (7/10)",
+          "learning_8": "Aan het leren (8/10)",
+          "learning_9": "Aan het leren (9/10)",
+          "learning_10": "Aan het leren (10/10)"
+        }
       },
       "driving_distance_month": {
         "name": "Gereden afstand (deze maand)"
@@ -2040,19 +2287,47 @@
         "name": "Werkelijke actieradius"
       },
       "tyre_status": {
-        "name": "Bandenconditie"
+        "name": "Bandenconditie",
+        "state": {
+          "good": "Goed",
+          "data_ok": "Gegevens OK"
+        }
       },
       "tyre_front_left": {
-        "name": "Band linksvoor"
+        "name": "Band linksvoor",
+        "state": {
+          "green": "Groen",
+          "yellow": "Geel",
+          "red": "Rood",
+          "grey": "Grijs"
+        }
       },
       "tyre_front_right": {
-        "name": "Band rechtsvoor"
+        "name": "Band rechtsvoor",
+        "state": {
+          "green": "Groen",
+          "yellow": "Geel",
+          "red": "Rood",
+          "grey": "Grijs"
+        }
       },
       "tyre_rear_left": {
-        "name": "Band linksachter"
+        "name": "Band linksachter",
+        "state": {
+          "green": "Groen",
+          "yellow": "Geel",
+          "red": "Rood",
+          "grey": "Grijs"
+        }
       },
       "tyre_rear_right": {
-        "name": "Band rechtsachter"
+        "name": "Band rechtsachter",
+        "state": {
+          "green": "Groen",
+          "yellow": "Geel",
+          "red": "Rood",
+          "grey": "Grijs"
+        }
       },
       "last_vehicle_report": {
         "name": "Laatste voertuigmelding"
