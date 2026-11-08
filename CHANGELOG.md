@@ -53,6 +53,13 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   (`view: map` still shows it alone). Labels across the card are no longer in
   capitals, and the change against last month is no longer colored as if
   fewer kilometers were bad news.
+- **Efficiency: your range against the car's.** Under the real range, bars
+  set it against the car's own estimate and, once trips have their weather,
+  against what the same charge would go at 15–25 °C. The chart by outside
+  temperature draws mild weather as a dashed line to read each band against.
+  The footnote says why this consumption reads higher than single trips': it
+  counts everything between two charges, parked hours and preconditioning
+  included.
 - **The card shows when a charge will be done.** While the car charges, the
   overview's *Time to full* tile now reads *Done at 05:40* (with the weekday
   when that isn't today) instead of the minutes left, which are a tap away.

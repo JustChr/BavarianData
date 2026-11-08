@@ -1667,6 +1667,32 @@
   </div>
             <span class="ef__vs ef__vs--over">4% further than the car predicts (395 km)</span>
           </div>
+          <div class="cmp" role="img" aria-label="The way you drive 311 km, Car's estimate 395 km, At 15–25 °C 349 km">
+  <div class="cmp__row">
+  <span class="cmp__lbl">The way you drive</span>
+  <span class="cmp__track">
+  <span style="width:78.7%;background:var(--bmw-charge)">
+  </span>
+  </span>
+  <span class="cmp__v">311 km</span>
+  </div>
+  <div class="cmp__row cmp__row--quiet">
+  <span class="cmp__lbl">Car's estimate</span>
+  <span class="cmp__track">
+  <span style="width:100.0%;background:var(--bd-grid)">
+  </span>
+  </span>
+  <span class="cmp__v">395 km</span>
+  </div>
+  <div class="cmp__row cmp__row--quiet">
+  <span class="cmp__lbl">At 15–25 °C</span>
+  <span class="cmp__track">
+  <span style="width:88.5%;background:color-mix(in srgb, var(--bd-grid) 50%, transparent)">
+  </span>
+  </span>
+  <span class="cmp__v">349 km</span>
+  </div>
+  </div>
           <div class="ef__facts">
   <div class="ef__fact">
                <span class="ef__fact-lbl">Measured consumption</span>
@@ -1737,11 +1763,13 @@
   </rect>
                   <text class="ef__bar-val" x="251.7" y="35.2" text-anchor="middle">15.8</text>
                   <text class="ef__bar-lbl" x="251.7" y="85" text-anchor="middle">20–25</text>
+          <line class="chg__chart-avg" x1="6" x2="274" y1="37.5" y2="37.5">
+  </line>
           <text x="6" y="9" class="chg__chart-max">kWh/100 km</text>
         </svg>
   <span class="ef__fact-note">Below 5 °C it uses 43% more than at 15–25 °C, measured on your trips.</span>
   </div>
-          <span class="ef__note">Measured from the charging ledger: the distance between two charges and the energy that went in, not the car's own estimate.</span>
+          <span class="ef__note">Measured from the charging ledger: the distance between two charges and the energy that went in, not the car's own estimate. It counts everything the battery gave between two charges, parked hours and preconditioning included, so it reads higher than the figures of single trips, which count only the drives.</span>
         </div>
       
         </ha-card>
@@ -1768,6 +1796,32 @@
   </div>
             <span class="ef__vs ef__vs--over">4% further than the car predicts (245 mi)</span>
           </div>
+          <div class="cmp" role="img" aria-label="The way you drive 193 mi, Car's estimate 245 mi, At 59–77 °F 217 mi">
+  <div class="cmp__row">
+  <span class="cmp__lbl">The way you drive</span>
+  <span class="cmp__track">
+  <span style="width:78.7%;background:var(--bmw-charge)">
+  </span>
+  </span>
+  <span class="cmp__v">193 mi</span>
+  </div>
+  <div class="cmp__row cmp__row--quiet">
+  <span class="cmp__lbl">Car's estimate</span>
+  <span class="cmp__track">
+  <span style="width:100.0%;background:var(--bd-grid)">
+  </span>
+  </span>
+  <span class="cmp__v">245 mi</span>
+  </div>
+  <div class="cmp__row cmp__row--quiet">
+  <span class="cmp__lbl">At 59–77 °F</span>
+  <span class="cmp__track">
+  <span style="width:88.5%;background:color-mix(in srgb, var(--bd-grid) 50%, transparent)">
+  </span>
+  </span>
+  <span class="cmp__v">217 mi</span>
+  </div>
+  </div>
           <div class="ef__facts">
   <div class="ef__fact">
                <span class="ef__fact-lbl">Measured consumption</span>
@@ -1838,11 +1892,13 @@
   </rect>
                   <text class="ef__bar-val" x="251.7" y="35.2" text-anchor="middle">25.4</text>
                   <text class="ef__bar-lbl" x="251.7" y="85" text-anchor="middle">68–77</text>
+          <line class="chg__chart-avg" x1="6" x2="274" y1="37.5" y2="37.5">
+  </line>
           <text x="6" y="9" class="chg__chart-max">kWh/100 mi</text>
         </svg>
   <span class="ef__fact-note">Below 41 °F it uses 43% more than at 59–77 °F, measured on your trips.</span>
   </div>
-          <span class="ef__note">Measured from the charging ledger: the distance between two charges and the energy that went in, not the car's own estimate.</span>
+          <span class="ef__note">Measured from the charging ledger: the distance between two charges and the energy that went in, not the car's own estimate. It counts everything the battery gave between two charges, parked hours and preconditioning included, so it reads higher than the figures of single trips, which count only the drives.</span>
         </div>
       
         </ha-card>
@@ -1869,6 +1925,24 @@
   </div>
             <span class="ef__vs ef__vs--over">4% further than the car predicts (395 km)</span>
           </div>
+          <div class="cmp" role="img" aria-label="The way you drive 311 km, Car's estimate 395 km">
+  <div class="cmp__row">
+  <span class="cmp__lbl">The way you drive</span>
+  <span class="cmp__track">
+  <span style="width:78.7%;background:var(--bmw-charge)">
+  </span>
+  </span>
+  <span class="cmp__v">311 km</span>
+  </div>
+  <div class="cmp__row cmp__row--quiet">
+  <span class="cmp__lbl">Car's estimate</span>
+  <span class="cmp__track">
+  <span style="width:100.0%;background:var(--bd-grid)">
+  </span>
+  </span>
+  <span class="cmp__v">395 km</span>
+  </div>
+  </div>
           <div class="ef__facts">
   <div class="ef__fact">
                <span class="ef__fact-lbl">Measured consumption</span>
@@ -1913,7 +1987,7 @@
         </svg>
       </div>
           
-          <span class="ef__note">Measured from the charging ledger: the distance between two charges and the energy that went in, not the car's own estimate.</span>
+          <span class="ef__note">Measured from the charging ledger: the distance between two charges and the energy that went in, not the car's own estimate. It counts everything the battery gave between two charges, parked hours and preconditioning included, so it reads higher than the figures of single trips, which count only the drives.</span>
         </div>
       
         </ha-card>
@@ -1940,6 +2014,24 @@
   </div>
             <span class="ef__vs ef__vs--over">4% further than the car predicts (245 mi)</span>
           </div>
+          <div class="cmp" role="img" aria-label="The way you drive 193 mi, Car's estimate 245 mi">
+  <div class="cmp__row">
+  <span class="cmp__lbl">The way you drive</span>
+  <span class="cmp__track">
+  <span style="width:78.7%;background:var(--bmw-charge)">
+  </span>
+  </span>
+  <span class="cmp__v">193 mi</span>
+  </div>
+  <div class="cmp__row cmp__row--quiet">
+  <span class="cmp__lbl">Car's estimate</span>
+  <span class="cmp__track">
+  <span style="width:100.0%;background:var(--bd-grid)">
+  </span>
+  </span>
+  <span class="cmp__v">245 mi</span>
+  </div>
+  </div>
           <div class="ef__facts">
   <div class="ef__fact">
                <span class="ef__fact-lbl">Measured consumption</span>
@@ -1984,7 +2076,7 @@
         </svg>
       </div>
           
-          <span class="ef__note">Measured from the charging ledger: the distance between two charges and the energy that went in, not the car's own estimate.</span>
+          <span class="ef__note">Measured from the charging ledger: the distance between two charges and the energy that went in, not the car's own estimate. It counts everything the battery gave between two charges, parked hours and preconditioning included, so it reads higher than the figures of single trips, which count only the drives.</span>
         </div>
       
         </ha-card>

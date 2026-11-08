@@ -675,6 +675,11 @@ def test_the_efficiency_view_by_outside_temperature(unit: str, snapshot) -> None
     assert html == snapshot
     assert "43% more" in html
     assert ("°F" in html) == (unit == "f")
+    # The real range against the car's and against mild weather, on one scale.
+    assert "The way you drive" in html and "Car&#39;s estimate" in html or "Car's estimate" in html
+    assert "At 15–25 °C" in html or "At 59–77 °F" in html
+    # Mild weather drawn across the temperature chart, to read each band against.
+    assert "chg__chart-avg" in html
 
 
 def test_the_efficiency_view_waits_for_cold_and_mild_trips() -> None:

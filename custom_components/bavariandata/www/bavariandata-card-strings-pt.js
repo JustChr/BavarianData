@@ -307,8 +307,10 @@ export default {
   ef_cost: "Custo por {per}",
   ef_solar: "{p}% solar este mês",
   ef_trend_title: "Consumo por mês",
-  ef_footnote:
-    "Medido a partir do registo de carregamentos: a distância entre dois carregamentos e a energia que entrou, não a estimativa do carro.",
+  ef_cmp_you: "Com a sua condução",
+  ef_cmp_bmw: "Estimativa do carro",
+  ef_cmp_mild: "A {mild}",
+  ef_footnote: "Medido a partir do histórico de carregamento: a distância entre dois carregamentos e a energia que entrou, não a estimativa do próprio carro. Conta tudo o que a bateria deu entre dois carregamentos, horas parado e pré-climatização incluídas, por isso fica acima dos valores de cada viagem, que contam só a condução.",
   ef_temp_title: "Consumo por temperatura exterior ({u})",
   ef_temp_more: "Abaixo de {cold} consome mais {p}% do que a {mild}, medido nas suas viagens.",
   ef_temp_less: "Abaixo de {cold} consome menos {p}% do que a {mild}, medido nas suas viagens.",
