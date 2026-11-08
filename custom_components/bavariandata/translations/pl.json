@@ -3224,6 +3224,9 @@
       },
       "trip_in_progress": {
         "name": "Trwa jazda"
+      },
+      "charging_cable": {
+        "name": "Kabel ładowania"
       }
     },
     "device_tracker": {

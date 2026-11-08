@@ -306,6 +306,18 @@
       "pt": "Viagem em curso",
       "cs": "Probíhá jízda",
       "sv": "Resa pågår"
+    },
+    "charging_cable": {
+      "en": "Charging Cable",
+      "de": "Ladekabel",
+      "fr": "Câble de recharge",
+      "it": "Cavo di ricarica",
+      "es": "Cable de carga",
+      "nl": "Laadkabel",
+      "pl": "Kabel ładowania",
+      "pt": "Cabo de carregamento",
+      "cs": "Nabíjecí kabel",
+      "sv": "Laddkabel"
     }
   },
   "device_tracker": {

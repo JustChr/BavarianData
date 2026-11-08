@@ -3224,6 +3224,9 @@
       },
       "trip_in_progress": {
         "name": "Viaggio in corso"
+      },
+      "charging_cable": {
+        "name": "Cavo di ricarica"
       }
     },
     "device_tracker": {

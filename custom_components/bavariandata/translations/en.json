@@ -3224,6 +3224,9 @@
       },
       "trip_in_progress": {
         "name": "Trip in Progress"
+      },
+      "charging_cable": {
+        "name": "Charging Cable"
       }
     },
     "device_tracker": {

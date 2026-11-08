@@ -3224,6 +3224,9 @@
       },
       "trip_in_progress": {
         "name": "Resa pågår"
+      },
+      "charging_cable": {
+        "name": "Laddkabel"
       }
     },
     "device_tracker": {

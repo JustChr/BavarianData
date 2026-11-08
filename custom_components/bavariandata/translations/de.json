@@ -3224,6 +3224,9 @@
       },
       "trip_in_progress": {
         "name": "Fahrt aktiv"
+      },
+      "charging_cable": {
+        "name": "Ladekabel"
       }
     },
     "device_tracker": {

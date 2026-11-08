@@ -82,6 +82,44 @@ async def test_a_streamed_boolean_is_a_binary_sensor_with_its_class(
     assert hass.states.get(_binary(hass, entry, "trip_in_progress").entity_id) is not None
 
 
+async def test_the_charging_cable_is_a_plug_sensor_off_the_port_status(
+    hass: HomeAssistant, no_bmw
+) -> None:
+    """SpotNav#2: Home Assistant's standard "cable in", in every language."""
+
+    entry, _device = await _car(hass, no_bmw)
+    coordinator = entry.runtime_data.coordinator
+    assert not [
+        e
+        for e in er.async_entries_for_config_entry(er.async_get(hass), entry.entry_id)
+        if e.unique_id == f"{VIN}_charging_cable"
+    ]
+
+    async def port(value: str) -> str:
+        await coordinator.async_handle_message(
+            {
+                "vin": VIN,
+                "data": {"vehicle.body.chargingPort.status": {"value": value, "timestamp": STAMP}},
+            }
+        )
+        await hass.async_block_till_done()
+        return hass.states.get(_binary(hass, entry, "charging_cable").entity_id).state
+
+    # The car's first port reading makes the sensor.
+    assert await port("CONNECTED") == "on"
+    cable = hass.states.get(_binary(hass, entry, "charging_cable").entity_id)
+    assert cable.attributes["device_class"] == "plug"
+    assert await port("DISCONNECTED") == "off"
+    # INVALID is no answer: unknown, not "unplugged" and not the last reading.
+    assert await port("INVALID") == "unknown"
+    assert await port("CONNECTED") == "on"
+
+    # A reload brings it back with the car's plug state.
+    assert await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    assert hass.states.get(cable.entity_id).state == "on"
+
+
 async def test_a_car_is_offered_only_the_triggers_it_can_fire(hass: HomeAssistant, no_bmw) -> None:
     _entry, device = await _car(hass, no_bmw)
 
