@@ -29,7 +29,7 @@ from dataclasses import dataclass
 import pytest
 from aiohttp import web
 
-from .card_source import card_parts
+from .card_source import card_parts, string_languages
 from .conftest import load_module
 
 _FRONTEND = (
@@ -188,7 +188,8 @@ def test_the_card_its_strings_and_its_parts_are_served_side_by_side(ha_http):
 
     served = {route.resource.canonical for route in hass.http.app.router.routes()}
     parts = {f"/bavariandata/bavariandata-card-{part}.js" for part in card_parts()}
-    assert served == {CARD_URL, "/bavariandata/bavariandata-card-translations.js", *parts}
+    strings = {f"/bavariandata/bavariandata-card-strings-{lang}.js" for lang in string_languages()}
+    assert served == {CARD_URL, *strings, *parts}
     www = _FRONTEND.parent / "www"
     assert all((www / name).is_file() for name in _CONST.LOVELACE_CARD_FILES)
 

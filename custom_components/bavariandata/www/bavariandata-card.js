@@ -15,7 +15,7 @@
  * This file is the card's core: shared helpers, entity picking, units, render
  * dispatch and the editor. The views live beside it, one file per group
  * (bavariandata-card-<part>.js, listed in CARD_PARTS), each mixed into the
- * card's class; the strings are bavariandata-card-translations.js.
+ * card's class; the strings are bavariandata-card-strings-<lang>.js, one per language.
  */
 
 const CARD_VERSION = "1.16.0";
@@ -240,22 +240,49 @@ const CHARGING_STOPPED_STATES = new Set([
 /* ------------------------------------------------------------------------- *
  * Localization                                                              *
  *                                                                           *
- * The tables live next door, in bavariandata-card-translations.js. They are *
- * imported with this file's own `?v=`, so a browser never pairs a new card  *
- * with strings it cached from an old release. Should they fail to load, the *
- * card still draws, with each string's key in its place.                    *
+ * Each language has a file of its own next door,                           *
+ * bavariandata-card-strings-<lang>.js. English loads with the card; the     *
+ * user's language loads when the first `hass` names it, and the card draws  *
+ * again once it is there (English until then). Each is imported with this  *
+ * file's own `?v=`, so a browser never pairs a new card with strings it     *
+ * cached from an old release. Should one fail to load, the card still       *
+ * draws, falling back to English and then to each string's key.             *
  * ------------------------------------------------------------------------- */
-// translations-import-start (tests/card_source.py cuts this block out)
-let TRANSLATIONS = { en: {} };
-try {
-  // The URL is this file's own, with the file name swapped: nothing from outside.
-  // eslint-disable-next-line no-unsanitized/method
-  ({ TRANSLATIONS } = await import(
-    new URL(`./bavariandata-card-translations.js${new URL(import.meta.url).search}`, import.meta.url)
-  ));
-} catch (err) {
-  // eslint-disable-next-line no-console -- the one clue a blank card leaves
-  console.error("BavarianData card: could not load its translations", err);
+// The languages that have a strings file, regional deltas included.
+const STRING_LANGUAGES = ["en", "en-GB", "de", "fr", "it", "es", "nl", "pl", "pt", "cs", "sv"];
+// translations-import-start (tests/card_source.py swaps this block for every table)
+const TRANSLATIONS = {};
+const _stringLoads = {};
+
+function _importStrings(lang) {
+  if (!_stringLoads[lang]) {
+    // The URL is this file's own, with the file name swapped: nothing from outside
+    // (`lang` is one of STRING_LANGUAGES, never the user's raw setting).
+    const url = new URL(`./bavariandata-card-strings-${lang}.js${new URL(import.meta.url).search}`, import.meta.url);
+    // eslint-disable-next-line no-unsanitized/method
+    _stringLoads[lang] = import(url).then(
+      (module) => {
+        TRANSLATIONS[lang] = module.default;
+      },
+      (err) => {
+        TRANSLATIONS[lang] = {};
+        // eslint-disable-next-line no-console -- the one clue an English card leaves
+        console.error(`BavarianData card: could not load its ${lang} strings`, err);
+      }
+    );
+  }
+  return _stringLoads[lang];
+}
+
+await _importStrings("en");
+
+/** Load the tables `lang` reads (itself and its base language). A promise when
+ *  something had to be fetched, so the caller can draw again; null otherwise. */
+function _ensureStrings(lang) {
+  const wanted = [String(lang), String(lang).split("-")[0]].filter(
+    (l, i, all) => STRING_LANGUAGES.includes(l) && !TRANSLATIONS[l] && all.indexOf(l) === i
+  );
+  return wanted.length ? Promise.all(wanted.map(_importStrings)) : null;
 }
 // translations-import-end
 
@@ -554,6 +581,13 @@ class BavarianDataCard extends CardParts {
 
   set hass(hass) {
     this._hass = hass;
+    const loading = _ensureStrings(_lang(hass));
+    if (loading) {
+      loading.then(() => {
+        this._sig = null;
+        if (this._hass) this._render();
+      });
+    }
     this._render();
   }
 
@@ -1557,6 +1591,8 @@ class BavarianDataCardEditor extends HTMLElement {
 
   set hass(hass) {
     this._hass = hass;
+    const loading = _ensureStrings(_lang(hass));
+    if (loading) loading.then(() => this._render());
     this._render();
   }
 

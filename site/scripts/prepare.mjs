@@ -34,7 +34,7 @@ for (const name of cardFiles) {
 }
 // The card's own code, every part of it, for the icons it names.
 const card = cardFiles
-  .filter((name) => name !== "bavariandata-card-translations.js")
+  .filter((name) => !name.startsWith("bavariandata-card-strings-"))
   .map((name) => readFileSync(join(WWW, name), "utf8"))
   .join("\n");
 const cardVersion = (card.match(/const CARD_VERSION = "([^"]+)"/) || [])[1];

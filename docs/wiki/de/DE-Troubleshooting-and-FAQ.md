@@ -548,14 +548,16 @@ angezeigt wird.
 Symptom: Die Karte erscheint, aber jede Beschriftung ist ein technischer Name mit
 Unterstrichen (`no_vehicle_title`, `tires` …) statt Wörtern.
 
-Die Karte hat ihre Texte in einer zweiten Datei, `bavariandata-card-translations.js`, die
-sie von ihrem eigenen Ort nachlädt. Hier ist diese zweite Datei nicht angekommen. Die
-Browser-Konsole sagt das mit der Zeile *BavarianData card: could not load its translations*.
+Die Karte hat ihre Texte in eigenen Dateien, eine pro Sprache
+(`bavariandata-card-strings-en.js`, `bavariandata-card-strings-de.js` …), die sie von
+ihrem eigenen Ort nachlädt. Hier ist die englische nicht angekommen. Die Browser-Konsole
+sagt das mit der Zeile *BavarianData card: could not load its en strings*. Fehlt nur die
+Datei deiner eigenen Sprache, zeigt die Karte Englisch statt Namen.
 
 1. **Lade den Browser hart neu** oder setze den Frontend-Cache der App zurück (siehe
    [den Abschnitt zur App](#custom-element-doesnt-exist-app)).
 2. Öffne deine Home-Assistant-Adresse mit angehängtem
-   `/bavariandata/bavariandata-card-translations.js`. Ein 404 dort ist dasselbe
+   `/bavariandata/bavariandata-card-strings-en.js`. Ein 404 dort ist dasselbe
    **Reverse-Proxy**-Problem wie in Test 2 oben: Er muss alles unter `/bavariandata/`
    weiterleiten.
 

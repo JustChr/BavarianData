@@ -5,8 +5,8 @@ User-facing text lives in five places, each with its own table per language:
 
 * ``translations/<lang>.json`` -- the hand-maintained sections (everything but
   the generated ``entity`` block, which the pipeline fills from BMW's catalogues);
-* ``TRANSLATIONS`` in ``www/bavariandata-card-translations.js`` -- the
-  dashboard card;
+* ``www/bavariandata-card-strings-<lang>.js`` -- the dashboard card, one file
+  per language;
 * ``STRINGS`` in ``history/export.py`` -- the printable month report;
 * ``STRINGS`` in ``service_calendar.py`` -- the service calendar's event texts;
 * the ``language`` options of ``export_history`` in ``services.yaml``.
@@ -50,10 +50,13 @@ import yaml
 REPO = Path(__file__).resolve().parents[1]
 PKG_REL = "custom_components/bavariandata"
 TRANS_REL = f"{PKG_REL}/translations"
-CARD_REL = f"{PKG_REL}/www/bavariandata-card-translations.js"
-# Where the card's table lived before it had a file of its own, for --since refs
-# from before v0.9.24.
-LEGACY_CARD_REL = f"{PKG_REL}/www/bavariandata-card.js"
+WWW_REL = f"{PKG_REL}/www"
+CARD_STRINGS = "bavariandata-card-strings-"
+CARD_REL = f"{WWW_REL}/{CARD_STRINGS}<lang>.js"
+# Where the card's tables lived before they had a file per language, for --since
+# refs: one strings file (v0.9.24 to v0.9.28), and before that the card itself.
+SINGLE_CARD_REL = f"{WWW_REL}/bavariandata-card-translations.js"
+LEGACY_CARD_REL = f"{WWW_REL}/bavariandata-card.js"
 EXPORT_REL = f"{PKG_REL}/history/export.py"
 CALENDAR_REL = f"{PKG_REL}/service_calendar.py"
 SERVICES_REL = f"{PKG_REL}/services.yaml"
@@ -126,14 +129,37 @@ def ha_tables(ref: Optional[str]) -> Tables:
     return tables
 
 
+def _card_strings_script(ref: Optional[str]) -> Optional[str]:
+    """Every per-language strings module as one script declaring ``TRANSLATIONS``."""
+
+    if ref is None:
+        names = [p.name for p in (REPO / WWW_REL).glob(f"{CARD_STRINGS}*.js")]
+    else:
+        listing = _git("ls-tree", "--name-only", f"{ref}:{WWW_REL}") or ""
+        names = [n.rsplit("/", 1)[-1] for n in listing.split()]
+        names = [n for n in names if n.startswith(CARD_STRINGS) and n.endswith(".js")]
+    if not names:
+        return None
+    script = "const TRANSLATIONS = {};\n"
+    for name in sorted(names):
+        text = _read(f"{WWW_REL}/{name}", ref)
+        if text is None:
+            continue
+        lang = name[len(CARD_STRINGS) : -len(".js")]
+        # A module; the dump evaluates it as a plain script.
+        script += text.replace("export default {", f"TRANSLATIONS[{json.dumps(lang)}] = {{", 1)
+    return script
+
+
 def card_tables(ref: Optional[str]) -> Tables:
     node = shutil.which("node")
-    text = _read(CARD_REL, ref)
-    if text is not None:
-        # A module; the dump evaluates it as a plain script.
-        text = text.replace("export const TRANSLATIONS", "const TRANSLATIONS", 1)
-    else:
-        text = _read(LEGACY_CARD_REL, ref)
+    text = _card_strings_script(ref)
+    if text is None:
+        text = _read(SINGLE_CARD_REL, ref)
+        if text is not None:
+            text = text.replace("export const TRANSLATIONS", "const TRANSLATIONS", 1)
+        else:
+            text = _read(LEGACY_CARD_REL, ref)
     if node is None or text is None:
         return {}
     with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False, encoding="utf-8") as f:

@@ -216,12 +216,13 @@ EVENT_CHECK_CONTROL = f"{DOMAIN}_check_control"
 LOVELACE_CARD_FILENAME = "bavariandata-card.js"
 LOVELACE_CARD_URL = f"/{DOMAIN}/{LOVELACE_CARD_FILENAME}"
 # Every file the card loads, each served beside it at /<domain>/<name>: the card
-# imports its strings and its class's parts (its CARD_PARTS) by a URL relative
-# to its own.
+# imports its class's parts (its CARD_PARTS) and the strings of the user's
+# language (its STRING_LANGUAGES) by a URL relative to its own.
 LOVELACE_CARD_PARTS = ("overview", "clusters", "charging", "trips", "map", "stats", "car", "styles")
+LOVELACE_CARD_LANGUAGES = ("en", "en-GB", "de", "fr", "it", "es", "nl", "pl", "pt", "cs", "sv")
 LOVELACE_CARD_FILES = (
     LOVELACE_CARD_FILENAME,
-    "bavariandata-card-translations.js",
+    *(f"bavariandata-card-strings-{lang}.js" for lang in LOVELACE_CARD_LANGUAGES),
     *(f"bavariandata-card-{part}.js" for part in LOVELACE_CARD_PARTS),
 )
 
