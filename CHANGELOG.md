@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.28-beta.3] - 2026-11-08
+
 ### Fixed
 - **Every BMW status now shows in your language.** 202 states of 40 sensors
   (charging end reason, cable lock, charging mode, preconditioning, bidirectional
