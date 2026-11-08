@@ -14,7 +14,7 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers import entity_registry as er
@@ -22,6 +22,7 @@ from homeassistant.helpers import entity_registry as er
 from . import binary_sensor_plan
 from .coordinator import CardataCoordinator
 from .entity import CardataEntity
+from .evcc import PLUG_DESCRIPTORS
 
 PARALLEL_UPDATES = 0
 
@@ -150,6 +151,46 @@ class CardataTripInProgressBinarySensor(CardataEntity, BinarySensorEntity):
         self.schedule_update_ha_state()
 
 
+class CardataChargingCableBinarySensor(CardataEntity, BinarySensorEntity):
+    """Whether a cable is in the car: Home Assistant's standard plug sensor.
+
+    What it reads, and why it exists, is in ``binary_sensor_plan``. Restored
+    across a restart only until the car's plug state is known again.
+    """
+
+    _attr_should_poll = False
+    _attr_translation_key = binary_sensor_plan.CHARGING_CABLE
+    _attr_device_class = BinarySensorDeviceClass.PLUG
+
+    def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
+        super().__init__(coordinator, vin, binary_sensor_plan.CHARGING_CABLE)
+        self._restored: Optional[bool] = None
+        self._heard = False
+
+    @property
+    def is_on(self) -> Optional[bool]:
+        return binary_sensor_plan.cable_shown(
+            binary_sensor_plan.plugged(self._coordinator, self.vin), self._restored, self._heard
+        )
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        last_state = await self.async_get_last_state()
+        if last_state and last_state.state in ("on", "off"):
+            self._restored = last_state.state == "on"
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass, self._coordinator.signal_update, self._handle_update
+            )
+        )
+
+    @callback
+    def _handle_update(self, vin: str, descriptor: str) -> None:
+        if vin == self.vin and descriptor in PLUG_DESCRIPTORS:
+            self._heard = True
+            self.async_write_ha_state()
+
+
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
@@ -161,6 +202,7 @@ async def async_setup_entry(
             [CardataBinarySensor(coordinator, vin, descriptor)]
         ),
         lambda vin: async_add_entities([CardataTripInProgressBinarySensor(coordinator, vin)]),
+        lambda vin: async_add_entities([CardataChargingCableBinarySensor(coordinator, vin)]),
     )
 
     entity_registry = er.async_get(hass)
@@ -175,6 +217,13 @@ async def async_setup_entry(
 
     entry.async_on_unload(
         async_dispatcher_connect(hass, coordinator.signal_new_binary, async_handle_new)
+    )
+
+    async def async_handle_new_sensor(vin: str, descriptor: str) -> None:
+        plan.new_sensor(vin, descriptor)
+
+    entry.async_on_unload(
+        async_dispatcher_connect(hass, coordinator.signal_new_sensor, async_handle_new_sensor)
     )
 
     async def async_handle_trip_active(vin: str) -> None:

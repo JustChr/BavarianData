@@ -3224,6 +3224,9 @@
       },
       "trip_in_progress": {
         "name": "Probíhá jízda"
+      },
+      "charging_cable": {
+        "name": "Nabíjecí kabel"
       }
     },
     "device_tracker": {

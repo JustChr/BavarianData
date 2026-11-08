@@ -84,6 +84,9 @@ class FakeCoordinator:
     def is_combustion_only(self, vin: str) -> bool:
         return vin in self.combustion
 
+    def seen_descriptors(self, vin: str) -> set[str]:
+        return {descriptor for (v, descriptor) in self.states if v == vin}
+
 
 def make():
     coordinator = FakeCoordinator()
@@ -92,6 +95,7 @@ def make():
         coordinator,
         lambda vin, descriptor: made.append((vin, descriptor)),
         lambda vin: made.append((vin, plan_module.TRIP_IN_PROGRESS)),
+        lambda vin: made.append((vin, plan_module.CHARGING_CABLE)),
     )
     return plan, coordinator, made
 
@@ -148,3 +152,75 @@ def test_only_an_opening_trip_edge_adds_the_flag() -> None:
     plan.trip_edge(EV, True)
     plan.trip_edge(EV, True)
     assert made == [(EV, plan_module.TRIP_IN_PROGRESS)]
+
+
+# --- the charging cable (SpotNav#2) -------------------------------------------
+
+PORT = "vehicle.body.chargingPort.status"
+IS_PLUGGED = "vehicle.powertrain.tractionBattery.charging.port.anyPosition.isPlugged"
+CABLE = plan_module.CHARGING_CABLE
+
+
+def test_a_car_reporting_its_port_gets_one_cable_sensor() -> None:
+    plan, coordinator, made = make()
+    coordinator.states[(EV, PORT)] = SimpleNamespace(value="connected")
+    plan.new_sensor(EV, "vehicle.drivetrain.batteryManagement.header")
+    assert made == []
+    plan.new_sensor(EV, PORT)
+    plan.new_sensor(EV, PORT)
+    assert made == [(EV, CABLE)]
+
+
+def test_a_car_seen_before_the_update_gets_it_at_the_first_start() -> None:
+    # The coverage store remembers the port across restarts, so ``known`` finds it
+    # even before the port sensor has restored or the stream has spoken.
+    plan, coordinator, made = make()
+    coordinator.states[(EV, PORT)] = SimpleNamespace(value="disconnected")
+    plan.known([], [EV, PETROL])
+    assert made == [
+        (EV, plan_module.TRIP_IN_PROGRESS),
+        (EV, CABLE),
+        (PETROL, plan_module.TRIP_IN_PROGRESS),
+    ]
+
+
+def test_a_streamed_is_plugged_also_gives_the_cable_sensor() -> None:
+    plan, coordinator, made = make()
+    coordinator.states[(EV, IS_PLUGGED)] = SimpleNamespace(value=True)
+    plan.new_descriptor(EV, IS_PLUGGED)
+    assert (EV, IS_PLUGGED) in made and (EV, CABLE) in made
+
+
+def test_the_cable_sensor_comes_back_as_itself_but_never_on_a_petrol_car() -> None:
+    plan, coordinator, made = make()
+    coordinator.combustion.add(PETROL)
+    plan.restore(f"{EV}_{CABLE}")
+    plan.restore(f"{PETROL}_{CABLE}")
+    assert made == [(EV, CABLE)]
+
+
+@pytest.mark.parametrize(
+    ("values", "expected"),
+    [
+        ({PORT: "CONNECTED"}, True),
+        ({PORT: "connected"}, True),  # restored as the entity's lowercase state
+        ({PORT: "DISCONNECTED"}, False),
+        ({PORT: "INVALID"}, None),
+        ({}, None),
+        ({IS_PLUGGED: False, PORT: "CONNECTED"}, False),  # the boolean answers first
+        ({PORT: "INVALID", "vehicle.body.chargingPort.statusClearText": "CONNECTED"}, True),
+    ],
+)
+def test_the_cable_reads_the_same_rule_as_evcc(values: dict[str, Any], expected) -> None:
+    coordinator = FakeCoordinator()
+    for descriptor, value in values.items():
+        coordinator.states[(EV, descriptor)] = SimpleNamespace(value=value)
+    assert plan_module.plugged(coordinator, EV) is expected
+
+
+def test_the_restored_state_holds_only_until_the_car_speaks() -> None:
+    shown = plan_module.cable_shown
+    assert shown(None, True, heard=False) is True  # just restarted
+    assert shown(False, True, heard=False) is False  # the port sensor restored first
+    assert shown(None, True, heard=True) is None  # the car said INVALID: unknown, not stale
+    assert shown(True, None, heard=True) is True

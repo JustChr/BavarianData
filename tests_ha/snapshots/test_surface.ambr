@@ -54,6 +54,58 @@
     'state': 'on',
   })
 # ---
+# name: test_the_account_as_home_assistant_shows_it[binary_sensor.i4_m60_charging_cable-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+      None,
+    ]),
+    'area_id': None,
+    'capabilities': None,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'binary_sensor',
+    'entity_category': None,
+    'entity_id': 'binary_sensor.i4_m60_charging_cable',
+    'has_entity_name': True,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Charging Cable',
+    'options': dict({
+    }),
+    'original_device_class': <BinarySensorDeviceClass.PLUG: 'plug'>,
+    'original_icon': None,
+    'original_name': 'Charging Cable',
+    'platform': 'bavariandata',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': 'charging_cable',
+    'unique_id': 'WBATEST0000000001_charging_cable',
+    'unit_of_measurement': None,
+  })
+# ---
+# name: test_the_account_as_home_assistant_shows_it[binary_sensor.i4_m60_charging_cable-state]
+  StateSnapshot({
+    'attributes': ReadOnlyDict({
+      'descriptor': 'charging_cable',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'plug',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'i4 M60 Charging Cable',
+    }),
+    'context': <ANY>,
+    'entity_id': 'binary_sensor.i4_m60_charging_cable',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'on',
+  })
+# ---
 # name: test_the_account_as_home_assistant_shows_it[binary_sensor.i4_m60_preconditioning_engine_use_allowed-entry]
   EntityRegistryEntrySnapshot({
     'aliases': list([
@@ -320,6 +372,58 @@
     }),
     'context': <ANY>,
     'entity_id': 'binary_sensor.x3_30e_alarm_active',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'on',
+  })
+# ---
+# name: test_the_account_as_home_assistant_shows_it[binary_sensor.x3_30e_charging_cable-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+      None,
+    ]),
+    'area_id': None,
+    'capabilities': None,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'binary_sensor',
+    'entity_category': None,
+    'entity_id': 'binary_sensor.x3_30e_charging_cable',
+    'has_entity_name': True,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Charging Cable',
+    'options': dict({
+    }),
+    'original_device_class': <BinarySensorDeviceClass.PLUG: 'plug'>,
+    'original_icon': None,
+    'original_name': 'Charging Cable',
+    'platform': 'bavariandata',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': 'charging_cable',
+    'unique_id': 'WBATEST0000000002_charging_cable',
+    'unit_of_measurement': None,
+  })
+# ---
+# name: test_the_account_as_home_assistant_shows_it[binary_sensor.x3_30e_charging_cable-state]
+  StateSnapshot({
+    'attributes': ReadOnlyDict({
+      'descriptor': 'charging_cable',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'plug',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'X3 30e Charging Cable',
+    }),
+    'context': <ANY>,
+    'entity_id': 'binary_sensor.x3_30e_charging_cable',
     'last_changed': <ANY>,
     'last_reported': <ANY>,
     'last_updated': <ANY>,
@@ -997,11 +1101,13 @@
 # name: test_the_account_as_home_assistant_shows_it[entity_ids]
   list([
     'binary_sensor.i4_m60_alarm_active',
+    'binary_sensor.i4_m60_charging_cable',
     'binary_sensor.i4_m60_preconditioning_engine_use_allowed',
     'binary_sensor.i4_m60_preconditioning_engine_used',
     'binary_sensor.i4_m60_tailgate_door_state',
     'binary_sensor.i4_m60_trip_in_progress',
     'binary_sensor.x3_30e_alarm_active',
+    'binary_sensor.x3_30e_charging_cable',
     'binary_sensor.x3_30e_preconditioning_engine_use_allowed',
     'binary_sensor.x3_30e_preconditioning_engine_used',
     'binary_sensor.x3_30e_tailgate_door_state',

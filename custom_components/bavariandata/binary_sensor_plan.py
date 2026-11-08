@@ -11,8 +11,18 @@ from __future__ import annotations
 from typing import Any, Callable, Iterable, Mapping, Optional, Protocol
 
 from .coverage import is_ev_only_descriptor
+from .evcc import PLUG_DESCRIPTORS, plug_state
 
 TRIP_IN_PROGRESS = "trip_in_progress"
+
+# Whether a cable is in the car, as Home Assistant's standard ``plug`` binary
+# sensor. Derived rather than streamed: no car we know sends the ``isPlugged``
+# boolean that would have made one on its own, while every electrified car sends
+# ``chargingPort.status``, an enum whose name is translated in every language.
+# Other integrations and automations look for a plug-class binary sensor to learn
+# "cable in" (SpotNav#2), so each car gets one, read by the same rule as the evcc
+# bridge, Assist and the charging tracker (``evcc.plug_state``).
+CHARGING_CABLE = "charging_cable"
 
 # How often the in-progress figures (distance, duration, SoC) are rewritten while
 # a drive is under way. The stream delivers a fix every few seconds, and writing
@@ -86,17 +96,48 @@ def trip_write_due(on: bool, written_on: bool, since_write_s: float) -> bool:
     return on and since_write_s >= TRIP_PROGRESS_WRITE_INTERVAL_S
 
 
+def plugged(host: "BinarySensorHost", vin: str) -> Optional[bool]:
+    """Whether a cable is in the car now, or ``None`` if no source answers.
+
+    ``INVALID`` and the like are no answer: they fall through to the next source,
+    and with none left the sensor reads unknown, never unplugged.
+    """
+
+    values: dict[str, Any] = {}
+    for descriptor in PLUG_DESCRIPTORS:
+        state = host.get_state(vin, descriptor)
+        if state is not None:
+            values[descriptor] = state.value
+    return plug_state(values)
+
+
+def cable_shown(current: Optional[bool], restored: Optional[bool], heard: bool) -> Optional[bool]:
+    """What the charging-cable sensor shows.
+
+    The car's plug state, once the integration holds one. Until then -- right
+    after a restart, before the port sensor's own restore or the stream has
+    supplied a value -- the sensor's last state from before the restart. Once a
+    plug reading has arrived, that reading decides, including "no answer".
+    """
+
+    if current is not None or heard:
+        return current
+    return restored
+
+
 class BinarySensorHost(Protocol):
     def get_state(self, vin: str, descriptor: str) -> Any: ...
 
     def is_combustion_only(self, vin: str) -> bool: ...
 
+    def seen_descriptors(self, vin: str) -> set[str]: ...
+
 
 class BinarySensorPlan:
     """The binary sensors one account has made, and which ones each car still needs.
 
-    ``add_descriptor`` / ``add_trip`` make the entity and hand it to Home
-    Assistant; the plan only decides and remembers.
+    ``add_descriptor`` / ``add_trip`` / ``add_cable`` make the entity and hand
+    it to Home Assistant; the plan only decides and remembers.
     """
 
     def __init__(
@@ -104,18 +145,42 @@ class BinarySensorPlan:
         host: BinarySensorHost,
         add_descriptor: Callable[[str, str], None],
         add_trip: Callable[[str], None],
+        add_cable: Callable[[str], None],
     ) -> None:
         self._host = host
         self._add_descriptor = add_descriptor
         self._add_trip = add_trip
+        self._add_cable = add_cable
         self._descriptors: set[tuple[str, str]] = set()
         self._trips: set[str] = set()
+        self._cables: set[str] = set()
 
     def trip(self, vin: str) -> None:
         if vin in self._trips:
             return
         self._trips.add(vin)
         self._add_trip(vin)
+
+    def cable(self, vin: str, *, restored: bool = False) -> None:
+        """The charging-cable sensor, for a car that has ever said whether a cable is in.
+
+        ``seen_descriptors`` remembers arrivals across restarts, so a car that
+        reported its port before this sensor existed gets it at the first start
+        after updating. A petrol car gets none, even from the registry.
+        """
+
+        if vin in self._cables or self._host.is_combustion_only(vin):
+            return
+        if not restored and not (self._host.seen_descriptors(vin) & set(PLUG_DESCRIPTORS)):
+            return
+        self._cables.add(vin)
+        self._add_cable(vin)
+
+    def new_sensor(self, vin: str, descriptor: str) -> None:
+        """A car's first enum or number reading: the port status is one."""
+
+        if descriptor in PLUG_DESCRIPTORS:
+            self.cable(vin)
 
     def descriptor(self, vin: str, descriptor: str, *, assume_binary: bool = False) -> None:
         if (vin, descriptor) in self._descriptors:
@@ -142,6 +207,8 @@ class BinarySensorPlan:
             # Derived, not a BMW descriptor: re-created as itself rather than
             # letting the generic path mint a descriptor sensor on its id.
             self.trip(vin)
+        elif descriptor == CHARGING_CABLE:
+            self.cable(vin, restored=True)
         else:
             self.descriptor(vin, descriptor, assume_binary=True)
 
@@ -152,12 +219,14 @@ class BinarySensorPlan:
             self.descriptor(vin, descriptor)
         for vin in vins:
             self.trip(vin)
+            self.cable(vin)
 
     def new_descriptor(self, vin: str, descriptor: str) -> None:
         # A vehicle can turn up after setup (its first message arrives late), so
         # the trip flag is ensured here too rather than only at startup.
         self.trip(vin)
         self.descriptor(vin, descriptor)
+        self.new_sensor(vin, descriptor)
 
     def trip_edge(self, vin: str, open_trip: bool) -> None:
         # A vehicle whose first data arrived after setup gets its flag on the trip
