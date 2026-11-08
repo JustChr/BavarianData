@@ -91,7 +91,10 @@ card._wireTaps = () => {};
 card._styles = () => "";
 card._resolveDeviceId = () => "device";
 card._deviceEntities = () => Object.keys(input.states);
-if (input.mileage) {
+if (input.mileage && input.config.view === "car") {
+  card._mil = { vin: "WBS1", trigger: "", data: input.mileage, loading: false };
+  card._ensureMileage = () => {};
+} else if (input.mileage) {
   // A view whose figures come from a service: paint it with a response, since
   // the stubbed callService never answers.
   card._mil = { vin: "WBS1", trigger: "", data: input.mileage, loading: false };
@@ -111,6 +114,7 @@ if (input.places) {
   card._render = () => { card._sig = null; card._paintPlaces("device"); };
 }
 if (input.mapTab) card._trpTab = "map";
+if (input.carWheel) card._carWheel = input.carWheel;
 if (input.sessions) {
   card._chgMonth = input.month || "2026-09";
   card._chg = { vin: "WBS1", trigger: "", month: card._chgMonth, data: input.sessions, loading: false };
@@ -150,6 +154,7 @@ SCREENS = {
     "mileage": {"view": "mileage"},
     "fuel": {"view": "fuel"},
     "equipment": {"view": "equipment"},
+    "car": {"view": "car"},
     "cluster-tire": {"cluster": "tire"},
     "cluster-closures": {"cluster": "closures"},
     "cluster-electric": {"cluster": "electric"},
@@ -235,6 +240,117 @@ MILEAGE = {
 @pytest.mark.parametrize("unit", ["km", "mi"])
 def test_the_mileage_view_with_figures(case: str, unit: str, snapshot) -> None:
     assert _render(I5, SCREENS["mileage"], mileage=MILEAGE[case], unit=unit) == snapshot
+
+
+def _sensor(descriptor: str, state: str, **attrs) -> dict:
+    return {"state": state, "attributes": {"descriptor": descriptor, **attrs}}
+
+
+def _tire(axle: str, side: str, metric: str, state: str, descriptor: str) -> dict:
+    return {
+        "state": state,
+        "attributes": {
+            "descriptor": descriptor,
+            "cluster": "tire",
+            "tire_axle": axle,
+            "tire_side": side,
+            "tire_metric": metric,
+            "unit_of_measurement": "kPa",
+        },
+    }
+
+
+# One car with a little of everything the car view says: a door open, the rear
+# right tire low, a Check Control message, a service item, battery health still
+# learning and a lease.
+def _busy_car() -> dict:
+    states = dict(I5)
+    for axle, row in (("row1", "row1"), ("row2", "row2")):
+        for side in ("left", "right"):
+            low = axle == "row2" and side == "right"
+            base = f"vehicle.chassis.axle.{row}.wheel.{side}.tire"
+            states[f"sensor.tire_{axle}_{side}"] = _tire(
+                axle, side, "pressure", "220" if low else "260", f"{base}.pressure"
+            )
+            states[f"sensor.tire_{axle}_{side}_target"] = _tire(
+                axle, side, "pressureTarget", "260", f"{base}.pressureTarget"
+            )
+    states["binary_sensor.door"] = _sensor(
+        "vehicle.cabin.door.row1.driver.isOpen", "on", device_class="door"
+    )
+    states["sensor.lock"] = _sensor("vehicle.cabin.door.status", "SECURED")
+    states["sensor.cc"] = _sensor(
+        "vehicle.status.checkControlMessages",
+        "1",
+        items=[{"id": 229, "text": "Washer fluid low", "messageType": "MEDIUM"}],
+        resolved=[],
+    )
+    states["sensor.cbs"] = _sensor(
+        "vehicle.status.conditionBasedServices",
+        "2",
+        items=[
+            # BMW's "-" is no distance, never "in 0 km".
+            {
+                "type": "BRAKE_FLUID",
+                "title": "Brake fluid",
+                "date": "2027-03",
+                "unitOfLengthRemaining": "-",
+                "status": "OK",
+            },
+            {
+                "type": "VEHICLE_CHECK",
+                "title": "Vehicle check",
+                "date": "2027-07",
+                "unitOfLengthRemaining": "14000",
+                "status": "OK",
+            },
+        ],
+    )
+    states["sensor.health"] = _sensor("battery_health", "learning_3", samples=3, samples_needed=10)
+    return states
+
+
+def test_the_car_view_says_what_needs_you_first(snapshot) -> None:
+    html = _render(_busy_car(), SCREENS["car"], mileage=MILEAGE["lease"])
+    # The open door outranks the low tire and the message in the banner.
+    assert "carv__banner--alert" in html
+    # The drawing is the car's own silhouette, with the door lit and each
+    # tire's state on its wheel; the four pressures sit at its corners.
+    assert "cldiag__lit" in html and "carsvg__wheel--lit" in html
+    assert html.count('data-car-wheel="') == 4
+    assert 'data-car-wheel="rr"' in html
+    # A line each: doors, Check Control, service, battery health, the lease.
+    for line in (
+        "Doors, windows, lock",
+        "Washer fluid low",
+        "Brake fluid",
+        "in 14,000 km",
+        "Learning (3/10)",
+        "23,400 km of 45,000 km",
+        "820 km under plan",
+    ):
+        assert line in html, line
+    assert "in 0 km" not in html
+    assert html == snapshot
+
+
+def test_a_car_with_nothing_wrong_says_all_good() -> None:
+    states = _busy_car()
+    for key in [k for k in states if k.startswith("sensor.tire_") and not k.endswith("_target")]:
+        states[key] = {**states[key], "state": "260"}
+    states.pop("binary_sensor.door")
+    states["sensor.cc"] = {
+        **states["sensor.cc"],
+        "attributes": {**states["sensor.cc"]["attributes"], "items": []},
+    }
+    html = _render(states, SCREENS["car"], mileage=MILEAGE["lease"])
+    assert "carv__banner--ok" in html and "All good" in html
+
+
+def test_a_tapped_tire_opens_its_detail() -> None:
+    html = _render(_busy_car(), {**SCREENS["car"]}, mileage=MILEAGE["lease"], carWheel="rr")
+    assert 'data-car-wheel="rr" aria-pressed="true"' in html
+    assert 'class="carv__wheel"' in html and "wlabel" in html
 
 
 # What ``get_fuel_history`` answers for a diesel with three refuels on record,

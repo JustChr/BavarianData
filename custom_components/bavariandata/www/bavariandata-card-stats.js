@@ -859,7 +859,13 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
       this._renderMessage(this._t("no_vehicle_title"), this._t("no_vehicle_body"));
       return;
     }
-    const entryId = this._deviceEntry(deviceId);
+    this._ensureMileage(vin, this._deviceEntry(deviceId), entities);
+    this._paintMileage(deviceId, this._distUnit(deviceId, entities));
+  }
+
+  /** Fetch get_mileage_report when the odometer moves, on a new day, and every
+   * ten minutes; shared by the mileage and car views. */
+  _ensureMileage(vin, entryId, entities) {
     const odo = DESC_ODOMETER.map((d) => this._byDescriptor(entities, d)).find(Boolean);
     const trigger = [
       odo ? odo.state : "",
@@ -879,7 +885,6 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
       };
       this._fetchMileage(vin, entryId);
     }
-    this._paintMileage(deviceId, this._distUnit(deviceId, entities));
   }
 
   _fetchMileage(vin, entryId) {
@@ -895,7 +900,9 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
       )
       .then((res) => {
         if (!this._mil || this._mil.vin !== vin || this._mil.trigger !== req.trigger) return;
-        const data = (res && res.response) || null;
+        // An answer without a body is still an answer: stored as null it read as
+        // "never fetched" and asked again at once, in a loop.
+        const data = (res && res.response) || {};
         this._mil = { ...this._mil, data, loading: false, error: false };
         this._render();
       })

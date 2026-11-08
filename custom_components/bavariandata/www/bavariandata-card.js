@@ -536,6 +536,8 @@ const EQUIPMENT_VIEW = "equipment";
 const MILEAGE_VIEW = "mileage";
 // Refuels and fuel consumption, for a car with an engine.
 const FUEL_VIEW = "fuel";
+// Doors, tires, messages, service, battery health and lease in one card.
+const CAR_VIEW = "car";
 
 const VIEW_MODES = new Set([
   CHARGING_VIEW,
@@ -546,6 +548,7 @@ const VIEW_MODES = new Set([
   MILEAGE_VIEW,
   FUEL_VIEW,
   EQUIPMENT_VIEW,
+  CAR_VIEW,
 ]);
 
 // What the parts take from this file. Each part names the ones it uses.
@@ -604,6 +607,7 @@ class BavarianDataCard extends CardParts {
     if (this._config && this._config.view === "efficiency") return 8;
     if (this._config && this._config.view === "mileage") return 8;
     if (this._config && this._config.view === "fuel") return 8;
+    if (this._config && this._config.view === CAR_VIEW) return 10;
     return this._config && this._config.cluster ? 6 : 8;
   }
 
@@ -1223,6 +1227,8 @@ class BavarianDataCard extends CardParts {
       this._renderMileage(deviceId, entities);
     } else if (this._config.view === "fuel") {
       this._renderFuel(deviceId, entities);
+    } else if (this._config.view === CAR_VIEW) {
+      this._renderCar(deviceId, entities);
     } else if (this._config.cluster === "tire") {
       this._renderTires(deviceId, entities);
     } else if (this._config.cluster === "closures") {
@@ -1603,6 +1609,7 @@ class BavarianDataCardEditor extends HTMLElement {
       { value: MILEAGE_VIEW, label: t(this._hass, "mi_title") },
       { value: FUEL_VIEW, label: t(this._hass, "fu_title") },
       { value: EQUIPMENT_VIEW, label: t(this._hass, "eq_title") },
+      { value: CAR_VIEW, label: t(this._hass, "car_title") },
       { value: "closures", label: t(this._hass, "cl_closures") },
       ...CLUSTER_SLUGS.map((slug) => ({
         value: slug,

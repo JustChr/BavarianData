@@ -13,6 +13,8 @@
 export default {
   cl_tire: "Tyre data",
   tires: "Tyres",
+  car_tires_ok: "tyres fine",
+  car_tap_tire: "Tap a tyre for its size, when it was fitted and its wear.",
   no_tire_data:
     "No tyre data for this vehicle yet. Enable the Tyre data cluster and drive to populate readings.",
   check_tyres: "Check tyres",

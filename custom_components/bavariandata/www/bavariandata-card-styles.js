@@ -622,6 +622,52 @@ export default (Base) => class StylesPart extends Base {
         .wlabel--fl .wlabel__pos, .wlabel--rl .wlabel__pos { flex-direction: row; }
       }
 
+      /* ---- the car view ---- */
+      .carv__banner {
+        display: flex; align-items: center; gap: 12px; margin: 12px 14px 0; padding: 11px 14px;
+        border-radius: 14px; font-size: 0.9rem;
+      }
+      .carv__banner ha-icon { --mdc-icon-size: 22px; flex: none; }
+      .carv__banner--ok { background: color-mix(in srgb, var(--bmw-high) 13%, var(--card-background-color)); color: var(--bmw-high); }
+      .carv__banner--warn { background: color-mix(in srgb, var(--bmw-mid) 15%, var(--card-background-color)); color: var(--bmw-mid); }
+      .carv__banner--alert { background: color-mix(in srgb, var(--bmw-low) 14%, var(--card-background-color)); color: var(--bmw-low); }
+      .carv__bt { display: block; font-weight: 650; }
+      .carv__bs { display: block; font-size: 0.78rem; color: var(--bd-muted); }
+      .carv__draw {
+        display: grid; grid-template-columns: 1fr 120px 1fr; grid-template-rows: 1fr 1fr;
+        grid-template-areas: "fl car fr" "rl car rr"; align-items: center; gap: 8px 10px;
+        padding: 14px 14px 4px;
+      }
+      .carv__svg { grid-area: car; height: 210px; }
+      .carv__svg svg { width: 100%; height: 100%; display: block; }
+      .carv__tp {
+        display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; min-height: 52px;
+        border-radius: 12px; border-left: 3px solid var(--c, var(--bd-line));
+      }
+      .carv__tp:hover { background: var(--bd-sub); }
+      .carv__tp.is-sel { background: var(--bd-sub); }
+      .carv__tp--fl { grid-area: fl; } .carv__tp--fr { grid-area: fr; }
+      .carv__tp--rl { grid-area: rl; } .carv__tp--rr { grid-area: rr; }
+      .carv__tp--fl, .carv__tp--rl { align-items: flex-end; text-align: right; border-left: 0; border-right: 3px solid var(--c, var(--bd-line)); }
+      .carv__tp-v { font-size: 1.25rem; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+      .carv__tp-v i { font-style: normal; font-size: 0.74rem; font-weight: 550; color: var(--bd-muted); margin-left: 2px; }
+      .carv__tp-l { font-size: 0.72rem; color: var(--bd-muted); }
+      .carv__wheel { margin: 6px 14px 0; padding: 4px; border-radius: 14px; background: var(--bd-sub); }
+      .carv__wheel .wlabel { width: 100%; align-items: flex-start; text-align: left; }
+      .carv__hint { margin: 4px 18px 0; font-size: 0.76rem; color: var(--bd-muted); text-align: center; }
+      .carv__lines { margin-top: 12px; padding: 4px 8px 10px; border-top: 1px solid var(--bd-line); }
+      .carv__line {
+        display: flex; align-items: flex-start; gap: 12px; width: 100%; padding: 10px; border-radius: 12px;
+      }
+      .carv__line:hover { background: var(--bd-sub); }
+      .carv__line.is-static:hover { background: none; }
+      .carv__dot { width: 10px; height: 10px; border-radius: 50%; flex: none; margin-top: 5px; }
+      .carv__lt { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+      .carv__t { font-size: 0.9rem; font-weight: 600; }
+      .carv__s { font-size: 0.78rem; color: var(--bd-muted); line-height: 1.4; }
+      .carv__lt .thin { margin-top: 5px; }
+      .thin__tick { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--primary-text-color); }
+
       /* ---- charging history ---- */
       /* month figures, shared by the history views */
       .kpis { display: grid; grid-auto-columns: minmax(0, 1fr); grid-auto-flow: column; gap: 8px; padding: 12px 14px 4px; }
