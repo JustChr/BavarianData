@@ -31,6 +31,7 @@ from .flow_answers import activation_done_placeholders
 from .onboarding import (
     OnboardingParseError,
     OnboardingResult,
+    REPORT_ACK,
     activation_link_placeholders,
     build_bookmarklet,
     build_console_snippet,
@@ -112,7 +113,9 @@ async def _handle_onboarding_webhook(
         return web.Response(status=400, text=str(err))
     pending["result"] = result
     pending["event"].set()
-    return web.Response(status=200, text="Received — you can return to Home Assistant.")
+    # The activator checks for REPORT_ACK: Home Assistant answers an unknown
+    # webhook with a 200 too, so the status alone proves nothing (#293).
+    return web.Response(status=200, text=f"{REPORT_ACK} — you can return to Home Assistant.")
 
 
 def schedule_vehicle_discovery(hass: HomeAssistant, entry_id: str) -> None:

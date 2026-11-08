@@ -57,6 +57,12 @@ PRIMARY_SCOPE = "cardata:api:read"
 RESULT_PREFIX = "BAVARIANDATA1:"
 RESULT_VERSION = 1
 
+# What this integration's onboarding webhook answers when it took a report. Home
+# Assistant answers a webhook id nobody registered with an empty 200, so the
+# status alone cannot tell a delivered report from one sent by a bookmark kept
+# from an earlier setup run, whose one-time webhook is gone (#293).
+REPORT_ACK = "BAVARIANDATA-RECEIVED"
+
 
 class OnboardingParseError(Exception):
     """Raised when an onboarding result can't be decoded/validated."""
@@ -66,6 +72,7 @@ class OnboardingParseError(Exception):
 # carry the wanted descriptors + the report URL verbatim.
 _WANT_MARKER = "__WANT__"
 _REPORT_MARKER = "__REPORT__"
+_ACK_MARKER = "__ACK__"
 
 # The activator. Runs in the portal tab. Derives origin/locale/mapped-vehicle id
 # from ``location`` (so it needn't be told the market/vehicle), talks to the
@@ -76,6 +83,7 @@ _REPORT_MARKER = "__REPORT__"
 _ACTIVATOR_TEMPLATE = """(async () => {
   const WANT = __WANT__;
   const REPORT = __REPORT__;
+  const ACK = __ACK__;
   const H = { 'Accept': 'application/json', 'x-ocp-stage': 'prod' };
   const box = document.createElement('div');
   box.style.cssText = 'position:fixed;top:16px;right:16px;z-index:2147483647;'
@@ -195,6 +203,7 @@ _ACTIVATOR_TEMPLATE = """(async () => {
 
   const blob = 'BAVARIANDATA1:' + btoa(unescape(encodeURIComponent(JSON.stringify(out))));
   let reported = false;
+  let stale = false;
   // Home Assistant may answer on more than one address, and the one the browser
   // can reach is not knowable from here: a split-horizon network serves the
   // external URL only from outside, so reporting to it from the couch fails
@@ -207,11 +216,15 @@ _ACTIVATOR_TEMPLATE = """(async () => {
     const timer = setTimeout(() => ctrl.abort(), 8000);
     try {
       // text/plain keeps it a CORS "simple request" (no preflight).
-      await fetch(REPORT[i], { method: 'POST', headers: { 'Content-Type': 'text/plain' },
-                               body: blob, signal: ctrl.signal });
+      const r = await fetch(REPORT[i], { method: 'POST', headers: { 'Content-Type': 'text/plain' },
+                                         body: blob, signal: ctrl.signal });
+      const text = await r.text();
       clearTimeout(timer);
-      reported = true;
-      break;
+      // Only this setup's own webhook answers with ACK. Home Assistant answers a
+      // webhook it doesn't know (a bookmark from an earlier setup) with an empty
+      // 200, so an answer without ACK means the report went nowhere (#293).
+      if (r.ok && text.indexOf(ACK) === 0) { reported = true; break; }
+      if (r.ok) stale = true;
     } catch (e) { clearTimeout(timer); }
   }
 
@@ -229,6 +242,9 @@ _ACTIVATOR_TEMPLATE = """(async () => {
   // gesture that launched us has long expired), so present the code with a Copy
   // button -- the button's own click is a fresh gesture that is allowed to copy.
   box.innerHTML = '<b>BavarianData</b><br>' + head
+    + (stale ? '<br><br>This bookmark is from an earlier setup, so Home Assistant did not get it. '
+        + 'Drag the button from the current activation page to your bookmarks bar again '
+        + '(replacing this one) and click it here.' : '')
     + '<br><br>Copy this and paste it into Home Assistant:'
     + '<textarea id="bd-blob" readonly style="width:100%;height:56px;margin-top:6px;'
     + 'font:11px/1.3 monospace;box-sizing:border-box"></textarea>'
@@ -279,7 +295,11 @@ def build_activator_js(attributes: Iterable[str], *, report_url: str | Iterable[
 
     want = json.dumps(_normalize(attributes), ensure_ascii=False)
     report = json.dumps(report_urls(report_url))
-    return _ACTIVATOR_TEMPLATE.replace(_WANT_MARKER, want).replace(_REPORT_MARKER, report)
+    return (
+        _ACTIVATOR_TEMPLATE.replace(_WANT_MARKER, want)
+        .replace(_REPORT_MARKER, report)
+        .replace(_ACK_MARKER, json.dumps(REPORT_ACK))
+    )
 
 
 def build_bookmarklet(attributes: Iterable[str], *, report_url: str | Iterable[str] = "") -> str:
@@ -324,7 +344,7 @@ _HELPER_PAGE_TEMPLATE = """<!doctype html>
 </style></head><body>
 <h1>Activate your BMW CarData</h1>
 <ol>
-  <li><b>Drag this button to your bookmarks bar</b> (once):<br><br>
+  <li><b>Drag this button to your bookmarks bar</b> (each setup makes a new one, so replace an older one):<br><br>
       <a class="bm" href="__BOOKMARKLET__">Activate BMW data</a>
       <div class="hint">Can't drag? Right-click it &rarr; &ldquo;Bookmark link&rdquo;, or use the console option below.</div></li>
   <li>Open the <b>BMW or MINI portal</b>, sign in, and go to a vehicle's <b>stream setup</b> page.</li>

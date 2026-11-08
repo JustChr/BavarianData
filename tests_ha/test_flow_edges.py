@@ -23,6 +23,7 @@ from custom_components.bavariandata.flow_activator import (
     _ONBOARDING_STORE,
     _handle_onboarding_webhook,
 )
+from custom_components.bavariandata.onboarding import REPORT_ACK
 
 from .conftest import PACKAGE, VIN
 from .test_config_flow import CLIENT_ID
@@ -64,6 +65,23 @@ async def test_a_code_bmw_refuses_after_the_activator_reported_can_be_retried(
 
     assert result["step_id"] == "authorize_failed"
     assert "refused" in result["description_placeholders"]["error"]
+
+
+async def test_only_this_setups_webhook_answers_with_what_the_activator_looks_for(
+    hass: HomeAssistant, https, bmw_auth, hass_client_no_auth
+) -> None:
+    # A bookmark kept from an earlier setup reports to a webhook that is gone;
+    # Home Assistant answers that with a 200 too, so the activator tells the two
+    # apart by REPORT_ACK alone (#293).
+    client = await hass_client_no_auth()
+    result = await _start(hass, _Walk(), "guided")
+
+    heard = await client.post(f"/api/webhook/{_token(result)}", data=ACTIVATED)
+    gone = await client.post("/api/webhook/an-earlier-setup", data=ACTIVATED)
+
+    assert (await heard.text()).startswith(REPORT_ACK)
+    assert gone.status == 200
+    assert not (await gone.text()).startswith(REPORT_ACK)
 
 
 async def test_the_guided_path_re_adds_an_account_with_what_it_activated(

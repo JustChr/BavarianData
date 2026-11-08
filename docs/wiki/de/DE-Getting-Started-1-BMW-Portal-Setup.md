@@ -42,6 +42,11 @@ Direktlinks zur Fahrzeugübersicht je Markt:
 | BMW   | [vehicle overview](https://www.bmw.co.uk/en-gb/mybmw/vehicle-overview) | [Fahrzeugübersicht](https://www.bmw.de/de-de/mybmw/vehicle-overview) | [Fahrzeugübersicht](https://www.bmw.at/de-at/mybmw/vehicle-overview) |
 | Mini  | [vehicle overview](https://www.mini.co.uk/en-gb/mymini/vehicle-overview) | [Fahrzeugübersicht](https://www.mini.de/de-de/mymini/vehicle-overview) | [Fahrzeugübersicht](https://www.mini.at/de-at/mymini/vehicle-overview) |
 
+**Keine Kachel BMW CarData auf der Seite deines Landes?** Melde dich mit demselben
+BMW-Login in der englischen (UK) Fahrzeugübersicht oben an und schau dort nach.
+In Australien, wo die Landesseite keine Kachel hat, fand sie ein Besitzer auf der
+UK-Seite, und die Client-ID von dort hat das Auto autorisiert.
+
 ## Die Client-ID erstellen
 
 <a id="steps"></a>

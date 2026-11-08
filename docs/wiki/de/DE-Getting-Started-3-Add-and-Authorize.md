@@ -41,7 +41,9 @@ derselbe Ein-Klick-Aktivator ein — siehe [Schritt 4](DE-Getting-Started-4-Choo
 
 1. Wähle **Geführte Einrichtung (empfohlen)**. Home Assistant stellt eine kleine
    Aktivierungsseite bereit. **Ziehe die Schaltfläche *Activate BMW data* in deine
-   Lesezeichenleiste** (einmalig):
+   Lesezeichenleiste** und ersetze dabei ein älteres Lesezeichen. Jede Einrichtung
+   erzeugt eine neue Schaltfläche, eine aus einem früheren Versuch erreicht Home
+   Assistant nicht mehr:
 
    <p align="center">
      <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-setup-bookmarklet.png" alt="Die bereitgestellte Aktivierungsseite mit dem ziehbaren Lesezeichen 'Activate BMW data' und einer Konsolen-Alternative" width="600" />
