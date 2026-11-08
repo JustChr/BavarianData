@@ -71,6 +71,7 @@ from .stream_health import (
     StreamHealth,
 )
 from .placeholders import is_placeholder
+from .sensor_values import session_progress_attributes
 from .structured_values import EMPTY_WHEN_NULL
 from .trip_settings import TripSettings
 from .tyre import parse_tyre_diagnosis
@@ -791,6 +792,19 @@ class CardataCoordinator:
 
     def get_session_start(self, vin: str) -> Optional[datetime]:
         return self._peek(vin).charge.energy_session_start
+
+    def session_progress(self, vin: str) -> Optional[dict[str, Any]]:
+        """What the charge in progress has cost and drawn so far, or ``None``.
+
+        ``None`` whenever no session record is open -- between charges, and with
+        history switched off -- so a finished charge's figures never linger as if
+        it were still running.
+        """
+
+        session = self._peek(vin).session
+        if session.builder is None:
+            return None
+        return session_progress_attributes(session.builder.soc_start, session.cost, session.mix)
 
     def restore_lifetime_energy(self, vin: str, kwh: float) -> None:
         """Seed the lifetime accumulator from a restored sensor state."""

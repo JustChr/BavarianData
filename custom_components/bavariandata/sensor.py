@@ -652,6 +652,14 @@ class CardataSessionEnergySensor(CardataRestoreSensor):
     def last_reset(self) -> Optional[datetime]:
         return self._coordinator.get_session_start(self.vin)
 
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        # While a charge runs: its start SoC, cost and solar share so far
+        # (sensor_values.session_progress_attributes). Nothing between charges.
+        attrs = dict(super().extra_state_attributes)
+        attrs.update(self._coordinator.session_progress(self.vin) or {})
+        return attrs
+
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
         if self._coordinator.get_session_energy_kwh(self.vin) is None:

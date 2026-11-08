@@ -62,6 +62,7 @@ PER_CAR: dict[str, Callable[[Any, str], Any]] = {
     "get_lifetime_energy_kwh": lambda c, v: c.get_lifetime_energy_kwh(v),
     "get_session_energy_kwh": lambda c, v: c.get_session_energy_kwh(v),
     "get_session_start": lambda c, v: c.get_session_start(v),
+    "session_progress": lambda c, v: c.session_progress(v),
     "soc_estimate_attributes": lambda c, v: c.soc_estimate_attributes(v),
     "learned_meter_rate": lambda c, v: c.learned_meter_rate(v),
     "has_open_session": lambda c, v: c.has_open_session(v),

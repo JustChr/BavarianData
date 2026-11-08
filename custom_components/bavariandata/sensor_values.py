@@ -131,6 +131,28 @@ def session_cost_attributes(session: Any) -> dict[str, Any]:
     return attrs
 
 
+def session_progress_attributes(soc_start: Optional[float], cost: Any, mix: Any) -> dict[str, Any]:
+    """The charge in progress so far, beside its energy: what the card shows live.
+
+    ``cost`` is the session's running ``CostAccumulator`` and ``mix`` its
+    ``MixAccumulator``, either ``None``. Each figure is ``None`` rather than 0
+    when it cannot be told: away from home nothing is billed or attributed (the
+    house's meters describe the house, not this charge), and a 0 there would
+    read as "free" or "no sun". ``cost_partial`` flags a running cost that left
+    energy unpriced while the price was unknown, the same flag a finished
+    session's cost carries.
+    """
+
+    record = cost.as_cost() if cost is not None else None
+    return {
+        "soc_start": soc_start,
+        "cost_so_far": record["amount"] if record else None,
+        "currency": record["currency"] if record else None,
+        "cost_partial": bool(record and record.get("partial")),
+        "solar_percent": mix.solar_percent() if mix is not None else None,
+    }
+
+
 def energy_month_attributes(summary: Mapping[str, Any]) -> dict[str, Any]:
     """This month's source mix -- as attributes, not as new entities.
 

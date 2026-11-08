@@ -9,6 +9,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **What a charge has cost and drawn so far.** While the car charges, the
+  *Charged Energy (Session)* sensor now also carries the charge it began at
+  (`soc_start`), its cost so far at your tariff (`cost_so_far`, `currency`,
+  `cost_partial`) and the share from your solar (`solar_percent`). At home
+  only, as with a finished charge's cost; empty, never 0, when it can't be
+  told. The dashboard card uses them while the car charges.
+
 ### Changed
 - **The card shows when a charge will be done.** While the car charges, the
   overview's *Time to full* tile now reads *Done at 05:40* (with the weekday

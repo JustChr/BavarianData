@@ -252,3 +252,35 @@ def test_the_tyre_status_surfaces_upstream_errors() -> None:
         "wheels_reported": ["front_left", "rear_left"],
     }
     assert values.tyre_status_attributes({"errors": ["outage"]})["errors"] == ["outage"]
+
+
+# -- the charge in progress ---------------------------------------------------
+
+pricing = load_module("history.pricing")
+energy_mix = load_module("history.energy_mix")
+
+
+def test_a_running_charge_names_its_cost_and_sun_so_far() -> None:
+    cost = pricing.CostAccumulator(currency="EUR")
+    cost.add(10.0, 0.30)
+    mix = energy_mix.MixAccumulator()
+    mix.add(10.0, {"pv": 0.6, "grid": 0.4})
+    assert values.session_progress_attributes(41.0, cost, mix) == {
+        "soc_start": 41.0,
+        "cost_so_far": 3.0,
+        "currency": "EUR",
+        "cost_partial": False,
+        "solar_percent": 60.0,
+    }
+
+
+def test_energy_charged_while_the_price_was_unknown_makes_the_cost_partial() -> None:
+    cost = pricing.CostAccumulator(currency="EUR")
+    cost.add(10.0, 0.30)
+    cost.add(2.0, None)
+    assert values.session_progress_attributes(41.0, cost, None)["cost_partial"] is True
+
+
+def test_nothing_billed_reads_unknown_not_free() -> None:
+    attrs = values.session_progress_attributes(41.0, pricing.CostAccumulator(currency="EUR"), None)
+    assert (attrs["cost_so_far"], attrs["currency"], attrs["solar_percent"]) == (None, None, None)

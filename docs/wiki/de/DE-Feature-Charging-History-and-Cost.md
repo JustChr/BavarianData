@@ -18,7 +18,14 @@ Live-Ladeleistung über die Zeit zu zwei Sensoren pro Fahrzeug:
   die Reihe
   [geladene Energie zu Hause](DE-Feature-Energy-and-Statistics#adding-to-the-energy-dashboard).
 - **Geladene Energie (Ladevorgang)** — setzt sich zu Beginn jedes Ladevorgangs
-  zurück.
+  zurück. Solange geladen wird, trägt er außerdem, was dieser Ladevorgang bisher
+  getan hat, und die Dashboard-Karte zeigt es: `soc_start` (der Ladestand zu
+  Beginn), `cost_so_far` und `currency` (zu deinem Tarif, nur zu Hause),
+  `cost_partial` (ein Teil der Energie floss, als der Preis unbekannt war) und
+  `solar_percent` (der Anteil vom eigenen Dach, wenn
+  [Energiequellen](#where-the-energy-came-from) eingerichtet sind). Was sich nicht
+  sagen lässt, bleibt leer, nie 0; unterwegs bleiben Kosten und Sonne leer.
+  Zwischen zwei Ladevorgängen gibt es diese Attribute nicht.
 
 Beide funktionieren mit jedem Fahrzeug, das die Ladeleistung streamt.
 
