@@ -18,6 +18,24 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   told. The dashboard card uses them while the car charges.
 
 ### Changed
+- **The card's overview says what the car is doing.** Under the photo, one
+  line in words: *Ready to go*, *Charging · done at 05:40*, *On the road*,
+  *Waiting to charge*, *Charge soon* or, in red, *Something's open*, with the
+  facts behind it underneath (where, since when, which door). Tap it for the
+  entity behind it, such as the minutes left of a charge. An open door outranks
+  a charge, so one left open overnight on the drive is never hidden behind
+  *done at*. The words replace the badges that sat on the photo; the drawing
+  of what is open stays there.
+- **A bar instead of the ring.** The charge (or the tank) is a bar with the
+  target as a tick: while charging, what this charge added is striped; on a
+  drive, what it used shows faintly. The range sits beside it, with what the
+  car really does the way you drive. A plug-in hybrid shows its tank as a
+  second line under the battery.
+- **Tiles that follow the car.** Without your own `tiles:`, the overview shows
+  the four that fit the moment: lock, plug, tires and location when parked;
+  power, energy added, solar share and cost while charging; distance, time and
+  charge used on a drive; what is open when something is. Your own `tiles:`
+  stay as they are, in every situation. Labels are no longer in capitals.
 - **The card shows when a charge will be done.** While the car charges, the
   overview's *Time to full* tile now reads *Done at 05:40* (with the weekday
   when that isn't today) instead of the minutes left, which are a tap away.

@@ -225,24 +225,31 @@ def test_petrol_overview_shows_the_tank_and_no_charging_tiles():
         assert charging_only not in html, charging_only
 
 
-def test_petrol_car_with_a_tank_percentage_rings_the_percentage():
+def test_petrol_car_with_a_tank_percentage_bars_the_percentage():
     states = {**M2, "sensor.m2_tank": _sensor("vehicle.drivetrain.fuelSystem.level", "64", "%")}
     html = _render(states)["html"]
-    assert "--pct:64" in html
+    assert "width:64%" in html
     assert "64<i>%</i>" in html
-    # The volume moves beside the ring rather than disappearing.
-    assert 'data-entity="sensor.m2_remaining_fuel"' in html
-    assert "Tank" in html
+    # The volume moves under the bar rather than disappearing.
+    assert "38 L in the tank" in html
+    # A tank has no charge target to tick.
+    assert "bar__tick" not in html
 
 
-def test_electric_overview_is_unchanged():
-    rendered = _render(I5)
+def test_electric_overview_bars_the_charge_and_its_target():
+    target = {**EV_TARGET, "state": "80"}
+    rendered = _render({**I5, "sensor.i5_target": target})
     assert rendered["drivetrain"] == "bev"
     html = rendered["html"]
-    assert "72<i>%</i>" in html
-    assert "charging status" in html
-    assert "Target" in html
+    assert "72<i>%</i>" in html and "width:72%" in html
+    assert "Target 80 %" in html and 'class="bar__tick" style="left:80%"' in html
     assert "Tank" not in html
+
+
+def test_a_target_of_0_is_no_target():
+    html = _render(I5)["html"]
+    assert "Target 0 %" not in html and "bar__tick" not in html
+    assert "Ready to go" in html
 
 
 def test_plug_in_hybrid_shows_battery_and_tank():
@@ -251,8 +258,9 @@ def test_plug_in_hybrid_shows_battery_and_tank():
     html = rendered["html"]
     assert "72<i>%</i>" in html
     assert "electric range" in html
-    assert "Tank" in html and "Total range" in html
-    assert "Target" in html
+    # The tank as a second line under the battery, with the range of both.
+    assert "meter__tank" in html and "Tank" in html and "590 km together" in html
+    assert "Target 80 %" in html
 
 
 PLUG_STATE = "sensor.x3_30e_xdrive_charging_port_plug_state"
@@ -332,14 +340,15 @@ def test_a_charge_that_has_stopped_is_not_shown_as_charging(status: str):
     # A leftover figure, so the tile renders and its label can be read; a zero
     # hides it (``test_a_finished_charge_shows_no_zero_charge_time``).
     html = _render(_with_status(status, "45"))["html"]
-    assert "gauge__bolt" not in html
+    assert "bar__fill--charging" not in html
+    assert "verdict__t--live" not in html
     assert "Time to full" not in html
-    assert "Charge time" in html
 
 
 def test_an_active_charge_is_still_shown_as_charging():
     html = _render(_with_status("chargingactive"))["html"]
-    assert "gauge__bolt" in html
+    assert "bar__fill--charging" in html
+    assert "verdict__t--live" in html and "Charging" in html
     assert "Time to full" in html
 
 

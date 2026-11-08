@@ -11,10 +11,18 @@ export default (Base) => class StylesPart extends Base {
     return `
     <style>
       :host {
+        /* Status colors, the same in light and dark themes. Everything else
+           comes from the Home Assistant theme, so the card follows it. */
         --bmw-charge: #2f80ed;
         --bmw-high: #29a36a;
         --bmw-mid: #e6a417;
         --bmw-low: #d64545;
+        --bd-solar: #e0a000;
+        --bd-house: #7c5cd6;
+        --bd-grid: #9aa1ab;
+        --bd-sub: var(--secondary-background-color);
+        --bd-line: var(--divider-color);
+        --bd-muted: var(--secondary-text-color);
       }
       ha-card {
         overflow: hidden;
@@ -92,27 +100,6 @@ export default (Base) => class StylesPart extends Base {
       .eq__code { flex: none; font-size: 0.72rem; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }
       .eq__more summary { cursor: pointer; font-size: 0.85rem; color: var(--secondary-text-color); padding: 4px 0; }
       .hero--inset .hero__spin-icon { display: none; }
-      .hero__chips {
-        position: absolute; left: 16px; top: 52px;
-        display: flex; flex-direction: column; align-items: flex-start; gap: 5px;
-        max-width: 62%;
-        pointer-events: none;
-      }
-      .hero__chip {
-        display: inline-flex; align-items: center; gap: 5px;
-        background: rgba(0,0,0,0.55);
-        color: #fff;
-        border-left: 3px solid var(--chip, transparent);
-        border-radius: 999px;
-        padding: 3px 10px 3px 7px;
-        font-size: 0.74rem;
-        font-weight: 500;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 100%;
-      }
-      .hero__chip ha-icon { --mdc-icon-size: 15px; color: var(--chip, #fff); flex: none; }
       .hero__inset {
         position: absolute; right: 12px; bottom: 10px;
         height: 46%;
@@ -242,79 +229,102 @@ export default (Base) => class StylesPart extends Base {
         100% { box-shadow: 0 0 0 0 rgba(55,214,122,0); }
       }
 
-      /* band: gauge + lead metrics */
-      .band {
-        display: flex;
-        align-items: center;
-        gap: 18px;
-        padding: 18px 18px 8px;
+      /* the line under the photo: what the car is doing, in words */
+      .verdict {
+        display: flex; flex-direction: column; width: calc(100% - 20px);
+        margin: 10px 10px 0; padding: 6px 8px; border-radius: 12px;
       }
-      .gauge {
-        position: relative;
-        flex: 0 0 auto;
-      }
-      .gauge__ring {
-        width: 96px; height: 96px;
-        border-radius: 50%;
-        background:
-          radial-gradient(closest-side, var(--card-background-color) 70%, transparent 71% 100%),
-          conic-gradient(var(--ring) calc(var(--pct) * 1%), var(--divider-color) 0);
-        display: grid; place-items: center;
-        transition: background 0.6s ease;
-      }
-      .gauge__hole { text-align: center; line-height: 1; }
-      .gauge__val {
-        font-size: 1.7rem; font-weight: 600;
-        font-variant-numeric: tabular-nums;
+      .verdict:hover { background: var(--bd-sub); }
+      .verdict.is-static:hover { background: none; }
+      .verdict__t {
+        font-size: 1.3rem; font-weight: 650; line-height: 1.25; letter-spacing: -0.01em;
         color: var(--primary-text-color);
       }
-      .gauge__val i { font-size: 0.85rem; font-weight: 500; font-style: normal; color: var(--secondary-text-color); margin-left: 1px; }
-      .gauge__cap {
-        display: block; margin-top: 3px;
-        font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.09em;
-        color: var(--secondary-text-color);
-      }
-      .gauge__bolt {
-        position: absolute; right: -2px; top: -2px;
-        --mdc-icon-size: 20px;
-        color: var(--bmw-charge);
-        background: var(--card-background-color);
-        border-radius: 50%;
-        padding: 2px;
-      }
+      .verdict__t--alert { color: var(--bmw-low); }
+      .verdict__t--warn { color: var(--bmw-mid); }
+      .verdict__s { margin-top: 3px; font-size: 0.88rem; color: var(--bd-muted); }
+      .verdict__s::first-letter { text-transform: uppercase; }
 
-      .lead { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
-      .lead__row {
-        display: grid;
-        grid-template-columns: 24px 1fr;
-        grid-template-rows: auto auto;
-        column-gap: 10px;
-        align-items: center;
-        border-radius: 10px;
-        padding: 6px 8px;
-        transition: background 0.15s ease;
+      /* meter: the big number, the range beside it, the bar under both */
+      .meter { padding: 12px 18px 2px; }
+      .meter__row { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+      .meter__main, .meter__side {
+        display: flex; flex-direction: column; gap: 4px;
+        border-radius: 10px; padding: 4px 6px; margin: -4px -6px;
       }
-      .lead__row:hover { background: var(--secondary-background-color); }
-      .lead__row ha-icon { grid-row: 1 / 3; color: var(--secondary-text-color); --mdc-icon-size: 22px; }
-      .lead__val {
-        font-size: 1.05rem; font-weight: 600;
-        font-variant-numeric: tabular-nums;
-        color: var(--primary-text-color);
-        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      .meter__side { align-items: flex-end; text-align: right; min-width: 0; }
+      .meter__main:hover, .meter__side:hover { background: var(--bd-sub); }
+      .meter__big {
+        font-size: 2.4rem; font-weight: 650; line-height: 1; letter-spacing: -0.03em;
+        font-variant-numeric: tabular-nums; color: var(--primary-text-color);
       }
-      .lead__lbl { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--secondary-text-color); }
+      .meter__big i, .meter__mid i {
+        font-size: 1rem; font-weight: 550; font-style: normal; color: var(--bd-muted); margin-left: 2px; letter-spacing: 0;
+      }
+      .meter__mid {
+        font-size: 1.5rem; font-weight: 620; line-height: 1; letter-spacing: -0.02em;
+        font-variant-numeric: tabular-nums; color: var(--primary-text-color);
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
+      }
+      .meter__cap { font-size: 0.78rem; color: var(--bd-muted); }
+      .meter__cap::first-letter { text-transform: uppercase; }
+      .bar {
+        position: relative; height: 12px; margin: 14px 0 8px;
+        border-radius: 999px; background: var(--bd-line);
+      }
+      .bar__fill {
+        position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px;
+        transition: width 0.6s ease;
+      }
+      .bar__gain {
+        position: absolute; top: 0; bottom: 0; border-radius: 0 999px 999px 0;
+        background-image: repeating-linear-gradient(-45deg, rgba(255,255,255,0.38) 0 5px, transparent 5px 10px);
+        background-size: 28px 28px;
+        animation: bd-stripes 1.1s linear infinite;
+      }
+      @keyframes bd-stripes { to { background-position: 28px 0; } }
+      .bar__used { position: absolute; top: 0; bottom: 0; border-radius: 0 999px 999px 0; opacity: 0.28; }
+      .bar__tick {
+        position: absolute; top: -4px; bottom: -4px; width: 3px; border-radius: 2px;
+        background: var(--primary-text-color); transform: translateX(-50%);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .bar__gain { animation: none; }
+        .bar__fill { transition: none; }
+      }
+      .bar__legend {
+        display: flex; justify-content: space-between; gap: 8px;
+        font-size: 0.78rem; color: var(--bd-muted);
+      }
+      .meter__tank {
+        display: flex; align-items: center; gap: 12px; width: 100%;
+        margin-top: 12px; padding: 6px 8px; border-radius: 10px;
+      }
+      .meter__tank:hover { background: var(--bd-sub); }
+      .meter__tank ha-icon { --mdc-icon-size: 20px; color: var(--bd-muted); flex: none; }
+      .meter__tank-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+      .meter__tank-row { display: flex; justify-content: space-between; gap: 8px; font-size: 0.82rem; color: var(--bd-muted); }
+      .meter__tank-row b { color: var(--primary-text-color); font-weight: 650; }
+      .thin { position: relative; display: block; height: 6px; border-radius: 999px; background: var(--bd-line); }
+      .thin > span { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; background: var(--bd-muted); }
 
       /* metric grid */
+      /* Two by two; four across once the card is wide enough for it. */
+      ha-card { container-type: inline-size; }
       .grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px;
-        padding: 8px 14px 16px;
+        padding: 14px 14px 16px;
+      }
+      @container (min-width: 720px) {
+        .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
       }
       .cell {
         display: flex; align-items: center; gap: 10px;
-        padding: 10px 12px;
-        border-radius: 12px;
+        padding: 11px 14px;
+        min-height: 58px;
+        border-radius: 14px;
         background: var(--secondary-background-color);
         transition: transform 0.12s ease, background 0.15s ease;
       }
@@ -328,7 +338,14 @@ export default (Base) => class StylesPart extends Base {
         color: var(--primary-text-color);
         overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
       }
-      .cell__lbl { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--secondary-text-color); }
+      .cell__lbl {
+        font-size: 0.78rem; color: var(--bd-muted);
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      }
+      .cell--live ha-icon { color: var(--bmw-charge); }
+      .cell--solar ha-icon { color: var(--bd-solar); }
+      .cell--alert { background: color-mix(in srgb, var(--bmw-low) 14%, var(--card-background-color)); }
+      .cell--alert ha-icon, .cell--alert .cell__val { color: var(--bmw-low); }
 
       /* cluster mode */
       .chead {
@@ -929,11 +946,6 @@ export default (Base) => class StylesPart extends Base {
 
       @media (prefers-reduced-motion: reduce) {
         .dot--live { animation: none; }
-        .gauge__ring { transition: none; }
-      }
-      @media (max-width: 360px) {
-        .band { flex-direction: column; align-items: stretch; }
-        .gauge { align-self: center; }
       }
     </style>`;
   }
