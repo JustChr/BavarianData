@@ -9,13 +9,17 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.28-beta.4] - 2026-11-08
+
 ### Added
 - **A Charging Cable sensor for every car with a charging port.** It is Home
   Assistant's standard plug sensor: *Plugged in* or *Unplugged*, the same in
   every language, so other integrations and automations that look for one
   find it. It follows the car's charging-port status by the same rule as the
   evcc bridge, and reads unknown while the port reports `invalid`. The card's
-  plug tile now shows it. Thanks to @henrikekblad (SpotNav#2).
+  plug tile now shows it. For integrations: `unique_id` `<VIN>_charging_cable`,
+  `translation_key` `charging_cable`, device class `plug`. Thanks to
+  @henrikekblad (SpotNav#2).
 
 ### Fixed
 - **Setup no longer waits forever when you click an old bookmark.** Every
