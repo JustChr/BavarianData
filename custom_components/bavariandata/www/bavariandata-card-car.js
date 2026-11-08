@@ -502,6 +502,264 @@ export default (Base, { CAR, CAR_FLIP, UNAVAILABLE, _lang, carTones }) => class 
     alarmOn: "vehicle.vehicle.antiTheftAlarmSystem.alarm.isOn",
   };
 
+  /* ---- the car: closures, tires, messages, service, health, lease ------ */
+
+  /** Everything about the car itself in one card: the top-down drawing with
+   * what is open lit up and each tire's state on its wheel, the four pressures
+   * at its corners (tap one for that tire's detail), then a line each for the
+   * doors and lock, Check Control, service, the 12 V battery, battery health
+   * and the mileage allowance. Each line only where the car has the data. */
+  _renderCar(deviceId, entities) {
+    const vin = this._deviceVin(deviceId);
+    if (!vin) {
+      this._renderMessage(this._t("no_vehicle_title"), this._t("no_vehicle_body"));
+      return;
+    }
+    // The allowance comes from get_mileage_report, the mileage view's cache.
+    this._ensureMileage(vin, this._deviceEntry(deviceId), entities);
+    this._paintCar(deviceId, entities);
+  }
+
+  _paintCar(deviceId, entities) {
+    const name = this._config.title || this._deviceName(deviceId);
+    const unit = this._distUnit(deviceId, entities);
+    const m = this._closureModel(entities);
+    const wheels = {};
+    for (const id of entities) {
+      const st = this._st(id);
+      const a = st && st.attributes;
+      if (!a || a.cluster !== "tire" || !a.tire_axle || !a.tire_side) continue;
+      const key = `${a.tire_axle}_${a.tire_side}`;
+      (wheels[key] = wheels[key] || {})[a.tire_metric || "other"] = st;
+    }
+    const slots = [
+      { key: "row1_left", pos: "fl", label: this._t("fl"), full: this._t("front_left") },
+      { key: "row1_right", pos: "fr", label: this._t("fr"), full: this._t("front_right") },
+      { key: "row2_left", pos: "rl", label: this._t("rl"), full: this._t("rear_left") },
+      { key: "row2_right", pos: "rr", label: this._t("rr"), full: this._t("rear_right") },
+    ];
+    const present = slots.filter((s) => wheels[s.key]);
+    const tires = present.length ? this._tireSummary(present.map((s) => wheels[s.key]), unit) : null;
+    const status = Object.fromEntries(slots.map((s) => [s.pos, wheels[s.key] ? this._tireStatus(wheels[s.key]) : null]));
+    const selected = this._carWheel && wheels[(slots.find((s) => s.pos === this._carWheel) || {}).key] ? this._carWheel : null;
+
+    const cc = this._checkControl(entities);
+    const service = this._serviceItems(entities);
+    const v12 = this._st(
+      this._idByDescriptor(entities, "vehicle.electricalSystem.battery.stateOfCharge") ||
+        this._idByDescriptor(entities, "vehicle.electricalSystem.battery.voltage")
+    );
+    const health = this._drivetrain(entities) === "ice" ? null : this._byDescriptor(entities, "battery_health");
+    const allowance = this._mil && this._mil.data && this._mil.data.allowance;
+
+    const sig = this._signature({
+      m: "car",
+      lang: _lang(this._hass),
+      name,
+      unit,
+      paint: this._carPaint(entities),
+      open: m.openItems.map((i) => i.id),
+      lock: m.lock && m.lock.key,
+      w: Object.fromEntries(
+        Object.entries(wheels).map(([k, w]) => [k, Object.entries(w).map(([mk, s]) => (mk === "diagnosis" ? this._wearSig(s) : s.state))])
+      ),
+      selected,
+      cc: cc && [cc.items.length, cc.resolved.length],
+      service,
+      v12: v12 && v12.state,
+      health: health && [health.state, (health.attributes || {}).samples],
+      allowance,
+    });
+    if (sig === this._sig) return;
+    this._sig = sig;
+
+    // The banner: the most pressing thing first, or that all is well.
+    const ccCount = cc ? cc.items.length : 0;
+    let banner;
+    if (m.openItems.length) {
+      banner = { tone: "alert", icon: "mdi:car-door", t: this._t("vd_open"), s: m.openItems.slice(0, 3).map((i) => this._esc(i.label)).join(" · ") };
+    } else if (tires && (tires.overall.c === "var(--bmw-low)" || tires.overall.c === "var(--bmw-mid)")) {
+      banner = { tone: "warn", icon: "mdi:tire", t: this._esc(tires.overall.t), s: tires.pressure.t };
+    } else if (ccCount) {
+      banner = { tone: "warn", icon: "mdi:alert-circle-outline", t: this._t("car_cc_n", { n: ccCount }), s: this._esc(this._ccField(cc.items[0].title) || this._ccField(cc.items[0].text) || "") };
+    } else {
+      const parts = [
+        m.lockId && m.lock.key !== "unlocked" ? this._t("car_closed") : null,
+        tires ? this._t("car_tires_ok") : null,
+        cc ? this._t("car_no_msgs") : null,
+      ].filter(Boolean);
+      banner = { tone: "ok", icon: "mdi:check-circle-outline", t: this._t("car_all_good"), s: parts.join(" · ") };
+    }
+
+    const colors = { fl: status.fl && status.fl.color, fr: status.fr && status.fr.color, rl: status.rl && status.rl.color, rr: status.rr && status.rr.color };
+    const drawing = this._carSvgClosures({
+      doors: m.doors,
+      windows: m.windows,
+      hood: m.hood,
+      trunk: m.trunk,
+      rearWindow: m.rearWindow,
+      sunroof: m.sunroof,
+      lock: m.lock,
+      lockId: m.lockId,
+      colors: { ALERT: m.ALERT, WARN: m.WARN, OK: m.OK },
+      car: this._carShape(entities),
+      wheelColors: colors,
+    });
+    const corner = (slot) => {
+      const w = wheels[slot.key];
+      if (!w) return `<span class="carv__tp carv__tp--${slot.pos}"></span>`;
+      const pv = w.pressure ? this._splitValueUnit(w.pressure) : { value: "—", unit: "" };
+      const st = status[slot.pos];
+      return `<button class="carv__tp carv__tp--${slot.pos}${selected === slot.pos ? " is-sel" : ""}" data-car-wheel="${slot.pos}" aria-pressed="${selected === slot.pos}" style="--c:${st.color}">
+          <span class="carv__tp-v">${pv.value}${pv.unit ? `<i>${pv.unit}</i>` : ""}</span>
+          <span class="carv__tp-l">${slot.full} · ${st.label}</span>
+        </button>`;
+    };
+    const sel = selected ? slots.find((s) => s.pos === selected) : null;
+
+    const lines = [];
+    const line = (dot, title, sub, extra = "", entity = "") =>
+      lines.push(`<button class="carv__line" data-entity="${this._attr(entity)}">
+          <span class="carv__dot" style="background:${dot}"></span>
+          <span class="carv__lt"><span class="carv__t">${title}</span>${sub ? `<span class="carv__s">${sub}</span>` : ""}${extra}</span>
+        </button>`);
+    if (m.present) {
+      const open = m.openItems.length;
+      line(
+        open ? m.ALERT : m.lock && m.lock.key === "unlocked" ? m.WARN : m.OK,
+        this._t("car_doors"),
+        open ? m.openItems.map((i) => `${this._esc(i.label)}: ${this._esc(i.value)}`).join(" · ") : [this._t("car_all_closed"), m.lockId ? this._esc(m.lock.label) : null].filter(Boolean).join(" · "),
+        "",
+        open ? m.openItems[0].id : m.lockId
+      );
+    }
+    if (cc) {
+      line(
+        ccCount ? m.WARN : m.OK,
+        this._t("cc_title"),
+        ccCount
+          ? cc.items.map((msg) => this._esc(this._ccField(msg.title) || this._ccField(msg.text) || "—")).join(" · ")
+          : [this._t("car_no_msgs_full"), cc.resolved.length ? this._t("cc_earlier", { n: cc.resolved.length }) : null].filter(Boolean).join(" · "),
+        "",
+        cc.id
+      );
+    }
+    if (service && service.items.length) {
+      const worst = service.items.some((i) => i.status === "OVERDUE") ? m.ALERT : service.items.some((i) => i.status === "PENDING") ? m.WARN : "var(--bmw-charge)";
+      line(
+        worst,
+        this._t("car_service"),
+        service.items
+          .slice(0, 3)
+          .map((i) => [i.title, i.month ? this._t("car_by", { month: i.month }) : null, i.km != null ? this._t("car_in", { d: this._distance(i.km, unit) }) : null].filter(Boolean).join(" · "))
+          .join("<br>"),
+        "",
+        service.id
+      );
+    }
+    if (v12 && !UNAVAILABLE.has(v12.state)) line(m.OK, this._t("ti_battery_12v"), this._fmt(v12), "", v12.entity_id);
+    if (health && !UNAVAILABLE.has(health.state)) {
+      const a = health.attributes || {};
+      // Learning until the estimate is confident; the state then reads
+      // learning_<n> (shown as "Learning (n/10)").
+      const learning = a.confident === false || String(health.state).startsWith("learning");
+      const n = Number(a.samples) || 0;
+      const need = Number(a.samples_needed) || 10;
+      line(
+        learning ? "var(--divider-color)" : m.OK,
+        this._t("bh_title"),
+        learning
+          ? this._t("bh_learning", { n, total: need })
+          : [this._fmt(health), a.vs_new_percent != null ? this._t("bh_of_new", { p: this._dec(a.vs_new_percent, 0) }) : null].filter(Boolean).join(" · "),
+        learning ? `<span class="thin"><span style="width:${Math.min(100, (n / need) * 100)}%;background:var(--bmw-charge)"></span></span>` : "",
+        health.entity_id
+      );
+    }
+    if (allowance && allowance.allowance_km && allowance.status !== "not_started" && allowance.status !== "unknown") {
+      const dist = (v) => this._distance(v, unit);
+      const total = allowance.allowance_km;
+      const used = allowance.used_km || 0;
+      const plan = allowance.plan_km || 0;
+      const bal = allowance.balance_km || 0;
+      line(
+        bal < 0 ? m.WARN : m.OK,
+        this._esc(allowance.kind === "lease" ? this._t("mi_lease", { date: this._isoDay(allowance.end) }) : this._t("mi_yearly", { date: this._isoDay(allowance.end) })),
+        [
+          this._t("mi_of", { used: dist(used), total: dist(total) }),
+          Math.abs(bal) < 1 ? this._t("mi_on_plan") : bal > 0 ? this._t("mi_under", { d: dist(bal) }) : this._t("mi_over", { d: dist(-bal) }),
+        ].join(" · "),
+        `<span class="thin"><span style="width:${Math.min(100, (used / total) * 100)}%;background:var(--bmw-charge)"></span><span class="thin__tick" style="left:${Math.min(100, (plan / total) * 100)}%"></span></span>`
+      );
+    }
+
+    this.shadowRoot.innerHTML = `
+      ${this._styles()}
+      <ha-card>
+        <div class="chead">
+          <ha-icon icon="mdi:car-info"></ha-icon>
+          <div class="chead__text">
+            <span class="chead__title">${this._esc(this._config.title || this._t("car_title"))}</span>
+            <span class="chead__sub">${this._esc(name)}</span>
+          </div>
+        </div>
+        <div class="carv__banner carv__banner--${banner.tone}">
+          <ha-icon icon="${banner.icon}"></ha-icon>
+          <span><span class="carv__bt">${banner.t}</span>${banner.s ? `<span class="carv__bs">${banner.s}</span>` : ""}</span>
+        </div>
+        <div class="carv__draw">
+          ${corner(slots[0])}${corner(slots[1])}
+          <div class="carv__svg">${drawing}</div>
+          ${corner(slots[2])}${corner(slots[3])}
+        </div>
+        ${sel ? `<div class="carv__wheel">${this._wheelBlock(sel, wheels[sel.key], sel.pos, unit)}</div>` : present.length ? `<p class="carv__hint">${this._t("car_tap_tire")}</p>` : ""}
+        <div class="carv__lines">${lines.join("")}</div>
+      </ha-card>`;
+    this._wireTaps();
+    this.shadowRoot.querySelectorAll("[data-car-wheel]").forEach((el) => {
+      el.addEventListener("click", () => {
+        const pos = el.getAttribute("data-car-wheel");
+        this._carWheel = this._carWheel === pos ? null : pos;
+        this._sig = null;
+        this._paintCar(deviceId, entities);
+      });
+    });
+  }
+
+  /** The car's service items (brake fluid, vehicle check, inspection), soonest
+   * first: title, due month, distance left and BMW's status. */
+  _serviceItems(entities) {
+    const st = this._byDescriptor(entities, "vehicle.status.conditionBasedServices");
+    if (!st) return null;
+    const raw = Array.isArray((st.attributes || {}).items) ? st.attributes.items : [];
+    const field = (v) => this._ccField(v);
+    const items = raw
+      .filter((i) => i && typeof i === "object")
+      .map((i) => {
+        const date = field(i.date);
+        // BMW's "-" is no distance; Number(null) would read it as 0 km.
+        const rawKm = field(i.unitOfLengthRemaining);
+        const km = rawKm == null ? NaN : Number(rawKm);
+        let month = null;
+        if (date && /^\d{4}-\d{2}/.test(date)) {
+          const [y, mo] = date.slice(0, 7).split("-").map(Number);
+          try {
+            month = new Date(y, mo - 1, 1).toLocaleDateString(_lang(this._hass), { month: "short", year: "numeric" });
+          } catch (_e) {
+            month = date.slice(0, 7);
+          }
+        }
+        return {
+          title: this._esc(field(i.title) || field(i.text) || field(i.type) || "—"),
+          month: month ? this._esc(month) : null,
+          km: Number.isFinite(km) && km >= 0 ? km : null,
+          status: String(i.status || "").toUpperCase(),
+          sort: date || "9999",
+        };
+      })
+      .sort((a, b) => (a.sort < b.sort ? -1 : a.sort > b.sort ? 1 : 0));
+    return { id: st.entity_id, items };
+  }
+
   /** Everything the car says about its doors, windows, lids, lock and alarm,
    * read once for the closures view and for the badges on the overview's photo. */
   _closureModel(entities) {
@@ -910,7 +1168,7 @@ export default (Base, { CAR, CAR_FLIP, UNAVAILABLE, _lang, carTones }) => class 
     return `
       <svg class="carsvg" viewBox="0 0 948 1659" xmlns="http://www.w3.org/2000/svg">
         ${this._carDefs(car)}
-        ${this._carWheels(car)}
+        ${this._carWheels(car, d.wheelColors || {})}
         ${this._carBody(car, hide)}
         ${parts.join("\n        ")}
         ${padlock}

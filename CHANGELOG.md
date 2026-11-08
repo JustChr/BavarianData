@@ -17,6 +17,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   only, as with a finished charge's cost; empty, never 0, when it can't be
   told. The dashboard card uses them while the car charges.
 
+- **A card for the car itself: `view: car`.** The car's own top-down drawing
+  with whatever is open lit up and each tire's state on its wheel, the four
+  pressures at its corners (tap one for its size, tread, season and how long
+  it has left), and a line each for the doors and lock, Check Control, the
+  service items, the 12 V battery, battery health and your lease or yearly
+  mileage limit. A banner on top says the most pressing thing, or that all is
+  good. The tires, closures, health and mileage cards stay as they are.
+
 ### Changed
 - **The card's overview says what the car is doing.** Under the photo, one
   line in words: *Ready to go*, *Charging · done at 05:40*, *On the road*,
