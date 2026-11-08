@@ -169,7 +169,6 @@ export default {
   sunroof_word: "Sunroof",
   // charging history
   ch_title: "Charging history",
-  ch_month: "This month",
   ch_loading: "Loading charging history…",
   ch_empty:
     "No charging sessions recorded yet. Once the car charges, sessions appear here automatically.",
@@ -198,6 +197,13 @@ export default {
   ch_ongoing: "charging…",
   ch_tab_sessions: "Sessions",
   ch_tab_places: "Places",
+  ch_kpi_energy: "Charged",
+  ch_kpi_per_kwh: "{v} per kWh",
+  ch_kpi_sessions: "Sessions",
+  ch_kpi_away: "Sessions, {n} away",
+  ch_where_from: "Where it came from",
+  ch_per_day: "Per day",
+  ch_avg_dashed: "Average (dashed)",
   pl_loading: "Loading charging places…",
   pl_empty: "No charges recorded yet.",
   pl_error: "Couldn't load charging places. Reload the page and try again.",

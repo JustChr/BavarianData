@@ -623,21 +623,41 @@ export default (Base) => class StylesPart extends Base {
       }
 
       /* ---- charging history ---- */
-      .chg__summary {
-        display: flex; gap: 8px; padding: 10px 14px 4px;
+      /* month figures, shared by the history views */
+      .kpis { display: grid; grid-auto-columns: minmax(0, 1fr); grid-auto-flow: column; gap: 8px; padding: 12px 14px 4px; }
+      .kpi {
+        display: flex; flex-direction: column; gap: 3px; min-width: 0;
+        padding: 10px 12px; border-radius: 14px; background: var(--bd-sub);
       }
-      .chg__stat {
-        flex: 1; display: flex; flex-direction: column; gap: 2px;
-        padding: 8px 10px; border-radius: 12px;
-        background: var(--secondary-background-color);
+      .kpi__v {
+        font-size: 1.15rem; font-weight: 650; letter-spacing: -0.01em; line-height: 1.15;
+        font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       }
-      .chg__stat-val {
-        font-size: 1.05rem; font-weight: 600; font-variant-numeric: tabular-nums;
+      .kpi__v i { font-style: normal; font-size: 0.78rem; font-weight: 550; color: var(--bd-muted); margin-left: 3px; }
+      .kpi__l { font-size: 0.76rem; color: var(--bd-muted); }
+      .sec { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 14px 18px 6px; }
+      .sec__t { font-size: 0.8rem; font-weight: 650; }
+      .sec__s { font-size: 0.76rem; color: var(--bd-muted); }
+      .mix { padding: 0 18px 2px; }
+      .mix__bar { display: flex; gap: 2px; height: 10px; border-radius: 999px; overflow: hidden; background: var(--bd-line); }
+      .mix__bar > span { display: block; height: 100%; }
+      .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 7px; font-size: 0.76rem; color: var(--bd-muted); }
+      .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 5px; }
+      .legend b { color: var(--primary-text-color); font-weight: 600; }
+      .spark { display: flex; align-items: flex-end; gap: 2px; height: 48px; padding: 0 18px; }
+      .spark__bar { flex: 1; border-radius: 3px 3px 1px 1px; background: var(--bmw-charge); }
+      .spark__bar.is-empty { background: var(--bd-line); }
+      .spark__bar.is-future { background: var(--bd-line); opacity: 0.45; }
+      .spark-ax { display: flex; justify-content: space-between; padding: 4px 18px 0; font-size: 0.7rem; color: var(--bd-muted); }
+      .socbar {
+        position: relative; display: inline-block; width: 52px; height: 6px; flex: none;
+        border-radius: 999px; background: var(--bd-line);
       }
-      .chg__stat-lbl {
-        font-size: 0.68rem; color: var(--secondary-text-color);
-        text-transform: uppercase; letter-spacing: 0.04em;
-      }
+      .socbar > span { position: absolute; top: 0; bottom: 0; border-radius: 999px; background: var(--bmw-charge); }
+      .chg__cost-sub { font-size: 0.78rem; color: var(--bd-muted); font-variant-numeric: tabular-nums; }
+      .chg__session.is-live { background: color-mix(in srgb, var(--bmw-charge) 10%, var(--card-background-color)); }
+      .chg__session.is-live .dot { display: inline-block; vertical-align: middle; }
+      .chg__chart-avg { stroke: var(--bd-muted); stroke-width: 1; stroke-dasharray: 3 4; vector-effect: non-scaling-stroke; }
       .chg__list { padding: 6px 6px 8px; }
       .chg__session { border-radius: 12px; }
       .chg__session.is-open { background: var(--secondary-background-color); }
@@ -676,16 +696,19 @@ export default (Base) => class StylesPart extends Base {
       .chg__badge--away { border-color: var(--bmw-charge); color: var(--bmw-charge); }
       .chg__badge--assumed { border-style: dashed; }
       /* Sessions | Places */
-      .ctabs { display: flex; gap: 6px; padding: 10px 14px 0; }
+      .ctabs {
+        display: flex; gap: 2px; margin: 12px 14px 0; padding: 3px;
+        border-radius: 12px; background: var(--bd-sub);
+      }
       .ctabs__btn {
-        flex: 1; padding: 6px 10px;
-        font: inherit; font-size: 0.8rem; font-weight: 600;
-        color: var(--secondary-text-color); background: transparent;
-        border: 1px solid var(--divider-color); border-radius: 999px; cursor: pointer;
+        flex: 1; min-height: 34px; padding: 0 10px; text-align: center;
+        font: inherit; font-size: 0.82rem; font-weight: 600;
+        color: var(--bd-muted); background: transparent;
+        border: 0; border-radius: 9px; cursor: pointer;
       }
       .ctabs__btn.is-active {
-        color: var(--bmw-charge); border-color: var(--bmw-charge);
-        background: var(--secondary-background-color);
+        color: var(--primary-text-color); background: var(--card-background-color);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14);
       }
       .pl__map { padding: 10px 14px 0; }
       .pl__map ha-map { width: 100%; border-radius: 10px; overflow: hidden; }

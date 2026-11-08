@@ -169,7 +169,6 @@ export default {
   sunroof_word: "Toit ouvrant",
   // charging history
   ch_title: "Historique de recharge",
-  ch_month: "Ce mois-ci",
   ch_loading: "Chargement de l'historique de recharge…",
   ch_empty:
     "Aucune session de recharge enregistrée pour l'instant. Dès que la voiture charge, les sessions apparaissent ici automatiquement.",
@@ -198,6 +197,13 @@ export default {
   ch_ongoing: "en charge…",
   ch_tab_sessions: "Recharges",
   ch_tab_places: "Lieux",
+  ch_kpi_energy: "Chargé",
+  ch_kpi_per_kwh: "{v} par kWh",
+  ch_kpi_sessions: "Sessions",
+  ch_kpi_away: "Sessions, {n} à l'extérieur",
+  ch_where_from: "D'où elle vient",
+  ch_per_day: "Par jour",
+  ch_avg_dashed: "Moyenne (pointillés)",
   pl_loading: "Chargement des lieux de recharge…",
   pl_empty: "Aucune recharge enregistrée pour l'instant.",
   pl_error: "Impossible de charger les lieux de recharge. Rechargez la page et réessayez.",

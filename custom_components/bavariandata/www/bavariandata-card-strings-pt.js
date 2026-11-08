@@ -169,7 +169,6 @@ export default {
   sunroof_word: "Teto de abrir",
   // charging history
   ch_title: "Histórico de carregamento",
-  ch_month: "Este mês",
   ch_loading: "A carregar o histórico de carregamento…",
   ch_empty:
     "Ainda não há sessões de carregamento registadas. Assim que o carro carregar, as sessões aparecem aqui automaticamente.",
@@ -198,6 +197,13 @@ export default {
   ch_ongoing: "a carregar…",
   ch_tab_sessions: "Sessões",
   ch_tab_places: "Locais",
+  ch_kpi_energy: "Carregado",
+  ch_kpi_per_kwh: "{v} por kWh",
+  ch_kpi_sessions: "Sessões",
+  ch_kpi_away: "Sessões, {n} fora",
+  ch_where_from: "De onde veio",
+  ch_per_day: "Por dia",
+  ch_avg_dashed: "Média (tracejada)",
   pl_loading: "A carregar locais de carregamento…",
   pl_empty: "Ainda não há carregamentos registados.",
   pl_error: "Não foi possível carregar os locais de carregamento. Recarregue a página e tente novamente.",

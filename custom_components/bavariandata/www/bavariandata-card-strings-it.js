@@ -169,7 +169,6 @@ export default {
   sunroof_word: "Tetto apribile",
   // charging history
   ch_title: "Storico di ricarica",
-  ch_month: "Questo mese",
   ch_loading: "Caricamento dello storico di ricarica…",
   ch_empty:
     "Ancora nessuna sessione di ricarica registrata. Quando l'auto ricarica, le sessioni compaiono qui automaticamente.",
@@ -198,6 +197,13 @@ export default {
   ch_ongoing: "in carica…",
   ch_tab_sessions: "Ricariche",
   ch_tab_places: "Luoghi",
+  ch_kpi_energy: "Caricato",
+  ch_kpi_per_kwh: "{v} per kWh",
+  ch_kpi_sessions: "Sessioni",
+  ch_kpi_away: "Sessioni, {n} fuori casa",
+  ch_where_from: "Da dove arriva",
+  ch_per_day: "Al giorno",
+  ch_avg_dashed: "Media (tratteggiata)",
   pl_loading: "Caricamento dei luoghi di ricarica…",
   pl_empty: "Nessuna ricarica registrata finora.",
   pl_error: "Impossibile caricare i luoghi di ricarica. Ricarica la pagina e riprova.",

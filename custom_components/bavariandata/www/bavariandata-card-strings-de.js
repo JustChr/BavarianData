@@ -169,7 +169,6 @@ export default {
   sunroof_word: "Schiebedach",
   // charging history
   ch_title: "Ladeverlauf",
-  ch_month: "Dieser Monat",
   ch_loading: "Ladeverlauf wird geladen…",
   ch_empty:
     "Noch keine Ladevorgänge aufgezeichnet. Sobald das Fahrzeug lädt, erscheinen sie hier automatisch.",
@@ -198,6 +197,13 @@ export default {
   ch_ongoing: "lädt…",
   ch_tab_sessions: "Ladevorgänge",
   ch_tab_places: "Orte",
+  ch_kpi_energy: "Geladen",
+  ch_kpi_per_kwh: "{v} pro kWh",
+  ch_kpi_sessions: "Ladevorgänge",
+  ch_kpi_away: "Ladevorgänge, {n} unterwegs",
+  ch_where_from: "Woher es kam",
+  ch_per_day: "Pro Tag",
+  ch_avg_dashed: "Mittel (gestrichelt)",
   pl_loading: "Ladeorte werden geladen…",
   pl_empty: "Noch keine Ladevorgänge aufgezeichnet.",
   pl_error: "Ladeorte konnten nicht geladen werden. Lade die Seite neu und versuche es erneut.",

@@ -169,7 +169,6 @@ export default {
   sunroof_word: "Schuifdak",
   // charging history
   ch_title: "Laadgeschiedenis",
-  ch_month: "Deze maand",
   ch_loading: "Laadgeschiedenis laden…",
   ch_empty:
     "Nog geen laadsessies geregistreerd. Zodra de auto laadt, verschijnen de sessies hier automatisch.",
@@ -198,6 +197,13 @@ export default {
   ch_ongoing: "laden…",
   ch_tab_sessions: "Sessies",
   ch_tab_places: "Locaties",
+  ch_kpi_energy: "Geladen",
+  ch_kpi_per_kwh: "{v} per kWh",
+  ch_kpi_sessions: "Sessies",
+  ch_kpi_away: "Sessies, {n} elders",
+  ch_where_from: "Waar het vandaan kwam",
+  ch_per_day: "Per dag",
+  ch_avg_dashed: "Gemiddeld (gestreept)",
   pl_loading: "Laadlocaties laden…",
   pl_empty: "Nog geen laadsessies vastgelegd.",
   pl_error: "Laadlocaties konden niet worden geladen. Herlaad de pagina en probeer het opnieuw.",

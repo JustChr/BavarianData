@@ -169,7 +169,6 @@ export default {
   sunroof_word: "Taklucka",
   // charging history
   ch_title: "Laddningshistorik",
-  ch_month: "Den här månaden",
   ch_loading: "Laddar laddningshistorik…",
   ch_empty:
     "Inga laddningssessioner registrerade än. Så snart bilen laddar visas sessionerna här automatiskt.",
@@ -198,6 +197,13 @@ export default {
   ch_ongoing: "laddar…",
   ch_tab_sessions: "Laddningar",
   ch_tab_places: "Platser",
+  ch_kpi_energy: "Laddat",
+  ch_kpi_per_kwh: "{v} per kWh",
+  ch_kpi_sessions: "Sessioner",
+  ch_kpi_away: "Sessioner, {n} borta",
+  ch_where_from: "Var den kom ifrån",
+  ch_per_day: "Per dag",
+  ch_avg_dashed: "Medel (streckad)",
   pl_loading: "Laddplatser läses in…",
   pl_empty: "Inga laddningar registrerade ännu.",
   pl_error: "Laddplatserna kunde inte läsas in. Ladda om sidan och försök igen.",

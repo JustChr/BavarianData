@@ -110,6 +110,12 @@ if (input.places) {
   card._plcExpanded = input.placesExpanded || null;
   card._render = () => { card._sig = null; card._paintPlaces("device"); };
 }
+if (input.sessions) {
+  card._chgMonth = input.month || "2026-09";
+  card._chg = { vin: "WBS1", trigger: "", month: card._chgMonth, data: input.sessions, loading: false };
+  card._chgExpanded = input.sessionsExpanded || null;
+  card._render = () => { card._sig = null; card._paintCharging("device", Object.keys(input.states)); };
+}
 if (input.trips) {
   card._trp = { vin: "WBS1", trigger: "", loading: false, ...input.trips };
   card._trpExpanded = input.tripsExpanded || null;
@@ -429,6 +435,111 @@ def _places(remembered: bool) -> list:
         charge(8, {"zone": None}, 30, 6.0, (60, 70), 11.0),
     ]
     return stations.charging_places(sessions, home_zone="Home")
+
+
+# A month of charging as ``get_charging_sessions`` answers it, built by the
+# server's own model: home charges with and without the sun, one with the house
+# battery, one priced partly, one away; newest first, as the service sorts them.
+def _month_of_charging() -> list:
+    from datetime import datetime, timedelta, timezone
+
+    from .conftest import load_module
+
+    models = load_module("history.models")
+    t0 = datetime(2026, 9, 1, 8, 0, tzinfo=timezone.utc)
+
+    def charge(day, hours, kwh, soc, location, cost=None, mix=None, peak=11.0):
+        start = t0 + timedelta(days=day)
+        curve = [[0, 0.0], [60, peak], [hours * 3000, peak], [hours * 3600, peak * 0.3]]
+        return models.ChargingSession(
+            vin="WBS1",
+            start=start,
+            end=start + timedelta(hours=hours),
+            soc_start=soc[0],
+            soc_end=soc[1],
+            energy_kwh=kwh,
+            peak_power_kw=peak,
+            power_curve=curve,
+            location=location,
+            cost=cost,
+            energy_mix=mix,
+        )
+
+    home = {"zone": "Home"}
+    eur = lambda amount, **extra: {"amount": amount, "currency": "EUR", "source": "tariff", **extra}  # noqa: E731
+    sessions = [
+        charge(
+            0, 3, 16.4, (60, 80), home, eur(2.85), {"pv": 13.3, "grid": 3.1, "solar_percent": 81.1}
+        ),
+        charge(1, 2, 19.7, (45, 70), {"zone": None, "address": "A9 Holledau"}, peak=164.0),
+        charge(
+            3,
+            2.5,
+            22.6,
+            (52, 80),
+            home,
+            eur(6.10),
+            {"battery": 9.0, "grid": 13.6, "solar_percent": 0.0},
+        ),
+        charge(
+            5,
+            5.7,
+            49.8,
+            (18, 80),
+            home,
+            eur(13.45, partial=True, unpriced_kwh=2.0),
+            {"battery": 14.4, "grid": 35.4, "solar_percent": 0.0},
+        ),
+    ]
+    return [session.to_dict() for session in reversed(sessions)]
+
+
+def test_a_month_of_charging(snapshot) -> None:
+    sessions = _month_of_charging()
+    html = _render(
+        I5, SCREENS["charging"], sessions=sessions, sessionsExpanded=sessions[0]["start"]
+    )
+    # The month's figures come from its sessions, whatever month it is.
+    assert "108.5" in html and "€22.40" in html
+    # One charge was priced only in part: no price per kWh that would read cheap.
+    assert "per kWh" not in html and "partial price" in html
+    assert "Sessions, 1 away" in html
+    # Where the energy came from, the away charge included.
+    assert "Where it came from" in html and "PV <b>13.3</b>" in html
+    # A bar per day of September, the days still to come flat.
+    assert html.count("spark__bar") == 30 and "is-future" in html
+    # The expanded charge carries its dashed average.
+    assert "chg__chart-avg" in html
+    assert html == snapshot
+
+
+def test_the_charge_in_progress_sits_on_top() -> None:
+    session = {
+        "state": "16.2",
+        "attributes": {
+            "descriptor": "charged_energy_session",
+            "unit_of_measurement": "kWh",
+            "last_reset": "2026-09-09T09:05:00+00:00",
+            "soc_start": 41,
+            "cost_so_far": 1.32,
+            "currency": "EUR",
+            "solar_percent": 64,
+        },
+    }
+    charging = {
+        "state": "chargingactive",
+        "attributes": {"descriptor": "vehicle.drivetrain.electricEngine.charging.status"},
+    }
+    states = {
+        **I5,
+        "sensor.session": session,
+        "sensor.i5_charging": {**I5["sensor.i5_charging"], **charging},
+    }
+    html = _render(states, SCREENS["charging"], sessions=_month_of_charging())
+    assert "chg__session is-live" in html
+    assert "+16.2 kWh" in html and "€1.32" in html
+    # Before the first stored charge, not among them.
+    assert html.index("is-live") < html.index('data-session="')
 
 
 @pytest.mark.parametrize("remembered", [False, True], ids=["list", "map"])
