@@ -17,6 +17,21 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   setup dialog kept waiting. The bookmark now tells you it is from an earlier
   setup and asks you to drag the new one, and the setup steps say to replace
   an older bookmark instead of "once". Thanks to @cloudbr34k84 (#293).
+- **The lock-screen card keeps updating on an iPhone.** When the charging
+  power jumped right after the start, *Charging on the lock screen* sent the
+  card several times within a minute. Before the iPhone had told Home
+  Assistant where the card's updates go, each of those sends started a new
+  card, and the one on the screen could stop updating for the rest of the
+  charge, with no countdown. Now, after each refresh, only a stop or a pause
+  is sent within the next 3 minutes, and a new charge first ends any card left
+  over from an earlier one.
+- **The lock-screen card no longer uses up your phone's notifications.** A
+  phone gets at most 500 notifications a day from Home Assistant, and every
+  refresh of the card counts. A long charge with a swinging wallbox could go
+  past that, and the phone then got message after message saying the limit
+  was reached. The card now refreshes every 5 minutes instead of every 2 (if
+  you kept the default) and never within 3 minutes of the last refresh, so
+  even a whole day of charging stays under 500.
 
 ## [0.9.28-beta.3] - 2026-11-08
 

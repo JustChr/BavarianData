@@ -51,10 +51,11 @@ blueprint:
       name: Update every
       description: >
         How often the card is refreshed while charging. The countdown runs on the
-        phone in between, so a few minutes is plenty; iPhones limit how many
-        updates they show anyway. A change of a tenth or more in the charging
-        power refreshes it at once.
-      default: 2
+        phone in between, so a few minutes is plenty. Every refresh counts
+        against the 500 notifications a phone may get from Home Assistant a day.
+        A change of a tenth or more in the charging power refreshes it sooner,
+        but never within 3 minutes of the last refresh.
+      default: 5
       selector:
         number:
           min: 1
@@ -265,6 +266,29 @@ actions:
                | list | first | default('') }}
           tracker: "{{ entities | select('match', 'device_tracker[.]') | list | first | default('') }}"
           started: "{{ now().timestamp() }}"
+          # After each send, only a stop or the car's status speaks up for this
+          # long. An iPhone needs a moment to tell Home Assistant where the
+          # card's updates go, and until it has, every send starts a card of its
+          # own: three in a minute left one that took no update for the rest of
+          # the charge (live, 8 Nov). It also keeps a long charge well inside
+          # the 500 notifications a phone may get from Home Assistant a day.
+          hold: 180
+      # A new charge: end whatever card this car had. Home Assistant sends
+      # updates to the last card it heard of under this tag, and one left over
+      # (its run cut short) would take this charge's updates. Not on a pick-up
+      # after a restart, which carries the running card on.
+      - if:
+          - condition: trigger
+            id: start
+        then:
+          - repeat:
+              for_each: "{{ notify_actions }}"
+              sequence:
+                - action: "{{ repeat.item }}"
+                  data:
+                    message: clear_notification
+                    data:
+                      tag: "{{ tag }}"
       - repeat:
           sequence:
             # The charge ended while this run was busy: the result's own run
@@ -360,6 +384,7 @@ actions:
                         clickAction: "{{ tap_url }}"
                         silent: true
                         alert_once: true
+            # The hold: only a stop or the car's status, which say so at once.
             - wait_for_trigger:
                 - trigger: event
                   event_type: bavariandata_charging_stopped
@@ -371,31 +396,69 @@ actions:
                   id: status
                   value_template: >-
                     {{ status != '' and active != is_state(status, ['chargingactive', 'initialization']) }}
-                # The power moved a tenth or more from what the card shows: refresh now.
-                - trigger: template
-                  id: power
-                  value_template: >-
-                    {%- set source = wallbox_power if wallbox_power and is_state(tracker, 'home')
-                          and states(wallbox_power) | float(0) > 0 else bmw_power -%}
-                    {%- set unit = state_attr(source, 'unit_of_measurement') -%}
-                    {%- set kw = [(states(source) | float / (1000 if unit == 'W' else 1)) | round(1), 0] | max
-                          if states(source) | is_number else 0 -%}
-                    {{ (kw - power_kw) | abs >= [power_kw * 0.1, 0.1] | max }}
               timeout:
-                minutes: "{{ interval }}"
+                seconds: "{{ [hold, interval * 60] | min }}"
               continue_on_timeout: true
             - if:
                 - condition: template
                   value_template: "{{ wait.trigger is not none and wait.trigger.id == 'stopped' }}"
               then:
                 - stop: The charge ended
-            # Power falls as a charge ends, a moment before the car says so: give
-            # it that moment, so the check above sees the end.
+            # The hold passed quietly: refresh now if the power moved during it,
+            # else wait out the round for a move, a stop or the status.
             - if:
                 - condition: template
-                  value_template: "{{ wait.trigger is not none and wait.trigger.id == 'power' }}"
+                  value_template: "{{ wait.trigger is none }}"
               then:
-                - delay:
-                    seconds: 3
+                - variables:
+                    # The power moved a tenth or more from what the card shows.
+                    drifted: >-
+                      {%- set source = wallbox_power if wallbox_power and is_state(tracker, 'home')
+                            and states(wallbox_power) | float(0) > 0 else bmw_power -%}
+                      {%- set unit = state_attr(source, 'unit_of_measurement') -%}
+                      {%- set kw = [(states(source) | float / (1000 if unit == 'W' else 1)) | round(1), 0] | max
+                            if states(source) | is_number else 0 -%}
+                      {{ (kw - power_kw) | abs >= [power_kw * 0.1, 0.1] | max }}
+                - if:
+                    - condition: template
+                      value_template: "{{ not drifted and interval * 60 > hold }}"
+                  then:
+                    - wait_for_trigger:
+                        - trigger: event
+                          event_type: bavariandata_charging_stopped
+                          event_data:
+                            vin: "{{ vin }}"
+                          id: stopped
+                        - trigger: template
+                          id: status
+                          value_template: >-
+                            {{ status != '' and active != is_state(status, ['chargingactive', 'initialization']) }}
+                        # The same move as above, now refreshing at once.
+                        - trigger: template
+                          id: power
+                          value_template: >-
+                            {%- set source = wallbox_power if wallbox_power and is_state(tracker, 'home')
+                                  and states(wallbox_power) | float(0) > 0 else bmw_power -%}
+                            {%- set unit = state_attr(source, 'unit_of_measurement') -%}
+                            {%- set kw = [(states(source) | float / (1000 if unit == 'W' else 1)) | round(1), 0] | max
+                                  if states(source) | is_number else 0 -%}
+                            {{ (kw - power_kw) | abs >= [power_kw * 0.1, 0.1] | max }}
+                      timeout:
+                        seconds: "{{ interval * 60 - hold }}"
+                      continue_on_timeout: true
+                    - if:
+                        - condition: template
+                          value_template: "{{ wait.trigger is not none and wait.trigger.id == 'stopped' }}"
+                      then:
+                        - stop: The charge ended
+                # Power falls as a charge ends, a moment before the car says so:
+                # give it that moment, so the check above sees the end.
+                - if:
+                    - condition: template
+                      value_template: >-
+                        {{ drifted or (wait.trigger is not none and wait.trigger.id == 'power') }}
+                  then:
+                    - delay:
+                        seconds: 3
           # A charge that never reports its end (a lost event) stops after a day.
           until: "{{ now().timestamp() - started >= 86400 }}"
