@@ -143,12 +143,17 @@ def _health(**overrides):
 def test_battery_health_shows_learning_until_confident() -> None:
     needed = health_module.MIN_SAMPLES
     assert values.battery_health_state(_health()) == 79.5
-    assert values.battery_health_state(_health(confident=False, samples=3)) == (
-        f"Learning (3/{needed})"
-    )
+    # A slug the translations turn into "Learning (3/10)" in the user's language.
+    assert values.battery_health_state(_health(confident=False, samples=3)) == "learning_3"
     assert values.battery_health_state(_health(confident=False, samples=99)) == (
-        f"Learning ({needed}/{needed})"
+        f"learning_{needed}"
     )
+
+
+def test_tyre_status_is_a_lowercase_slug() -> None:
+    assert values.tyre_status_state({"aggregated_status": "DATA_OK"}) == "data_ok"
+    assert values.tyre_status_state({"aggregated_status": None}) is None
+    assert values.tyre_status_state({}) is None
 
 
 def test_battery_health_attributes_and_the_trend() -> None:

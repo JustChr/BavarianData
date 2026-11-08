@@ -709,6 +709,8 @@
       "vehicle_body_chargingport_ishospitalityactive": {
         "name": "Stav uzamčení nabíjecího konektoru po úplném nabití",
         "state": {
+          "hospitality_inactive": "Komfortní funkce neaktivní",
+          "hospitality_active": "Komfortní funkce aktivní",
           "invalid": "Neplatné"
         }
       },
@@ -718,6 +720,9 @@
       "vehicle_body_chargingport_lockedstatus": {
         "name": "Stav uzamknutí nabíjecího portu",
         "state": {
+          "charging_cable_not_locked": "Nabíjecí kabel nezamčen",
+          "charging_cable_locked": "Nabíjecí kabel zamčen",
+          "charging_cable_locking_error_detected": "Chyba zamčení kabelu",
           "unknown": "Neznámé"
         }
       },
@@ -742,6 +747,8 @@
       "vehicle_body_flap_islocked": {
         "name": "Stav nabíjecí klapky",
         "state": {
+          "flap_unlocked": "Klapka odemčena",
+          "flap_locked": "Klapka zamčena",
           "invalid": "Neplatné"
         }
       },
@@ -749,6 +756,8 @@
         "name": "Stav uzamčení nabíjecí klapky",
         "state": {
           "no_action": "Žádná akce",
+          "flap_unlocked": "Klapka odemčena",
+          "flap_locked": "Klapka zamčena",
           "invalid": "Neplatné"
         }
       },
@@ -843,7 +852,11 @@
         "name": "Stav střechy kabrioletu"
       },
       "vehicle_cabin_convertible_roofstatus": {
-        "name": "Stav střechy kabrioletu"
+        "name": "Stav střechy kabrioletu",
+        "state": {
+          "closedsecured": "Zavřeno a zajištěno",
+          "opensecured": "Otevřeno a zajištěno"
+        }
       },
       "vehicle_cabin_door_lock_status": {
         "name": "Stav dveří",
@@ -1158,7 +1171,15 @@
         "name": "Zřeknutí se odpovědnosti ohledně dálkového ovládání klimatizace"
       },
       "vehicle_cabin_hvac_preconditioning_status_comfortstate": {
-        "name": "Stav předúpravy klimatu"
+        "name": "Stav předúpravy klimatu",
+        "state": {
+          "not_active": "Neaktivní",
+          "comfort_heating": "Komfort topení",
+          "comfort_cooling": "Komfort chlazení",
+          "comfort_ventilation": "Komfort větrání",
+          "defrost": "Odmrazování",
+          "comfort_undefined": "Nedefinováno"
+        }
       },
       "vehicle_cabin_hvac_preconditioning_status_isexteriormirrorheatingactive": {
         "name": "Vyhřívání vnějších zpětných zrcátek aktivní"
@@ -1175,6 +1196,9 @@
       "vehicle_cabin_hvac_statusairpurification": {
         "name": "Stav čištění vzduchu HVAC",
         "state": {
+          "unfiltered": "Nefiltrováno",
+          "purifying_ongoing": "Čištění probíhá",
+          "purified": "Vyčištěno",
           "invalid": "Neplatné"
         }
       },
@@ -1199,7 +1223,12 @@
         "name": "Nadmořská výška vozidla"
       },
       "vehicle_cabin_infotainment_navigation_currentlocation_fixstatus": {
-        "name": "Stav určování polohy navigace"
+        "name": "Stav určování polohy navigace",
+        "state": {
+          "no_fix": "Bez signálu GPS",
+          "gps_fix_2d": "Poloha GPS 2D",
+          "gps_fix_3d": "Poloha GPS 3D"
+        }
       },
       "vehicle_cabin_infotainment_navigation_currentlocation_heading": {
         "name": "Orientace vozidla"
@@ -1278,6 +1307,8 @@
         "state": {
           "invalid": "Neplatné",
           "open": "Otevřeno",
+          "open_tilt": "Vyklopeno",
+          "intermediate_tilt": "Částečně vyklopeno",
           "closed": "Zavřeno"
         }
       },
@@ -1344,7 +1375,10 @@
       "vehicle_channel_ista_obfcm_lasttransmissionstatus": {
         "name": "Stavová informace o posledním přenosu hodnot OBFCM*",
         "state": {
-          "ok": "OK"
+          "ok": "OK",
+          "ecu_communication_error": "Chyba komunikace řídicí jednotky",
+          "vehicle_manipulation_detected": "Zjištěna manipulace s vozidlem",
+          "manufacturer_excluded": "Vyloučeno výrobcem"
         }
       },
       "vehicle_channel_ngtp_timevehicle": {
@@ -1363,7 +1397,13 @@
         "name": "Teleservice Report"
       },
       "vehicle_channel_teleservice_status": {
-        "name": "Dostupnost služeb vzdálené obsluhy"
+        "name": "Dostupnost služeb vzdálené obsluhy",
+        "state": {
+          "pending": "Čeká",
+          "idle": "Připraveno",
+          "successful": "Úspěšné",
+          "error": "Chyba"
+        }
       },
       "vehicle_chassis_axle_row1_wheel_left_tire_pressure": {
         "name": "Změřený tlak v pneumatice vpředu vlevo"
@@ -1420,11 +1460,20 @@
         "name": "Nabíjecí střídaný proud"
       },
       "vehicle_drivetrain_electricengine_charging_acrestriction_factor": {
-        "name": "Faktor omezení AC nabíjení"
+        "name": "Faktor omezení AC nabíjení",
+        "state": {
+          "maxcharging": "Maximální nabíjecí proud",
+          "reducedcharging": "Snížený nabíjecí proud",
+          "mincharging": "Minimální nabíjecí proud"
+        }
       },
       "vehicle_drivetrain_electricengine_charging_acrestriction_ischosen": {
         "name": "Omezení a výběr nabíjecího AC proudu",
         "state": {
+          "notchosen": "Nevybráno",
+          "chosen": "Vybráno",
+          "reducedcharging": "Snížený nabíjecí proud",
+          "mincharging": "Minimální nabíjecí proud",
           "invalid": "Neplatné"
         }
       },
@@ -1432,19 +1481,41 @@
         "name": "Nabíjecí napětí (při střídavém proudu)"
       },
       "vehicle_drivetrain_electricengine_charging_authentication_status": {
-        "name": "Stav ověření nabíjení"
+        "name": "Stav ověření nabíjení",
+        "state": {
+          "authorization_successful": "Autorizace úspěšná",
+          "transport_layer_error": "Chyba transportní vrstvy",
+          "high_level_communication_error": "Chyba komunikace (vysoká úroveň)",
+          "contract_service_not_supported_error": "Smluvní služba není podporována",
+          "authorization_error": "Chyba autorizace",
+          "authorization_timeout": "Vypršel časový limit autorizace",
+          "nvm_read_certificate_error": "Chyba při čtení certifikátu",
+          "certificate_update_error": "Chyba při aktualizaci certifikátu",
+          "xml_security_error": "Chyba zabezpečení XML"
+        }
       },
       "vehicle_drivetrain_electricengine_charging_chargingmode": {
-        "name": "Režim nabíjení"
+        "name": "Režim nabíjení",
+        "state": {
+          "normal_prognose_based": "Normální (podle prognózy)",
+          "step_based": "Stupňovitý",
+          "plc_mode": "Režim PLC"
+        }
       },
       "vehicle_drivetrain_electricengine_charging_connectiontype": {
-        "name": "Proces nabíjení vysokonapěťového akumulátoru (indukční/kondukční)"
+        "name": "Proces nabíjení vysokonapěťového akumulátoru (indukční/kondukční)",
+        "state": {
+          "conductive": "Kabelem",
+          "inductive": "Indukční",
+          "signal_invalid": "Neplatný signál"
+        }
       },
       "vehicle_drivetrain_electricengine_charging_connectorstatus": {
         "name": "Stav nabíjecího konektoru",
         "state": {
           "connected": "Připojeno",
-          "disconnected": "Odpojeno"
+          "disconnected": "Odpojeno",
+          "error": "Chyba"
         }
       },
       "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineoff_gridenergy": {
@@ -1468,13 +1539,28 @@
       "vehicle_drivetrain_electricengine_charging_hvstatus": {
         "name": "Stav vysokonapěťového nabíjecího systému",
         "state": {
-          "invalid": "Neplatné"
+          "invalid": "Neplatné",
+          "charging": "Nabíjí se",
+          "error": "Chyba",
+          "not_charging": "Nenabíjí se",
+          "waiting_for_charging": "Čeká na nabíjení",
+          "finished_fully_charged": "Dokončeno, plně nabito",
+          "finished_not_full": "Dokončeno, ne plně"
         }
       },
       "vehicle_drivetrain_electricengine_charging_hvpmfinishreason": {
         "name": "Příčina pro ukončení procesu nabíjení",
         "state": {
           "unknown": "Neznámé",
+          "charging_goal_reached": "Cíl nabíjení dosažen",
+          "end_requested_by_driver": "Ukončeno řidičem",
+          "connector_removed": "Konektor odpojen",
+          "powergrid_failed": "Výpadek elektrické sítě",
+          "hv_system_failure": "Porucha vysokonapěťového systému",
+          "charging_station_failure": "Porucha nabíjecí stanice",
+          "parking_lock_failed": "Parkovací zámek selhal",
+          "no_parking_lock": "Bez parkovacího zámku",
+          "signal_invalid": "Neplatný signál",
           "invalid": "Neplatné"
         }
       },
@@ -1484,18 +1570,30 @@
       "vehicle_drivetrain_electricengine_charging_issingleimmediatecharging": {
         "name": "Stav funkce okamžitého nabíjení",
         "state": {
+          "direct_chg_once_not_active": "Jednorázové okamžité nabíjení neaktivní",
+          "direct_chg_once_active": "Jednorázové okamžité nabíjení aktivní",
           "invalid": "Neplatné"
         }
       },
       "vehicle_drivetrain_electricengine_charging_lastchargingreason": {
         "name": "Důvod posledního nabíjení",
         "state": {
+          "charging_goal_reached": "Cíl nabíjení dosažen",
+          "end_requested_by_driver": "Ukončeno řidičem",
+          "connector_removed": "Konektor odpojen",
+          "powergrid_failed": "Výpadek elektrické sítě",
+          "hv_system_failure": "Porucha vysokonapěťového systému",
+          "charging_station_failure": "Porucha nabíjecí stanice",
+          "parking_lock_failed": "Parkovací zámek selhal",
+          "no_parking_lock": "Bez parkovacího zámku",
           "invalid": "Neplatné"
         }
       },
       "vehicle_drivetrain_electricengine_charging_lastchargingresult": {
         "name": "Výsledek posledního nabíjení",
         "state": {
+          "success": "Úspěšné",
+          "failed": "Selhalo",
           "unknown": "Neznámé"
         }
       },
@@ -1505,12 +1603,25 @@
       "vehicle_drivetrain_electricengine_charging_method": {
         "name": "Metoda nabíjení a typ zástrčky",
         "state": {
+          "ac_type1plug": "Konektor AC typ 1",
+          "ac_type2plug": "Konektor AC typ 2",
           "nocharging": "Nenabíjí se"
         }
       },
       "vehicle_drivetrain_electricengine_charging_modedeviation": {
         "name": "Odchylka režimu nabíjení",
         "state": {
+          "no_deviation": "Bez odchylky",
+          "dc_dynamic_malibu": "DC dynamické (Malibu)",
+          "dc_dynamic_min_soe_protection": "DC dynamické (ochrana minimálního nabití)",
+          "immediate_charging_not_supported_by_evse": "Okamžité nabíjení stanice nepodporuje",
+          "immediate_charging_wake_up_limit_reached": "Okamžité nabíjení: dosažen limit probuzení",
+          "immediate_charging": "Okamžité nabíjení",
+          "charging_timeslot": "Nabíjecí okno",
+          "charging_in_timeslot": "Nabíjení v časovém okně",
+          "smart_charging": "Chytré nabíjení",
+          "dc_dynamic": "DC dynamické",
+          "bidirectional_charging": "Obousměrné nabíjení",
           "no_action": "Žádná akce",
           "unknown": "Neznámé"
         }
@@ -1518,6 +1629,10 @@
       "vehicle_drivetrain_electricengine_charging_phasenumber": {
         "name": "Proces nabíjení vysokonapěťového akumulátoru (fáze)",
         "state": {
+          "no_charging": "Nenabíjí se",
+          "1-phases": "1 fáze",
+          "2-phases": "2 fáze",
+          "3-phases": "3 fáze",
           "invalid": "Neplatné"
         }
       },
@@ -1531,7 +1646,12 @@
         "name": "Režim nabíjení"
       },
       "vehicle_drivetrain_electricengine_charging_profile_preference": {
-        "name": "Předvolby nabíjecího profilu"
+        "name": "Předvolby nabíjecího profilu",
+        "state": {
+          "charging_window": "Nabíjecí okno",
+          "smart_charging": "Chytré nabíjení",
+          "no_preselection": "Bez předvolby"
+        }
       },
       "vehicle_drivetrain_electricengine_charging_profile_settings_bidirectionalcharging_departuretimerelevant": {
         "name": "Relevantní čas odjezdu"
@@ -1543,10 +1663,73 @@
         "name": "Typ časovače nabíjení"
       },
       "vehicle_drivetrain_electricengine_charging_reasonchargingend": {
-        "name": "Důvod, proč nabíjení skončilo"
+        "name": "Důvod, proč nabíjení skončilo",
+        "state": {
+          "no_charging_end_since_ipf_wakeup": "Žádné ukončení nabíjení od probuzení",
+          "customer_interaction_hmi_unplug_cable_once": "Řidič: kabel jednorázově odemčen (vozidlo)",
+          "customer_interaction_hmi_charging_target_reached": "Řidič: cíl nabíjení dosažen (vozidlo)",
+          "customer_interaction_app_unplug_cable_once": "Řidič: kabel jednorázově odemčen (aplikace)",
+          "customer_interaction_app_charging_target_reached": "Řidič: cíl nabíjení dosažen (aplikace)",
+          "customer_interaction_charging_stop_via_charging_stop_button_socket": "Řidič: tlačítko stop na nabíjecí zásuvce",
+          "customer_interaction_ac_charging_stop_via_key": "Řidič: nabíjení AC ukončeno klíčem",
+          "customer_interaction_ac_charging_stop_wallbox": "Řidič: nabíjení AC ukončeno na wallboxu",
+          "customer_interaction_ac_charging_stop_latch": "Řidič: nabíjení AC ukončeno západkou",
+          "hv_battery_fully_charged": "Vysokonapěťová baterie plně nabita",
+          "infrastructure_physical_limits_reached_target_soe_not_reachable": "Stanice: dosažen limit, cíl nedosažitelný",
+          "infrastructure_dc_ccs_evse_shutdown": "Stanice: vypnutí DC CCS",
+          "infrastructure_dc_gbt_cst_message": "Stanice: zpráva o zastavení DC GB/T",
+          "infrastructure_dc_ccs_static_pilot": "Stanice: statický pilotní signál DC CCS",
+          "infrastructure_dc_ccs_communication_error_failed_response_code": "Stanice: chyba komunikace DC CCS (kód odpovědi)",
+          "infrastructure_dc_ccs_communication_error": "Stanice: chyba komunikace DC CCS",
+          "infrastructure_no_energy_transfer": "Stanice: žádný přenos energie",
+          "infrastructure_dc_ccs_precharge_error": "Stanice: chyba předběžného nabití DC CCS",
+          "infrastructure_dc_ccs_evse_malfunction_emergency_shutdown": "Stanice: porucha DC CCS, nouzové vypnutí",
+          "infrastructure_station_not_compatible": "Nabíjecí stanice není kompatibilní",
+          "infrastructure_charge_readiness_timeout": "Stanice: vypršela připravenost k nabíjení",
+          "infrastructure_ac_maximum_grid_error_reached": "Stanice: dosažen maximální počet chyb sítě AC",
+          "infrastructure_dc_gbt_isolation_error_detected": "Stanice: chyba izolace DC GB/T",
+          "infrastructure_authentification_error": "Stanice: chyba ověření",
+          "vehicle_hv_battery_error": "Vozidlo: porucha vysokonapěťové baterie",
+          "vehicle_hv_battery_communication_error": "Vozidlo: chyba komunikace vysokonapěťové baterie",
+          "vehicle_dcdc_error": "Vozidlo: porucha měniče DC/DC",
+          "vehicle_plc_bootup_error": "Vozidlo: chyba spuštění PLC",
+          "vehicle_hv_battery_maximal_current_overshoot": "Vozidlo: překročen maximální proud vysokonapěťové baterie",
+          "vehicle_isolation_error": "Vozidlo: chyba izolace",
+          "vehicle_maximum_temperature_charging_socket_overshoot": "Vozidlo: přehřátá nabíjecí zásuvka",
+          "vehicle_lt3_overshoot": "Vozidlo: překročen limit LT3",
+          "vehicle_fusi_cable_lock_error": "Vozidlo: chyba zámku kabelu (bezpečnost)",
+          "vehicle_plc_communication_not_possible": "Vozidlo: komunikace PLC není možná",
+          "flexcharger_grid_error": "Flexibilní nabíječka: chyba sítě",
+          "flexcharger_grid_temperature_error": "Flexibilní nabíječka: chyba teploty sítě",
+          "flexcharger_evse_temperature_error": "Flexibilní nabíječka: chyba teploty",
+          "flexcharger_evse_internal_error": "Flexibilní nabíječka: interní chyba",
+          "flexcharger_ac_dc_fault_current": "Flexibilní nabíječka: chybový proud AC/DC",
+          "flexcharger_incorrect_reaction_time_pwm": "Flexibilní nabíječka: nesprávná reakční doba PWM",
+          "flexcharger_charging_current_too_high": "Flexibilní nabíječka: příliš vysoký nabíjecí proud",
+          "flexcharger_pe_fault": "Flexibilní nabíječka: chyba ochranného vodiče",
+          "infrastructure_inefficient_charging_low_power": "Stanice: neefektivní nabíjení, příliš nízký výkon",
+          "vehicle_cable_locking_error": "Vozidlo: chyba zamčení kabelu",
+          "vehicle_configuration_error_400v_800v": "Vozidlo: chyba konfigurace 400 V / 800 V",
+          "infrastructure_no_ac_voltage": "Stanice: žádné napětí AC",
+          "plug_and_charge_tls_error": "Plug & Charge: chyba TLS",
+          "plug_and_charge_contract_error": "Plug & Charge: chyba smlouvy",
+          "smart_charging_tariff_selection_invalid": "Chytré nabíjení: neplatný výběr tarifu",
+          "smart_charging_charging_profile_invalid": "Chytré nabíjení: neplatný nabíjecí profil",
+          "customer_interaction_ac_charging_stop_via_app": "Řidič: nabíjení AC ukončeno v aplikaci",
+          "charging_paused": "Nabíjení pozastaveno",
+          "discharge_not_possible_voltage_too_high": "Vybíjení není možné: příliš vysoké napětí",
+          "discharge_not_possible_soe_too_low": "Vybíjení není možné: příliš nízké nabití",
+          "discharge_not_possible_internal_error": "Vybíjení není možné: interní chyba",
+          "discharge_not_possible_incompatible_adapter": "Vybíjení není možné: nekompatibilní adaptér",
+          "discharge_not_possible_incompatible_consumer": "Vybíjení není možné: nekompatibilní spotřebič"
+        }
       },
       "vehicle_drivetrain_electricengine_charging_routeoptimizedchargingstatus": {
-        "name": "Stav nabíjení optimalizovaný podle trasy"
+        "name": "Stav nabíjení optimalizovaný podle trasy",
+        "state": {
+          "route_optimized_charging_in_progress": "Nabíjení optimalizované pro trasu probíhá",
+          "route_optimized_soc_target_reached": "Cíl nabíjení optimalizovaný pro trasu dosažen"
+        }
       },
       "vehicle_drivetrain_electricengine_charging_smeenergydeltafullycharged": {
         "name": "Využitelné energie z vysokonapěťové baterie (plně nabitá, předpokládaná)"
@@ -1571,7 +1754,11 @@
         "name": "Vypočítaná zbývající doba nabíjení vysokonapěťového akumulátoru"
       },
       "vehicle_drivetrain_electricengine_charging_windowselection": {
-        "name": "Nastavení časového intervalu pro nabíjení"
+        "name": "Nastavení časového intervalu pro nabíjení",
+        "state": {
+          "chosen": "Vybráno",
+          "notchosen": "Nevybráno"
+        }
       },
       "vehicle_drivetrain_electricengine_hvsmaxenergyabsolute": {
         "name": "Maximální obsah energie vysokonapěťového akumulátoru"
@@ -1658,11 +1845,23 @@
         "name": "Obrázek vozidla"
       },
       "vehicle_powertrain_electric_battery_bidirectionalcharging_availability": {
-        "name": "Možnost obousměrného nabíjení"
+        "name": "Možnost obousměrného nabíjení",
+        "state": {
+          "available": "K dispozici",
+          "not_available": "Není k dispozici",
+          "disabled_malibu": "Vypnuto (Malibu)",
+          "disabled_hvs": "Vypnuto (vysokonapěťová baterie)",
+          "bpt_and_imo_disabled": "Zpětné dodávání a imobilizér vypnuty",
+          "bpt_only_for_emergency_power_supply": "Zpětné dodávání jen pro nouzové napájení",
+          "disabled_imo_possible": "Vypnuto, imobilizér možný",
+          "disabled_long_term": "Trvale vypnuto"
+        }
       },
       "vehicle_powertrain_electric_battery_charging_aclimit_isactive": {
         "name": "Stav omezení nabíjení",
         "state": {
+          "ac_limit_inactive": "Omezení AC neaktivní",
+          "ac_limit_active": "Omezení AC aktivní",
           "invalid": "Neplatné"
         }
       },
@@ -1679,12 +1878,23 @@
         "name": "Akustické omezení procesu nabíjení",
         "state": {
           "no_action": "Žádná akce",
-          "automatic": "Automaticky"
+          "automatic": "Automaticky",
+          "unlimited": "Neomezeno",
+          "limited": "Omezeno"
         }
       },
       "vehicle_powertrain_electric_battery_charging_authenticationstatus": {
         "name": "Stav ověření nabíjení",
         "state": {
+          "not_started": "Nespuštěno",
+          "started_eim": "Spuštěno (EIM)",
+          "started_pnc": "Spuštěno (Plug & Charge)",
+          "started_plc_eim": "Spuštěno (PLC EIM)",
+          "done_eim": "Dokončeno (EIM)",
+          "done_plc_eim": "Dokončeno (PLC EIM)",
+          "done_pnc": "Dokončeno (Plug & Charge)",
+          "failed_plc_eim": "Selhalo (PLC EIM)",
+          "failed_pnc": "Selhalo (Plug & Charge)",
           "unknown": "Neznámé"
         }
       },
@@ -1701,7 +1911,12 @@
         "name": "Kontrolní napětí kabelu"
       },
       "vehicle_powertrain_electric_battery_charging_dcchargingmodeactive": {
-        "name": "Režim nabíjení DC aktivní"
+        "name": "Režim nabíjení DC aktivní",
+        "state": {
+          "efficient": "Úsporný",
+          "standard": "Standardní",
+          "performance": "Výkon"
+        }
       },
       "vehicle_powertrain_electric_battery_charging_history_sessionslist": {
         "name": "Historie nabíjení"
@@ -1712,6 +1927,9 @@
       "vehicle_powertrain_electric_battery_charging_preferencesmartcharging": {
         "name": "Volba nabíjení „Smart Charging“",
         "state": {
+          "price_optimized": "Optimalizováno podle ceny",
+          "renewable_energey": "Obnovitelná energie",
+          "co2_optimized": "Optimalizováno podle CO₂",
           "invalid": "Neplatné"
         }
       },
@@ -1723,6 +1941,7 @@
         "state": {
           "off": "Vypnuto",
           "on": "Zapnuto",
+          "temp_off": "Dočasně vypnuto",
           "unknown": "Neznámé"
         }
       },
@@ -1730,6 +1949,8 @@
         "name": "Ruční zpětná vazba stavu předúpravy",
         "state": {
           "off": "Vypnuto",
+          "on_charge": "Při nabíjení",
+          "on_drive": "Při jízdě",
           "unknown": "Neznámé"
         }
       },
@@ -1737,6 +1958,12 @@
         "name": "Stav předúpravy",
         "state": {
           "off": "Vypnuto",
+          "on_legacy": "Zapnuto (starší metoda)",
+          "manual_on_charge": "Ručně při nabíjení",
+          "automatic_on": "Automaticky zapnuto",
+          "remote_on_charge": "Vzdálené spuštění při nabíjení",
+          "remote_on_drive": "Vzdálené spuštění pro jízdu",
+          "remote_off": "Vzdáleně vypnuto",
           "unknown": "Neznámé"
         }
       },
@@ -1758,12 +1985,19 @@
       "vehicle_powertrain_electric_chargingduration_displaycontrol": {
         "name": "Zobrazení doby nabíjení",
         "state": {
+          "no_display_time_for_charging": "Nezobrazovat čas nabíjení",
+          "display_charging_duration": "Zobrazit dobu nabíjení",
+          "no_display_charging_duration": "Nezobrazovat dobu nabíjení",
           "invalid": "Neplatné"
         }
       },
       "vehicle_powertrain_electric_departuretime_displaycontrol": {
         "name": "Zobrazení času odjezdu",
         "state": {
+          "dont_display": "Nezobrazovat",
+          "display_departure_time": "Zobrazit čas odjezdu",
+          "display_departure_time_with_v2xsoe": "Zobrazit čas odjezdu s úrovní nabití V2X",
+          "no_display_departure_time": "Nezobrazovat čas odjezdu",
           "unknown": "Neznámé"
         }
       },
@@ -2031,7 +2265,20 @@
         "name": "Náklady na nabíjení na 100 km"
       },
       "battery_health": {
-        "name": "Stav baterie"
+        "name": "Stav baterie",
+        "state": {
+          "learning_0": "Učení (0/10)",
+          "learning_1": "Učení (1/10)",
+          "learning_2": "Učení (2/10)",
+          "learning_3": "Učení (3/10)",
+          "learning_4": "Učení (4/10)",
+          "learning_5": "Učení (5/10)",
+          "learning_6": "Učení (6/10)",
+          "learning_7": "Učení (7/10)",
+          "learning_8": "Učení (8/10)",
+          "learning_9": "Učení (9/10)",
+          "learning_10": "Učení (10/10)"
+        }
       },
       "driving_distance_month": {
         "name": "Ujetá vzdálenost (tento měsíc)"
@@ -2040,19 +2287,47 @@
         "name": "Skutečný dojezd"
       },
       "tyre_status": {
-        "name": "Stav pneumatik"
+        "name": "Stav pneumatik",
+        "state": {
+          "good": "Dobrý",
+          "data_ok": "Data OK"
+        }
       },
       "tyre_front_left": {
-        "name": "Pneumatika přední levá"
+        "name": "Pneumatika přední levá",
+        "state": {
+          "green": "Zelená",
+          "yellow": "Žlutá",
+          "red": "Červená",
+          "grey": "Šedá"
+        }
       },
       "tyre_front_right": {
-        "name": "Pneumatika přední pravá"
+        "name": "Pneumatika přední pravá",
+        "state": {
+          "green": "Zelená",
+          "yellow": "Žlutá",
+          "red": "Červená",
+          "grey": "Šedá"
+        }
       },
       "tyre_rear_left": {
-        "name": "Pneumatika zadní levá"
+        "name": "Pneumatika zadní levá",
+        "state": {
+          "green": "Zelená",
+          "yellow": "Žlutá",
+          "red": "Červená",
+          "grey": "Šedá"
+        }
       },
       "tyre_rear_right": {
-        "name": "Pneumatika zadní pravá"
+        "name": "Pneumatika zadní pravá",
+        "state": {
+          "green": "Zelená",
+          "yellow": "Žlutá",
+          "red": "Červená",
+          "grey": "Šedá"
+        }
       },
       "last_vehicle_report": {
         "name": "Poslední hlášení vozidla"

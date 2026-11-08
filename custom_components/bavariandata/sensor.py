@@ -875,7 +875,7 @@ class CardataBatteryHealthSensor(CardataEntity, SensorEntity):
     The single state a user should read for "how healthy is my battery". It
     refuses to show a figure until it has enough good samples *and* those samples
     agree with BMW's own capacity number: until then the state is
-    ``Learning (n/10)`` rather than a value that would jump around as early,
+    ``learning_n`` (shown as "Learning (n/10)") rather than a value that would jump around as early,
     noisy samples arrive. The degradation trend and the vs-new figure ride along
     as attributes so the card can draw them without a second data source.
     """
@@ -1336,7 +1336,7 @@ class CardataTyreStatusSensor(CardataTyreEntity):
 
     @property
     def native_value(self) -> Any:
-        return self._diagnosis.get("aggregated_status")
+        return sensor_values.tyre_status_state(self._diagnosis)
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:

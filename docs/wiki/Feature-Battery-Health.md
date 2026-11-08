@@ -66,6 +66,9 @@ estimate agrees with BMW's own capacity figure. A suspicious number is
 **withheld rather than shown** — a health figure that jumped around would be
 worse than an honest "not sure yet."
 
+In an automation or template, the state itself is `learning_0` … `learning_10`;
+*Learning (n/10)* is how Home Assistant shows it, in your language.
+
 To reach a confident number faster, do a few **wide-range charges** (a large SoC
 swing in one session) rather than many small top-ups.
 

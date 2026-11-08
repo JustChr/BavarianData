@@ -43,7 +43,7 @@ DERIVED = {
     for platform, entries in json.loads(
         (_TOOLS / "derived_entities.json").read_text(encoding="utf-8")
     ).items()
-    if not platform.startswith("_")
+    if not platform.startswith("_") and platform != "states"
 }
 
 
@@ -180,6 +180,37 @@ def test_enum_options_have_english_state_labels():
         states = EN["entity"]["sensor"][key].get("state", {})
         for option in options:
             assert option in states, f"{key} missing state label for {option}"
+
+
+def test_every_state_label_exists_in_every_language():
+    """No enum state falls back to English outside English (issue #300).
+
+    Home Assistant shows the English label when a language has none, so a
+    missing row in ``_STATE_ROWS`` (or a derived entity's ``states``) reads as
+    a half-translated dashboard -- 202 states did, before #300.
+    """
+
+    for platform in ("sensor", "binary_sensor"):
+        for key, entry in EN["entity"][platform].items():
+            for state in entry.get("state", {}):
+                for lang, doc in LANGUAGES.items():
+                    labels = doc["entity"][platform].get(key, {}).get("state", {})
+                    assert labels.get(state), f"{lang}: {platform}.{key} state {state!r}"
+
+
+def test_battery_health_learning_states_cover_every_sample_count():
+    # The sensor reads learning_0 .. learning_<MIN_SAMPLES>; each needs a label.
+    min_samples = int(
+        re.search(
+            r"^MIN_SAMPLES = (\d+)$",
+            (_PKG / "history" / "health.py").read_text(encoding="utf-8"),
+            re.M,
+        ).group(1)
+    )
+    states = EN["entity"]["sensor"]["battery_health"]["state"]
+    assert set(states) == {f"learning_{n}" for n in range(min_samples + 1)}
+    for n in range(min_samples + 1):
+        assert f"({n}/{min_samples})" in states[f"learning_{n}"]
 
 
 UNITS = _load("units", "units.py")

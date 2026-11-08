@@ -10,7 +10,11 @@
     "",
     "English strings must stay byte-identical to the names these entities had",
     "before they were moved into the translation pipeline, otherwise existing",
-    "installs would see their entities renamed."
+    "installs would see their entities renamed.",
+    "",
+    "\"states\" labels the states of these entities, per platform and key, the",
+    "same way BMW's enum values are labeled (issue #300). A state Home Assistant",
+    "should translate must be a lowercase slug."
   ],
   "sensor": {
     "soc_estimate": {
@@ -344,6 +348,370 @@
       "pt": "Calendário de manutenção",
       "cs": "Servisní kalendář",
       "sv": "Servicekalender"
+    }
+  },
+  "states": {
+    "sensor": {
+      "tyre_front_left": {
+        "green": {
+          "en": "Green",
+          "de": "Grün",
+          "fr": "Vert",
+          "it": "Verde",
+          "es": "Verde",
+          "nl": "Groen",
+          "pl": "Zielony",
+          "pt": "Verde",
+          "cs": "Zelená",
+          "sv": "Grön"
+        },
+        "yellow": {
+          "en": "Yellow",
+          "de": "Gelb",
+          "fr": "Jaune",
+          "it": "Giallo",
+          "es": "Amarillo",
+          "nl": "Geel",
+          "pl": "Żółty",
+          "pt": "Amarelo",
+          "cs": "Žlutá",
+          "sv": "Gul"
+        },
+        "red": {
+          "en": "Red",
+          "de": "Rot",
+          "fr": "Rouge",
+          "it": "Rosso",
+          "es": "Rojo",
+          "nl": "Rood",
+          "pl": "Czerwony",
+          "pt": "Vermelho",
+          "cs": "Červená",
+          "sv": "Röd"
+        },
+        "grey": {
+          "en": "Gray",
+          "de": "Grau",
+          "fr": "Gris",
+          "it": "Grigio",
+          "es": "Gris",
+          "nl": "Grijs",
+          "pl": "Szary",
+          "pt": "Cinzento",
+          "cs": "Šedá",
+          "sv": "Grå"
+        }
+      },
+      "tyre_front_right": {
+        "green": {
+          "en": "Green",
+          "de": "Grün",
+          "fr": "Vert",
+          "it": "Verde",
+          "es": "Verde",
+          "nl": "Groen",
+          "pl": "Zielony",
+          "pt": "Verde",
+          "cs": "Zelená",
+          "sv": "Grön"
+        },
+        "yellow": {
+          "en": "Yellow",
+          "de": "Gelb",
+          "fr": "Jaune",
+          "it": "Giallo",
+          "es": "Amarillo",
+          "nl": "Geel",
+          "pl": "Żółty",
+          "pt": "Amarelo",
+          "cs": "Žlutá",
+          "sv": "Gul"
+        },
+        "red": {
+          "en": "Red",
+          "de": "Rot",
+          "fr": "Rouge",
+          "it": "Rosso",
+          "es": "Rojo",
+          "nl": "Rood",
+          "pl": "Czerwony",
+          "pt": "Vermelho",
+          "cs": "Červená",
+          "sv": "Röd"
+        },
+        "grey": {
+          "en": "Gray",
+          "de": "Grau",
+          "fr": "Gris",
+          "it": "Grigio",
+          "es": "Gris",
+          "nl": "Grijs",
+          "pl": "Szary",
+          "pt": "Cinzento",
+          "cs": "Šedá",
+          "sv": "Grå"
+        }
+      },
+      "tyre_rear_left": {
+        "green": {
+          "en": "Green",
+          "de": "Grün",
+          "fr": "Vert",
+          "it": "Verde",
+          "es": "Verde",
+          "nl": "Groen",
+          "pl": "Zielony",
+          "pt": "Verde",
+          "cs": "Zelená",
+          "sv": "Grön"
+        },
+        "yellow": {
+          "en": "Yellow",
+          "de": "Gelb",
+          "fr": "Jaune",
+          "it": "Giallo",
+          "es": "Amarillo",
+          "nl": "Geel",
+          "pl": "Żółty",
+          "pt": "Amarelo",
+          "cs": "Žlutá",
+          "sv": "Gul"
+        },
+        "red": {
+          "en": "Red",
+          "de": "Rot",
+          "fr": "Rouge",
+          "it": "Rosso",
+          "es": "Rojo",
+          "nl": "Rood",
+          "pl": "Czerwony",
+          "pt": "Vermelho",
+          "cs": "Červená",
+          "sv": "Röd"
+        },
+        "grey": {
+          "en": "Gray",
+          "de": "Grau",
+          "fr": "Gris",
+          "it": "Grigio",
+          "es": "Gris",
+          "nl": "Grijs",
+          "pl": "Szary",
+          "pt": "Cinzento",
+          "cs": "Šedá",
+          "sv": "Grå"
+        }
+      },
+      "tyre_rear_right": {
+        "green": {
+          "en": "Green",
+          "de": "Grün",
+          "fr": "Vert",
+          "it": "Verde",
+          "es": "Verde",
+          "nl": "Groen",
+          "pl": "Zielony",
+          "pt": "Verde",
+          "cs": "Zelená",
+          "sv": "Grön"
+        },
+        "yellow": {
+          "en": "Yellow",
+          "de": "Gelb",
+          "fr": "Jaune",
+          "it": "Giallo",
+          "es": "Amarillo",
+          "nl": "Geel",
+          "pl": "Żółty",
+          "pt": "Amarelo",
+          "cs": "Žlutá",
+          "sv": "Gul"
+        },
+        "red": {
+          "en": "Red",
+          "de": "Rot",
+          "fr": "Rouge",
+          "it": "Rosso",
+          "es": "Rojo",
+          "nl": "Rood",
+          "pl": "Czerwony",
+          "pt": "Vermelho",
+          "cs": "Červená",
+          "sv": "Röd"
+        },
+        "grey": {
+          "en": "Gray",
+          "de": "Grau",
+          "fr": "Gris",
+          "it": "Grigio",
+          "es": "Gris",
+          "nl": "Grijs",
+          "pl": "Szary",
+          "pt": "Cinzento",
+          "cs": "Šedá",
+          "sv": "Grå"
+        }
+      },
+      "tyre_status": {
+        "good": {
+          "en": "Good",
+          "de": "Gut",
+          "fr": "Bon",
+          "it": "Buono",
+          "es": "Bueno",
+          "nl": "Goed",
+          "pl": "Dobry",
+          "pt": "Bom",
+          "cs": "Dobrý",
+          "sv": "Bra"
+        },
+        "data_ok": {
+          "en": "Data OK",
+          "de": "Daten OK",
+          "fr": "Données OK",
+          "it": "Dati OK",
+          "es": "Datos OK",
+          "nl": "Gegevens OK",
+          "pl": "Dane OK",
+          "pt": "Dados OK",
+          "cs": "Data OK",
+          "sv": "Data OK"
+        }
+      },
+      "battery_health": {
+        "learning_0": {
+          "en": "Learning (0/10)",
+          "de": "Lernt (0/10)",
+          "fr": "Apprentissage (0/10)",
+          "it": "Apprendimento (0/10)",
+          "es": "Aprendiendo (0/10)",
+          "nl": "Aan het leren (0/10)",
+          "pl": "Uczenie (0/10)",
+          "pt": "A aprender (0/10)",
+          "cs": "Učení (0/10)",
+          "sv": "Lär sig (0/10)"
+        },
+        "learning_1": {
+          "en": "Learning (1/10)",
+          "de": "Lernt (1/10)",
+          "fr": "Apprentissage (1/10)",
+          "it": "Apprendimento (1/10)",
+          "es": "Aprendiendo (1/10)",
+          "nl": "Aan het leren (1/10)",
+          "pl": "Uczenie (1/10)",
+          "pt": "A aprender (1/10)",
+          "cs": "Učení (1/10)",
+          "sv": "Lär sig (1/10)"
+        },
+        "learning_2": {
+          "en": "Learning (2/10)",
+          "de": "Lernt (2/10)",
+          "fr": "Apprentissage (2/10)",
+          "it": "Apprendimento (2/10)",
+          "es": "Aprendiendo (2/10)",
+          "nl": "Aan het leren (2/10)",
+          "pl": "Uczenie (2/10)",
+          "pt": "A aprender (2/10)",
+          "cs": "Učení (2/10)",
+          "sv": "Lär sig (2/10)"
+        },
+        "learning_3": {
+          "en": "Learning (3/10)",
+          "de": "Lernt (3/10)",
+          "fr": "Apprentissage (3/10)",
+          "it": "Apprendimento (3/10)",
+          "es": "Aprendiendo (3/10)",
+          "nl": "Aan het leren (3/10)",
+          "pl": "Uczenie (3/10)",
+          "pt": "A aprender (3/10)",
+          "cs": "Učení (3/10)",
+          "sv": "Lär sig (3/10)"
+        },
+        "learning_4": {
+          "en": "Learning (4/10)",
+          "de": "Lernt (4/10)",
+          "fr": "Apprentissage (4/10)",
+          "it": "Apprendimento (4/10)",
+          "es": "Aprendiendo (4/10)",
+          "nl": "Aan het leren (4/10)",
+          "pl": "Uczenie (4/10)",
+          "pt": "A aprender (4/10)",
+          "cs": "Učení (4/10)",
+          "sv": "Lär sig (4/10)"
+        },
+        "learning_5": {
+          "en": "Learning (5/10)",
+          "de": "Lernt (5/10)",
+          "fr": "Apprentissage (5/10)",
+          "it": "Apprendimento (5/10)",
+          "es": "Aprendiendo (5/10)",
+          "nl": "Aan het leren (5/10)",
+          "pl": "Uczenie (5/10)",
+          "pt": "A aprender (5/10)",
+          "cs": "Učení (5/10)",
+          "sv": "Lär sig (5/10)"
+        },
+        "learning_6": {
+          "en": "Learning (6/10)",
+          "de": "Lernt (6/10)",
+          "fr": "Apprentissage (6/10)",
+          "it": "Apprendimento (6/10)",
+          "es": "Aprendiendo (6/10)",
+          "nl": "Aan het leren (6/10)",
+          "pl": "Uczenie (6/10)",
+          "pt": "A aprender (6/10)",
+          "cs": "Učení (6/10)",
+          "sv": "Lär sig (6/10)"
+        },
+        "learning_7": {
+          "en": "Learning (7/10)",
+          "de": "Lernt (7/10)",
+          "fr": "Apprentissage (7/10)",
+          "it": "Apprendimento (7/10)",
+          "es": "Aprendiendo (7/10)",
+          "nl": "Aan het leren (7/10)",
+          "pl": "Uczenie (7/10)",
+          "pt": "A aprender (7/10)",
+          "cs": "Učení (7/10)",
+          "sv": "Lär sig (7/10)"
+        },
+        "learning_8": {
+          "en": "Learning (8/10)",
+          "de": "Lernt (8/10)",
+          "fr": "Apprentissage (8/10)",
+          "it": "Apprendimento (8/10)",
+          "es": "Aprendiendo (8/10)",
+          "nl": "Aan het leren (8/10)",
+          "pl": "Uczenie (8/10)",
+          "pt": "A aprender (8/10)",
+          "cs": "Učení (8/10)",
+          "sv": "Lär sig (8/10)"
+        },
+        "learning_9": {
+          "en": "Learning (9/10)",
+          "de": "Lernt (9/10)",
+          "fr": "Apprentissage (9/10)",
+          "it": "Apprendimento (9/10)",
+          "es": "Aprendiendo (9/10)",
+          "nl": "Aan het leren (9/10)",
+          "pl": "Uczenie (9/10)",
+          "pt": "A aprender (9/10)",
+          "cs": "Učení (9/10)",
+          "sv": "Lär sig (9/10)"
+        },
+        "learning_10": {
+          "en": "Learning (10/10)",
+          "de": "Lernt (10/10)",
+          "fr": "Apprentissage (10/10)",
+          "it": "Apprendimento (10/10)",
+          "es": "Aprendiendo (10/10)",
+          "nl": "Aan het leren (10/10)",
+          "pl": "Uczenie (10/10)",
+          "pt": "A aprender (10/10)",
+          "cs": "Učení (10/10)",
+          "sv": "Lär sig (10/10)"
+        }
+      }
     }
   }
 }

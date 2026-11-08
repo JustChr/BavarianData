@@ -383,8 +383,9 @@ MAX_WWW_KB = 512
 # Raised from 4096 for the Fuel view (v0.9.21): ten translated service blocks,
 # the card's fuel strings and two history modules took it 2 KB over. The bulk
 # is catalogue.json and the ten translation files, which grow with BMW's
-# catalogue, not with features.
-MAX_TOTAL_KB = 4608
+# catalogue, not with features. Raised to 5120 for #300: every enum state BMW
+# documents labeled in all ten languages (~200 states, ~100 KB over 4608).
+MAX_TOTAL_KB = 5120
 
 
 def test_shipped_payload_stays_small() -> None:

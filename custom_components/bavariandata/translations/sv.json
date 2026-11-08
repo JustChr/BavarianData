@@ -709,6 +709,8 @@
       "vehicle_body_chargingport_ishospitalityactive": {
         "name": "Låst tillstånd för laddningskontakt efter full laddning",
         "state": {
+          "hospitality_inactive": "Komfortfunktion inaktiv",
+          "hospitality_active": "Komfortfunktion aktiv",
           "invalid": "Ogiltig"
         }
       },
@@ -718,6 +720,9 @@
       "vehicle_body_chargingport_lockedstatus": {
         "name": "Laddningsportens låsta läge",
         "state": {
+          "charging_cable_not_locked": "Laddkabeln inte låst",
+          "charging_cable_locked": "Laddkabeln låst",
+          "charging_cable_locking_error_detected": "Fel vid kabellåsning",
           "unknown": "Okänd"
         }
       },
@@ -742,6 +747,8 @@
       "vehicle_body_flap_islocked": {
         "name": "Lastklaffens tillstånd",
         "state": {
+          "flap_unlocked": "Lucka olåst",
+          "flap_locked": "Lucka låst",
           "invalid": "Ogiltig"
         }
       },
@@ -749,6 +756,8 @@
         "name": "Stängningsläge för lastklaff",
         "state": {
           "no_action": "Ingen åtgärd",
+          "flap_unlocked": "Lucka olåst",
+          "flap_locked": "Lucka låst",
           "invalid": "Ogiltig"
         }
       },
@@ -843,7 +852,11 @@
         "name": "Status för konvertibelt tak"
       },
       "vehicle_cabin_convertible_roofstatus": {
-        "name": "Cabriolettakets tillstånd"
+        "name": "Cabriolettakets tillstånd",
+        "state": {
+          "closedsecured": "Stängd och säkrad",
+          "opensecured": "Öppen och säkrad"
+        }
       },
       "vehicle_cabin_door_lock_status": {
         "name": "Dörrarnas tillstånd",
@@ -1158,7 +1171,15 @@
         "name": "Disclaimer för fjärrklimatisering"
       },
       "vehicle_cabin_hvac_preconditioning_status_comfortstate": {
-        "name": "Komforttillstånd för klimatförkonditionering"
+        "name": "Komforttillstånd för klimatförkonditionering",
+        "state": {
+          "not_active": "Inte aktiv",
+          "comfort_heating": "Komfort värme",
+          "comfort_cooling": "Komfort kyla",
+          "comfort_ventilation": "Komfort ventilation",
+          "defrost": "Avfrostning",
+          "comfort_undefined": "Inte definierad"
+        }
       },
       "vehicle_cabin_hvac_preconditioning_status_isexteriormirrorheatingactive": {
         "name": "Ytterbackspegelvärme på"
@@ -1175,6 +1196,9 @@
       "vehicle_cabin_hvac_statusairpurification": {
         "name": "HVAC-luftreningsstatus",
         "state": {
+          "unfiltered": "Ofiltrerad",
+          "purifying_ongoing": "Rening pågår",
+          "purified": "Renad",
           "invalid": "Ogiltig"
         }
       },
@@ -1199,7 +1223,12 @@
         "name": "Fordonets position över havsytan"
       },
       "vehicle_cabin_infotainment_navigation_currentlocation_fixstatus": {
-        "name": "Status för navigeringsfix"
+        "name": "Status för navigeringsfix",
+        "state": {
+          "no_fix": "Ingen GPS-mottagning",
+          "gps_fix_2d": "GPS-position 2D",
+          "gps_fix_3d": "GPS-position 3D"
+        }
       },
       "vehicle_cabin_infotainment_navigation_currentlocation_heading": {
         "name": "Fordonets inriktning"
@@ -1278,6 +1307,8 @@
         "state": {
           "invalid": "Ogiltig",
           "open": "Öppen",
+          "open_tilt": "Upplyft",
+          "intermediate_tilt": "Delvis upplyft",
           "closed": "Stängd"
         }
       },
@@ -1344,7 +1375,10 @@
       "vehicle_channel_ista_obfcm_lasttransmissionstatus": {
         "name": "Statusinformation om senaste överföring av OBFCM*-värden",
         "state": {
-          "ok": "OK"
+          "ok": "OK",
+          "ecu_communication_error": "Kommunikationsfel styrenhet",
+          "vehicle_manipulation_detected": "Manipulation av fordonet upptäckt",
+          "manufacturer_excluded": "Undantagen av tillverkaren"
         }
       },
       "vehicle_channel_ngtp_timevehicle": {
@@ -1363,7 +1397,13 @@
         "name": "Teleservice Report"
       },
       "vehicle_channel_teleservice_status": {
-        "name": "Teleservices tillgänglighet"
+        "name": "Teleservices tillgänglighet",
+        "state": {
+          "pending": "Väntar",
+          "idle": "Redo",
+          "successful": "Lyckades",
+          "error": "Fel"
+        }
       },
       "vehicle_chassis_axle_row1_wheel_left_tire_pressure": {
         "name": "Uppmätt däcktryck vänster fram"
@@ -1420,11 +1460,20 @@
         "name": "AC-laddningsström"
       },
       "vehicle_drivetrain_electricengine_charging_acrestriction_factor": {
-        "name": "Begränsningsfaktor AC-laddning"
+        "name": "Begränsningsfaktor AC-laddning",
+        "state": {
+          "maxcharging": "Maximal laddström",
+          "reducedcharging": "Reducerad laddström",
+          "mincharging": "Minimal laddström"
+        }
       },
       "vehicle_drivetrain_electricengine_charging_acrestriction_ischosen": {
         "name": "AC -laddningsströmbegränsning och val",
         "state": {
+          "notchosen": "Inte vald",
+          "chosen": "Vald",
+          "reducedcharging": "Reducerad laddström",
+          "mincharging": "Minimal laddström",
           "invalid": "Ogiltig"
         }
       },
@@ -1432,19 +1481,41 @@
         "name": "AC-laddningsspänning"
       },
       "vehicle_drivetrain_electricengine_charging_authentication_status": {
-        "name": "Autentiseringsstatus laddning"
+        "name": "Autentiseringsstatus laddning",
+        "state": {
+          "authorization_successful": "Auktorisering lyckades",
+          "transport_layer_error": "Fel i transportlagret",
+          "high_level_communication_error": "Kommunikationsfel (hög nivå)",
+          "contract_service_not_supported_error": "Avtalstjänst stöds inte",
+          "authorization_error": "Auktoriseringsfel",
+          "authorization_timeout": "Tidsgräns för auktorisering överskreds",
+          "nvm_read_certificate_error": "Fel vid läsning av certifikatet",
+          "certificate_update_error": "Fel vid uppdatering av certifikatet",
+          "xml_security_error": "XML-säkerhetsfel"
+        }
       },
       "vehicle_drivetrain_electricengine_charging_chargingmode": {
-        "name": "Laddningssätt"
+        "name": "Laddningssätt",
+        "state": {
+          "normal_prognose_based": "Normal (prognosbaserad)",
+          "step_based": "Stegbaserad",
+          "plc_mode": "PLC-läge"
+        }
       },
       "vehicle_drivetrain_electricengine_charging_connectiontype": {
-        "name": "Laddningsmetod för högspänningsbatteriet (induktivt/ledande)"
+        "name": "Laddningsmetod för högspänningsbatteriet (induktivt/ledande)",
+        "state": {
+          "conductive": "Med kabel",
+          "inductive": "Induktiv",
+          "signal_invalid": "Ogiltig signal"
+        }
       },
       "vehicle_drivetrain_electricengine_charging_connectorstatus": {
         "name": "Laddningsstatus för kontakt",
         "state": {
           "connected": "Ansluten",
-          "disconnected": "Frånkopplad"
+          "disconnected": "Frånkopplad",
+          "error": "Fel"
         }
       },
       "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineoff_gridenergy": {
@@ -1468,13 +1539,28 @@
       "vehicle_drivetrain_electricengine_charging_hvstatus": {
         "name": "HV-laddningssystemstatus",
         "state": {
-          "invalid": "Ogiltig"
+          "invalid": "Ogiltig",
+          "charging": "Laddar",
+          "error": "Fel",
+          "not_charging": "Laddar inte",
+          "waiting_for_charging": "Väntar på laddning",
+          "finished_fully_charged": "Klar, fulladdad",
+          "finished_not_full": "Klar, inte full"
         }
       },
       "vehicle_drivetrain_electricengine_charging_hvpmfinishreason": {
         "name": "Anledning för att avsluta en laddningsprocess",
         "state": {
           "unknown": "Okänd",
+          "charging_goal_reached": "Laddningsmål nått",
+          "end_requested_by_driver": "Avslutad av föraren",
+          "connector_removed": "Kontakten urdragen",
+          "powergrid_failed": "Elnätet föll bort",
+          "hv_system_failure": "Fel i högspänningssystemet",
+          "charging_station_failure": "Fel på laddstationen",
+          "parking_lock_failed": "Parkeringslåset misslyckades",
+          "no_parking_lock": "Inget parkeringslås",
+          "signal_invalid": "Ogiltig signal",
           "invalid": "Ogiltig"
         }
       },
@@ -1484,18 +1570,30 @@
       "vehicle_drivetrain_electricengine_charging_issingleimmediatecharging": {
         "name": "Status för omedelbar laddningsfunktion",
         "state": {
+          "direct_chg_once_not_active": "Engångs direktladdning inte aktiv",
+          "direct_chg_once_active": "Engångs direktladdning aktiv",
           "invalid": "Ogiltig"
         }
       },
       "vehicle_drivetrain_electricengine_charging_lastchargingreason": {
         "name": "Sista laddningsskäl",
         "state": {
+          "charging_goal_reached": "Laddningsmål nått",
+          "end_requested_by_driver": "Avslutad av föraren",
+          "connector_removed": "Kontakten urdragen",
+          "powergrid_failed": "Elnätet föll bort",
+          "hv_system_failure": "Fel i högspänningssystemet",
+          "charging_station_failure": "Fel på laddstationen",
+          "parking_lock_failed": "Parkeringslåset misslyckades",
+          "no_parking_lock": "Inget parkeringslås",
           "invalid": "Ogiltig"
         }
       },
       "vehicle_drivetrain_electricengine_charging_lastchargingresult": {
         "name": "Senaste laddningsresultat",
         "state": {
+          "success": "Lyckades",
+          "failed": "Misslyckades",
           "unknown": "Okänd"
         }
       },
@@ -1505,12 +1603,25 @@
       "vehicle_drivetrain_electricengine_charging_method": {
         "name": "Laddningsmetod och kontakttyp",
         "state": {
+          "ac_type1plug": "AC typ 1-kontakt",
+          "ac_type2plug": "AC typ 2-kontakt",
           "nocharging": "Laddar inte"
         }
       },
       "vehicle_drivetrain_electricengine_charging_modedeviation": {
         "name": "Avvikande laddningssätt",
         "state": {
+          "no_deviation": "Ingen avvikelse",
+          "dc_dynamic_malibu": "DC dynamisk (Malibu)",
+          "dc_dynamic_min_soe_protection": "DC dynamisk (skydd för minsta laddning)",
+          "immediate_charging_not_supported_by_evse": "Direktladdning stöds inte av laddstationen",
+          "immediate_charging_wake_up_limit_reached": "Direktladdning: väckningsgräns nådd",
+          "immediate_charging": "Direktladdning",
+          "charging_timeslot": "Laddfönster",
+          "charging_in_timeslot": "Laddning inom tidsfönstret",
+          "smart_charging": "Smart laddning",
+          "dc_dynamic": "DC dynamisk",
+          "bidirectional_charging": "Dubbelriktad laddning",
           "no_action": "Ingen åtgärd",
           "unknown": "Okänd"
         }
@@ -1518,6 +1629,10 @@
       "vehicle_drivetrain_electricengine_charging_phasenumber": {
         "name": "Laddningsmetod för högspänningsbatteriet (faser)",
         "state": {
+          "no_charging": "Laddar inte",
+          "1-phases": "1 fas",
+          "2-phases": "2 faser",
+          "3-phases": "3 faser",
           "invalid": "Ogiltig"
         }
       },
@@ -1531,7 +1646,12 @@
         "name": "Laddningsprofil"
       },
       "vehicle_drivetrain_electricengine_charging_profile_preference": {
-        "name": "Inställning av laddningsprofil"
+        "name": "Inställning av laddningsprofil",
+        "state": {
+          "charging_window": "Laddfönster",
+          "smart_charging": "Smart laddning",
+          "no_preselection": "Inget förval"
+        }
       },
       "vehicle_drivetrain_electricengine_charging_profile_settings_bidirectionalcharging_departuretimerelevant": {
         "name": "Relevant starttid"
@@ -1543,10 +1663,73 @@
         "name": "Typ av laddningstimer"
       },
       "vehicle_drivetrain_electricengine_charging_reasonchargingend": {
-        "name": "Skäl till att laddningen upphörde"
+        "name": "Skäl till att laddningen upphörde",
+        "state": {
+          "no_charging_end_since_ipf_wakeup": "Inget laddningsslut sedan väckning",
+          "customer_interaction_hmi_unplug_cable_once": "Förare: kabeln frigjord en gång (bil)",
+          "customer_interaction_hmi_charging_target_reached": "Förare: laddningsmål nått (bil)",
+          "customer_interaction_app_unplug_cable_once": "Förare: kabeln frigjord en gång (app)",
+          "customer_interaction_app_charging_target_reached": "Förare: laddningsmål nått (app)",
+          "customer_interaction_charging_stop_via_charging_stop_button_socket": "Förare: stoppknapp vid laddningsuttaget",
+          "customer_interaction_ac_charging_stop_via_key": "Förare: AC-laddning stoppad med nyckeln",
+          "customer_interaction_ac_charging_stop_wallbox": "Förare: AC-laddning stoppad vid laddboxen",
+          "customer_interaction_ac_charging_stop_latch": "Förare: AC-laddning stoppad via låsningen",
+          "hv_battery_fully_charged": "Högspänningsbatteriet fulladdat",
+          "infrastructure_physical_limits_reached_target_soe_not_reachable": "Laddstation: gräns nådd, målet kan inte nås",
+          "infrastructure_dc_ccs_evse_shutdown": "Laddstation: DC CCS avstängd",
+          "infrastructure_dc_gbt_cst_message": "Laddstation: DC GB/T-stoppmeddelande",
+          "infrastructure_dc_ccs_static_pilot": "Laddstation: DC CCS statisk pilotsignal",
+          "infrastructure_dc_ccs_communication_error_failed_response_code": "Laddstation: DC CCS-kommunikationsfel (svarskod)",
+          "infrastructure_dc_ccs_communication_error": "Laddstation: DC CCS-kommunikationsfel",
+          "infrastructure_no_energy_transfer": "Laddstation: ingen energiöverföring",
+          "infrastructure_dc_ccs_precharge_error": "Laddstation: DC CCS-förladdningsfel",
+          "infrastructure_dc_ccs_evse_malfunction_emergency_shutdown": "Laddstation: DC CCS-fel, nödavstängning",
+          "infrastructure_station_not_compatible": "Laddstationen är inte kompatibel",
+          "infrastructure_charge_readiness_timeout": "Laddstation: tidsgräns för laddberedskap överskreds",
+          "infrastructure_ac_maximum_grid_error_reached": "Laddstation: max antal AC-nätfel nått",
+          "infrastructure_dc_gbt_isolation_error_detected": "Laddstation: DC GB/T-isolationsfel",
+          "infrastructure_authentification_error": "Laddstation: autentiseringsfel",
+          "vehicle_hv_battery_error": "Fordon: fel på högspänningsbatteriet",
+          "vehicle_hv_battery_communication_error": "Fordon: kommunikationsfel högspänningsbatteri",
+          "vehicle_dcdc_error": "Fordon: fel på DC/DC-omvandlaren",
+          "vehicle_plc_bootup_error": "Fordon: PLC-startfel",
+          "vehicle_hv_battery_maximal_current_overshoot": "Fordon: högspänningsbatteriets maxström överskreds",
+          "vehicle_isolation_error": "Fordon: isolationsfel",
+          "vehicle_maximum_temperature_charging_socket_overshoot": "Fordon: laddningsuttaget överhettat",
+          "vehicle_lt3_overshoot": "Fordon: LT3-gräns överskreds",
+          "vehicle_fusi_cable_lock_error": "Fordon: fel på kabellåset (säkerhet)",
+          "vehicle_plc_communication_not_possible": "Fordon: PLC-kommunikation inte möjlig",
+          "flexcharger_grid_error": "Flexibel laddare: nätfel",
+          "flexcharger_grid_temperature_error": "Flexibel laddare: temperaturfel nät",
+          "flexcharger_evse_temperature_error": "Flexibel laddare: temperaturfel",
+          "flexcharger_evse_internal_error": "Flexibel laddare: internt fel",
+          "flexcharger_ac_dc_fault_current": "Flexibel laddare: AC/DC-felström",
+          "flexcharger_incorrect_reaction_time_pwm": "Flexibel laddare: felaktig PWM-reaktionstid",
+          "flexcharger_charging_current_too_high": "Flexibel laddare: för hög laddström",
+          "flexcharger_pe_fault": "Flexibel laddare: jordfel",
+          "infrastructure_inefficient_charging_low_power": "Laddstation: ineffektiv laddning, för låg effekt",
+          "vehicle_cable_locking_error": "Fordon: fel vid kabellåsning",
+          "vehicle_configuration_error_400v_800v": "Fordon: konfigurationsfel 400 V / 800 V",
+          "infrastructure_no_ac_voltage": "Laddstation: ingen AC-spänning",
+          "plug_and_charge_tls_error": "Plug & Charge: TLS-fel",
+          "plug_and_charge_contract_error": "Plug & Charge: avtalsfel",
+          "smart_charging_tariff_selection_invalid": "Smart laddning: ogiltigt tariffval",
+          "smart_charging_charging_profile_invalid": "Smart laddning: ogiltig laddprofil",
+          "customer_interaction_ac_charging_stop_via_app": "Förare: AC-laddning stoppad via appen",
+          "charging_paused": "Laddning pausad",
+          "discharge_not_possible_voltage_too_high": "Urladdning inte möjlig: för hög spänning",
+          "discharge_not_possible_soe_too_low": "Urladdning inte möjlig: för låg laddnivå",
+          "discharge_not_possible_internal_error": "Urladdning inte möjlig: internt fel",
+          "discharge_not_possible_incompatible_adapter": "Urladdning inte möjlig: adaptern är inte kompatibel",
+          "discharge_not_possible_incompatible_consumer": "Urladdning inte möjlig: förbrukaren är inte kompatibel"
+        }
       },
       "vehicle_drivetrain_electricengine_charging_routeoptimizedchargingstatus": {
-        "name": "Ruttoptimerad laddningsstatus"
+        "name": "Ruttoptimerad laddningsstatus",
+        "state": {
+          "route_optimized_charging_in_progress": "Ruttoptimerad laddning pågår",
+          "route_optimized_soc_target_reached": "Ruttoptimerat laddningsmål nått"
+        }
       },
       "vehicle_drivetrain_electricengine_charging_smeenergydeltafullycharged": {
         "name": "Användbar energi från högspänningsbatteri (fulladdat, prognostiserat)"
@@ -1571,7 +1754,11 @@
         "name": "Beräknad återstående laddningstid för högspänningsbatteriet"
       },
       "vehicle_drivetrain_electricengine_charging_windowselection": {
-        "name": "Val av det lämpligaste laddningsfönstret (Charging Window Selection)"
+        "name": "Val av det lämpligaste laddningsfönstret (Charging Window Selection)",
+        "state": {
+          "chosen": "Vald",
+          "notchosen": "Inte vald"
+        }
       },
       "vehicle_drivetrain_electricengine_hvsmaxenergyabsolute": {
         "name": "Maximalt energiinnehåll i högspänningsbatteriet"
@@ -1658,11 +1845,23 @@
         "name": "Fordonsbild"
       },
       "vehicle_powertrain_electric_battery_bidirectionalcharging_availability": {
-        "name": "Kapacitet för tvåvägsladdning"
+        "name": "Kapacitet för tvåvägsladdning",
+        "state": {
+          "available": "Tillgänglig",
+          "not_available": "Inte tillgänglig",
+          "disabled_malibu": "Inaktiverad (Malibu)",
+          "disabled_hvs": "Inaktiverad (högspänningsbatteri)",
+          "bpt_and_imo_disabled": "Återmatning och startspärr inaktiverade",
+          "bpt_only_for_emergency_power_supply": "Återmatning endast för nödström",
+          "disabled_imo_possible": "Inaktiverad, startspärr möjlig",
+          "disabled_long_term": "Permanent inaktiverad"
+        }
       },
       "vehicle_powertrain_electric_battery_charging_aclimit_isactive": {
         "name": "Status laddningsgräns",
         "state": {
+          "ac_limit_inactive": "AC-begränsning inaktiv",
+          "ac_limit_active": "AC-begränsning aktiv",
           "invalid": "Ogiltig"
         }
       },
@@ -1679,12 +1878,23 @@
         "name": "Akustisk begränsning av laddningsprocessen",
         "state": {
           "no_action": "Ingen åtgärd",
-          "automatic": "Automatiskt"
+          "automatic": "Automatiskt",
+          "unlimited": "Obegränsad",
+          "limited": "Begränsad"
         }
       },
       "vehicle_powertrain_electric_battery_charging_authenticationstatus": {
         "name": "Autentiseringsstatus laddning",
         "state": {
+          "not_started": "Inte startad",
+          "started_eim": "Startad (EIM)",
+          "started_pnc": "Startad (Plug & Charge)",
+          "started_plc_eim": "Startad (PLC EIM)",
+          "done_eim": "Slutförd (EIM)",
+          "done_plc_eim": "Slutförd (PLC EIM)",
+          "done_pnc": "Slutförd (Plug & Charge)",
+          "failed_plc_eim": "Misslyckades (PLC EIM)",
+          "failed_pnc": "Misslyckades (Plug & Charge)",
           "unknown": "Okänd"
         }
       },
@@ -1701,7 +1911,12 @@
         "name": "Kabelkontrollspänning"
       },
       "vehicle_powertrain_electric_battery_charging_dcchargingmodeactive": {
-        "name": "Likströmsladdningssätt active"
+        "name": "Likströmsladdningssätt active",
+        "state": {
+          "efficient": "Effektiv",
+          "standard": "Standard",
+          "performance": "Prestanda"
+        }
       },
       "vehicle_powertrain_electric_battery_charging_history_sessionslist": {
         "name": "Laddningshistorik"
@@ -1712,6 +1927,9 @@
       "vehicle_powertrain_electric_battery_charging_preferencesmartcharging": {
         "name": "”Smart Charging” laddningsalternativ",
         "state": {
+          "price_optimized": "Prisoptimerad",
+          "renewable_energey": "Förnybar energi",
+          "co2_optimized": "CO₂-optimerad",
           "invalid": "Ogiltig"
         }
       },
@@ -1723,6 +1941,7 @@
         "state": {
           "off": "Av",
           "on": "På",
+          "temp_off": "Tillfälligt av",
           "unknown": "Okänd"
         }
       },
@@ -1730,6 +1949,8 @@
         "name": "Manuell återkoppling av status för förkonditionering",
         "state": {
           "off": "Av",
+          "on_charge": "Vid laddning",
+          "on_drive": "Vid körning",
           "unknown": "Okänd"
         }
       },
@@ -1737,6 +1958,12 @@
         "name": "Förkonditioneringstillstånd",
         "state": {
           "off": "Av",
+          "on_legacy": "På (äldre metod)",
+          "manual_on_charge": "Manuellt vid laddning",
+          "automatic_on": "Automatiskt på",
+          "remote_on_charge": "Fjärrstart vid laddning",
+          "remote_on_drive": "Fjärrstart för körningen",
+          "remote_off": "Fjärravstängd",
           "unknown": "Okänd"
         }
       },
@@ -1758,12 +1985,19 @@
       "vehicle_powertrain_electric_chargingduration_displaycontrol": {
         "name": "Visning av laddningstiden",
         "state": {
+          "no_display_time_for_charging": "Visa ingen laddtid",
+          "display_charging_duration": "Visa laddtid",
+          "no_display_charging_duration": "Visa inte laddtid",
           "invalid": "Ogiltig"
         }
       },
       "vehicle_powertrain_electric_departuretime_displaycontrol": {
         "name": "Visning av avresetid",
         "state": {
+          "dont_display": "Visa inte",
+          "display_departure_time": "Visa avgångstid",
+          "display_departure_time_with_v2xsoe": "Visa avgångstid med V2X-laddnivå",
+          "no_display_departure_time": "Visa inte avgångstid",
           "unknown": "Okänd"
         }
       },
@@ -2031,7 +2265,20 @@
         "name": "Laddkostnad per 100 km"
       },
       "battery_health": {
-        "name": "Batterihälsa"
+        "name": "Batterihälsa",
+        "state": {
+          "learning_0": "Lär sig (0/10)",
+          "learning_1": "Lär sig (1/10)",
+          "learning_2": "Lär sig (2/10)",
+          "learning_3": "Lär sig (3/10)",
+          "learning_4": "Lär sig (4/10)",
+          "learning_5": "Lär sig (5/10)",
+          "learning_6": "Lär sig (6/10)",
+          "learning_7": "Lär sig (7/10)",
+          "learning_8": "Lär sig (8/10)",
+          "learning_9": "Lär sig (9/10)",
+          "learning_10": "Lär sig (10/10)"
+        }
       },
       "driving_distance_month": {
         "name": "Körsträcka (denna månad)"
@@ -2040,19 +2287,47 @@
         "name": "Verklig räckvidd"
       },
       "tyre_status": {
-        "name": "Däckstatus"
+        "name": "Däckstatus",
+        "state": {
+          "good": "Bra",
+          "data_ok": "Data OK"
+        }
       },
       "tyre_front_left": {
-        "name": "Däck vänster fram"
+        "name": "Däck vänster fram",
+        "state": {
+          "green": "Grön",
+          "yellow": "Gul",
+          "red": "Röd",
+          "grey": "Grå"
+        }
       },
       "tyre_front_right": {
-        "name": "Däck höger fram"
+        "name": "Däck höger fram",
+        "state": {
+          "green": "Grön",
+          "yellow": "Gul",
+          "red": "Röd",
+          "grey": "Grå"
+        }
       },
       "tyre_rear_left": {
-        "name": "Däck vänster bak"
+        "name": "Däck vänster bak",
+        "state": {
+          "green": "Grön",
+          "yellow": "Gul",
+          "red": "Röd",
+          "grey": "Grå"
+        }
       },
       "tyre_rear_right": {
-        "name": "Däck höger bak"
+        "name": "Däck höger bak",
+        "state": {
+          "green": "Grön",
+          "yellow": "Gul",
+          "red": "Röd",
+          "grey": "Grå"
+        }
       },
       "last_vehicle_report": {
         "name": "Senaste fordonsrapport"

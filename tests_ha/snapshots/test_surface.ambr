@@ -2386,7 +2386,7 @@
     'last_changed': <ANY>,
     'last_reported': <ANY>,
     'last_updated': <ANY>,
-    'state': 'Learning (0/10)',
+    'state': 'learning_0',
   })
 # ---
 # name: test_the_account_as_home_assistant_shows_it[sensor.i4_m60_battery_health_state-entry]
@@ -3243,6 +3243,9 @@
     'capabilities': dict({
       <SensorEntityCapabilityAttribute.OPTIONS: 'options'>: list([
         'no_charging',
+        '1-phases',
+        '2-phases',
+        '3-phases',
         'invalid',
       ]),
     }),
@@ -3287,6 +3290,9 @@
       <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'i4 M60 Charging EV Charging phases',
       <SensorEntityCapabilityAttribute.OPTIONS: 'options'>: list([
         'no_charging',
+        '1-phases',
+        '2-phases',
+        '3-phases',
         'invalid',
       ]),
       'timestamp': '2026-10-24T10:00:00+00:00',
@@ -3511,6 +3517,7 @@
         'dont_display',
         'display_departure_time',
         'display_departure_time_with_v2xsoe',
+        'no_display_departure_time',
         'unknown',
       ]),
     }),
@@ -3557,6 +3564,7 @@
         'dont_display',
         'display_departure_time',
         'display_departure_time_with_v2xsoe',
+        'no_display_departure_time',
         'unknown',
       ]),
       'timestamp': '2026-10-24T10:00:00+00:00',
@@ -10173,7 +10181,7 @@
     'last_changed': <ANY>,
     'last_reported': <ANY>,
     'last_updated': <ANY>,
-    'state': 'Learning (0/10)',
+    'state': 'learning_0',
   })
 # ---
 # name: test_the_account_as_home_assistant_shows_it[sensor.x3_30e_battery_health_state-entry]
@@ -10974,6 +10982,9 @@
     'capabilities': dict({
       <SensorEntityCapabilityAttribute.OPTIONS: 'options'>: list([
         'no_charging',
+        '1-phases',
+        '2-phases',
+        '3-phases',
         'invalid',
       ]),
     }),
@@ -11018,6 +11029,9 @@
       <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'X3 30e Charging EV Charging phases',
       <SensorEntityCapabilityAttribute.OPTIONS: 'options'>: list([
         'no_charging',
+        '1-phases',
+        '2-phases',
+        '3-phases',
         'invalid',
       ]),
       'timestamp': '2026-10-24T10:00:00+00:00',
@@ -11242,6 +11256,7 @@
         'dont_display',
         'display_departure_time',
         'display_departure_time_with_v2xsoe',
+        'no_display_departure_time',
         'unknown',
       ]),
     }),
@@ -11288,6 +11303,7 @@
         'dont_display',
         'display_departure_time',
         'display_departure_time_with_v2xsoe',
+        'no_display_departure_time',
         'unknown',
       ]),
       'timestamp': '2026-10-24T10:00:00+00:00',

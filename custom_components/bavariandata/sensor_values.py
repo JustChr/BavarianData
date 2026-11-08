@@ -157,11 +157,12 @@ def battery_health_state(health: Any) -> Any:
     """Never a number we aren't sure of.
 
     While learning, the state names the progress instead of a figure that would
-    jump as samples trickle in.
+    jump as samples trickle in: ``learning_3``, which the translations show as
+    "Learning (3/10)" in the user's language (issue #300).
     """
 
     if not health.confident:
-        return f"Learning ({min(health.samples, MIN_SAMPLES)}/{MIN_SAMPLES})"
+        return f"learning_{min(health.samples, MIN_SAMPLES)}"
     return health.usable_kwh
 
 
@@ -276,6 +277,17 @@ def wheel_attributes(position: str, wheel_data: Mapping[str, Any]) -> dict[str, 
         "tire_metric": "diagnosis",
         **wheel_data,
     }
+
+
+def tyre_status_state(diagnosis: Mapping[str, Any]) -> Any:
+    """BMW's verdict on the mounted set (``GOOD``, ``DATA_OK``) as a lowercase slug.
+
+    Lowercase so Home Assistant can translate it, like every enum state; a
+    verdict nobody has labeled yet still shows, untranslated.
+    """
+
+    status = diagnosis.get("aggregated_status")
+    return status.lower() if isinstance(status, str) else status
 
 
 def tyre_status_attributes(diagnosis: Mapping[str, Any]) -> dict[str, Any]:

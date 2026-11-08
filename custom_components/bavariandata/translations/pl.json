@@ -709,6 +709,8 @@
       "vehicle_body_chargingport_ishospitalityactive": {
         "name": "Stan blokady wtyku ładowania po pełnym naładowaniu",
         "state": {
+          "hospitality_inactive": "Funkcja komfortu nieaktywna",
+          "hospitality_active": "Funkcja komfortu aktywna",
           "invalid": "Nieprawidłowy"
         }
       },
@@ -718,6 +720,9 @@
       "vehicle_body_chargingport_lockedstatus": {
         "name": "Stan zablokowania portu ładowania",
         "state": {
+          "charging_cable_not_locked": "Kabel ładowania niezablokowany",
+          "charging_cable_locked": "Kabel ładowania zablokowany",
+          "charging_cable_locking_error_detected": "Błąd blokady kabla",
           "unknown": "Nieznany"
         }
       },
@@ -742,6 +747,8 @@
       "vehicle_body_flap_islocked": {
         "name": "Stan klapki ładowania",
         "state": {
+          "flap_unlocked": "Klapka odblokowana",
+          "flap_locked": "Klapka zablokowana",
           "invalid": "Nieprawidłowy"
         }
       },
@@ -749,6 +756,8 @@
         "name": "Stan zamknięcia klapki ładowania",
         "state": {
           "no_action": "Brak działania",
+          "flap_unlocked": "Klapka odblokowana",
+          "flap_locked": "Klapka zablokowana",
           "invalid": "Nieprawidłowy"
         }
       },
@@ -843,7 +852,11 @@
         "name": "Status dachu kabrioletu"
       },
       "vehicle_cabin_convertible_roofstatus": {
-        "name": "Stan dachu kabrioletu"
+        "name": "Stan dachu kabrioletu",
+        "state": {
+          "closedsecured": "Zamknięty i zabezpieczony",
+          "opensecured": "Otwarty i zabezpieczony"
+        }
       },
       "vehicle_cabin_door_lock_status": {
         "name": "Stan drzwi",
@@ -1158,7 +1171,15 @@
         "name": "Zastrzeżenie o wyłączeniu odpowiedzialności dotyczące zdalnego sterowania klimatyzacją"
       },
       "vehicle_cabin_hvac_preconditioning_status_comfortstate": {
-        "name": "Stan komfortu wstępnej klimatyzacji"
+        "name": "Stan komfortu wstępnej klimatyzacji",
+        "state": {
+          "not_active": "Nieaktywny",
+          "comfort_heating": "Komfort ogrzewanie",
+          "comfort_cooling": "Komfort chłodzenie",
+          "comfort_ventilation": "Komfort wentylacja",
+          "defrost": "Odmrażanie",
+          "comfort_undefined": "Nieokreślony"
+        }
       },
       "vehicle_cabin_hvac_preconditioning_status_isexteriormirrorheatingactive": {
         "name": "Podgrzewanie lusterek aktywne"
@@ -1175,6 +1196,9 @@
       "vehicle_cabin_hvac_statusairpurification": {
         "name": "Status oczyszczania powietrza HVAC",
         "state": {
+          "unfiltered": "Niefiltrowane",
+          "purifying_ongoing": "Oczyszczanie w toku",
+          "purified": "Oczyszczone",
           "invalid": "Nieprawidłowy"
         }
       },
@@ -1199,7 +1223,12 @@
         "name": "Pozycja pojazdu powyżej poziomu morza"
       },
       "vehicle_cabin_infotainment_navigation_currentlocation_fixstatus": {
-        "name": "Status poprawki współrzędnych nawigacji"
+        "name": "Status poprawki współrzędnych nawigacji",
+        "state": {
+          "no_fix": "Brak sygnału GPS",
+          "gps_fix_2d": "Pozycja GPS 2D",
+          "gps_fix_3d": "Pozycja GPS 3D"
+        }
       },
       "vehicle_cabin_infotainment_navigation_currentlocation_heading": {
         "name": "Lokalizacja pojazdu - kierunek"
@@ -1278,6 +1307,8 @@
         "state": {
           "invalid": "Nieprawidłowy",
           "open": "Otwarte",
+          "open_tilt": "Uchylony",
+          "intermediate_tilt": "Częściowo uchylony",
           "closed": "Zamknięte"
         }
       },
@@ -1344,7 +1375,10 @@
       "vehicle_channel_ista_obfcm_lasttransmissionstatus": {
         "name": "Informacje o statusie dotyczące przekazywania wartości OBFCM*",
         "state": {
-          "ok": "OK"
+          "ok": "OK",
+          "ecu_communication_error": "Błąd komunikacji sterownika",
+          "vehicle_manipulation_detected": "Wykryto manipulację w pojeździe",
+          "manufacturer_excluded": "Wykluczone przez producenta"
         }
       },
       "vehicle_channel_ngtp_timevehicle": {
@@ -1363,7 +1397,13 @@
         "name": "Teleservice Report"
       },
       "vehicle_channel_teleservice_status": {
-        "name": "Dostępność Teleservices"
+        "name": "Dostępność Teleservices",
+        "state": {
+          "pending": "Oczekujące",
+          "idle": "Gotowy",
+          "successful": "Zakończone powodzeniem",
+          "error": "Błąd"
+        }
       },
       "vehicle_chassis_axle_row1_wheel_left_tire_pressure": {
         "name": "Zmierzone ciśnienie w oponach przód lewo"
@@ -1420,11 +1460,20 @@
         "name": "Prąd ładowania AC"
       },
       "vehicle_drivetrain_electricengine_charging_acrestriction_factor": {
-        "name": "Współczynnik ograniczenia ładowania AC"
+        "name": "Współczynnik ograniczenia ładowania AC",
+        "state": {
+          "maxcharging": "Maksymalny prąd ładowania",
+          "reducedcharging": "Zmniejszony prąd ładowania",
+          "mincharging": "Minimalny prąd ładowania"
+        }
       },
       "vehicle_drivetrain_electricengine_charging_acrestriction_ischosen": {
         "name": "Ograniczenie i wybór prądu ładowania AC",
         "state": {
+          "notchosen": "Nie wybrano",
+          "chosen": "Wybrano",
+          "reducedcharging": "Zmniejszony prąd ładowania",
+          "mincharging": "Minimalny prąd ładowania",
           "invalid": "Nieprawidłowy"
         }
       },
@@ -1432,19 +1481,41 @@
         "name": "Napięcie ładowania AC"
       },
       "vehicle_drivetrain_electricengine_charging_authentication_status": {
-        "name": "Status uwierzytelniania ładowania"
+        "name": "Status uwierzytelniania ładowania",
+        "state": {
+          "authorization_successful": "Autoryzacja zakończona powodzeniem",
+          "transport_layer_error": "Błąd warstwy transportowej",
+          "high_level_communication_error": "Błąd komunikacji (wysoki poziom)",
+          "contract_service_not_supported_error": "Usługa umowy nieobsługiwana",
+          "authorization_error": "Błąd autoryzacji",
+          "authorization_timeout": "Przekroczono czas autoryzacji",
+          "nvm_read_certificate_error": "Błąd odczytu certyfikatu",
+          "certificate_update_error": "Błąd aktualizacji certyfikatu",
+          "xml_security_error": "Błąd zabezpieczeń XML"
+        }
       },
       "vehicle_drivetrain_electricengine_charging_chargingmode": {
-        "name": "Tryb ładowania"
+        "name": "Tryb ładowania",
+        "state": {
+          "normal_prognose_based": "Normalny (na podstawie prognozy)",
+          "step_based": "Stopniowy",
+          "plc_mode": "Tryb PLC"
+        }
       },
       "vehicle_drivetrain_electricengine_charging_connectiontype": {
-        "name": "Metoda ładowania akumulatora wysokonapięciowego (indukcyjna/kondukcyjna)"
+        "name": "Metoda ładowania akumulatora wysokonapięciowego (indukcyjna/kondukcyjna)",
+        "state": {
+          "conductive": "Przewodowe",
+          "inductive": "Indukcyjne",
+          "signal_invalid": "Nieprawidłowy sygnał"
+        }
       },
       "vehicle_drivetrain_electricengine_charging_connectorstatus": {
         "name": "Status wtyczki ładowania",
         "state": {
           "connected": "Podłączony",
-          "disconnected": "Odłączony"
+          "disconnected": "Odłączony",
+          "error": "Błąd"
         }
       },
       "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineoff_gridenergy": {
@@ -1468,13 +1539,28 @@
       "vehicle_drivetrain_electricengine_charging_hvstatus": {
         "name": "Status systemu ładowania wysokiego napięcia",
         "state": {
-          "invalid": "Nieprawidłowy"
+          "invalid": "Nieprawidłowy",
+          "charging": "Ładowanie",
+          "error": "Błąd",
+          "not_charging": "Brak ładowania",
+          "waiting_for_charging": "Oczekiwanie na ładowanie",
+          "finished_fully_charged": "Zakończono, w pełni naładowany",
+          "finished_not_full": "Zakończono, nie w pełni"
         }
       },
       "vehicle_drivetrain_electricengine_charging_hvpmfinishreason": {
         "name": "Przyczyna zakończenia procesu ładowania",
         "state": {
           "unknown": "Nieznany",
+          "charging_goal_reached": "Osiągnięto cel ładowania",
+          "end_requested_by_driver": "Zakończone przez kierowcę",
+          "connector_removed": "Wtyczka odłączona",
+          "powergrid_failed": "Awaria sieci energetycznej",
+          "hv_system_failure": "Usterka układu wysokiego napięcia",
+          "charging_station_failure": "Usterka stacji ładowania",
+          "parking_lock_failed": "Blokada parkingowa nie powiodła się",
+          "no_parking_lock": "Brak blokady parkingowej",
+          "signal_invalid": "Nieprawidłowy sygnał",
           "invalid": "Nieprawidłowy"
         }
       },
@@ -1484,18 +1570,30 @@
       "vehicle_drivetrain_electricengine_charging_issingleimmediatecharging": {
         "name": "Stan funkcji natychmiastowego ładowania",
         "state": {
+          "direct_chg_once_not_active": "Jednorazowe natychmiastowe ładowanie nieaktywne",
+          "direct_chg_once_active": "Jednorazowe natychmiastowe ładowanie aktywne",
           "invalid": "Nieprawidłowy"
         }
       },
       "vehicle_drivetrain_electricengine_charging_lastchargingreason": {
         "name": "Przyczyna ostatniego ładowania",
         "state": {
+          "charging_goal_reached": "Osiągnięto cel ładowania",
+          "end_requested_by_driver": "Zakończone przez kierowcę",
+          "connector_removed": "Wtyczka odłączona",
+          "powergrid_failed": "Awaria sieci energetycznej",
+          "hv_system_failure": "Usterka układu wysokiego napięcia",
+          "charging_station_failure": "Usterka stacji ładowania",
+          "parking_lock_failed": "Blokada parkingowa nie powiodła się",
+          "no_parking_lock": "Brak blokady parkingowej",
           "invalid": "Nieprawidłowy"
         }
       },
       "vehicle_drivetrain_electricengine_charging_lastchargingresult": {
         "name": "Rezultat ostatniego ładowania",
         "state": {
+          "success": "Zakończone powodzeniem",
+          "failed": "Niepowodzenie",
           "unknown": "Nieznany"
         }
       },
@@ -1505,12 +1603,25 @@
       "vehicle_drivetrain_electricengine_charging_method": {
         "name": "Metoda ładowania i typ wtyku",
         "state": {
+          "ac_type1plug": "Wtyczka AC typu 1",
+          "ac_type2plug": "Wtyczka AC typu 2",
           "nocharging": "Brak ładowania"
         }
       },
       "vehicle_drivetrain_electricengine_charging_modedeviation": {
         "name": "Odchylenie trybu ładowania",
         "state": {
+          "no_deviation": "Brak odchylenia",
+          "dc_dynamic_malibu": "DC dynamiczne (Malibu)",
+          "dc_dynamic_min_soe_protection": "DC dynamiczne (ochrona minimalnego naładowania)",
+          "immediate_charging_not_supported_by_evse": "Natychmiastowe ładowanie nieobsługiwane przez stację",
+          "immediate_charging_wake_up_limit_reached": "Natychmiastowe ładowanie: osiągnięto limit wybudzeń",
+          "immediate_charging": "Natychmiastowe ładowanie",
+          "charging_timeslot": "Okno ładowania",
+          "charging_in_timeslot": "Ładowanie w oknie czasowym",
+          "smart_charging": "Inteligentne ładowanie",
+          "dc_dynamic": "DC dynamiczne",
+          "bidirectional_charging": "Ładowanie dwukierunkowe",
           "no_action": "Brak działania",
           "unknown": "Nieznany"
         }
@@ -1518,6 +1629,10 @@
       "vehicle_drivetrain_electricengine_charging_phasenumber": {
         "name": "Procedura ładowania akumulatora wysokonapięciowego (fazy)",
         "state": {
+          "no_charging": "Brak ładowania",
+          "1-phases": "1 faza",
+          "2-phases": "2 fazy",
+          "3-phases": "3 fazy",
           "invalid": "Nieprawidłowy"
         }
       },
@@ -1531,7 +1646,12 @@
         "name": "Profil ładowania"
       },
       "vehicle_drivetrain_electricengine_charging_profile_preference": {
-        "name": "Preferencja profilu ładowania"
+        "name": "Preferencja profilu ładowania",
+        "state": {
+          "charging_window": "Okno ładowania",
+          "smart_charging": "Inteligentne ładowanie",
+          "no_preselection": "Brak wstępnego wyboru"
+        }
       },
       "vehicle_drivetrain_electricengine_charging_profile_settings_bidirectionalcharging_departuretimerelevant": {
         "name": "Odpowiednia godzina odjazdu"
@@ -1543,10 +1663,73 @@
         "name": "Typ programatora czasowego ładowania"
       },
       "vehicle_drivetrain_electricengine_charging_reasonchargingend": {
-        "name": "Przyczyna zakończenia ładowania"
+        "name": "Przyczyna zakończenia ładowania",
+        "state": {
+          "no_charging_end_since_ipf_wakeup": "Brak zakończenia ładowania od wybudzenia",
+          "customer_interaction_hmi_unplug_cable_once": "Kierowca: kabel jednorazowo odblokowany (pojazd)",
+          "customer_interaction_hmi_charging_target_reached": "Kierowca: osiągnięto cel ładowania (pojazd)",
+          "customer_interaction_app_unplug_cable_once": "Kierowca: kabel jednorazowo odblokowany (aplikacja)",
+          "customer_interaction_app_charging_target_reached": "Kierowca: osiągnięto cel ładowania (aplikacja)",
+          "customer_interaction_charging_stop_via_charging_stop_button_socket": "Kierowca: przycisk stop przy gnieździe ładowania",
+          "customer_interaction_ac_charging_stop_via_key": "Kierowca: ładowanie AC zatrzymane kluczykiem",
+          "customer_interaction_ac_charging_stop_wallbox": "Kierowca: ładowanie AC zatrzymane na wallboksie",
+          "customer_interaction_ac_charging_stop_latch": "Kierowca: ładowanie AC zatrzymane blokadą",
+          "hv_battery_fully_charged": "Akumulator wysokonapięciowy w pełni naładowany",
+          "infrastructure_physical_limits_reached_target_soe_not_reachable": "Stacja: osiągnięto limit, cel nieosiągalny",
+          "infrastructure_dc_ccs_evse_shutdown": "Stacja: wyłączenie DC CCS",
+          "infrastructure_dc_gbt_cst_message": "Stacja: komunikat zatrzymania DC GB/T",
+          "infrastructure_dc_ccs_static_pilot": "Stacja: statyczny sygnał pilota DC CCS",
+          "infrastructure_dc_ccs_communication_error_failed_response_code": "Stacja: błąd komunikacji DC CCS (kod odpowiedzi)",
+          "infrastructure_dc_ccs_communication_error": "Stacja: błąd komunikacji DC CCS",
+          "infrastructure_no_energy_transfer": "Stacja: brak przepływu energii",
+          "infrastructure_dc_ccs_precharge_error": "Stacja: błąd ładowania wstępnego DC CCS",
+          "infrastructure_dc_ccs_evse_malfunction_emergency_shutdown": "Stacja: usterka DC CCS, wyłączenie awaryjne",
+          "infrastructure_station_not_compatible": "Stacja ładowania niekompatybilna",
+          "infrastructure_charge_readiness_timeout": "Stacja: przekroczono czas gotowości do ładowania",
+          "infrastructure_ac_maximum_grid_error_reached": "Stacja: osiągnięto maksymalną liczbę błędów sieci AC",
+          "infrastructure_dc_gbt_isolation_error_detected": "Stacja: błąd izolacji DC GB/T",
+          "infrastructure_authentification_error": "Stacja: błąd uwierzytelniania",
+          "vehicle_hv_battery_error": "Pojazd: usterka akumulatora wysokonapięciowego",
+          "vehicle_hv_battery_communication_error": "Pojazd: błąd komunikacji akumulatora wysokonapięciowego",
+          "vehicle_dcdc_error": "Pojazd: usterka przetwornicy DC/DC",
+          "vehicle_plc_bootup_error": "Pojazd: błąd uruchamiania PLC",
+          "vehicle_hv_battery_maximal_current_overshoot": "Pojazd: przekroczono maksymalny prąd akumulatora wysokonapięciowego",
+          "vehicle_isolation_error": "Pojazd: błąd izolacji",
+          "vehicle_maximum_temperature_charging_socket_overshoot": "Pojazd: przegrzane gniazdo ładowania",
+          "vehicle_lt3_overshoot": "Pojazd: przekroczono limit LT3",
+          "vehicle_fusi_cable_lock_error": "Pojazd: błąd blokady kabla (bezpieczeństwo)",
+          "vehicle_plc_communication_not_possible": "Pojazd: komunikacja PLC niemożliwa",
+          "flexcharger_grid_error": "Ładowarka mobilna: błąd sieci",
+          "flexcharger_grid_temperature_error": "Ładowarka mobilna: błąd temperatury sieci",
+          "flexcharger_evse_temperature_error": "Ładowarka mobilna: błąd temperatury",
+          "flexcharger_evse_internal_error": "Ładowarka mobilna: błąd wewnętrzny",
+          "flexcharger_ac_dc_fault_current": "Ładowarka mobilna: prąd upływu AC/DC",
+          "flexcharger_incorrect_reaction_time_pwm": "Ładowarka mobilna: nieprawidłowy czas reakcji PWM",
+          "flexcharger_charging_current_too_high": "Ładowarka mobilna: zbyt wysoki prąd ładowania",
+          "flexcharger_pe_fault": "Ładowarka mobilna: błąd przewodu ochronnego",
+          "infrastructure_inefficient_charging_low_power": "Stacja: nieefektywne ładowanie, za mała moc",
+          "vehicle_cable_locking_error": "Pojazd: błąd blokady kabla",
+          "vehicle_configuration_error_400v_800v": "Pojazd: błąd konfiguracji 400 V / 800 V",
+          "infrastructure_no_ac_voltage": "Stacja: brak napięcia AC",
+          "plug_and_charge_tls_error": "Plug & Charge: błąd TLS",
+          "plug_and_charge_contract_error": "Plug & Charge: błąd umowy",
+          "smart_charging_tariff_selection_invalid": "Inteligentne ładowanie: nieprawidłowy wybór taryfy",
+          "smart_charging_charging_profile_invalid": "Inteligentne ładowanie: nieprawidłowy profil ładowania",
+          "customer_interaction_ac_charging_stop_via_app": "Kierowca: ładowanie AC zatrzymane w aplikacji",
+          "charging_paused": "Ładowanie wstrzymane",
+          "discharge_not_possible_voltage_too_high": "Rozładowanie niemożliwe: zbyt wysokie napięcie",
+          "discharge_not_possible_soe_too_low": "Rozładowanie niemożliwe: zbyt niski poziom naładowania",
+          "discharge_not_possible_internal_error": "Rozładowanie niemożliwe: błąd wewnętrzny",
+          "discharge_not_possible_incompatible_adapter": "Rozładowanie niemożliwe: niekompatybilny adapter",
+          "discharge_not_possible_incompatible_consumer": "Rozładowanie niemożliwe: niekompatybilny odbiornik"
+        }
       },
       "vehicle_drivetrain_electricengine_charging_routeoptimizedchargingstatus": {
-        "name": "Zoptymalizowany status ładowania trasy"
+        "name": "Zoptymalizowany status ładowania trasy",
+        "state": {
+          "route_optimized_charging_in_progress": "Ładowanie zoptymalizowane pod trasę w toku",
+          "route_optimized_soc_target_reached": "Osiągnięto cel ładowania zoptymalizowany pod trasę"
+        }
       },
       "vehicle_drivetrain_electricengine_charging_smeenergydeltafullycharged": {
         "name": "Energia użytkowa z akumulatora wysokonapięciowego (w pełni naładowanego, prognozowana)"
@@ -1571,7 +1754,11 @@
         "name": "Obliczony pozostały czas ładowania akumulatora wysokonapięciowego"
       },
       "vehicle_drivetrain_electricengine_charging_windowselection": {
-        "name": "Wybór korzystnego czasowego przedziału ładowania (Charging Window Selection)"
+        "name": "Wybór korzystnego czasowego przedziału ładowania (Charging Window Selection)",
+        "state": {
+          "chosen": "Wybrano",
+          "notchosen": "Nie wybrano"
+        }
       },
       "vehicle_drivetrain_electricengine_hvsmaxenergyabsolute": {
         "name": "Maksymalna zawartość energii w akumulatorze wysokonapięciowym"
@@ -1658,11 +1845,23 @@
         "name": "Zdjęcie pojazdu"
       },
       "vehicle_powertrain_electric_battery_bidirectionalcharging_availability": {
-        "name": "Możliwość ładowania dwukierunkowego"
+        "name": "Możliwość ładowania dwukierunkowego",
+        "state": {
+          "available": "Dostępne",
+          "not_available": "Niedostępne",
+          "disabled_malibu": "Wyłączone (Malibu)",
+          "disabled_hvs": "Wyłączone (akumulator wysokonapięciowy)",
+          "bpt_and_imo_disabled": "Oddawanie energii i immobilizer wyłączone",
+          "bpt_only_for_emergency_power_supply": "Oddawanie energii tylko do zasilania awaryjnego",
+          "disabled_imo_possible": "Wyłączone, immobilizer możliwy",
+          "disabled_long_term": "Trwale wyłączone"
+        }
       },
       "vehicle_powertrain_electric_battery_charging_aclimit_isactive": {
         "name": "Stan ograniczenia ładowania",
         "state": {
+          "ac_limit_inactive": "Ograniczenie AC nieaktywne",
+          "ac_limit_active": "Ograniczenie AC aktywne",
           "invalid": "Nieprawidłowy"
         }
       },
@@ -1679,12 +1878,23 @@
         "name": "Akustyczne ograniczenie procesu ładowania",
         "state": {
           "no_action": "Brak działania",
-          "automatic": "Automatycznie"
+          "automatic": "Automatycznie",
+          "unlimited": "Bez ograniczeń",
+          "limited": "Ograniczony"
         }
       },
       "vehicle_powertrain_electric_battery_charging_authenticationstatus": {
         "name": "Status uwierzytelniania ładowania",
         "state": {
+          "not_started": "Nie rozpoczęto",
+          "started_eim": "Rozpoczęto (EIM)",
+          "started_pnc": "Rozpoczęto (Plug & Charge)",
+          "started_plc_eim": "Rozpoczęto (PLC EIM)",
+          "done_eim": "Zakończono (EIM)",
+          "done_plc_eim": "Zakończono (PLC EIM)",
+          "done_pnc": "Zakończono (Plug & Charge)",
+          "failed_plc_eim": "Niepowodzenie (PLC EIM)",
+          "failed_pnc": "Niepowodzenie (Plug & Charge)",
           "unknown": "Nieznany"
         }
       },
@@ -1701,7 +1911,12 @@
         "name": "Napięcie testowe kabla"
       },
       "vehicle_powertrain_electric_battery_charging_dcchargingmodeactive": {
-        "name": "Tryb ładowania DC aktywny"
+        "name": "Tryb ładowania DC aktywny",
+        "state": {
+          "efficient": "Wydajny",
+          "standard": "Standardowy",
+          "performance": "Wydajność"
+        }
       },
       "vehicle_powertrain_electric_battery_charging_history_sessionslist": {
         "name": "Historia ładowania"
@@ -1712,6 +1927,9 @@
       "vehicle_powertrain_electric_battery_charging_preferencesmartcharging": {
         "name": "Opcja ładowania „Smart Charging”",
         "state": {
+          "price_optimized": "Zoptymalizowany pod cenę",
+          "renewable_energey": "Energia odnawialna",
+          "co2_optimized": "Zoptymalizowany pod CO₂",
           "invalid": "Nieprawidłowy"
         }
       },
@@ -1723,6 +1941,7 @@
         "state": {
           "off": "Wyłączone",
           "on": "Włączone",
+          "temp_off": "Tymczasowo wyłączone",
           "unknown": "Nieznany"
         }
       },
@@ -1730,6 +1949,8 @@
         "name": "Informacja zwrotna o statusie ręcznego wstępnego wyrównania temperatury",
         "state": {
           "off": "Wyłączone",
+          "on_charge": "Podczas ładowania",
+          "on_drive": "Podczas jazdy",
           "unknown": "Nieznany"
         }
       },
@@ -1737,6 +1958,12 @@
         "name": "Status wstępnego klimatyzowania",
         "state": {
           "off": "Wyłączone",
+          "on_legacy": "Włączone (starsza metoda)",
+          "manual_on_charge": "Ręcznie podczas ładowania",
+          "automatic_on": "Automatycznie włączone",
+          "remote_on_charge": "Zdalne uruchomienie podczas ładowania",
+          "remote_on_drive": "Zdalne uruchomienie przed jazdą",
+          "remote_off": "Zdalnie wyłączone",
           "unknown": "Nieznany"
         }
       },
@@ -1758,12 +1985,19 @@
       "vehicle_powertrain_electric_chargingduration_displaycontrol": {
         "name": "Wskazanie czasu ładowania",
         "state": {
+          "no_display_time_for_charging": "Nie pokazuj czasu ładowania",
+          "display_charging_duration": "Pokazuj czas trwania ładowania",
+          "no_display_charging_duration": "Nie pokazuj czasu trwania ładowania",
           "invalid": "Nieprawidłowy"
         }
       },
       "vehicle_powertrain_electric_departuretime_displaycontrol": {
         "name": "Wskazanie czasu odjazdu",
         "state": {
+          "dont_display": "Nie pokazuj",
+          "display_departure_time": "Pokazuj godzinę odjazdu",
+          "display_departure_time_with_v2xsoe": "Pokazuj godzinę odjazdu z poziomem naładowania V2X",
+          "no_display_departure_time": "Nie pokazuj godziny odjazdu",
           "unknown": "Nieznany"
         }
       },
@@ -2031,7 +2265,20 @@
         "name": "Koszt ładowania na 100 km"
       },
       "battery_health": {
-        "name": "Kondycja akumulatora"
+        "name": "Kondycja akumulatora",
+        "state": {
+          "learning_0": "Uczenie (0/10)",
+          "learning_1": "Uczenie (1/10)",
+          "learning_2": "Uczenie (2/10)",
+          "learning_3": "Uczenie (3/10)",
+          "learning_4": "Uczenie (4/10)",
+          "learning_5": "Uczenie (5/10)",
+          "learning_6": "Uczenie (6/10)",
+          "learning_7": "Uczenie (7/10)",
+          "learning_8": "Uczenie (8/10)",
+          "learning_9": "Uczenie (9/10)",
+          "learning_10": "Uczenie (10/10)"
+        }
       },
       "driving_distance_month": {
         "name": "Przejechany dystans (ten miesiąc)"
@@ -2040,19 +2287,47 @@
         "name": "Rzeczywisty zasięg"
       },
       "tyre_status": {
-        "name": "Stan opon"
+        "name": "Stan opon",
+        "state": {
+          "good": "Dobry",
+          "data_ok": "Dane OK"
+        }
       },
       "tyre_front_left": {
-        "name": "Opona przednia lewa"
+        "name": "Opona przednia lewa",
+        "state": {
+          "green": "Zielony",
+          "yellow": "Żółty",
+          "red": "Czerwony",
+          "grey": "Szary"
+        }
       },
       "tyre_front_right": {
-        "name": "Opona przednia prawa"
+        "name": "Opona przednia prawa",
+        "state": {
+          "green": "Zielony",
+          "yellow": "Żółty",
+          "red": "Czerwony",
+          "grey": "Szary"
+        }
       },
       "tyre_rear_left": {
-        "name": "Opona tylna lewa"
+        "name": "Opona tylna lewa",
+        "state": {
+          "green": "Zielony",
+          "yellow": "Żółty",
+          "red": "Czerwony",
+          "grey": "Szary"
+        }
       },
       "tyre_rear_right": {
-        "name": "Opona tylna prawa"
+        "name": "Opona tylna prawa",
+        "state": {
+          "green": "Zielony",
+          "yellow": "Żółty",
+          "red": "Czerwony",
+          "grey": "Szary"
+        }
       },
       "last_vehicle_report": {
         "name": "Ostatni raport pojazdu"
