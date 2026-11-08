@@ -113,6 +113,10 @@ Der nächste echte Messwert ersetzt sie. Siehe
 **Bis voll** ist
 [der eigene Wert der Integration](DE-Feature-evcc-and-Wallbox-Bridge#time-to-the-charge-target),
 solange das Auto zu Hause mit verknüpftem Wallbox-Zähler lädt, und sonst BMWs.
+Während das Auto lädt, zeigt die Kachel die Uhrzeit, zu der die Ladung fertig
+ist, als *Fertig um 05:40* (mit dem Wochentag, wenn das nicht heute ist); tippe
+darauf für die restlichen Minuten. Wird der Wert nicht mehr aktualisiert und ist
+seine Uhrzeit schon vorbei, zeigt die Kachel stattdessen die Minuten.
 Außerhalb einer Ladung heißt die Kachel *Ladezeit*, und sie wird ausgeblendet,
 wenn diese 0 ist.
 
@@ -186,7 +190,7 @@ die gewünschte Reihenfolge. Leer lassen für das Raster, das zum Antrieb passt.
 | `total_range` | Die Reichweite mit Kraftstoff und Batterie zusammen (Plug-in-Hybride) |
 | `target` | Das Ladeziel |
 | `plug` | Ob das Kabel steckt |
-| `time_to_full` | Die Zeit bis zum Ladeziel |
+| `time_to_full` | Wann die Ladung fertig ist (die Uhrzeit) |
 | `tires` | Den niedrigsten und höchsten Reifendruck, grün, gelb oder rot wie in der [Reifen-Ansicht](#tires-cluster-tire) |
 | `location` | Die Zone, in der das Auto steht, aus seinem Device Tracker |
 | `lock` | Verriegelt, entriegelt oder gesichert |

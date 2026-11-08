@@ -9,6 +9,11 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Changed
+- **The card shows when a charge will be done.** While the car charges, the
+  overview's *Time to full* tile now reads *Done at 05:40* (with the weekday
+  when that isn't today) instead of the minutes left, which are a tap away.
+
 ## [0.9.28-beta.4] - 2026-11-08
 
 ### Added

@@ -13,6 +13,7 @@ Runs the shipped card under Node on synthetic ``hass.states``, like
 from __future__ import annotations
 
 import json
+from datetime import datetime, timedelta, timezone
 import shutil
 import subprocess
 
@@ -376,6 +377,37 @@ def test_the_time_tile_prefers_the_meter_driven_estimate():
     html = _render(_charging_i5("32", "12"))["html"]
     assert f'data-entity="{_OUR_ETA}"' in html
     assert f'data-entity="{_BMW_TTF}"' not in html
+
+
+def _written(states: dict, entity_id: str, ago: timedelta) -> dict:
+    when = (datetime.now(timezone.utc) - ago).replace(microsecond=0)
+    states[entity_id] = {**states[entity_id], "last_updated": when.isoformat()}
+    return states
+
+
+def test_a_charge_shows_when_it_will_be_done():
+    """Chris, 2026-11-08: the clock time one plans around, not minutes counting
+    down. Counted from the figure's last write: 45 min written 15 min ago is
+    done 30 min from now."""
+
+    ago = timedelta(minutes=15)
+    states = _written(_charging_i5("32", "45"), _OUR_ETA, ago)
+    written = datetime.fromisoformat(states[_OUR_ETA]["last_updated"])
+    done = (written + timedelta(minutes=45)).astimezone()  # the browser's own zone
+    html = _render(states)["html"]
+    assert "Done at" in html
+    assert "Time to full" not in html
+    assert done.strftime("%I:%M") in html
+    assert f'data-entity="{_OUR_ETA}"' in html
+
+
+def test_a_finish_already_past_falls_back_to_the_remaining_time():
+    """A figure that stopped updating would put the finish in the past."""
+
+    states = _written(_charging_i5("32", "45"), _OUR_ETA, timedelta(hours=2))
+    html = _render(states)["html"]
+    assert "Done at" not in html
+    assert "Time to full" in html
 
 
 @pytest.mark.parametrize("ours", ["unknown", "unavailable", None])

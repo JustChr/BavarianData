@@ -281,6 +281,10 @@ export default (Base, { CHARGING_ACTIVE_STATES, DEVICE_CLASS_ICONS, NEUTRAL_TILE
         // "0 min" outside a charge is no charge time, only the end of the last one.
         const raw = this._st(picks.timeToFull);
         const st = !charging && raw && parseFloat(raw.state) === 0 ? null : raw;
+        // While charging: the clock time it will be done, which is what one plans
+        // around; the remaining minutes are a tap away in the entity's dialog.
+        const doneAt = charging ? this._doneAt(st) : null;
+        if (doneAt) return tile(this._t("done_at"), st, "mdi:timer-sand", { val: doneAt });
         return tile(charging ? this._t("time_to_full") : this._t("charge_time"), st, "mdi:timer-sand");
       }
       case "tires": {
@@ -393,6 +397,33 @@ export default (Base, { CHARGING_ACTIVE_STATES, DEVICE_CLASS_ICONS, NEUTRAL_TILE
         <span class="hero__trip-lbl">${this._t("tr_open")}</span>
         ${bits.length ? `<span class="hero__trip-sub">${bits.join(" · ")}</span>` : ""}
       </button>`;
+  }
+
+  /** When a charge will be done, as a clock time (with the weekday when that is
+   * not today), from a remaining-time state; null without a usable figure.
+   * Counted from the state's last write, so it holds still between writes; a
+   * figure whose finish is already past (a stale count) gives none, and the
+   * tile falls back to the remaining time. */
+  _doneAt(st) {
+    if (!st || UNAVAILABLE.has(st.state)) return null;
+    const n = parseFloat(st.state);
+    if (!Number.isFinite(n) || n <= 0) return null;
+    const unit = String((st.attributes || {}).unit_of_measurement || "min").toLowerCase();
+    const perUnit = { s: 1e3, min: 6e4, h: 36e5, d: 864e5 }[unit];
+    if (!perUnit) return null;
+    const from = new Date(st.last_updated || "").getTime();
+    const now = Date.now();
+    const done = new Date((Number.isFinite(from) ? from : now) + n * perUnit);
+    if (done.getTime() < now) return null;
+    const opts = { hour: "2-digit", minute: "2-digit" };
+    const format = this._hass && this._hass.locale && this._hass.locale.time_format;
+    if (format === "12" || format === "24") opts.hour12 = format === "12";
+    if (done.toDateString() !== new Date(now).toDateString()) opts.weekday = "short";
+    try {
+      return this._esc(done.toLocaleString(_lang(this._hass), opts));
+    } catch (_e) {
+      return this._esc(done.toISOString().slice(11, 16));
+    }
   }
 
   _chargingLabel(st, charging) {
