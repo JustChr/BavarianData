@@ -524,15 +524,17 @@ any dashboard renders.
 Symptom: the card draws, but every label is a technical name with underscores
 (`no_vehicle_title`, `tires` …) instead of words.
 
-The card keeps its texts in a second file, `bavariandata-card-translations.js`,
-which it loads from beside itself. Here that second file didn't arrive. The
-browser console says so with the line *BavarianData card: could not load its
-translations*.
+The card keeps its texts in files of their own, one per language
+(`bavariandata-card-strings-en.js`, `bavariandata-card-strings-de.js` …), which
+it loads from beside itself. Here the English one didn't arrive. The browser
+console says so with the line *BavarianData card: could not load its en
+strings*. If only your own language's file is missing, the card shows English
+instead of names.
 
 1. **Hard-refresh the browser**, or reset the app's frontend cache (see
    [the mobile-app section](#custom-element-doesnt-exist-app)).
 2. Open your Home Assistant address with
-   `/bavariandata/bavariandata-card-translations.js` appended. A 404 there is
+   `/bavariandata/bavariandata-card-strings-en.js` appended. A 404 there is
    the same **reverse proxy** problem as in test 2 above: it has to forward
    everything under `/bavariandata/`.
 

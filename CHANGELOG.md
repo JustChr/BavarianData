@@ -13,6 +13,10 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 - **The card shows when a charge will be done.** While the car charges, the
   overview's *Time to full* tile now reads *Done at 05:40* (with the weekday
   when that isn't today) instead of the minutes left, which are a tap away.
+- **The card loads only your language.** Its texts are now one file per
+  language, and a browser loads English plus the language Home Assistant is
+  set to, about 150 KB less than before. Until your language has arrived, the
+  card shows English for a moment.
 
 ## [0.9.28-beta.4] - 2026-11-08
 

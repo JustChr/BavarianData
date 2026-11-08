@@ -379,7 +379,10 @@ def test_brand_assets_ship_with_the_integration() -> None:
 # A 39 MB APK and a 6.5 MB www/ have both been rejected. Every byte here is
 # downloaded by every install on every update; the ceilings are generous but
 # force a deliberate decision.
-MAX_WWW_KB = 512
+# Raised from 512 for the card redesign (v0.9.29): new views and their strings in
+# ten languages. The strings went into one file per language at the same time,
+# so a browser downloads the card, its parts and one language (~330 KB), not all.
+MAX_WWW_KB = 640
 # Raised from 4096 for the Fuel view (v0.9.21): ten translated service blocks,
 # the card's fuel strings and two history modules took it 2 KB over. The bulk
 # is catalogue.json and the ten translation files, which grow with BMW's
