@@ -169,7 +169,6 @@ export default {
   sunroof_word: "Szyberdach",
   // charging history
   ch_title: "Historia ładowania",
-  ch_month: "Ten miesiąc",
   ch_loading: "Wczytywanie historii ładowania…",
   ch_empty:
     "Brak jeszcze zarejestrowanych sesji ładowania. Gdy auto zacznie się ładować, sesje pojawią się tu automatycznie.",
@@ -198,6 +197,13 @@ export default {
   ch_ongoing: "ładowanie…",
   ch_tab_sessions: "Sesje",
   ch_tab_places: "Miejsca",
+  ch_kpi_energy: "Naładowano",
+  ch_kpi_per_kwh: "{v} za kWh",
+  ch_kpi_sessions: "Sesje",
+  ch_kpi_away: "Sesje, poza domem: {n}",
+  ch_where_from: "Skąd pochodziła",
+  ch_per_day: "Dziennie",
+  ch_avg_dashed: "Średnia (przerywana)",
   pl_loading: "Wczytywanie miejsc ładowania…",
   pl_empty: "Nie zarejestrowano jeszcze żadnego ładowania.",
   pl_error: "Nie udało się wczytać miejsc ładowania. Odśwież stronę i spróbuj ponownie.",

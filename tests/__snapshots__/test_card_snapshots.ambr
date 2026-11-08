@@ -40,6 +40,298 @@
         </ha-card>
   '''
 # ---
+# name: test_a_month_of_charging
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:ev-station">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Charging history</span>
+              <span class="chead__sub">Car · 4 sessions</span>
+            </div>
+            
+        <div class="xbar">
+          <button class="xbtn" data-export="csv" data-kind="charging"
+                  title="Download this month as a spreadsheet">
+            <ha-icon icon="mdi:file-delimited-outline">
+  </ha-icon>CSV
+          </button>
+          <button class="xbtn" data-export="html" data-kind="both"
+                  title="Open a printable month report (print it to get a PDF)">
+            <ha-icon icon="mdi:file-document-outline">
+  </ha-icon>Report
+          </button>
+        </div>
+          </div>
+          <div class="ctabs" role="group">
+  <button class="ctabs__btn is-active" data-chg-tab="sessions"
+                 aria-pressed="true">Sessions</button>
+  <button class="ctabs__btn" data-chg-tab="places"
+                 aria-pressed="false">Places</button>
+  </div>
+          
+        <div class="mnav">
+          <button class="mnav__btn" data-month-kind="charging" data-month-step="-1"
+                  title="Previous month" aria-label="Previous month">
+            <ha-icon icon="mdi:chevron-left">
+  </ha-icon>
+          </button>
+          <span class="mnav__label">September 2026</span>
+          <button class="mnav__btn" data-month-kind="charging" data-month-step="1"
+                  title="Next month" aria-label="Next month"
+                  disabled>
+            <ha-icon icon="mdi:chevron-right">
+  </ha-icon>
+          </button>
+        </div>
+          
+        <div class="kpis">
+  <div class="kpi">
+  <span class="kpi__v">108.5<i>kWh</i>
+  </span>
+  <span class="kpi__l">Charged</span>
+  </div>
+  <div class="kpi">
+  <span class="kpi__v">€22.40</span>
+  <span class="kpi__l">partial price</span>
+  </div>
+  <div class="kpi">
+  <span class="kpi__v">4</span>
+  <span class="kpi__l">Sessions, 1 away</span>
+  </div>
+  </div>
+        <div class="sec">
+  <span class="sec__t">Where it came from</span>
+  </div>
+          <div class="mix">
+            <div class="mix__bar" role="img" aria-label="PV 13.3 kWh, House battery 23.4 kWh, Grid 52.1 kWh, Away 19.7 kWh">
+              <span style="width:12.3%;background:var(--bd-solar)">
+  </span>
+  <span style="width:21.6%;background:var(--bd-house)">
+  </span>
+  <span style="width:48.0%;background:var(--bd-grid)">
+  </span>
+  <span style="width:18.2%;background:var(--bmw-charge)">
+  </span>
+            </div>
+            <div class="legend">
+  <span>
+  <i style="background:var(--bd-solar)">
+  </i>PV <b>13.3</b>
+  </span>
+  <span>
+  <i style="background:var(--bd-house)">
+  </i>House battery <b>23.4</b>
+  </span>
+  <span>
+  <i style="background:var(--bd-grid)">
+  </i>Grid <b>52.1</b>
+  </span>
+  <span>
+  <i style="background:var(--bmw-charge)">
+  </i>Away <b>19.7</b>
+  </span>
+  <span>kWh</span>
+  </div>
+          </div>
+        <div class="sec">
+  <span class="sec__t">Per day</span>
+  <span class="sec__s">kWh</span>
+  </div>
+        <div class="spark" role="img" aria-label="Per day">
+  <span class="spark__bar" style="height:14px" title="1: 16.4 kWh">
+  </span>
+  <span class="spark__bar" style="height:17px" title="2: 19.7 kWh">
+  </span>
+  <span class="spark__bar is-empty" style="height:3px" title="3: —">
+  </span>
+  <span class="spark__bar" style="height:20px" title="4: 22.6 kWh">
+  </span>
+  <span class="spark__bar is-empty" style="height:3px" title="5: —">
+  </span>
+  <span class="spark__bar" style="height:44px" title="6: 49.8 kWh">
+  </span>
+  <span class="spark__bar is-empty" style="height:3px" title="7: —">
+  </span>
+  <span class="spark__bar is-empty" style="height:3px" title="8: —">
+  </span>
+  <span class="spark__bar is-empty" style="height:3px" title="9: —">
+  </span>
+  <span class="spark__bar is-future" style="height:3px" title="10: —">
+  </span>
+  <span class="spark__bar is-future" style="height:3px" title="11: —">
+  </span>
+  <span class="spark__bar is-future" style="height:3px" title="12: —">
+  </span>
+  <span class="spark__bar is-future" style="height:3px" title="13: —">
+  </span>
+  <span class="spark__bar is-future" style="height:3px" title="14: —">
+  </span>
+  <span class="spark__bar is-future" style="height:3px" title="15: —">
+  </span>
+  <span class="spark__bar is-future" style="height:3px" title="16: —">
+  </span>
+  <span class="spark__bar is-future" style="height:3px" title="17: —">
+  </span>
+  <span class="spark__bar is-future" style="height:3px" title="18: —">
+  </span>
+  <span class="spark__bar is-future" style="height:3px" title="19: —">
+  </span>
+  <span class="spark__bar is-future" style="height:3px" title="20: —">
+  </span>
+  <span class="spark__bar is-future" style="height:3px" title="21: —">
+  </span>
+  <span class="spark__bar is-future" style="height:3px" title="22: —">
+  </span>
+  <span class="spark__bar is-future" style="height:3px" title="23: —">
+  </span>
+  <span class="spark__bar is-future" style="height:3px" title="24: —">
+  </span>
+  <span class="spark__bar is-future" style="height:3px" title="25: —">
+  </span>
+  <span class="spark__bar is-future" style="height:3px" title="26: —">
+  </span>
+  <span class="spark__bar is-future" style="height:3px" title="27: —">
+  </span>
+  <span class="spark__bar is-future" style="height:3px" title="28: —">
+  </span>
+  <span class="spark__bar is-future" style="height:3px" title="29: —">
+  </span>
+  <span class="spark__bar is-future" style="height:3px" title="30: —">
+  </span>
+  </div>
+        <div class="spark-ax">
+  <span>1</span>
+  <span>15</span>
+  <span>30</span>
+  </div>
+          <div class="chg__list">
+        <div class="chg__session is-open">
+          <button class="chg__row" data-session="2026-09-06T08:00:00+00:00">
+            <span class="chg__row-main">
+              <span class="chg__date">Sep 6, 08:00 AM</span>
+              <span class="chg__meta">
+  <span class="socbar">
+  <span style="left:18%;width:62%">
+  </span>
+  </span>
+  <span class="chg__soc">18→80%</span>
+  <span class="chg__badge chg__badge--home">Home</span>
+  <span class="chg__tag chg__tag--warn">partial price</span>
+  </span>
+            </span>
+            <span class="chg__figures">
+              <span class="chg__energy chg__energy--lead">49.8 kWh</span>
+              <span class="chg__cost-sub">€13.45</span>
+            </span>
+          </button>
+          
+        <div class="chg__detail">
+          
+        <svg class="chg__chart" viewBox="0 0 260 64" preserveAspectRatio="none" role="img">
+          <polygon points="4,60 4,60 4.7,60 4.7,4 214,4 214,4 256,4 256,43.2 256,60" class="chg__chart-fill">
+  </polygon>
+          <polyline points="4,60 4.7,60 4.7,4 214,4 214,4 256,4 256,43.2" class="chg__chart-line">
+  </polyline>
+          <line x1="4" x2="256" y1="15.5" y2="15.5" class="chg__chart-avg">
+  </line>
+          <text x="4" y="10" class="chg__chart-max">11 kW</text>
+        </svg>
+      
+          <div class="chg__facts">
+  <div class="chg__fact">
+  <span class="chg__fact-lbl">Peak</span>
+  <span class="chg__fact-val">11 kW</span>
+  </div>
+  <div class="chg__fact">
+  <span class="chg__fact-lbl">Average (dashed)</span>
+  <span class="chg__fact-val">8.7 kW</span>
+  </div>
+  <div class="chg__fact">
+  <span class="chg__fact-lbl">Duration</span>
+  <span class="chg__fact-val">5 h 42 min</span>
+  </div>
+  <div class="chg__fact">
+  <span class="chg__fact-lbl">Cost</span>
+  <span class="chg__fact-val">€13.45</span>
+  </div>
+  <div class="chg__fact">
+  <span class="chg__fact-lbl">Energy source</span>
+  <span class="chg__fact-val">House battery 14.4 · Grid 35.4 kWh</span>
+  </div>
+  </div>
+        </div>
+      
+        </div>
+      
+        <div class="chg__session">
+          <button class="chg__row" data-session="2026-09-04T08:00:00+00:00">
+            <span class="chg__row-main">
+              <span class="chg__date">Sep 4, 08:00 AM</span>
+              <span class="chg__meta">
+  <span class="socbar">
+  <span style="left:52%;width:28%">
+  </span>
+  </span>
+  <span class="chg__soc">52→80%</span>
+  <span class="chg__badge chg__badge--home">Home</span>
+  </span>
+            </span>
+            <span class="chg__figures">
+              <span class="chg__energy chg__energy--lead">22.6 kWh</span>
+              <span class="chg__cost-sub">€6.10</span>
+            </span>
+          </button>
+          
+        </div>
+      
+        <div class="chg__session">
+          <button class="chg__row" data-session="2026-09-02T08:00:00+00:00">
+            <span class="chg__row-main">
+              <span class="chg__date">Sep 2, 08:00 AM</span>
+              <span class="chg__meta">
+  <span class="socbar">
+  <span style="left:45%;width:25%">
+  </span>
+  </span>
+  <span class="chg__soc">45→70%</span>
+  <span class="chg__badge chg__badge--away">A9 Holledau</span>
+  </span>
+            </span>
+            <span class="chg__figures">
+              <span class="chg__energy chg__energy--lead">19.7 kWh</span>
+              
+            </span>
+          </button>
+          
+        </div>
+      
+        <div class="chg__session">
+          <button class="chg__row" data-session="2026-09-01T08:00:00+00:00">
+            <span class="chg__row-main">
+              <span class="chg__date">Sep 1, 08:00 AM</span>
+              <span class="chg__meta">
+  <span class="socbar">
+  <span style="left:60%;width:20%">
+  </span>
+  </span>
+  <span class="chg__soc">60→80%</span>
+  <span class="chg__badge chg__badge--home">Home</span>
+  <span class="chg__tag chg__tag--sun">☀ 81% solar</span>
+  </span>
+            </span>
+            <span class="chg__figures">
+              <span class="chg__energy chg__energy--lead">16.4 kWh</span>
+              <span class="chg__cost-sub">€2.85</span>
+            </span>
+          </button>
+          
+        </div>
+      </div>
+        </ha-card>
+  '''
+# ---
 # name: test_the_card_renders_what_it_rendered_before[charging-i5]
   '''
   <ha-card>

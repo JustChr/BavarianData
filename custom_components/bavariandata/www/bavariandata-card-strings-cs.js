@@ -169,7 +169,6 @@ export default {
   sunroof_word: "Střešní okno",
   // charging history
   ch_title: "Historie nabíjení",
-  ch_month: "Tento měsíc",
   ch_loading: "Načítání historie nabíjení…",
   ch_empty:
     "Zatím nejsou zaznamenány žádné relace nabíjení. Jakmile se vůz nabije, relace se zde objeví automaticky.",
@@ -198,6 +197,13 @@ export default {
   ch_ongoing: "nabíjí se…",
   ch_tab_sessions: "Nabíjení",
   ch_tab_places: "Místa",
+  ch_kpi_energy: "Nabito",
+  ch_kpi_per_kwh: "{v} za kWh",
+  ch_kpi_sessions: "Nabíjení",
+  ch_kpi_away: "Nabíjení, mimo domov: {n}",
+  ch_where_from: "Odkud pocházela",
+  ch_per_day: "Za den",
+  ch_avg_dashed: "Průměr (čárkovaně)",
   pl_loading: "Načítání míst nabíjení…",
   pl_empty: "Zatím nebylo zaznamenáno žádné nabíjení.",
   pl_error: "Místa nabíjení se nepodařilo načíst. Obnovte stránku a zkuste to znovu.",

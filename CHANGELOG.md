@@ -36,6 +36,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   power, energy added, solar share and cost while charging; distance, time and
   charge used on a drive; what is open when something is. Your own `tiles:`
   stay as they are, in every situation. Labels are no longer in capitals.
+- **Charging history, every month in figures.** Each month, not only the
+  current one, opens with what was charged, what it cost (with the price per
+  kWh when every charge at home was priced in full) and how many charges, how
+  many of them away; a bar of where the energy came from (sun, house battery,
+  grid, away) and the kWh of each day. Each charge shows its from → to as a
+  small bar and its cost under the kWh; an open one draws its average power
+  as a dashed line. The charge in progress sits on top while it runs, with
+  what it added and cost so far.
 - **The card shows when a charge will be done.** While the car charges, the
   overview's *Time to full* tile now reads *Done at 05:40* (with the weekday
   when that isn't today) instead of the minutes left, which are a tap away.

@@ -169,7 +169,6 @@ export default {
   sunroof_word: "Techo solar",
   // charging history
   ch_title: "Historial de carga",
-  ch_month: "Este mes",
   ch_loading: "Cargando el historial de carga…",
   ch_empty:
     "Aún no hay sesiones de carga registradas. En cuanto el coche cargue, las sesiones aparecerán aquí automáticamente.",
@@ -198,6 +197,13 @@ export default {
   ch_ongoing: "cargando…",
   ch_tab_sessions: "Cargas",
   ch_tab_places: "Lugares",
+  ch_kpi_energy: "Cargado",
+  ch_kpi_per_kwh: "{v} por kWh",
+  ch_kpi_sessions: "Sesiones",
+  ch_kpi_away: "Sesiones, {n} fuera",
+  ch_where_from: "De dónde vino",
+  ch_per_day: "Por día",
+  ch_avg_dashed: "Media (discontinua)",
   pl_loading: "Cargando lugares de carga…",
   pl_empty: "Aún no hay cargas registradas.",
   pl_error: "No se pudieron cargar los lugares de carga. Recarga la página e inténtalo de nuevo.",

@@ -102,10 +102,12 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
     const sessions = state.data;
     const month = this._month("charging");
     const isCurrent = month === this._monthKey();
-    // The summary band is fed by the monthly sensors, which only ever describe
-    // the month happening now. Showing it above a list of last March would put
-    // two different periods in one card, so it goes with the current month.
-    const summary = isCurrent ? this._chargingSummary(entities) : null;
+    // The month's figures come from its own sessions, so every month has them,
+    // not only the one the monthly sensors describe.
+    const figures = sessions && sessions.length ? this._monthFigures(sessions) : null;
+    // The charge in progress is not in the history until it ends; the session
+    // sensor tells it while it runs.
+    const live = isCurrent ? this._liveCharge(entities, deviceId) : null;
     const expanded = this._chgExpanded || null;
 
     const sig = this._signature({
@@ -115,7 +117,8 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
       month,
       loading: state.loading && !sessions,
       error: state.error,
-      summary,
+      figures,
+      live,
       expanded,
       rows: (sessions || []).map((s) => [s.start, s.energy_kwh, s.cost && s.cost.amount]),
     });
@@ -127,12 +130,12 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
       body = `<div class="empty">${this._t("ch_error")}</div>`;
     } else if (!sessions && state.loading) {
       body = `<div class="empty">${this._t("ch_loading")}</div>`;
-    } else if (!sessions || !sessions.length) {
+    } else if ((!sessions || !sessions.length) && !live) {
       body = `<div class="empty">${this._t(
         isCurrent ? "ch_empty" : "ch_empty_month"
       )}</div>`;
     } else {
-      body = `<div class="chg__list">${sessions
+      body = `<div class="chg__list">${live ? this._liveRow(live) : ""}${(sessions || [])
         .map((s) => this._chargingRow(s, expanded))
         .join("")}</div>`;
     }
@@ -156,7 +159,7 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
         </div>
         ${this._chargingTabs("sessions")}
         ${this._monthNav("charging")}
-        ${summary ? this._chargingSummaryBand(summary) : ""}
+        ${figures ? this._monthFiguresHtml(figures, month) : ""}
         ${body}
       </ha-card>
     `;
@@ -527,36 +530,168 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
   }
 
   /** "This month" figures, read from the summary sensors when they exist. */
-  _chargingSummary(entities) {
-    let cost = null;
-    let energy = null;
-    for (const id of entities) {
-      const st = this._st(id);
-      const d = st && st.attributes && st.attributes.descriptor;
-      if (d === "charging_cost_month") cost = st;
-      else if (d === "charging_energy_month") energy = st;
+  /** Whether a session was charged away from home: a named zone that isn't
+   * Home, a public address, or no place at all. One assumed at home (no GPS)
+   * counts as home, as its badge says. */
+  _isAway(session) {
+    if (session.location_assumed) return false;
+    const loc = session.location || {};
+    return !(loc.zone && /^home$/i.test(loc.zone));
+  }
+
+  /** The energy a session's row shows: the measured grid figure where there is
+   * one, the battery side otherwise. */
+  _sessionKwh(session) {
+    const kwh = session.grid_kwh != null ? session.grid_kwh : session.energy_kwh;
+    return kwh == null ? null : Number(kwh);
+  }
+
+  /** A month's charging in figures, from its sessions: energy, cost, how many
+   * and how many away, where the energy came from, and kWh per day. */
+  _monthFigures(sessions) {
+    let kwh = 0;
+    let cost = 0;
+    let currency = null;
+    let priced = 0;
+    let partial = false;
+    let away = 0;
+    const mix = { pv: 0, battery: 0, grid: 0, unknown: 0, away: 0 };
+    const days = {};
+    for (const s of sessions) {
+      const e = this._sessionKwh(s) || 0;
+      kwh += e;
+      if (s.cost && s.cost.amount != null) {
+        cost += Number(s.cost.amount);
+        currency = currency || s.cost.currency;
+        priced += 1;
+        if (s.cost.partial) partial = true;
+      }
+      if (this._isAway(s)) {
+        away += 1;
+        mix.away += e;
+      } else if (s.energy_mix) {
+        for (const k of ["pv", "battery", "grid", "unknown"]) mix[k] += Number(s.energy_mix[k] || 0);
+      } else {
+        mix.unknown += e;
+      }
+      const d = new Date(s.start || "");
+      if (Number.isFinite(d.getTime())) days[d.getDate()] = (days[d.getDate()] || 0) + e;
     }
-    if (!cost && !energy) return null;
     return {
-      cost: cost ? this._fmt(cost) : null,
-      energy: energy ? this._fmt(energy) : null,
+      kwh,
+      count: sessions.length,
+      away,
+      cost: priced ? { amount: cost, currency } : null,
+      partial,
+      // A price per kWh only where every home charge was priced in full; a
+      // partial one would make it read cheaper than it was.
+      perKwh: priced && !partial && priced === sessions.length - away && kwh - mix.away > 0 ? cost / (kwh - mix.away) : null,
+      mix,
+      days,
     };
   }
 
-  _chargingSummaryBand(summary) {
-    const cells = [];
-    if (summary.energy) {
-      cells.push(
-        `<div class="chg__stat"><span class="chg__stat-val">${summary.energy}</span><span class="chg__stat-lbl">${this._t("ch_month")}</span></div>`
-      );
+  _monthFiguresHtml(f, month) {
+    const kpi = (val, lbl) => `<div class="kpi"><span class="kpi__v">${val}</span><span class="kpi__l">${lbl}</span></div>`;
+    const kpis = [
+      kpi(`${this._dec(f.kwh, 1)}<i>kWh</i>`, this._t("ch_kpi_energy")),
+      f.cost
+        ? kpi(
+            this._fmtCost(f.cost),
+            f.perKwh != null
+              ? this._t("ch_kpi_per_kwh", { v: this._fmtCost({ amount: f.perKwh, currency: f.cost.currency }) })
+              : this._t(f.partial ? "ch_partial" : "ch_cost")
+          )
+        : "",
+      kpi(String(f.count), f.away ? this._t("ch_kpi_away", { n: f.away }) : this._t("ch_kpi_sessions")),
+    ].join("");
+    const total = f.mix.pv + f.mix.battery + f.mix.grid + f.mix.unknown + f.mix.away;
+    const parts = [
+      ["pv", "ch_mix_pv", "var(--bd-solar)"],
+      ["battery", "ch_mix_battery", "var(--bd-house)"],
+      ["grid", "ch_mix_grid", "var(--bd-grid)"],
+      ["away", "ch_public", "var(--bmw-charge)"],
+      ["unknown", "ch_mix_unknown", "var(--divider-color)"],
+    ].filter(([k]) => f.mix[k] > 0.05);
+    // Only worth a bar where something besides "unattributed" is known.
+    const mix =
+      total > 0 && parts.some(([k]) => k !== "unknown")
+        ? `<div class="sec"><span class="sec__t">${this._t("ch_where_from")}</span></div>
+        <div class="mix">
+          <div class="mix__bar" role="img" aria-label="${this._esc(parts.map(([k, l]) => `${this._t(l)} ${this._dec(f.mix[k], 1)} kWh`).join(", "))}">
+            ${parts.map(([k, , c]) => `<span style="width:${((f.mix[k] / total) * 100).toFixed(1)}%;background:${c}"></span>`).join("")}
+          </div>
+          <div class="legend">${parts
+            .map(([k, l, c]) => `<span><i style="background:${c}"></i>${this._t(l)} <b>${this._dec(f.mix[k], 1)}</b></span>`)
+            .join("")}<span>kWh</span></div>
+        </div>`
+        : "";
+    // kWh per day across the month; days still to come stay flat.
+    const [y, m] = month.split("-").map(Number);
+    const daysIn = new Date(y, m, 0).getDate();
+    const now = new Date();
+    const thisMonth = now.getFullYear() === y && now.getMonth() + 1 === m;
+    const max = Math.max(...Object.values(f.days), 0.1);
+    let bars = "";
+    for (let d = 1; d <= daysIn; d++) {
+      const v = f.days[d] || 0;
+      const h = v ? Math.max(3, Math.round((v / max) * 44)) : 3;
+      const cls = v ? "spark__bar" : thisMonth && d > now.getDate() ? "spark__bar is-future" : "spark__bar is-empty";
+      bars += `<span class="${cls}" style="height:${h}px" title="${d}: ${v ? `${this._dec(v, 1)} kWh` : "—"}"></span>`;
     }
-    if (summary.cost) {
-      cells.push(
-        `<div class="chg__stat"><span class="chg__stat-val">${summary.cost}</span><span class="chg__stat-lbl">${this._t("ch_month")}</span></div>`
-      );
-    }
-    if (!cells.length) return "";
-    return `<div class="chg__summary">${cells.join("")}</div>`;
+    return `
+      <div class="kpis">${kpis}</div>
+      ${mix}
+      <div class="sec"><span class="sec__t">${this._t("ch_per_day")}</span><span class="sec__s">kWh</span></div>
+      <div class="spark" role="img" aria-label="${this._esc(this._t("ch_per_day"))}">${bars}</div>
+      <div class="spark-ax"><span>1</span><span>15</span><span>${daysIn}</span></div>`;
+  }
+
+  /** The charge in progress, from the session sensor and the car's charge, or
+   * null when none runs. */
+  _liveCharge(entities, deviceId) {
+    const s = this._sessionInfo(entities);
+    if (!s.st || s.socStart == null) return null;
+    const picks = this._overviewEntities(entities, this._deviceName(deviceId));
+    if (!this._isCharging(this._st(picks.charging), this._st(picks.soc))) return null;
+    return {
+      entity: s.st.entity_id,
+      start: s.start,
+      from: s.socStart,
+      to: this._num(this._st(picks.soc)),
+      kwh: this._num(s.st),
+      cost: s.cost,
+      solar: s.solar,
+    };
+  }
+
+  _liveRow(l) {
+    const soc = this._socBar(l.from, l.to);
+    return `
+      <div class="chg__session is-live">
+        <button class="chg__row" data-entity="${this._attr(l.entity)}">
+          <span class="chg__row-main">
+            <span class="chg__date"><span class="dot dot--live"></span> ${l.start ? this._t("vs_since", { time: this._clock(l.start) }) : this._t("ch_ongoing")}</span>
+            <span class="chg__meta">${soc}${l.solar != null && Math.round(l.solar) > 0 ? `<span class="chg__tag chg__tag--sun">\u2600 ${this._dec(l.solar, 0)}%</span>` : ""}</span>
+          </span>
+          <span class="chg__figures">
+            <span class="chg__energy chg__energy--lead">${l.kwh != null ? `+${this._dec(l.kwh, 1)} kWh` : "—"}</span>
+            ${l.cost ? `<span class="chg__cost-sub">${this._fmtCost(l.cost)}</span>` : ""}
+          </span>
+        </button>
+      </div>`;
+  }
+
+  /** From → to as a small bar, with the figures beside it. */
+  _socBar(a, b) {
+    if (a == null && b == null) return "";
+    const from = a == null ? null : Math.max(0, Math.min(100, a));
+    const to = b == null ? null : Math.max(0, Math.min(100, b));
+    const bar =
+      from != null && to != null && to >= from
+        ? `<span class="socbar"><span style="left:${from}%;width:${Math.max(2, to - from)}%"></span></span>`
+        : "";
+    return `${bar}<span class="chg__soc">${from == null ? "?" : Math.round(from)}→${to == null ? "?" : Math.round(to)}%</span>`;
   }
 
   _chargingRow(session, expanded) {
@@ -565,9 +700,13 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
     const date = this._fmtSessionDate(session.start);
     // Prefer the measured grid figure (imported / enriched sessions carry only
     // that); fall back to the battery-side energy for live-only sessions.
-    const energyKwh = session.grid_kwh != null ? session.grid_kwh : session.energy_kwh;
+    const energyKwh = this._sessionKwh(session);
     const energy = energyKwh != null ? `${this._dec(energyKwh, 1)} kWh` : "—";
-    const soc = this._socArc(session);
+    const soc = this._socBar(session.soc_start, session.soc_end);
+    const cost =
+      session.cost && session.cost.amount != null
+        ? `<span class="chg__cost-sub">${this._fmtCost(session.cost)}</span>`
+        : "";
     const badge = this._locationBadge(session);
     const partial =
       session.cost && session.cost.partial
@@ -587,6 +726,7 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
           </span>
           <span class="chg__figures">
             <span class="chg__energy chg__energy--lead">${energy}</span>
+            ${cost}
           </span>
         </button>
         ${isOpen ? this._chargingDetail(session) : ""}
@@ -629,13 +769,13 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
   }
 
   _chargingDetail(session) {
-    const chart = this._powerCurveSvg(session.power_curve);
+    const chart = this._powerCurveSvg(session.power_curve, this._avgPowerKw(session));
     const facts = [];
     if (session.peak_power_kw != null) {
       facts.push([this._t("ch_peak"), `${this._dec(session.peak_power_kw, 1)} kW`]);
     }
     const avg = this._avgPowerKw(session);
-    if (avg != null) facts.push([this._t("ch_avg"), `${this._dec(avg, 1)} kW`]);
+    if (avg != null) facts.push([this._t("ch_avg_dashed"), `${this._dec(avg, 1)} kW`]);
     // duration_s isn't in the service payload; derive it from the timestamps.
     const dur = this._durationLabel(session);
     if (dur) facts.push([this._t("ch_duration"), dur]);
@@ -670,7 +810,7 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
    * Stepped, not interpolated: each sampled power holds until the next sample
    * arrives, which is what the data means (an average over a block), rather than
    * drawing a diagonal ramp between two readings that never happened. */
-  _powerCurveSvg(curve) {
+  _powerCurveSvg(curve, avg) {
     if (!Array.isArray(curve) || curve.length < 2) return "";
     const W = 260;
     const H = 64;
@@ -699,6 +839,7 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
       <svg class="chg__chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">
         <polygon points="${area}" class="chg__chart-fill"></polygon>
         <polyline points="${line}" class="chg__chart-line"></polyline>
+        ${avg != null && avg > 0 && avg <= yMax ? `<line x1="${pad}" x2="${W - pad}" y1="${this._px(sy(avg))}" y2="${this._px(sy(avg))}" class="chg__chart-avg"></line>` : ""}
         <text x="${pad}" y="10" class="chg__chart-max">${this._dec(yMax, 1)} kW</text>
       </svg>
     `;
@@ -801,6 +942,7 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
   }
 
   _wireChargingTaps() {
+    this._wireTaps();
     this._wireExport();
     this._wireChargingTabs();
     this.shadowRoot.querySelectorAll("[data-session]").forEach((el) => {
