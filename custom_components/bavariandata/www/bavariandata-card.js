@@ -135,9 +135,6 @@ const TILE_LABELS = {
   distance_month: "ti_distance_month",
   battery_12v: "ti_battery_12v",
 };
-// Tiles every car can fill whatever drives it: the default grid of a car
-// without charging tiles.
-const NEUTRAL_TILES = ["tires", "location", "distance_month"];
 // An entity tile's icon where the entity names none (icons.json icons never
 // reach the state), by device class.
 const DEVICE_CLASS_ICONS = {
@@ -561,7 +558,6 @@ const SHARED = {
   DEVICE_CLASS_ICONS,
   FUEL_DESCRIPTORS,
   KM_PER_MILE,
-  NEUTRAL_TILES,
   NOT_CHARGING_STATES,
   TRIP_CLASS_COLORS,
   UNAVAILABLE,

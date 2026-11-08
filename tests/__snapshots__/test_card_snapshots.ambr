@@ -929,45 +929,36 @@
             
           </div>
   
-          <div class="band">
-            <button class="gauge" data-entity="sensor.i5_soc" aria-label="charge">
-              <div class="gauge__ring" style="--pct:72;--ring:var(--bmw-high)">
-                <div class="gauge__hole">
-                  <span class="gauge__val">72<i>%</i>
-  </span>
-                  <span class="gauge__cap">charge</span>
-                </div>
-              </div>
-              
-            </button>
+          <button class="verdict" data-entity="sensor.i5_soc">
+            <span class="verdict__t verdict__t--ok">Ready to go</span>
+            
+          </button>
   
-            <div class="lead">
-              
-              <button class="lead__row" data-entity="sensor.i5_range">
-                <ha-icon icon="mdi:map-marker-distance">
-  </ha-icon>
-                <span class="lead__val">379 km</span>
-                <span class="lead__lbl">remaining range</span>
+          <div class="meter">
+            <div class="meter__row">
+              <button class="meter__main" data-entity="sensor.i5_soc">
+                <span class="meter__big">72<i>%</i>
+  </span>
+                <span class="meter__cap">charge</span>
               </button>
-              <button class="lead__row" data-entity="sensor.i5_charging">
-                <ha-icon icon="mdi:ev-station">
-  </ha-icon>
-                <span class="lead__val">nocharging</span>
-                <span class="lead__lbl">charging status</span>
+              <button class="meter__side" data-entity="sensor.i5_range">
+                <span class="meter__mid">379 km</span>
+                <span class="meter__cap">remaining range</span>
               </button>
             </div>
+            <div class="bar" role="img" aria-label="charge 72 %">
+              <span class="bar__fill" style="width:72%;background:var(--bmw-high)">
+  </span>
+              
+              
+              
+            </div>
+            
+            
           </div>
   
           <div class="grid">
                   
-                    <button class="cell" data-entity="sensor.i5_target">
-                      <ha-icon icon="mdi:target">
-  </ha-icon>
-                      <div class="cell__body">
-                        <span class="cell__val">0 %</span>
-                        <span class="cell__lbl">Target</span>
-                      </div>
-                    </button>
                     <button class="cell" data-entity="sensor.i5_odometer">
                       <ha-icon icon="mdi:counter">
   </ha-icon>
@@ -997,36 +988,39 @@
             
           </div>
   
-          <div class="band">
-            <button class="gauge" data-entity="sensor.m2_remaining_fuel" aria-label="fuel">
-              <div class="gauge__ring" style="--pct:0;--ring:var(--divider-color)">
-                <div class="gauge__hole">
-                  <span class="gauge__val">38<i>L</i>
-  </span>
-                  <span class="gauge__cap">fuel</span>
-                </div>
-              </div>
-              
-            </button>
+          <button class="verdict" data-entity="sensor.m2_remaining_fuel">
+            <span class="verdict__t verdict__t--ok">Ready to go</span>
+            
+          </button>
   
-            <div class="lead">
-              
-              <button class="lead__row" data-entity="sensor.m2_range">
-                <ha-icon icon="mdi:map-marker-distance">
-  </ha-icon>
-                <span class="lead__val">412 km</span>
-                <span class="lead__lbl">remaining range</span>
+          <div class="meter">
+            <div class="meter__row">
+              <button class="meter__main" data-entity="sensor.m2_remaining_fuel">
+                <span class="meter__big">38<i>L</i>
+  </span>
+                <span class="meter__cap">fuel</span>
               </button>
-              <button class="lead__row" data-entity="sensor.m2_odometer">
-                <ha-icon icon="mdi:counter">
-  </ha-icon>
-                <span class="lead__val">41234 km</span>
-                <span class="lead__lbl">Odometer</span>
+              <button class="meter__side" data-entity="sensor.m2_range">
+                <span class="meter__mid">412 km</span>
+                <span class="meter__cap">remaining range</span>
               </button>
             </div>
+            
+            
+            
           </div>
   
-          
+          <div class="grid">
+                  
+                    <button class="cell" data-entity="sensor.m2_odometer">
+                      <ha-icon icon="mdi:counter">
+  </ha-icon>
+                      <div class="cell__body">
+                        <span class="cell__val">41234 km</span>
+                        <span class="cell__lbl">Odometer</span>
+                      </div>
+                    </button>
+                </div>
         </ha-card>
   '''
 # ---
@@ -1047,30 +1041,39 @@
             
           </div>
   
-          <div class="band">
-            <button class="gauge" data-entity="sensor.mini_range" aria-label="remaining range">
-              <div class="gauge__ring" style="--pct:0;--ring:var(--divider-color)">
-                <div class="gauge__hole">
-                  <span class="gauge__val">233<i>km</i>
-  </span>
-                  <span class="gauge__cap">remaining range</span>
-                </div>
-              </div>
-              
-            </button>
+          <button class="verdict" data-entity="sensor.mini_doors">
+            <span class="verdict__t verdict__t--ok">Ready to go</span>
+            
+          </button>
   
-            <div class="lead">
-              
-              <button class="lead__row" data-entity="sensor.mini_odometer">
-                <ha-icon icon="mdi:counter">
-  </ha-icon>
-                <span class="lead__val">41234 km</span>
-                <span class="lead__lbl">Odometer</span>
+          <div class="meter">
+            <div class="meter__row">
+              <button class="meter__main" data-entity="sensor.mini_range">
+                <span class="meter__big">233<i>km</i>
+  </span>
+                <span class="meter__cap">remaining range</span>
+              </button>
+              <button class="meter__side" data-entity="sensor.mini_odometer">
+                <span class="meter__mid">41234 km</span>
+                <span class="meter__cap">Odometer</span>
               </button>
             </div>
+            
+            
+            
           </div>
   
-          
+          <div class="grid">
+                  
+                    <button class="cell" data-entity="sensor.mini_doors">
+                      <ha-icon icon="mdi:lock" style="color:var(--divider-color)">
+  </ha-icon>
+                      <div class="cell__body">
+                        <span class="cell__val">closed</span>
+                        <span class="cell__lbl">Lock</span>
+                      </div>
+                    </button>
+                </div>
         </ha-card>
   '''
 # ---
@@ -1091,61 +1094,54 @@
             
           </div>
   
-          <div class="band">
-            <button class="gauge" data-entity="sensor.x3_30e_xdrive_battery_hv_state_of_charge" aria-label="charge">
-              <div class="gauge__ring" style="--pct:72;--ring:var(--bmw-high)">
-                <div class="gauge__hole">
-                  <span class="gauge__val">72<i>%</i>
-  </span>
-                  <span class="gauge__cap">charge</span>
-                </div>
-              </div>
-              
-            </button>
+          <button class="verdict" data-entity="sensor.x3_30e_xdrive_charging_port_plug_state">
+            <span class="verdict__t verdict__t--ok">Waiting to charge</span>
+            <span class="verdict__s">target 80 %</span>
+          </button>
   
-            <div class="lead">
-              
-              <button class="lead__row" data-entity="sensor.x3_30e_xdrive_range_ev_remaining_range">
-                <ha-icon icon="mdi:map-marker-distance">
-  </ha-icon>
-                <span class="lead__val">61 km</span>
-                <span class="lead__lbl">electric range</span>
+          <div class="meter">
+            <div class="meter__row">
+              <button class="meter__main" data-entity="sensor.x3_30e_xdrive_battery_hv_state_of_charge">
+                <span class="meter__big">72<i>%</i>
+  </span>
+                <span class="meter__cap">charge</span>
               </button>
-              <button class="lead__row" data-entity="sensor.x3_30e_xdrive_charging_ev_charging_state">
-                <ha-icon icon="mdi:ev-station">
-  </ha-icon>
-                <span class="lead__val">chargingended</span>
-                <span class="lead__lbl">charging status</span>
+              <button class="meter__side" data-entity="sensor.x3_30e_xdrive_range_ev_remaining_range">
+                <span class="meter__mid">61 km</span>
+                <span class="meter__cap">electric range</span>
               </button>
             </div>
+            <div class="bar" role="img" aria-label="charge 72 %">
+              <span class="bar__fill" style="width:72%;background:var(--bmw-high)">
+  </span>
+              
+              
+              <span class="bar__tick" style="left:80%">
+  </span>
+            </div>
+            <div class="bar__legend">
+  <span>Plugged in, not charging</span>
+  <span>Target 80 %</span>
+  </div>
+            <button class="meter__tank" data-entity="sensor.x3_30e_xdrive_range_tank_level">
+                <ha-icon icon="mdi:gas-station">
+  </ha-icon>
+                <span class="meter__tank-body">
+                  <span class="meter__tank-row">
+  <span>
+  <b>55 %</b> Tank</span>
+  <span>590 km together</span>
+  </span>
+                  <span class="thin">
+  <span style="width:55%">
+  </span>
+  </span>
+                </span>
+              </button>
           </div>
   
           <div class="grid">
                   
-                    <button class="cell" data-entity="sensor.x3_30e_xdrive_range_tank_level">
-                      <ha-icon icon="mdi:gas-station">
-  </ha-icon>
-                      <div class="cell__body">
-                        <span class="cell__val">55 %</span>
-                        <span class="cell__lbl">Tank</span>
-                      </div>
-                    </button>
-                    <button class="cell" data-entity="sensor.x3_30e_xdrive_range_total_range_last_sent">
-                      <ha-icon icon="mdi:map-marker-distance">
-  </ha-icon>
-                      <div class="cell__body">
-                        <span class="cell__val">590 km</span>
-                        <span class="cell__lbl">Total range</span>
-                      </div>
-                    </button>
-                    <button class="cell" data-entity="sensor.x3_30e_xdrive_battery_ev_target_state_of_charge">
-                      <ha-icon icon="mdi:target">
-  </ha-icon>
-                      <div class="cell__body">
-                        <span class="cell__val">80 %</span>
-                        <span class="cell__lbl">Target</span>
-                      </div>
-                    </button>
                     <button class="cell" data-entity="sensor.x3_30e_xdrive_charging_port_plug_state">
                       <ha-icon icon="mdi:power-plug">
   </ha-icon>

@@ -68,20 +68,21 @@ def _cells(html: str) -> list[str]:
 def test_a_combustion_car_fills_its_grid_with_what_it_streams():
     rendered = _render(DIESEL)
     assert rendered["drivetrain"] == "ice"
-    # The odometer already sits beside the ring, where the M2's tank in litres
-    # leaves it room.
-    assert _cells(rendered["html"]) == ["Tires", "Location", "Driven this month"]
+    # Parked: what one checks before leaving, four at most.
+    assert _cells(rendered["html"]) == ["Lock", "Tires", "Location", "Odometer"]
     # The pressure spread, colored by the same verdict as the tire view.
     assert "250 – 260 kPa" in rendered["html"]
     assert 'data-entity="device_tracker.car_location"' in rendered["html"]
 
 
-def test_a_combustion_car_without_that_data_keeps_the_grid_it_had():
-    assert _cells(_render(M2)["html"]) == []
+def test_a_combustion_car_without_that_data_shows_what_it_has():
+    assert _cells(_render(M2)["html"]) == ["Odometer"]
 
 
-def test_the_electric_grid_is_unchanged_by_the_new_tiles():
-    assert _cells(_render({**I5, **EXTRAS})["html"]) == ["Target", "Odometer"]
+def test_a_parked_electric_car_shows_what_one_checks_before_leaving():
+    # Lock, plug, tires, location; this car has no plug sensor, so the odometer
+    # stands in. The target sits on the bar now.
+    assert _cells(_render({**I5, **EXTRAS})["html"]) == ["Lock", "Tires", "Location", "Odometer"]
 
 
 def test_tiles_replace_the_grid_in_their_order():

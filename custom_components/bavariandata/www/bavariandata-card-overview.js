@@ -6,32 +6,34 @@
  * the card's own scope arrives in SHARED.
  */
 
-export default (Base, { CHARGING_ACTIVE_STATES, DEVICE_CLASS_ICONS, NEUTRAL_TILES, NOT_CHARGING_STATES, UNAVAILABLE, _lang }) => class OverviewPart extends Base {
+export default (Base, { DEVICE_CLASS_ICONS, UNAVAILABLE, _lang }) => class OverviewPart extends Base {
   _renderOverview(deviceId, entities) {
     const cfg = this._config || {};
     const drivetrain = this._drivetrain(entities);
     const ice = drivetrain === "ice";
+    const phev = drivetrain === "phev";
     const picks = this._overviewEntities(entities, this._deviceName(deviceId));
     const byDesc = (descriptor) => this._idByDescriptor(entities, descriptor);
     const name = cfg.title || this._deviceName(deviceId);
+    const unit = this._distUnit(deviceId, entities);
     const trip = this._openTrip(entities);
     const socSt = this._st(picks.soc);
     const chargingSt = this._st(picks.charging);
     const odometerSt = this._st(picks.odometer);
 
-    // What the ring and the tiles show follows the drivetrain. An electric car
-    // keeps the layout this card has always had; a plug-in hybrid adds its tank
-    // and combined range; a petrol or diesel car swaps the charge ring for its
-    // tank and drops every charging tile -- BMW streams an EV charge target even
-    // to a petrol M2, where "Target 0 %" means nothing.
+    // What the meter and the tiles show follows the drivetrain. An electric car
+    // bars its charge; a plug-in hybrid adds its tank as a second line; a petrol
+    // or diesel car bars its tank and drops everything about charging -- BMW
+    // streams an EV charge target even to a petrol M2, where "Target 0 %" means
+    // nothing.
     const fuelId =
       cfg.fuel ||
       byDesc("vehicle.drivetrain.fuelSystem.level") ||
       byDesc("vehicle.drivetrain.fuelSystem.remainingFuel");
     const fuelSt = this._st(fuelId);
     // A car that proved no drivetrain is laid out like a combustion one -- no
-    // charging tiles, nothing electric -- except that it has no tank either, so
-    // it rings its range and the lead row shows what it does have. So does a
+    // charging, nothing electric -- except that it has no tank either, so its
+    // meter is its range and the side shows what it does have. So does a
     // combustion car that streams no tank: a petrol MINI sends none (#100).
     const bare = drivetrain === "unknown" || (ice && !fuelId);
     const litresId = byDesc("vehicle.drivetrain.fuelSystem.remainingFuel");
@@ -43,20 +45,28 @@ export default (Base, { CHARGING_ACTIVE_STATES, DEVICE_CLASS_ICONS, NEUTRAL_TILE
         picks.range
       : picks.range;
     const rangeSt = this._st(rangeId);
-    const charging = !ice && !bare && this._isCharging(chargingSt, socSt);
+    const electric = !ice && !bare;
+    const charging = electric && this._isCharging(chargingSt, socSt);
+    const plugSt = electric ? this._st(picks.plug) : null;
+    const plugged = charging || this._isPlugged(plugSt);
+    // A target of 0 is no target: what BMW sends when none is set.
+    const targetNum = electric ? this._num(this._st(picks.target)) : null;
+    const target = targetNum != null && targetNum > 0 ? targetNum : null;
+    const session = electric ? this._sessionInfo(entities) : null;
+    const closures = this._closureModel(entities);
 
-    // The ring: state of charge, or the tank on a combustion car -- as a fill
-    // level where the car streams a percentage, otherwise its volume on a bare
-    // ring (a fill level can't be drawn from litres without the tank size).
-    // A car that proved no drivetrain has neither, so it rings the one headline
-    // number it does have: how far it can still go.
+    // The meter: state of charge, or the tank on a combustion car -- as a fill
+    // level where the car streams a percentage, otherwise its volume with no
+    // bar (a fill level can't be drawn from litres without the tank size). A
+    // car that proved no drivetrain has neither, so its meter is the one
+    // headline number it does have: how far it can still go.
     const gaugeId = bare ? rangeId : ice ? fuelId : picks.soc;
     const gaugeSt = this._st(gaugeId);
     const gaugeNum = this._num(gaugeSt);
     const gaugeUnit = (gaugeSt && gaugeSt.attributes && gaugeSt.attributes.unit_of_measurement) || "";
-    const isPct = (!ice && !bare) || gaugeUnit === "%";
+    const isPct = electric || gaugeUnit === "%";
     const pct = isPct && gaugeNum != null ? Math.max(0, Math.min(100, gaugeNum)) : 0;
-    const ringColor = charging
+    const fillColor = charging
       ? "var(--bmw-charge)"
       : !isPct || gaugeNum == null
       ? "var(--divider-color)"
@@ -75,54 +85,77 @@ export default (Base, { CHARGING_ACTIVE_STATES, DEVICE_CLASS_ICONS, NEUTRAL_TILE
       ? this._t("charging")
       : this._t("charge");
 
-    const rangeRow = {
-      entity: rangeId,
-      icon: "mdi:map-marker-distance",
-      val: this._fmt(rangeSt),
-      lbl: this._t(drivetrain === "phev" ? "electric_range" : "remaining_range"),
-    };
-    let lead;
-    let secondary;
-    if (ice || bare) {
-      const odometerRow = {
-        entity: picks.odometer,
-        icon: "mdi:counter",
-        val: this._fmt(odometerSt),
-        lbl: this._t("odometer"),
-      };
-      lead = bare
-        ? [odometerRow]
-        : [
-            rangeRow,
-            litresSt
-              ? { entity: litresId, icon: "mdi:gas-station", val: this._fmt(litresSt), lbl: this._t("tank") }
-              : odometerRow,
-          ];
-      // The grid has room a combustion car's charging tiles used to fill; give
-      // it what such a car does stream, each tile only where it has data.
-      secondary = [...(litresSt && !bare ? ["odometer"] : []), ...NEUTRAL_TILES];
-    } else {
-      lead = [
-        rangeRow,
-        {
-          entity: picks.charging,
-          icon: charging ? "mdi:battery-charging" : "mdi:ev-station",
-          val: this._chargingLabel(chargingSt, charging),
-          lbl: this._t("charging_status"),
-        },
-      ];
-      secondary = [
-        ...(drivetrain === "phev" ? ["tank", "total_range"] : []),
-        "target",
-        "plug",
-        "time_to_full",
-        "odometer",
-      ];
+    // What the charge (or the drive) has done to the bar so far.
+    let gain = null;
+    let used = null;
+    if (electric && gaugeNum != null) {
+      if (charging && session.socStart != null && pct > session.socStart) {
+        gain = [session.socStart, pct - session.socStart];
+      }
+      if (trip && trip.soc_start != null && trip.soc_now != null && trip.soc_start > trip.soc_now) {
+        used = [Math.max(0, trip.soc_now), Math.min(100, trip.soc_start) - Math.max(0, trip.soc_now)];
+      }
     }
-    // `tiles:` replaces the grid whole, in the order given.
-    if (Array.isArray(cfg.tiles) && cfg.tiles.length) secondary = cfg.tiles;
-    const tileCtx = { entities, picks, fuelSt, odometerSt, charging, name: this._deviceName(deviceId) };
-    secondary = secondary.map((item) => this._overviewTile(item, tileCtx)).filter((m) => m && m.st);
+    let legL = "";
+    let legR = "";
+    if (electric) {
+      if (charging) {
+        legL = gain && session.start
+          ? this._t("ov_since", { n: Math.round(gain[1]), time: this._clock(session.start) })
+          : "";
+      } else if (used) {
+        legL = this._t("ov_trip_used", { n: Math.round(used[1]) });
+      } else if (plugSt && !UNAVAILABLE.has(plugSt.state)) {
+        legL = this._t(plugged ? "ov_plugged_idle" : "ov_unplugged");
+      }
+      if (target != null) legR = this._t("ov_target", { n: Math.round(target) });
+    } else if (ice && litresSt) {
+      legL = this._t("ov_tank_left", { v: this._fmt(litresSt) });
+    }
+
+    // Beside the big number: the range, with what the car really does on a
+    // battery car; a bare car shows its odometer there instead.
+    const realSt = electric && !phev ? this._byDescriptor(entities, "real_range") : null;
+    const side = bare
+      ? { entity: picks.odometer, val: this._fmt(odometerSt), cap: this._t("odometer") }
+      : {
+          entity: rangeId,
+          val: this._fmt(rangeSt),
+          cap:
+            realSt && this._num(realSt) != null
+              ? this._t("ov_real", { v: this._fmt(realSt) })
+              : this._t(phev ? "electric_range" : "remaining_range"),
+        };
+    // A plug-in hybrid's tank, as a thin second line under the battery.
+    const tankNum = phev ? this._num(fuelSt) : null;
+    const tank =
+      phev && fuelSt
+        ? {
+            entity: fuelId,
+            val: this._fmt(fuelSt),
+            pct: tankNum != null && (fuelSt.attributes || {}).unit_of_measurement === "%" ? Math.max(0, Math.min(100, tankNum)) : null,
+            total: this._fmt(this._st(byDesc("vehicle.drivetrain.lastRemainingRange"))),
+          }
+        : null;
+
+    const verdict = this._verdict({
+      ice, bare, electric, charging, plugged, plugSt, target, trip, unit, closures, session,
+      gaugeNum: isPct ? gaugeNum : null,
+      rangeSt,
+      realSt,
+      zone: this._st(entities.find((id) => id.startsWith("device_tracker."))),
+      timeToFullSt: this._st(picks.timeToFull),
+      ids: { timeToFull: picks.timeToFull, charging: picks.charging, gauge: gaugeId, plug: picks.plug },
+    });
+
+    // `tiles:` replaces the grid whole, in the order given. Without it the grid
+    // follows what the car is doing: the four first of the situation's list
+    // that the car has data for.
+    const own = Array.isArray(cfg.tiles) && cfg.tiles.length;
+    const wanted = own ? cfg.tiles : this._situationTiles({ ice, bare, electric, charging, trip, open: verdict.key === "open" });
+    const tileCtx = { entities, picks, fuelSt, odometerSt, charging, session, trip, unit, closures, name: this._deviceName(deviceId) };
+    let secondary = wanted.map((item) => this._overviewTile(item, tileCtx)).filter((m) => m && m.st);
+    if (!own) secondary = secondary.slice(0, 4);
 
     // freshest update among the headline entities
     const freshest = [gaugeSt, rangeSt, ice ? null : chargingSt]
@@ -136,7 +169,7 @@ export default (Base, { CHARGING_ACTIVE_STATES, DEVICE_CLASS_ICONS, NEUTRAL_TILE
     const pano = spinInfo && picks.image ? this._interiorInfo(picks.image) : null;
     const inside = !!pano && this._heroMode === "interior";
     const spin = inside ? null : spinInfo;
-    const heroState = spinInfo && !inside ? this._heroState(entities, charging) : null;
+    const inset = spinInfo && !inside ? this._heroInset(closures, entities) : "";
     const sig = this._signature({
       m: "ov",
       dt: drivetrain,
@@ -147,10 +180,12 @@ export default (Base, { CHARGING_ACTIVE_STATES, DEVICE_CLASS_ICONS, NEUTRAL_TILE
       spin: spinInfo && spinInfo.url,
       inside,
       pano: !!pano,
-      hs: heroState && [heroState.chips.map((c) => c.label), heroState.inset.length],
+      inset: inset.length,
       fresh: freshest,
-      gauge: [gaugeId, gaugeVal, gaugeUnitHtml, pct, ringColor, gaugeCap],
-      lead: lead.map((r) => [r.entity, r.lbl, r.val]),
+      verdict,
+      meter: [gaugeId, gaugeVal, gaugeUnitHtml, pct, fillColor, gaugeCap, gain, used, legL, legR],
+      side,
+      tank,
       sec: secondary.map((s) => [s.label, s.val == null ? s.st.state : s.val, s.icon, s.color]),
       // Elapsed minutes ride the signature so the badge's duration keeps ticking
       // between the entity's throttled attribute writes.
@@ -163,18 +198,21 @@ export default (Base, { CHARGING_ACTIVE_STATES, DEVICE_CLASS_ICONS, NEUTRAL_TILE
 
     const imgUrl = picks.image ? this._imageUrl(picks.image) : null;
     const rel = this._relTime(freshest);
-    // Only over the configurator photo: badges, the inset and the interior
-    // switch. Empty otherwise, so the plain hero's markup is unchanged.
+    // Only over the configurator photo: the drawing of what is open and the
+    // interior switch. Empty otherwise, so the plain hero's markup is unchanged.
     const heroExtras =
-      this._heroStateHtml(heroState) +
+      (inset ? `<div class="hero__inset">${inset}</div>` : "") +
       (pano
         ? `<button class="hero__mode" data-hero-mode title="${this._esc(this._t(inside ? "hs_exterior" : "hs_interior"))}"><ha-icon icon="${inside ? "mdi:car-side" : "mdi:car-seat"}"></ha-icon></button>`
         : "");
+    const bar = isPct && gaugeNum != null
+      ? this._barHtml({ pct, color: fillColor, charging, gain, used, tick: target, label: `${gaugeCap} ${gaugeVal} %` })
+      : "";
 
     this.shadowRoot.innerHTML = `
       ${this._styles()}
       <ha-card>
-        <div class="hero ${imgUrl || spinInfo ? "" : "hero--empty"}${heroState && heroState.inset ? " hero--inset" : ""}${spin && spin.variant === "night" ? " hero--night" : ""}">
+        <div class="hero ${imgUrl || spinInfo ? "" : "hero--empty"}${inset ? " hero--inset" : ""}${spin && spin.variant === "night" ? " hero--night" : ""}">
           ${
             inside
               ? this._panoHtml(pano)
@@ -189,32 +227,38 @@ export default (Base, { CHARGING_ACTIVE_STATES, DEVICE_CLASS_ICONS, NEUTRAL_TILE
             <div class="hero__name" title="${this._esc(name)}">${this._esc(name)}</div>
             ${rel ? `<div class="pill" title="${this._t("last_update")}"><span class="dot ${this._staleClass(freshest)}"></span>${rel}</div>` : ""}
           </div>
-          ${this._tripPill(trip, this._distUnit(deviceId, entities))}${heroExtras}
+          ${this._tripPill(trip, unit)}${heroExtras}
         </div>
 
-        <div class="band">
-          <button class="gauge" data-entity="${gaugeId || ""}" aria-label="${gaugeCap}">
-            <div class="gauge__ring" style="--pct:${pct};--ring:${ringColor}">
-              <div class="gauge__hole">
-                <span class="gauge__val">${gaugeVal}<i>${gaugeUnitHtml}</i></span>
-                <span class="gauge__cap">${gaugeCap}</span>
-              </div>
-            </div>
-            ${charging ? `<ha-icon class="gauge__bolt" icon="mdi:lightning-bolt"></ha-icon>` : ""}
-          </button>
+        <button class="verdict" data-entity="${this._esc(verdict.entity || "")}">
+          <span class="verdict__t verdict__t--${verdict.tone}">${verdict.title}</span>
+          ${verdict.sub ? `<span class="verdict__s">${verdict.sub}</span>` : ""}
+        </button>
 
-          <div class="lead">
-            ${lead
-              .map(
-                (r) => `
-            <button class="lead__row" data-entity="${r.entity || ""}">
-              <ha-icon icon="${r.icon}"></ha-icon>
-              <span class="lead__val">${r.val}</span>
-              <span class="lead__lbl">${r.lbl}</span>
-            </button>`
-              )
-              .join("")}
+        <div class="meter">
+          <div class="meter__row">
+            <button class="meter__main" data-entity="${gaugeId || ""}">
+              <span class="meter__big">${gaugeVal}<i>${gaugeUnitHtml}</i></span>
+              <span class="meter__cap">${gaugeCap}</span>
+            </button>
+            <button class="meter__side" data-entity="${side.entity || ""}">
+              <span class="meter__mid">${side.val}</span>
+              <span class="meter__cap">${side.cap}</span>
+            </button>
           </div>
+          ${bar}
+          ${legL || legR ? `<div class="bar__legend"><span>${legL}</span><span>${legR}</span></div>` : ""}
+          ${
+            tank
+              ? `<button class="meter__tank" data-entity="${tank.entity || ""}">
+              <ha-icon icon="mdi:gas-station"></ha-icon>
+              <span class="meter__tank-body">
+                <span class="meter__tank-row"><span><b>${tank.val}</b> ${this._t("tank")}</span><span>${this._t("ov_together", { v: tank.total })}</span></span>
+                ${tank.pct != null ? `<span class="thin"><span style="width:${tank.pct}%"></span></span>` : ""}
+              </span>
+            </button>`
+              : ""
+          }
         </div>
 
         ${
@@ -223,7 +267,7 @@ export default (Base, { CHARGING_ACTIVE_STATES, DEVICE_CLASS_ICONS, NEUTRAL_TILE
                 ${secondary
                   .map(
                     (m) => `
-                  <button class="cell" data-entity="${this._esc(m.st.entity_id)}">
+                  <button class="cell${m.tone ? ` cell--${m.tone}` : ""}" data-entity="${this._esc(m.st.entity_id)}">
                     <ha-icon icon="${this._esc(m.icon)}"${m.color ? ` style="color:${m.color}"` : ""}></ha-icon>
                     <div class="cell__body">
                       <span class="cell__val">${m.val == null ? this._fmt(m.st) : m.val}</span>
@@ -251,6 +295,161 @@ export default (Base, { CHARGING_ACTIVE_STATES, DEVICE_CLASS_ICONS, NEUTRAL_TILE
       });
     }
   }
+
+  /** The bar under the big number: the level, what a charge has added (striped)
+   * or a drive has used (faint) so far, and the target as a tick. Shared by
+   * every view that bars a charge. */
+  _barHtml({ pct, color, charging, gain, used, tick, label }) {
+    const at = (n) => Math.max(0, Math.min(100, Number(n)));
+    return `<div class="bar" role="img" aria-label="${this._esc(label || "")}">
+            <span class="bar__fill${charging ? " bar__fill--charging" : ""}" style="width:${at(pct)}%;background:${color}"></span>
+            ${gain ? `<span class="bar__gain" style="left:${at(gain[0])}%;width:${at(gain[1])}%"></span>` : ""}
+            ${used ? `<span class="bar__used" style="left:${at(used[0])}%;width:${at(used[1])}%;background:${color}"></span>` : ""}
+            ${tick != null ? `<span class="bar__tick" style="left:${at(tick)}%"></span>` : ""}
+          </div>`;
+  }
+
+  /** The charge in progress, as the session sensor tells it: when it began, at
+   * which charge, and its cost and solar share so far (each null when unknown).
+   * The attributes only exist while a charge runs. */
+  _sessionInfo(entities) {
+    const st = this._byDescriptor(entities, "charged_energy_session");
+    const a = (st && st.attributes) || {};
+    const num = (v) => (v == null || v === "" || !Number.isFinite(Number(v)) ? null : Number(v));
+    return {
+      st,
+      start: a.last_reset || null,
+      socStart: num(a.soc_start),
+      cost: num(a.cost_so_far) == null ? null : { amount: num(a.cost_so_far), currency: a.currency },
+      solar: num(a.solar_percent),
+    };
+  }
+
+  /** A time of day as the user's profile writes it. */
+  _clock(iso) {
+    const d = new Date(iso);
+    if (!Number.isFinite(d.getTime())) return "";
+    const opts = { hour: "2-digit", minute: "2-digit" };
+    const format = this._hass && this._hass.locale && this._hass.locale.time_format;
+    if (format === "12" || format === "24") opts.hour12 = format === "12";
+    try {
+      return this._esc(d.toLocaleTimeString(_lang(this._hass), opts));
+    } catch (_e) {
+      return this._esc(d.toISOString().slice(11, 16));
+    }
+  }
+
+  /** The line on top of the overview: what the car is doing, in words, and the
+   * one or two facts behind it. First match wins:
+   *   something open (not while driving) -> unlocked while parked -> charging
+   *   -> on the road -> plugged in below its target -> low -> ready.
+   * An open door outranks a charge: left open overnight on the drive is
+   * exactly what must not hide behind "done at 05:40". Merely unlocked does
+   * not; plenty of cars charge unlocked in a garage.
+   * (A refused login never gets here: the card says so instead.) `title` and
+   * `sub` come back escaped; `tone` is ok, live, warn or alert. */
+  _verdict(c) {
+    const join = (parts) => parts.filter(Boolean).join(" · ");
+    const m = c.closures;
+    const unlocked = !!(m.lockId && m.lock.key === "unlocked");
+    const zone = c.zone && !UNAVAILABLE.has(c.zone.state) ? this._fmt(c.zone) : null;
+    if (!c.trip && (m.openItems.length || (unlocked && !c.charging))) {
+      const open = m.openItems.slice(0, 2).map((i) => this._esc(i.label));
+      if (m.openItems.length > 2) open.push(this._t("ov_more", { n: m.openItems.length - 2 }));
+      return {
+        key: "open",
+        tone: "alert",
+        entity: m.openItems.length ? m.openItems[0].id : m.lockId,
+        title: this._t(m.openItems.length ? "vd_open" : "vd_unlocked"),
+        sub: join([...open, unlocked && m.openItems.length ? this._esc(m.lock.label) : null, zone]),
+      };
+    }
+    if (c.charging) {
+      const done = this._doneAt(c.timeToFullSt);
+      return {
+        key: "charging",
+        tone: "live",
+        // The minutes left are a tap away; the line itself says the clock time.
+        entity: c.ids.timeToFull || c.ids.charging,
+        title: done ? this._t("vd_charging_done", { time: done }) : this._t("vd_charging"),
+        sub: join([
+          c.session && c.session.start ? this._t("vs_since", { time: this._clock(c.session.start) }) : null,
+          zone,
+        ]),
+      };
+    }
+    if (c.trip) {
+      const min = this._elapsedMin(c.trip.started);
+      return {
+        key: "driving",
+        tone: "live",
+        entity: c.trip.entity_id,
+        title: this._t("vd_driving"),
+        sub: join([
+          c.trip.distance_km != null ? this._distance(c.trip.distance_km, c.unit, 1) : null,
+          min != null ? this._t("tr_min", { n: min }) : null,
+          c.trip.start_location ? this._t("vs_from", { place: this._esc(c.trip.start_location) }) : null,
+        ]),
+      };
+    }
+    // The lock has a tile of its own, so the line names where, not how locked.
+    if (c.electric && c.plugged && c.target != null && c.gaugeNum != null && c.gaugeNum < c.target - 1) {
+      return {
+        key: "waiting",
+        tone: "ok",
+        entity: c.ids.plug || c.ids.gauge,
+        title: this._t("vd_waiting"),
+        sub: join([this._t("vs_target", { n: Math.round(c.target) }), zone]),
+      };
+    }
+    const real = c.realSt && this._num(c.realSt) != null ? this._fmt(c.realSt) : this._fmt(c.rangeSt);
+    if (c.gaugeNum != null && c.gaugeNum < 20 && !c.plugged && !c.bare) {
+      return {
+        key: "low",
+        tone: "warn",
+        entity: c.ids.gauge,
+        title: this._t(c.ice ? "vd_low_fuel" : "vd_low"),
+        sub: join([this._t("vs_left", { v: real }), zone]),
+      };
+    }
+    return {
+      key: "ready",
+      tone: "ok",
+      entity: m.lockId || c.ids.gauge,
+      title: this._t("vd_ready"),
+      sub: join([
+        c.electric && c.plugged && c.target != null && c.gaugeNum != null
+          ? this._t("vs_at_target", { n: Math.round(c.target) })
+          : null,
+        zone,
+      ]),
+    };
+  }
+
+  /** A power state in kW, whatever unit it comes in; null when there is none. */
+  _kw(st) {
+    const n = this._num(st);
+    if (n == null) return null;
+    const u = String((st.attributes || {}).unit_of_measurement || "W");
+    const kw = u === "kW" ? n : u === "MW" ? n * 1000 : n / 1000;
+    if (kw <= 0) return null;
+    return `${this._dec(kw, 1)} kW`;
+  }
+
+  /** The tiles the grid shows when `tiles:` is not set, best first: the four
+   * that fit what the car is doing. Each is only shown where the car has data,
+   * so the later ones stand in for the missing. */
+  _situationTiles({ ice, bare, electric, charging, trip, open }) {
+    // The target sits on the bar and a bare car's odometer beside its range,
+    // so neither is offered again here.
+    if (charging) return ["power", "session_energy", "session_solar", "session_cost", "time_to_full", "plug"];
+    if (trip) return electric ? ["trip_distance", "trip_time", "trip_used", "lock"] : ["trip_distance", "trip_time", "lock", "odometer"];
+    if (open) return ["lock", "open_items", "location", "tires"];
+    if (bare) return ["lock", "tires", "location", "distance_month"];
+    if (ice) return ["lock", "tires", "location", "odometer", "distance_month"];
+    return ["lock", "plug", "tires", "location", "odometer", "distance_month"];
+  }
+
 
   /** One tile of the overview grid, or null where the car has nothing for it.
    *
@@ -311,7 +510,7 @@ export default (Base, { CHARGING_ACTIVE_STATES, DEVICE_CLASS_ICONS, NEUTRAL_TILE
       case "location":
         return tile(this._t("ti_location"), this._st(entities.find((id) => id.startsWith("device_tracker."))), "mdi:map-marker");
       case "lock": {
-        const m = this._closureModel(entities);
+        const m = ctx.closures || this._closureModel(entities);
         if (!m.lockId) return null;
         return tile(this._t("ti_lock"), this._st(m.lockId), m.lock.key === "unlocked" ? "mdi:lock-open-variant" : "mdi:lock", {
           val: this._esc(m.lock.label),
@@ -320,6 +519,61 @@ export default (Base, { CHARGING_ACTIVE_STATES, DEVICE_CLASS_ICONS, NEUTRAL_TILE
       }
       case "distance_month":
         return tile(this._t("ti_distance_month"), this._byDescriptor(entities, "driving_distance_month"), "mdi:calendar-month");
+      case "power": {
+        // Only while charging: BMW keeps the last power long after a charge.
+        if (!charging) return null;
+        const st = this._st(byDesc("vehicle.powertrain.electric.battery.charging.power"));
+        const kw = this._kw(st);
+        return kw ? tile(this._t("ti_power"), st, "mdi:lightning-bolt", { val: kw, tone: "live" }) : null;
+      }
+      case "session_energy": {
+        const s = ctx.session;
+        if (!charging || !s || !s.st || this._num(s.st) == null) return null;
+        return tile(this._t("ti_added"), s.st, "mdi:battery-plus-variant", { val: `+${this._fmt(s.st)}`, tone: "live" });
+      }
+      case "session_solar": {
+        const s = ctx.session;
+        if (!charging || !s || s.solar == null) return null;
+        return tile(this._t("ti_solar"), s.st, "mdi:solar-power-variant", { val: `${this._dec(s.solar, 0)} %`, tone: "solar" });
+      }
+      case "session_cost": {
+        const s = ctx.session;
+        if (!charging || !s || !s.cost) return null;
+        return tile(this._t("ti_cost"), s.st, "mdi:cash", { val: this._fmtCost(s.cost) });
+      }
+      case "trip_distance": {
+        const t = ctx.trip;
+        if (!t || t.distance_km == null) return null;
+        return tile(this._t("ti_trip"), this._st(t.entity_id), "mdi:map-marker-path", {
+          val: this._esc(this._distance(t.distance_km, ctx.unit, 1)),
+          tone: "live",
+        });
+      }
+      case "trip_time": {
+        const t = ctx.trip;
+        const min = t ? this._elapsedMin(t.started) : null;
+        if (min == null) return null;
+        return tile(this._t("ti_trip_time"), this._st(t.entity_id), "mdi:timer-outline", {
+          val: this._t("tr_min", { n: min }),
+          tone: "live",
+        });
+      }
+      case "trip_used": {
+        const t = ctx.trip;
+        if (!t || t.soc_start == null || t.soc_now == null) return null;
+        const drop = Math.max(0, t.soc_start - t.soc_now);
+        return tile(this._t("ti_used"), this._st(t.entity_id), "mdi:battery-arrow-down-outline", {
+          val: `−${this._dec(drop, 0)} %`,
+        });
+      }
+      case "open_items": {
+        const items = (ctx.closures || this._closureModel(entities)).openItems;
+        if (!items.length) return null;
+        return tile(items.length === 1 ? this._esc(items[0].label) : this._t("ti_open"), this._st(items[0].id), "mdi:car-door", {
+          val: items.length === 1 ? this._esc(items[0].value) : this._t("ov_n_open", { n: items.length }),
+          tone: "alert",
+        });
+      }
       case "battery_12v":
         return tile(
           this._t("ti_battery_12v"),
@@ -426,18 +680,6 @@ export default (Base, { CHARGING_ACTIVE_STATES, DEVICE_CLASS_ICONS, NEUTRAL_TILE
     }
   }
 
-  _chargingLabel(st, charging) {
-    const raw = st && st.state != null ? String(st.state).toLowerCase() : "";
-    if (!st || UNAVAILABLE.has(st.state) || NOT_CHARGING_STATES.has(raw)) {
-      return this._t(charging ? "is_charging" : "not_charging");
-    }
-    // "chargingactive" et al. are uncatalogued raw tokens; show a clean label.
-    if (CHARGING_ACTIVE_STATES.has(raw)) {
-      return this._t("is_charging");
-    }
-    return this._fmt(st);
-  }
-
   _staleClass(iso) {
     const rel = iso ? (Date.now() - new Date(iso).getTime()) / 3600000 : 999;
     return rel > 12 ? "dot--stale" : "dot--live";
@@ -535,75 +777,23 @@ export default (Base, { CHARGING_ACTIVE_STATES, DEVICE_CLASS_ICONS, NEUTRAL_TILE
       });
   }
 
-  /** What the photo should say about the car right now: badges for anything
-   * open, unlocked or charging, and the top-down drawing as an inset when
-   * something is open, so it's clear where. Only drawn over the configurator
-   * photo; the plain picture keeps the hero as it always was. */
-  _heroState(entities, charging) {
-    const m = this._closureModel(entities);
-    const chips = [];
-    const doorsOpen = Object.values(m.doors).filter((d) => d.open).length;
-    if (doorsOpen) {
-      chips.push({
-        icon: "mdi:car-door",
-        color: m.ALERT,
-        label:
-          doorsOpen === 1
-            ? this._t("hs_door_open")
-            : this._t("hs_doors_open", { n: doorsOpen }),
-      });
-    }
-    if (m.trunk && m.trunk.open) {
-      chips.push({ icon: "mdi:car-back", color: m.ALERT, label: this._t("hs_trunk_open") });
-    }
-    if (m.hood && m.hood.open) {
-      chips.push({ icon: "mdi:car-select", color: m.ALERT, label: this._t("hs_hood_open") });
-    }
-    const glassOpen =
-      Object.values(m.windows).some((w) => w.open) ||
-      (m.sunroof && m.sunroof.open) ||
-      (m.rearWindow && m.rearWindow.open);
-    if (glassOpen) {
-      chips.push({ icon: "mdi:window-open-variant", color: m.WARN, label: this._t("hs_windows_open") });
-    }
-    if (m.lockId && m.lock.key === "unlocked") {
-      chips.push({ icon: "mdi:lock-open-variant", color: m.ALERT, label: m.lock.label });
-    }
-    if (charging) {
-      chips.push({ icon: "mdi:ev-station", color: "var(--bmw-high)", label: this._t("hs_charging") });
-    }
-    const inset = m.openItems.length
-      ? this._carSvgClosures({
-          doors: m.doors,
-          windows: m.windows,
-          hood: m.hood,
-          trunk: m.trunk,
-          rearWindow: m.rearWindow,
-          sunroof: m.sunroof,
-          lock: m.lock,
-          lockId: m.lockId,
-          colors: { ALERT: m.ALERT, WARN: m.WARN, OK: m.OK },
-          car: this._carShape(entities),
-        })
-      : "";
-    return { chips, inset };
-  }
-
-  _heroStateHtml(state) {
-    if (!state || (!state.chips.length && !state.inset)) return "";
-    const shown = state.chips.slice(0, 3);
-    const more = state.chips.length - shown.length;
-    return `
-          <div class="hero__chips">
-            ${shown
-              .map(
-                (c) =>
-                  `<span class="hero__chip" style="--chip:${c.color}"><ha-icon icon="${c.icon}"></ha-icon>${this._esc(c.label)}</span>`
-              )
-              .join("")}
-            ${more > 0 ? `<span class="hero__chip">+${more}</span>` : ""}
-          </div>
-          ${state.inset ? `<div class="hero__inset">${state.inset}</div>` : ""}`;
+  /** Over the configurator photo, the top-down drawing with whatever is open
+   * lit up, so it's clear where; empty while everything is shut. What is open
+   * is said in words on the line under the photo. */
+  _heroInset(m, entities) {
+    if (!m.openItems.length) return "";
+    return this._carSvgClosures({
+      doors: m.doors,
+      windows: m.windows,
+      hood: m.hood,
+      trunk: m.trunk,
+      rearWindow: m.rearWindow,
+      sunroof: m.sunroof,
+      lock: m.lock,
+      lockId: m.lockId,
+      colors: { ALERT: m.ALERT, WARN: m.WARN, OK: m.OK },
+      car: this._carShape(entities),
+    });
   }
 
   /** The interior panorama: six faces on the inside of a CSS cube, turned by

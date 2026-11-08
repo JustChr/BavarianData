@@ -155,7 +155,7 @@ def test_the_spin_follows_the_lights_and_the_night():
     assert "hero--night" not in day and "hero--night" not in lights
 
 
-def test_an_open_door_and_an_unlocked_car_show_on_the_photo():
+def test_an_open_door_and_an_unlocked_car_are_said_and_drawn():
     from .test_card_drivetrain import _sensor
 
     states = {
@@ -165,7 +165,12 @@ def test_an_open_door_and_an_unlocked_car_show_on_the_photo():
         "sensor.lock": _sensor("vehicle.cabin.door.status", "UNLOCKED"),
     }
     hero = _hero(states)
-    assert "Door open" in hero and "Unlocked" in hero
+    # Said in words on the line under the photo...
+    assert (
+        "verdict__t--alert" in hero and "Something&#39;s open" in hero or "Something's open" in hero
+    )
+    assert "Door" in hero and "Unlocked" in hero
+    # ...and drawn over the photo, so it's clear where.
     assert 'class="hero__inset"' in hero and "hero--inset" in hero
     closed = _hero(
         {
@@ -174,10 +179,10 @@ def test_an_open_door_and_an_unlocked_car_show_on_the_photo():
             "sensor.door": _sensor("vehicle.cabin.door.row1.driver.isOpen", "off"),
         }
     )
-    assert "hero__chip" not in closed and "hero__inset" not in closed
+    assert "hero__inset" not in closed and "verdict__t--alert" not in closed
 
 
-def test_badges_need_the_configurator_photo():
+def test_the_drawing_needs_the_configurator_photo_but_the_words_do_not():
     from .test_card_drivetrain import _sensor
 
     html = _render_signed(
@@ -188,7 +193,8 @@ def test_badges_need_the_configurator_photo():
         },
         {},
     )
-    assert "hero__chip" not in html
+    assert "hero__inset" not in html
+    assert "verdict__t--alert" in html
 
 
 def test_the_interior_switch_appears_with_a_panorama():
