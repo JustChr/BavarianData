@@ -298,6 +298,7 @@ class CardataCoordinator:
         """Close and persist any in-progress trips (unload, reload, shutdown)."""
 
         self.weather.cancel_backfill()
+        self.weather.cancel_day()
         await self.trips.async_flush_trips()
 
     def mark_trip_start(self, vin: str, at: datetime) -> None:
@@ -1058,6 +1059,18 @@ class CardataCoordinator:
         """
 
         return self._current_soc(vin)
+
+    def outside_temperature(self, vin: str) -> Optional[Dict[str, Any]]:
+        """Today's outside temperature where the car is parked, or ``None``.
+
+        Asked once a local day while route weather is on (``trip_weather``):
+        ``date``, ``temp_c`` (midpoint of the day's low and high),
+        ``temp_min_c``, ``temp_max_c`` and ``source`` (``car``, or ``home``
+        for a car that never sent a position). A copy; never a position.
+        """
+
+        reading = self._peek(vin).outside
+        return dict(reading) if reading is not None else None
 
     def bmw_range_km(self, vin: str) -> Optional[float]:
         """BMW's own remaining *electric* range, as shown in the cluster.

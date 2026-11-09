@@ -284,3 +284,11 @@ def test_energy_charged_while_the_price_was_unknown_makes_the_cost_partial() -> 
 def test_nothing_billed_reads_unknown_not_free() -> None:
     attrs = values.session_progress_attributes(41.0, pricing.CostAccumulator(currency="EUR"), None)
     assert (attrs["cost_so_far"], attrs["currency"], attrs["solar_percent"]) == (None, None, None)
+
+
+def test_the_outside_temperature_rides_only_once_there_is_one() -> None:
+    assert values.outside_attributes(None) == {}
+    assert values.outside_attributes({"date": "2026-11-09", "temp_c": 5.1, "source": "car"}) == {
+        "outside_temp_c": 5.1,
+        "outside_temp_date": "2026-11-09",
+    }

@@ -27,6 +27,12 @@ class _Client:
         self.calls.append((source, len(points)))
         return rw.summarize([{"t": 0, "temp_c": 2.0}], source) if self.answer else None
 
+    async def day(self, lat, lon, day):
+        self.calls.append(("day", (lat, lon)))
+        if not self.answer:
+            return None
+        return {"date": day.isoformat(), "temp_c": 3.0, "temp_min_c": 1.0, "temp_max_c": 5.0}
+
 
 class _History:
     def __init__(self, stored=(), *, fail=False):
@@ -47,6 +53,7 @@ class _History:
 
 class _Host:
     signal_trips = "trips"
+    signal_history = "history"
 
     def __init__(self, history=None, client=None, *, zones=None, home=None):
         self.hass = FakeHass(Clock(NOW))
@@ -67,6 +74,9 @@ class _Host:
 
     def _home_location(self):
         return self.home
+
+    def _vins_where(self, test):
+        return ["VIN"] if test(self.car) else []
 
 
 def _trip(hours_ago: float, **kw):
@@ -180,3 +190,45 @@ def test_a_full_batch_schedules_the_next_one_and_a_switched_off_one_none() -> No
 
 def test_without_a_history_nothing_waits() -> None:
     assert tw.TripWeather(_Host(None, _Client()))._waiting(NOW) == []
+
+
+# --- the day's temperature --------------------------------------------------
+
+
+def _check_day(host):
+    done = asyncio.run(tw.TripWeather(host).async_check_day())
+    return done
+
+
+def test_a_car_that_never_sent_a_position_is_asked_about_at_home():
+    host = _Host(client=_Client(), home=(48.1, 16.3))
+    assert _check_day(host) == 1
+    assert host.route_weather.calls == [("day", (48.1, 16.3))]
+    assert host.car.outside["source"] == "home"
+    assert host.car.outside["date"] == NOW.date().isoformat()
+
+
+def test_the_parked_position_wins_over_home():
+    host = _Host(client=_Client(), home=(48.1, 16.3))
+    host.car.gps.last_position = (48.21, 16.37)
+    _check_day(host)
+    assert host.route_weather.calls == [("day", (48.21, 16.37))]
+    assert host.car.outside["source"] == "car"
+
+
+def test_nowhere_to_ask_about_asks_nothing():
+    host = _Host(client=_Client(), home=None)
+    assert _check_day(host) == 0
+    assert host.route_weather.calls == [] and host.car.outside is None
+
+
+def test_the_day_is_not_asked_with_the_switch_off_or_without_a_client():
+    host = _Host(client=_Client(enabled=False), home=(48.1, 16.3))
+    assert _check_day(host) == 0 and host.route_weather.calls == []
+    assert _check_day(_Host(client=None, home=(48.1, 16.3))) == 0
+
+
+def test_a_day_already_asked_is_not_asked_again():
+    host = _Host(client=_Client(), home=(48.1, 16.3))
+    host.car.outside = {"date": NOW.date().isoformat(), "temp_c": 1.0, "source": "home"}
+    assert _check_day(host) == 0 and host.route_weather.calls == []

@@ -1004,8 +1004,10 @@ class PerCarScreens(_FlowBase):
                 coordinator.route_weather.enabled = options[OPTION_TRIP_WEATHER]
                 if options[OPTION_TRIP_WEATHER]:
                     coordinator.weather.schedule_backfill()
+                    coordinator.weather.schedule_day()
                 else:
                     coordinator.weather.cancel_backfill()
+                    coordinator.weather.cancel_day()
             # Trip-capture diagnostics apply immediately (next message onward).
             coordinator.trip_debug = options[OPTION_TRIP_DEBUG]
         return self.async_create_entry(title="", data=options)

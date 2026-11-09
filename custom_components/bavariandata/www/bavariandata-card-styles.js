@@ -952,6 +952,8 @@ export default (Base) => class StylesPart extends Base {
       .ef__chart { width: 100%; height: 88px; display: block; }
       .ef__bar { fill: var(--bmw-charge); opacity: 0.85; }
       .ef__bar--thin { opacity: 0.35; }
+      .ef__bar--today { fill: var(--bd-solar); opacity: 1; }
+      .ef__today::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 2px; background: var(--bd-solar); }
       .ef__bar-lbl { fill: var(--secondary-text-color); font-size: 8px; }
       .ef__bar-val { fill: var(--primary-text-color); font-size: 8px; }
       .ef__note { font-size: 0.72rem; color: var(--secondary-text-color); line-height: 1.35; }

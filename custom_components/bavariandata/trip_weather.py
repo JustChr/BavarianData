@@ -14,6 +14,11 @@ built from a vehicle report, or whose lookup failed twice -- are filled in by
 where they have one, else at their two ends where those are zones, else at the
 home location. Each record says which (``source``).
 
+Once a day, :meth:`TripWeather.async_check_day` asks for each car's day where
+it is parked (or at home, for a car that never sent a position), so the card
+can mark today's band on its chart by temperature. The reading is kept on the
+car in memory only, and asked again on the next local day.
+
 Reaches the coordinator only through :class:`WeatherHost`, and imports the same
 few HA helpers the other engines do, so it runs under ``tests/fake_ha.py``.
 """
@@ -22,11 +27,12 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import TYPE_CHECKING, Any, Optional, Protocol, Sequence
+from typing import TYPE_CHECKING, Any, Callable, Optional, Protocol, Sequence
 
 from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.event import async_call_later
+from homeassistant.util import dt as dt_util
 
 from .car_state import Vehicle
 from .debug import mask_vin
@@ -55,6 +61,10 @@ BACKFILL_OLDEST = datetime(2022, 1, 1, tzinfo=timezone.utc)
 # Trips one backfill pass asks for, and the pause before the next pass.
 BACKFILL_BATCH = 10
 BACKFILL_PAUSE_S = 120
+# The day's temperature: first asked this soon after a start, then checked
+# this often; each car is asked once per local day.
+DAY_FIRST_S = 180
+DAY_CHECK_S = 3600
 
 
 class WeatherHost(Protocol):
@@ -67,8 +77,12 @@ class WeatherHost(Protocol):
     @property
     def signal_trips(self) -> str: ...
 
+    @property
+    def signal_history(self) -> str: ...
+
     def _car(self, vin: str) -> Vehicle: ...
     def _peek(self, vin: str) -> Vehicle: ...
+    def _vins_where(self, test: Callable[[Vehicle], Any]) -> list[str]: ...
     def _zone_location(self, name: str) -> Optional[tuple[float, float]]: ...
     def _home_location(self) -> Optional[tuple[float, float]]: ...
 
@@ -79,6 +93,7 @@ class TripWeather:
     def __init__(self, host: WeatherHost) -> None:
         self._host = host
         self._backfill_timer: Optional[Any] = None
+        self._day_timer: Optional[Any] = None
 
     @property
     def enabled(self) -> bool:
@@ -238,4 +253,50 @@ class TripWeather:
         # until the next start or the next trip.
         if done and asked >= BACKFILL_BATCH:
             self.schedule_backfill()
+        return done
+
+    # --- the day's temperature where each car is parked -----------------------
+
+    def schedule_day(self, delay_s: float = DAY_FIRST_S) -> None:
+        """Check each car's day soon, unless a check is already due."""
+
+        if not self.enabled or self._day_timer is not None:
+            return
+
+        @callback
+        def _run(_now: datetime) -> None:
+            self._day_timer = None
+            self._host.hass.async_create_task(self.async_check_day())
+
+        self._day_timer = async_call_later(self._host.hass, delay_s, _run)
+
+    def cancel_day(self) -> None:
+        if self._day_timer is not None:
+            self._day_timer()
+            self._day_timer = None
+
+    async def async_check_day(self) -> int:
+        """Ask for today at each car not yet asked about today; check again later."""
+
+        client = self._host.route_weather
+        if client is None or not client.enabled:
+            return 0
+        today = dt_util.as_local(datetime.now(timezone.utc)).date()
+        done = 0
+        for vin in self._host._vins_where(lambda car: True):
+            car = self._host._peek(vin)
+            if car.outside is not None and car.outside.get("date") == today.isoformat():
+                continue
+            where, source = car.gps.last_position, "car"
+            if where is None:
+                where, source = self._host._home_location(), "home"
+            if where is None:
+                continue
+            reading = await client.day(where[0], where[1], today)
+            if reading is None:
+                continue  # asked again at the next check
+            self._host._car(vin).outside = {**reading, "source": source}
+            async_dispatcher_send(self._host.hass, self._host.signal_history, vin)
+            done += 1
+        self.schedule_day(DAY_CHECK_S)
         return done

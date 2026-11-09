@@ -83,6 +83,7 @@ PER_CAR: dict[str, Callable[[Any, str], Any]] = {
     "battery_capacity_kwh": lambda c, v: c.battery_capacity_kwh(v),
     "current_soc": lambda c, v: c.current_soc(v),
     "bmw_range_km": lambda c, v: c.bmw_range_km(v),
+    "outside_temperature": lambda c, v: c.outside_temperature(v),
     "bridge_snapshot": lambda c, v: c.bridge_snapshot(v),
     "efficiency": lambda c, v: c.efficiency(v),
     "seen_descriptors": lambda c, v: sorted(c.seen_descriptors(v)),

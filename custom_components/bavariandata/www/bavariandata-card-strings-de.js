@@ -346,6 +346,7 @@ export default {
   ef_cmp_mild: "Bei {mild}",
   ef_footnote: "Gemessen aus der Ladehistorie: die Strecke zwischen zwei Ladungen und die Energie, die hineinging, nicht die eigene Schätzung des Autos. Sie zählt alles, was die Batterie zwischen zwei Ladungen abgegeben hat, Standzeiten und Vorklimatisierung eingeschlossen, und liegt deshalb höher als die Werte einzelner Fahrten, die nur das Fahren zählen.",
   ef_temp_title: "Verbrauch nach Außentemperatur ({u})",
+  ef_temp_today: "Heute etwa {t}, wo das Auto steht",
   ef_temp_more: "Unter {cold} verbraucht es {p} % mehr als bei {mild}, gemessen auf deinen Fahrten.",
   ef_temp_less: "Unter {cold} verbraucht es {p} % weniger als bei {mild}, gemessen auf deinen Fahrten.",
   ef_temp_waiting: "Für den Vergleich mit kaltem Wetter braucht es {d} Fahrten unter {cold} und ebenso viel bei {mild}.",

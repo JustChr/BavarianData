@@ -288,9 +288,15 @@ und jede Fahrt bekommt das Wetter, durch das das Auto tatsächlich gefahren ist,
   Zonen sind, sonst an deinem Zuhause. Jeder Datensatz sagt, woher (`source`: `route`,
   `track`, `ends` oder `home`).
 - Eine fehlgeschlagene Abfrage wird 15 Minuten später noch einmal versucht.
+- **Einmal am Tag** fragt es außerdem die tiefste und höchste Temperatur des Tages
+  dort ab, wo jedes Auto steht (zu Hause, bei einem Auto, das nie eine Position
+  gesendet hat), damit die Effizienz-Karte das heutige Band in ihrem Diagramm nach
+  Temperatur markieren kann. Behalten werden nur Datum und Temperaturen, im
+  Speicher, als `outside_temp_c` und `outside_temp_date` des Sensors *Echte Reichweite*.
 
 Was dein Zuhause verlässt, ist die Strecke jeder Fahrt auf etwa 1 km genau, einmal,
-an Open-Meteo. Deshalb ist der Schalter standardmäßig aus.
+und einmal am Tag, ebenso genau, wo jedes Auto steht, an Open-Meteo. Deshalb ist
+der Schalter standardmäßig aus.
 
 Die Details einer Fahrt auf der Karte zeigen die Temperatur (mit Spanne, wenn sie
 unterwegs schwankte), `get_trips` liefert den ganzen Datensatz als `weather`, und der

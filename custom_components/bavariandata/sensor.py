@@ -1016,6 +1016,9 @@ class CardataRealRangeSensor(CardataEntity, SensorEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         attrs = dict(super().extra_state_attributes)
         attrs.update(sensor_values.real_range_attributes(self._profile))
+        attrs.update(
+            sensor_values.outside_attributes(self._coordinator.outside_temperature(self.vin))
+        )
         return attrs
 
     async def async_added_to_hass(self) -> None:

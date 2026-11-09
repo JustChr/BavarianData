@@ -346,6 +346,7 @@ export default {
   ef_cmp_mild: "Przy {mild}",
   ef_footnote: "Zmierzone z historii ładowania: dystans między dwoma ładowaniami i energia, która trafiła do baterii, a nie szacunek samego auta. Liczy wszystko, co bateria oddała między dwoma ładowaniami, łącznie z postojem i klimatyzacją wstępną, dlatego wychodzi wyżej niż wartości pojedynczych przejazdów, które liczą tylko jazdę.",
   ef_temp_title: "Zużycie wg temperatury na zewnątrz ({u})",
+  ef_temp_today: "Dziś około {t} tam, gdzie stoi samochód",
   ef_temp_more: "Poniżej {cold} zużywa o {p}% więcej niż przy {mild}, według Twoich przejazdów.",
   ef_temp_less: "Poniżej {cold} zużywa o {p}% mniej niż przy {mild}, według Twoich przejazdów.",
   ef_temp_waiting: "Porównanie dla zimnej pogody wymaga {d} przejazdów poniżej {cold} i tyle samo przy {mild}.",

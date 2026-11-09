@@ -432,7 +432,7 @@
           "trip_default_class": "Classement de chaque trajet qui n'est pas un domicile ↔ travail. Ce n'est qu'un point de départ — une correction sur la carte l'emporte toujours et n'est jamais écrasée.",
           "trip_commute_gap": "Durée pendant laquelle la voiture peut rester à l'arrêt entre deux trajets pour qu'ils comptent encore comme un seul trajet domicile-travail — le supermarché sur le chemin du travail. Mettez 0 pour désactiver. Les arrêts de moins de cinq minutes environ ne coupent jamais un trajet.",
           "trip_geocode": "Facultatif. Envoie les points hors zone à OpenStreetMap ; seule l'adresse obtenue est enregistrée, jamais les coordonnées.",
-          "trip_weather": "Facultatif. Après chaque trajet, envoie son itinéraire (à environ 1 km près) à Open-Meteo et enregistre la température, la pluie et le vent en route, jamais les coordonnées. Les trajets déjà enregistrés sont complétés.",
+          "trip_weather": "Facultatif. Après chaque trajet, envoie son itinéraire (à environ 1 km près) à Open-Meteo et enregistre la température, la pluie et le vent en route, jamais les coordonnées. Les trajets déjà enregistrés sont complétés. Une fois par jour, il demande aussi la température là où la voiture est garée.",
           "trip_detection": "En direct suit la position de la voiture pendant qu'elle roule. Rapports de fin de trajet crée un trajet par rapport, pour les voitures qui n'envoient rien en roulant ; la détection en direct est alors désactivée.",
           "trip_track": "Facultatif. Enregistre la trace GPS de chaque trajet afin qu'une carte puisse tracer et rejouer l'itinéraire. Enregistre des coordonnées brutes sur le disque, départ et arrivée exacts compris.",
           "trip_debug": "Dépannage uniquement. Journalise chaque position GPS, minuterie et message et écrit bavariandata_trip_capture.ndjson dans votre dossier de configuration. Contient GPS et VIN : à activer pour un seul trajet de test."
@@ -448,7 +448,7 @@
             },
             "data_description": {
               "trip_geocode": "Facultatif. Envoie les points hors zone à OpenStreetMap ; seule l'adresse obtenue est enregistrée, jamais les coordonnées.",
-              "trip_weather": "Facultatif. Après chaque trajet, envoie son itinéraire (à environ 1 km près) à Open-Meteo et enregistre la température, la pluie et le vent en route, jamais les coordonnées. Les trajets déjà enregistrés sont complétés.",
+              "trip_weather": "Facultatif. Après chaque trajet, envoie son itinéraire (à environ 1 km près) à Open-Meteo et enregistre la température, la pluie et le vent en route, jamais les coordonnées. Les trajets déjà enregistrés sont complétés. Une fois par jour, il demande aussi la température là où la voiture est garée.",
               "trip_debug": "Dépannage uniquement. Journalise chaque position GPS, minuterie et message et écrit bavariandata_trip_capture.ndjson dans votre dossier de configuration. Contient GPS et VIN : à activer pour un seul trajet de test."
             }
           }

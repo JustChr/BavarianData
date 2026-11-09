@@ -241,6 +241,18 @@ def real_range_attributes(profile: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def outside_attributes(reading: Optional[Mapping[str, Any]]) -> dict[str, Any]:
+    """The day's outside temperature at the car, for the card's chart by
+    temperature; nothing at all until there is one (route weather off)."""
+
+    if not reading:
+        return {}
+    return {
+        "outside_temp_c": reading.get("temp_c"),
+        "outside_temp_date": reading.get("date"),
+    }
+
+
 def driving_month_attributes(summary: Mapping[str, Any]) -> dict[str, Any]:
     split = summary.get("split") or {}
     return {

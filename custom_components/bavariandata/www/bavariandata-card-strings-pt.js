@@ -346,6 +346,7 @@ export default {
   ef_cmp_mild: "A {mild}",
   ef_footnote: "Medido a partir do histórico de carregamento: a distância entre dois carregamentos e a energia que entrou, não a estimativa do próprio carro. Conta tudo o que a bateria deu entre dois carregamentos, horas parado e pré-climatização incluídas, por isso fica acima dos valores de cada viagem, que contam só a condução.",
   ef_temp_title: "Consumo por temperatura exterior ({u})",
+  ef_temp_today: "Hoje cerca de {t} onde o carro está",
   ef_temp_more: "Abaixo de {cold} consome mais {p}% do que a {mild}, medido nas suas viagens.",
   ef_temp_less: "Abaixo de {cold} consome menos {p}% do que a {mild}, medido nas suas viagens.",
   ef_temp_waiting: "A comparação com tempo frio precisa de {d} de viagens abaixo de {cold} e o mesmo a {mild}.",
