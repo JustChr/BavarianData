@@ -520,10 +520,10 @@ export default (Base, { CAR, CAR_FLIP, UNAVAILABLE, _lang, carTones }) => class 
     this._paintCar(deviceId, entities);
   }
 
-  _paintCar(deviceId, entities) {
-    const name = this._config.title || this._deviceName(deviceId);
-    const unit = this._distUnit(deviceId, entities);
-    const m = this._closureModel(entities);
+  /** The car's tires by wheel (`row1_left` …, each its sensors by metric),
+   * the four slots in drawing order, and the summary of the wheels present
+   * (null when the car reports none). */
+  _carTires(entities, unit) {
     const wheels = {};
     for (const id of entities) {
       const st = this._st(id);
@@ -540,6 +540,36 @@ export default (Base, { CAR, CAR_FLIP, UNAVAILABLE, _lang, carTones }) => class 
     ];
     const present = slots.filter((s) => wheels[s.key]);
     const tires = present.length ? this._tireSummary(present.map((s) => wheels[s.key]), unit) : null;
+    return { wheels, slots, present, tires };
+  }
+
+  /** What the car view says first, and the hub's Car row with it: the most
+   * pressing thing (open, a tire, a Check Control message) or that all is
+   * well. `t` and `s` come back escaped; `tone` is ok, warn or alert. */
+  _carBanner(m, tires, cc) {
+    const ccCount = cc ? cc.items.length : 0;
+    if (m.openItems.length) {
+      return { tone: "alert", icon: "mdi:car-door", t: this._t("vd_open"), s: m.openItems.slice(0, 3).map((i) => this._esc(i.label)).join(" · ") };
+    }
+    if (tires && (tires.overall.c === "var(--bmw-low)" || tires.overall.c === "var(--bmw-mid)")) {
+      return { tone: "warn", icon: "mdi:tire", t: this._esc(tires.overall.t), s: tires.pressure.t };
+    }
+    if (ccCount) {
+      return { tone: "warn", icon: "mdi:alert-circle-outline", t: this._t("car_cc_n", { n: ccCount }), s: this._esc(this._ccField(cc.items[0].title) || this._ccField(cc.items[0].text) || "") };
+    }
+    const parts = [
+      m.lockId && m.lock.key !== "unlocked" ? this._t("car_closed") : null,
+      tires ? this._t("car_tires_ok") : null,
+      cc ? this._t("car_no_msgs") : null,
+    ].filter(Boolean);
+    return { tone: "ok", icon: "mdi:check-circle-outline", t: this._t("car_all_good"), s: parts.join(" · ") };
+  }
+
+  _paintCar(deviceId, entities) {
+    const name = this._config.title || this._deviceName(deviceId);
+    const unit = this._distUnit(deviceId, entities);
+    const m = this._closureModel(entities);
+    const { wheels, slots, present, tires } = this._carTires(entities, unit);
     const status = Object.fromEntries(slots.map((s) => [s.pos, wheels[s.key] ? this._tireStatus(wheels[s.key]) : null]));
     const selected = this._carWheel && wheels[(slots.find((s) => s.pos === this._carWheel) || {}).key] ? this._carWheel : null;
 
@@ -573,23 +603,8 @@ export default (Base, { CAR, CAR_FLIP, UNAVAILABLE, _lang, carTones }) => class 
     if (sig === this._sig) return;
     this._sig = sig;
 
-    // The banner: the most pressing thing first, or that all is well.
     const ccCount = cc ? cc.items.length : 0;
-    let banner;
-    if (m.openItems.length) {
-      banner = { tone: "alert", icon: "mdi:car-door", t: this._t("vd_open"), s: m.openItems.slice(0, 3).map((i) => this._esc(i.label)).join(" · ") };
-    } else if (tires && (tires.overall.c === "var(--bmw-low)" || tires.overall.c === "var(--bmw-mid)")) {
-      banner = { tone: "warn", icon: "mdi:tire", t: this._esc(tires.overall.t), s: tires.pressure.t };
-    } else if (ccCount) {
-      banner = { tone: "warn", icon: "mdi:alert-circle-outline", t: this._t("car_cc_n", { n: ccCount }), s: this._esc(this._ccField(cc.items[0].title) || this._ccField(cc.items[0].text) || "") };
-    } else {
-      const parts = [
-        m.lockId && m.lock.key !== "unlocked" ? this._t("car_closed") : null,
-        tires ? this._t("car_tires_ok") : null,
-        cc ? this._t("car_no_msgs") : null,
-      ].filter(Boolean);
-      banner = { tone: "ok", icon: "mdi:check-circle-outline", t: this._t("car_all_good"), s: parts.join(" · ") };
-    }
+    const banner = this._carBanner(m, tires, cc);
 
     const colors = { fl: status.fl && status.fl.color, fr: status.fr && status.fr.color, rl: status.rl && status.rl.color, rr: status.rr && status.rr.color };
     const drawing = this._carSvgClosures({
@@ -696,7 +711,7 @@ export default (Base, { CAR, CAR_FLIP, UNAVAILABLE, _lang, carTones }) => class 
       ${this._styles()}
       <ha-card>
         <div class="chead">
-          <ha-icon icon="mdi:car-info"></ha-icon>
+          ${this._cheadIcon("mdi:car-info")}
           <div class="chead__text">
             <span class="chead__title">${this._esc(this._config.title || this._t("car_title"))}</span>
             <span class="chead__sub">${this._esc(name)}</span>

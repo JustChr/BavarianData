@@ -401,7 +401,7 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
       ${this._styles()}
       <ha-card>
         <div class="chead">
-          <ha-icon icon="mdi:map-marker-distance"></ha-icon>
+          ${this._cheadIcon("mdi:map-marker-distance")}
           <div class="chead__text">
             <span class="chead__title">${this._esc(this._config.title || this._t("ef_title"))}</span>
             <span class="chead__sub">${this._esc(name)}</span>
@@ -670,7 +670,13 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
       this._renderMessage(this._t("no_vehicle_title"), this._t("no_vehicle_body"));
       return;
     }
-    const entryId = this._deviceEntry(deviceId);
+    this._ensureFuel(vin, this._deviceEntry(deviceId), entities);
+    this._paintFuel(deviceId, this._distUnit(deviceId, entities), this._fuelUnit(deviceId, entities));
+  }
+
+  /** Fetch get_fuel_history when the tank reading changes and every ten
+   * minutes; shared by the fuel view and the hub's Fuel row. */
+  _ensureFuel(vin, entryId, entities) {
     const tank = FUEL_DESCRIPTORS.map((d) => this._byDescriptor(entities, d)).find(Boolean);
     // A refuel can only appear with a new tank reading, so that is what
     // re-asks; the ten-minute tick keeps "since the last refuel" moving.
@@ -687,7 +693,6 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
       };
       this._fetchFuel(vin, entryId);
     }
-    this._paintFuel(deviceId, this._distUnit(deviceId, entities), this._fuelUnit(deviceId, entities));
   }
 
   _fetchFuel(vin, entryId) {
@@ -745,7 +750,7 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
       ${this._styles()}
       <ha-card>
         <div class="chead">
-          <ha-icon icon="mdi:gas-station"></ha-icon>
+          ${this._cheadIcon("mdi:gas-station")}
           <div class="chead__text">
             <span class="chead__title">${this._esc(this._config.title || this._t("fu_title"))}</span>
             <span class="chead__sub">${this._esc(name)}</span>

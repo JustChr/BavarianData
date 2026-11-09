@@ -60,7 +60,7 @@ const src = fs.readFileSync(process.argv[1], "utf8");
 const Card = new Function(src + "\nreturn BavarianDataCard;")();
 const input = JSON.parse(fs.readFileSync(0, "utf8"));
 const card = Object.create(Card.prototype);
-card._config = input.config;
+card.setConfig(input.config);
 card._hass = {
   states: input.states,
   language: "en",
@@ -134,6 +134,9 @@ if (input.efficiency) {
   card._eff = { vin: "WBS1", trigger: "", data: input.efficiency, loading: false };
   card._render = () => { card._sig = null; card._paintEfficiency("device", null); };
 }
+// A hub room is opened the way a tap opens it; the render below repeats it,
+// so an error there is caught and reported like any other.
+if (input.room) { try { card._enterRoom(input.room); } catch (e) {} }
 let error = null;
 try { card._render(); } catch (e) { error = String((e && e.message) || e); }
 process.stdout.write(JSON.stringify({ html: card.shadowRoot.innerHTML, error }));
@@ -155,6 +158,7 @@ SCREENS = {
     "fuel": {"view": "fuel"},
     "equipment": {"view": "equipment"},
     "car": {"view": "car"},
+    "hub": {"hub": True},
     "cluster-tire": {"cluster": "tire"},
     "cluster-closures": {"cluster": "closures"},
     "cluster-electric": {"cluster": "electric"},
@@ -186,6 +190,11 @@ def _render(states: dict, config: dict, **extra) -> str:
 @pytest.mark.parametrize("screen", sorted(SCREENS))
 def test_the_card_renders_what_it_rendered_before(car: str, screen: str, snapshot) -> None:
     assert _render(CARS[car], SCREENS[screen]) == snapshot
+
+
+@pytest.mark.parametrize("room", ["charging", "car"])
+def test_a_room_opened_from_the_hub_has_a_way_back(room: str, snapshot) -> None:
+    assert _render(I5, {"hub": True}, room=room) == snapshot
 
 
 # What ``get_mileage_report`` answers for a car with a lease, and for one

@@ -25,6 +25,16 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   mileage limit. A banner on top says the most pressing thing, or that all is
   good. The tires, closures, health and mileage cards stay as they are.
 
+- **The overview as a hub: `hub: true`.** Turn on *Rooms under the overview*
+  in the card editor and the overview lists Charging, Trips, Efficiency and
+  Car under its tiles (Fuel instead of Charging and Efficiency on a petrol or
+  diesel car), each with what it would say first: this month's kWh and cost,
+  this month's kilometers and trips, the real range and consumption, and
+  whether all is well with the car or what isn't. While the car charges or
+  drives, that row says so. A tap opens the room in the same card, with an
+  arrow at its top back to the overview. Off by default, so every card stays
+  as it is.
+
 ### Changed
 - **The card's overview says what the car is doing.** Under the photo, one
   line in words: *Ready to go*, *Charging · done at 05:40*, *On the road*,

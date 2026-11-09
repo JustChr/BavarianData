@@ -357,6 +357,42 @@ export default (Base) => class StylesPart extends Base {
       .chead__text { display: flex; flex-direction: column; }
       .chead__title { font-size: 1.05rem; font-weight: 600; color: var(--primary-text-color); }
       .chead__sub { font-size: 0.74rem; color: var(--secondary-text-color); }
+      /* inside a hub room, the way back takes the icon's place */
+      .chead__back {
+        display: inline-flex; align-items: center; justify-content: center; flex: none;
+        width: 40px; height: 40px; margin: -7px 0 -7px -8px; border-radius: 50%;
+        color: var(--primary-text-color);
+      }
+      .chead__back:hover { background: var(--bd-sub); }
+      .chead__back ha-icon { --mdc-icon-size: 24px; }
+
+      /* the hub: one row per room under the overview */
+      .rooms { display: flex; flex-direction: column; padding: 2px 8px 10px; border-top: 1px solid var(--bd-line); }
+      .room {
+        display: flex; align-items: center; gap: 12px; width: 100%;
+        min-height: 56px; padding: 8px 10px; border-radius: 12px;
+      }
+      .room + .room { margin-top: 2px; }
+      .room:hover { background: var(--bd-sub); }
+      .room__ic {
+        display: inline-flex; align-items: center; justify-content: center; flex: none;
+        width: 36px; height: 36px; border-radius: 10px; background: var(--bd-sub);
+        color: var(--bd-muted);
+      }
+      .room__ic ha-icon { --mdc-icon-size: 20px; }
+      .room__ic--live { color: var(--bmw-charge); }
+      .room__ic--warn { color: var(--bmw-mid); }
+      .room__ic--alert { color: var(--bmw-low); background: color-mix(in srgb, var(--bmw-low) 14%, var(--card-background-color)); }
+      .room__txt { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+      .room__t { font-size: 0.95rem; font-weight: 600; color: var(--primary-text-color); }
+      .room__s {
+        font-size: 0.8rem; color: var(--bd-muted);
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      }
+      .room__s--live { color: var(--bmw-charge); }
+      .room__s--warn { color: var(--bmw-mid); }
+      .room__s--alert { color: var(--bmw-low); }
+      .room__go { --mdc-icon-size: 20px; color: var(--bd-muted); flex: none; }
       /* export buttons, pushed to the right edge of the header */
       .xbar { margin-left: auto; display: flex; gap: 6px; flex-shrink: 0; }
 

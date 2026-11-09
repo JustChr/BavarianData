@@ -175,7 +175,7 @@ export default (Base, { TRIP_CLASS_COLORS, _lang }) => class TripsPart extends B
       ${this._styles()}
       <ha-card>
         <div class="chead">
-          <ha-icon icon="mdi:road-variant"></ha-icon>
+          ${this._cheadIcon("mdi:road-variant")}
           <div class="chead__text">
             <span class="chead__title">${this._esc(this._config.title || this._t("tr_title"))}</span>
             <span class="chead__sub">${this._esc(name)}${count ? " · " + countLabel : ""}</span>
