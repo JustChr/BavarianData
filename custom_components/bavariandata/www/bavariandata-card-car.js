@@ -543,13 +543,26 @@ export default (Base, { CAR, CAR_FLIP, UNAVAILABLE, _lang, carTones }) => class 
     return { wheels, slots, present, tires };
   }
 
+  /** What is open, in a few words: "Door open", "2 windows open", "Trunk
+   * open". Each item's own label names its side ("Front right · Door"), which
+   * strung together on one line read as a jumble; the side is a tap away. */
+  _openSummary(m) {
+    const doors = m.openItems.filter((i) => i.kind === "door").length;
+    const windows = m.openItems.filter((i) => i.kind === "window").length;
+    return [
+      doors ? this._t(doors === 1 ? "car_door_open" : "car_doors_open", { n: doors }) : null,
+      windows ? this._t(windows === 1 ? "car_window_open" : "car_windows_open", { n: windows }) : null,
+      ...m.openItems.filter((i) => i.kind === "part").map((i) => this._t("car_part_open", { part: this._esc(i.label) })),
+    ].filter(Boolean);
+  }
+
   /** What the car view says first, and the hub's Car row with it: the most
    * pressing thing (open, a tire, a Check Control message) or that all is
    * well. `t` and `s` come back escaped; `tone` is ok, warn or alert. */
   _carBanner(m, tires, cc) {
     const ccCount = cc ? cc.items.length : 0;
     if (m.openItems.length) {
-      return { tone: "alert", icon: "mdi:car-door", t: this._t("vd_open"), s: m.openItems.slice(0, 3).map((i) => this._esc(i.label)).join(" · ") };
+      return { tone: "alert", icon: "mdi:car-door", t: this._t("vd_open"), s: this._openSummary(m).join(" · ") };
     }
     if (tires && (tires.overall.c === "var(--bmw-low)" || tires.overall.c === "var(--bmw-mid)")) {
       return { tone: "warn", icon: "mdi:tire", t: this._esc(tires.overall.t), s: tires.pressure.t };
@@ -857,6 +870,7 @@ export default (Base, { CAR, CAR_FLIP, UNAVAILABLE, _lang, carTones }) => class 
       if (doors[k] && doors[k].open) {
         openItems.push({
           id: doors[k].id,
+          kind: "door",
           label: `${this._t(slotLabel[k])} · ${this._t("door_word")}`,
           value: this._t("state_open"),
           color: ALERT,
@@ -867,6 +881,7 @@ export default (Base, { CAR, CAR_FLIP, UNAVAILABLE, _lang, carTones }) => class 
       if (windows[k] && windows[k].open) {
         openItems.push({
           id: windows[k].id,
+          kind: "window",
           label: `${this._t(slotLabel[k])} · ${this._t("window_word")}`,
           // "Tilted" is the sunroof's word; a side window is partly down.
           value: this._t(windows[k].partial ? "state_partly_open" : "state_open"),
@@ -878,6 +893,7 @@ export default (Base, { CAR, CAR_FLIP, UNAVAILABLE, _lang, carTones }) => class 
       if (part && part.open) {
         openItems.push({
           id: part.id,
+          kind: "part",
           label: this._t(key),
           value: this._t(part.partial ? "state_tilted" : "state_open"),
           color,

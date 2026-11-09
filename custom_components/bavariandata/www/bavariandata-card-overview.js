@@ -539,8 +539,7 @@ export default (Base, { DEVICE_CLASS_ICONS, UNAVAILABLE, _lang }) => class Overv
     const unlocked = !!(m.lockId && m.lock.key === "unlocked");
     const zone = c.zone && !UNAVAILABLE.has(c.zone.state) ? this._fmt(c.zone) : null;
     if (!c.trip && (m.openItems.length || (unlocked && !c.charging))) {
-      const open = m.openItems.slice(0, 2).map((i) => this._esc(i.label));
-      if (m.openItems.length > 2) open.push(this._t("ov_more", { n: m.openItems.length - 2 }));
+      const open = this._openSummary(m);
       return {
         key: "open",
         tone: "alert",

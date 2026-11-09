@@ -26,8 +26,10 @@ Karte *verfügbar*; wohin sie kommt, bestimmst du:
 > [Fehlerbehebung](DE-Troubleshooting-and-FAQ#config-error-after-reload).
 
 Die Karte hat mehrere **Ansichten**. Standard ist die Übersicht; mit `view:` oder
-`cluster:` wechselst du. Nutze **eine Karte pro Ansicht** — mehrere Karten auf einem
-Dashboard zeigen sie nebeneinander.
+`cluster:` wählst du eine andere. Nutze **eine Karte pro Ansicht** und stelle
+mehrere Karten nebeneinander, oder lass die Übersicht die anderen als Bereiche in
+derselben Karte öffnen ([der Hub](#the-hub-hub-true)). Kleine Größen für den
+ersten Bildschirm eines Dashboards stehen [weiter unten](#small-cards-and-the-garage-view-glance-view-row-view-garage).
 
 > Erscheint die Karte nach einem Update nicht, **lade den Browser hart neu**.
 > Funktioniert sie im Browser, aber die **Companion App** meldet *Custom element
@@ -35,15 +37,19 @@ Dashboard zeigen sie nebeneinander.
 > [Fehlerbehebung](DE-Troubleshooting-and-FAQ#custom-element-doesnt-exist-app).
 
 - [Übersicht](#overview)
+- [Der Hub](#the-hub-hub-true)
+- [Kleine Karten und die Garage](#small-cards-and-the-garage-view-glance-view-row-view-garage)
 - [Ladeverlauf](#charging-history-view-charging)
 - [Batteriezustand](#battery-health-view-health)
 - [Effizienz & Reichweite](#efficiency--range-view-efficiency)
 - [Fahrten / Fahrtenbuch](#trips--driving-journal-view-trips)
 - [Fahrtenkarte](#trip-map-view-map)
+- [Das Auto](#the-car-view-car)
 - [Reifen](#tires-cluster-tire)
 - [Sicherheit & Öffnungen](#security--closures-cluster-closures)
 - [Ausstattung](#equipment-view-equipment)
 - [Liste einer Datengruppe](#single-cluster-list)
+- [Von einer älteren Karte](#coming-from-an-older-card)
 - [Vollständige YAML-Referenz](#full-yaml-reference)
 
 ---
@@ -52,18 +58,77 @@ Dashboard zeigen sie nebeneinander.
 
 <a id="overview"></a>
 
-Das Fahrzeugbild, ein Ring, die Reichweite und ein Raster wichtiger Werte. Was sie
-zeigen, folgt dem **Antrieb** des Autos, den die Karte aus den gestreamten Daten
-ableitet:
+Das Bild des Autos, eine Zeile, die sagt, was das Auto gerade tut, sein
+Ladestand (oder Tank) als Balken mit der Reichweite daneben und vier Kacheln,
+die zum Moment passen.
 
-| Antrieb | Ring | Daneben | Raster |
-| --- | --- | --- | --- |
-| Elektrisch | Ladezustand (blau beim Laden) | Reichweite, Ladestatus | Ziel, Stecker, Bis voll, Kilometerstand |
-| Plug-in-Hybrid | Ladezustand | elektrische Reichweite, Ladestatus | Tank, Gesamtreichweite, Ziel, Stecker, Bis voll, Kilometerstand |
-| Benzin / Diesel | Tankfüllstand — oder der Tankinhalt, bei einem Auto, das keinen Prozentwert streamt | Reichweite, dazu Tankinhalt oder Kilometerstand | Kilometerstand (wenn er nicht neben dem Ring steht), Reifen, Standort, diesen Monat gefahren |
-| Keines, erwiesen | Reichweite | Kilometerstand | Reifen, Standort, diesen Monat gefahren |
+**Die Zeile oben** beantwortet *Kann ich los?* in Worten, darunter die Fakten
+dazu (wo, seit wann, welche Tür). Die erste, die zutrifft, gewinnt:
 
-Eine Kachel erscheint nur, wenn das Auto Daten dafür hat: ohne Reifendruck keine Reifen-Kachel.
+| Zeile oben | Wann | Darunter |
+| --- | --- | --- |
+| *Etwas ist offen* (rot) | Eine Tür, ein Fenster, Kofferraum, Motorhaube oder Schiebedach ist offen, oder das Auto ist geparkt, entriegelt und lädt nicht | Was offen ist, das Schloss, wo |
+| *Lädt · fertig um 05:40* | Das Auto lädt | Seit wann, wo |
+| *Unterwegs* | Eine Fahrt läuft | Strecke und Minuten bisher, wo sie begann |
+| *Wartet aufs Laden* | Angesteckt unter dem Ziel, lädt nicht | Das Ziel, wo |
+| *Bald laden* / *Bald tanken* (gelb) | Unter 20 % und nicht angesteckt | Wie weit es noch kommt, wo |
+| *Startklar* | Sonst | *Bei seinem Ziel von 80 %*, wenn angesteckt, wo |
+
+Eine offene Tür geht einer Ladung vor, damit eine über Nacht in der Einfahrt
+offene Tür nie hinter *fertig um* verschwindet; bloß entriegelt nicht, denn viele
+Autos laden entriegelt in der Garage. Tippe die Zeile an für die Entität
+dahinter, etwa die Minuten bis zum Ende einer Ladung.
+
+**Der Balken** ist der Ladestand, das Ziel als Strich. Beim Laden ist er blau,
+und was diese Ladung hinzugefügt hat, ist gestreift (*+21 % seit 04:06*); auf
+einer Fahrt zeigt er blass, was die Fahrt verbraucht hat (*−6 % diese Fahrt*).
+Sonst ist er grün, ab 40 % gelb, ab 15 % rot und sagt, ob das Kabel steckt.
+Neben der Zahl steht die Reichweite, darunter *≈ 298 km so, wie du fährst*,
+sobald die [echte Reichweite](DE-Feature-Efficiency-and-Range) bekannt ist.
+
+**Die Kacheln** folgen dem, was das Auto gerade tut, die ersten vier, für die
+das Auto Daten hat:
+
+| Lage | Kacheln |
+| --- | --- |
+| Geparkt | Schloss, Stecker, Reifen, Standort, Kilometerstand, diesen Monat gefahren |
+| Lädt | Ladeleistung, bisher geladen, Anteil aus deiner Solaranlage, bisherige Kosten, Zeit bis voll, Stecker |
+| Unterwegs | Strecke, Minuten und verbrauchter Ladestand dieser Fahrt, Schloss |
+| Etwas offen | Schloss, was offen ist, Standort, Reifen |
+
+Leistung, Solaranteil und Kosten erscheinen nur, während eine Ladung läuft und
+die Integration sie kennt (Kosten nur zu Hause und mit Tarif; siehe
+[den Sitzungssensor](DE-Feature-Charging-History-and-Cost)). Deine eigenen
+[`tiles:`](#choosing-the-tiles) ersetzen das und bleiben in jeder Lage gleich.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-overview-ready.png" alt="Die Übersicht eines i5, geparkt zu Hause: Startklar, bei seinem Ziel von 80 %, der Ladebalken bei 80 % mit dem Zielstrich, 337 km und 298 km so, wie du fährst, und Kacheln für Schloss, Stecker, Reifen und Standort (Screenshot englisch)" width="300" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-overview-charging.png" alt="Die Übersicht beim Laden: Lädt, fertig um 10:37, ein blauer Balken mit dem gestreiften Teil, den diese Ladung hinzugefügt hat, und Kacheln für 7,4 kW, 16,2 kWh geladen, 64 % aus deiner Solaranlage und 1,32 Euro bisher (Screenshot englisch)" width="300" />
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-overview-driving.png" alt="Die Übersicht auf einer Fahrt: Unterwegs, 23,4 km und 18 Minuten ab Zuhause, der von der Fahrt verbrauchte Teil blass, und Kacheln für Strecke, Minuten, verbrauchten Ladestand und das Schloss (Screenshot englisch)" width="300" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-overview-open.png" alt="Die Übersicht, wenn etwas offen ist: Etwas ist offen in Rot, Tür offen, 2 Fenster offen, entriegelt, zu Hause, und Kacheln für Schloss, was offen ist, Standort und Reifen (Screenshot englisch)" width="300" />
+</p>
+
+Was Balken und Kacheln zeigen, folgt dem **Antrieb** des Autos, den die Karte
+aus den gestreamten Daten ableitet:
+
+| Antrieb | Balken | Daneben |
+| --- | --- | --- |
+| Elektrisch | Ladestand, mit dem Ziel | Reichweite, darunter die echte Reichweite |
+| Plug-in-Hybrid | Ladestand, mit dem Ziel, und der Tank als schmale zweite Linie mit der Gesamtreichweite | Elektrische Reichweite |
+| Benzin / Diesel | Tankfüllstand, oder die Liter im Tank als Zahl, bei einem Auto, das keinen Prozentwert streamt | Reichweite |
+| Keines, erwiesen | Kein Balken: die Reichweite ist die große Zahl | Kilometerstand |
+
+Ein Benziner oder Diesel zeigt nichts zum Laden: kein Ziel, keinen Stecker,
+keine Lade-Kacheln.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-overview-hybrid.png" alt="Übersicht eines Plug-in-Hybrids: Wartet aufs Laden, der Akkubalken mit Ziel und der Tank als schmale Linie mit 590 km zusammen, Kacheln für Stecker und Kilometerstand (Screenshot englisch)" width="260" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-overview-petrol.png" alt="Übersicht eines Benziners: Startklar, 38 Liter im Tank mit der Reichweite daneben, darunter der Kilometerstand (Screenshot englisch)" width="260" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-overview-plain.png" alt="Übersicht eines Autos, das keinen Antrieb bewiesen hat: Startklar, die Reichweite als große Zahl und der Kilometerstand daneben, nichts zum Laden (Screenshot englisch)" width="260" />
+</p>
 
 Ist **Konfigurieren → [Fahrzeugbild](DE-Settings-Reference#fahrzeugbild)** auf
 BMWs Konfigurator gestellt, ist das Bild genau dein Auto, und Ziehen darüber (Maus
@@ -75,9 +140,6 @@ oder Finger) dreht es einmal ganz herum. Das Bild folgt auch dem Auto:
   Auto mit Licht. Das Auto selbst ist immer BMWs eigenes Bild: ein BMW so, wie
   BMW ihn nachts zeichnet, ein MINI beleuchtet wie in der Nachtszene von MINIs
   eigenem Konfigurator.
-- **Abzeichen** unter dem Namen für alles, was dich angeht: eine Tür, der
-  Kofferraum oder die Motorhaube offen, Fenster offen, das Auto entriegelt, es
-  lädt.
 - **Wo es offen ist.** Solange etwas offen ist, erscheint die
   [Zeichnung von oben](#security--closures-cluster-closures) in der Ecke, mit dem
   offenen Teil hervorgehoben.
@@ -86,11 +148,8 @@ oder Finger) dreht es einmal ganz herum. Das Bild folgt auch dem Auto:
   gewählten Polsterung (sonst BMW-Standard); zum Umsehen ziehst du darüber.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hero-badges.png" alt="Die Übersicht bei Nacht mit offener Tür, offenen Fenstern und entriegeltem Auto: Abzeichen unter dem Namen, in der Ecke die Draufsicht mit der offenen Tür und den Fenstern hervorgehoben" width="360" />
-</p>
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hero-interior.png" alt="Die Übersicht mit dem Innenraum-Panorama: das Cockpit vom Fahrersitz aus, oben rechts der Knopf zurück zur Außenansicht" width="360" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hero-spin.png" alt="Die Übersichtskarte mit dem Konfigurator-Bild: der i5 Touring von schräg hinten, per Ziehen gedreht" width="300" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hero-inside.png" alt="Das Bild der Übersicht als Innenraum-Panorama: das Cockpit vom Fahrersitz aus, oben rechts der Knopf zurück zur Außenansicht (Screenshot englisch)" width="300" />
 </p>
 
 Die Karte merkt sich, wie weit du das Auto gedreht hast, ob du innen oder außen
@@ -98,11 +157,7 @@ warst und wohin du innen geschaut hast, sodass es nach dem Neuladen so dasteht,
 wie du es verlassen hast. Das liegt in deinem Browser, jedes Gerät hat also
 sein eigenes.
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hero-spin.png" alt="Die Übersichtskarte mit dem Konfigurator-Bild: der i5 Touring von schräg hinten, per Ziehen gedreht (Screenshot englisch)" width="300" />
-</p>
-
-Der Ladezustand im Ring ist die Schätzung der Integration. Steht das Auto, ist
+Der Ladestand im Balken ist die Schätzung der Integration. Steht das Auto, ist
 das einfach BMWs letzter Messwert; lädt es, steigt sie mit der Rate weiter, die
 die Ladeleistung ergibt — denn BMW kann mitten im Laden stundenlang schweigen, und
 sein eigener Wert steht dann still. Mit einem verknüpften Wallbox-Zähler
@@ -110,12 +165,11 @@ sein eigener Wert steht dann still. Mit einem verknüpften Wallbox-Zähler
 Der nächste echte Messwert ersetzt sie. Siehe
 [die Ladeseite](DE-Feature-Charging-History-and-Cost).
 
-**Bis voll** ist
+**Fertig um** in der Zeile oben und die Kachel **Bis voll** sind
 [der eigene Wert der Integration](DE-Feature-evcc-and-Wallbox-Bridge#time-to-the-charge-target),
 solange das Auto zu Hause mit verknüpftem Wallbox-Zähler lädt, und sonst BMWs.
-Während das Auto lädt, zeigt die Kachel die Uhrzeit, zu der die Ladung fertig
-ist, als *Fertig um 05:40* (mit dem Wochentag, wenn das nicht heute ist); tippe
-darauf für die restlichen Minuten. Wird der Wert nicht mehr aktualisiert und ist
+Sie zeigen die Uhrzeit, zu der die Ladung fertig ist, als *05:40* (mit dem
+Wochentag, wenn das nicht heute ist); antippen für die restlichen Minuten. Wird der Wert nicht mehr aktualisiert und ist
 seine Uhrzeit schon vorbei, zeigt die Kachel stattdessen die Minuten.
 Außerhalb einer Ladung heißt die Kachel *Ladezeit*, und sie wird ausgeblendet,
 wenn diese 0 ist.
@@ -125,27 +179,17 @@ Plug-in-Hybrid oder Verbrenner. Ohne sie ist ein Auto, das Daten der
 Hochvoltbatterie *und* Kraftstoffdaten sendet, ein Plug-in-Hybrid; Kraftstoffdaten
 allein machen es zum Benziner oder Diesel. Manche Benziner streamen trotzdem ein
 E-Ladeziel, das lässt ein Auto aber nie elektrisch erscheinen. Ein Benziner, der
-gar keinen Tank streamt, zeigt stattdessen seine Reichweite im Ring.
+gar keinen Tank streamt, zeigt stattdessen seine Reichweite.
 
 Ein frisch eingerichtetes Auto hat noch nichts bewiesen und behält so lange das
 elektrische Layout. Ein Auto, das schon eine Weile sendet und **keine** der
 beiden Datenarten geliefert hat, hat dagegen etwas bewiesen: Es ist nicht
 elektrisch, was immer es sonst ist. Das kommt vor — ein MINI mit Benzinmotor
 streamt unter Umständen weder Kraftstoffsystem noch Motor — und ihm einen
-Ladering zu zeigen, den er nie füllen kann, war schlicht falsch. Er bekommt
-deshalb die letzte Zeile oben: Reichweite im Ring, Kilometerstand daneben, nichts
+Ladestand zu zeigen, den er nie füllen kann, war schlicht falsch. Er bekommt
+deshalb die letzte Zeile oben: Reichweite als große Zahl, Kilometerstand daneben, nichts
 zum Laden. Wenn dein Auto dort landet und du es besser weißt, setze `drivetrain:`
 in der YAML-Konfiguration der Karte.
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-car.png" alt="Übersichtskarte eines BMW i5 mit Ladestand, Reichweite, Ladestatus und Kilometerstand" width="360" />
-</p>
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-overview-phev.png" alt="Übersicht eines Plug-in-Hybrids: der Ladering mit elektrischer Reichweite und Ladestatus daneben, darunter Kacheln für Tank, Gesamtreichweite, Ladeziel, Stecker und Kilometerstand" width="260" />
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-overview-ice.png" alt="Übersicht eines Benziners: der Tankfüllstand im Ring, Restreichweite und die Liter im Tank daneben, darunter der Kilometerstand" width="260" />
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-overview-bare.png" alt="Übersicht eines Autos, das keinen Antrieb bewiesen hat: die Reichweite in einem grauen Ring und der Kilometerstand daneben, nichts zum Laden" width="260" />
-</p>
 
 ```yaml
 type: custom:bavariandata-card
@@ -163,7 +207,7 @@ einem Benziner oder Diesel stattdessen die [Kraftstoff-Ansicht](#fuel-view-fuel)
 Batteriezustand sagt *Für dieses Fahrzeug gibt es hier nichts*, statt leer zu
 bleiben, als wäre etwas kaputt. Wird das Auto doch geladen, setze **Antrieb**.
 
-Während einer Fahrt erscheint unten am Fahrzeugbild ein Abzeichen **Fahrt aktiv**
+Während einer Fahrt erscheint unten am Bild zusätzlich ein Abzeichen **Fahrt aktiv**
 mit Strecke und Minuten bisher; antippen für die vollständigen Attribute. Es folgt
 der Entität *Fahrt aktiv* und bleibt daher nach der Ankunft noch ein paar Minuten
 stehen — [warum](DE-Feature-Trips#seeing-the-drive-thats-happening-now).
@@ -174,13 +218,14 @@ Ein bestimmtes Fahrzeug legst du mit `device:` (Geräte-ID) oder `vin:` fest.
 
 <a id="choosing-the-tiles"></a>
 
-Das Raster unter dem Ring kann auch zeigen, was du willst. Wähle im Karten-Editor
+Die Kacheln können auch zeigen, was du willst. Wähle im Karten-Editor
 **Kacheln**: zuerst die fertigen Kacheln, dann jede Entität des Autos. Zieh sie in
-die gewünschte Reihenfolge. Leer lassen für das Raster, das zum Antrieb passt.
+die gewünschte Reihenfolge. Leer lassen für Kacheln, die sich mit dem ändern, was
+das Auto gerade tut.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-editor-tiles.png" alt="Das Feld Kacheln im Karten-Editor: Chips für Reifen, Standort, Verriegelung und diesen Monat gefahren, je mit Ziehgriff und Entfernen-Knopf, darunter ein Knopf zum Hinzufügen" width="360" />
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-overview-tiles.png" alt="Die Übersicht des i5 mit gewählten Kacheln: Reifen 2,60 bar in Grün, Standort Zuhause, Verriegelung gesichert, 1.460 km diesen Monat gefahren" width="300" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-overview-tiles.png" alt="Die Übersicht des i5 mit gewählten Kacheln: Reifen 2,60 bar in Grün, Standort Zuhause, Verriegelung gesichert, 1.460 km diesen Monat gefahren (Screenshot englisch)" width="300" />
 </p>
 
 | Kachel | Zeigt |
@@ -213,9 +258,9 @@ tiles:
     icon: mdi:thermometer
 ```
 
-Der Ring und die Zeilen daneben bleiben, wie der Antrieb sie festlegt. Zeigt ein
-Benziner oder Diesel Lade-Kacheln, wurde sein Antrieb falsch erkannt: Setze
-**Antrieb** (oben), statt die Kacheln zu ersetzen.
+Die Zeile oben, der Balken und die Reichweite daneben bleiben, wie das Auto sie
+festlegt. Zeigt ein Benziner oder Diesel Lade-Kacheln, wurde sein Antrieb falsch
+erkannt: Setze **Antrieb** (oben), statt die Kacheln zu ersetzen.
 
 ---
 
@@ -223,17 +268,23 @@ Benziner oder Diesel Lade-Kacheln, wurde sein Antrieb falsch erkannt: Setze
 
 <a id="charging-history-view-charging"></a>
 
-Listet aufgezeichnete Ladevorgänge, neueste zuerst, jeweils mit Datum, Energie,
-Kosten und einem Abzeichen Zuhause/Unterwegs. Tippe einen Ladevorgang an, um seine
-**Ladekurve**, Spitzen- und Durchschnittsleistung, Dauer und Netzenergie zu sehen.
-Oben stehen die Summen „Dieser Monat“. Die Schaltflächen **CSV** und **Bericht**
-exportieren den angezeigten Monat ([siehe Export](DE-Feature-Export)).
+Jeder Monat beginnt mit seinen Zahlen: was geladen wurde, was es gekostet hat
+(mit dem Preis je kWh, wenn jede Ladung zu Hause voll bepreist wurde) und wie
+viele Ladungen, wie viele davon unterwegs. Darunter ein Balken, woher die
+Energie kam (Sonne, Hausakku, Netz, unterwegs), und die kWh jedes Tages. Dann
+die Ladevorgänge des Monats, neueste zuerst: Datum, der Ladestand von → bis als
+kleiner Balken, ein Abzeichen Zuhause/Unterwegs, die Energie und darunter die
+Kosten. Tippe einen Ladevorgang an für seine **Ladekurve** (mit dem Durchschnitt
+als gestrichelter Linie), Spitzen- und Durchschnittsleistung, Dauer und
+Netzenergie. Die Schaltflächen **CSV** und **Bericht** exportieren den
+angezeigten Monat ([siehe Export](DE-Feature-Export)).
+
+Eine laufende Ladung steht oben, solange sie läuft, mit dem, was sie bisher
+gebracht und gekostet hat.
 
 **Ein Monat nach dem anderen.** Wie in der Fahrten-Ansicht begrenzt ein Element
-`‹ August 2026 ›` unter der Überschrift die Liste auf einen Kalendermonat;
-blättere zurück für ältere Ladevorgänge. Das Band mit den Monatssummen erscheint nur
-im aktuellen Monat — es wird von den Monatssensoren gespeist, die keinen älteren
-Wert haben.
+`‹ August 2026 ›` unter der Überschrift Zahlen und Liste auf einen
+Kalendermonat; blättere zurück für ältere Ladevorgänge.
 
 ```yaml
 type: custom:bavariandata-card
@@ -241,7 +292,7 @@ view: charging
 ```
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-charging.png" alt="Karte Ladeverlauf: aufgezeichnete Ladevorgänge mit Datum, Ladezustandsänderung, Energie und Abzeichen Zuhause, oben die Monatssumme" width="360" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-charging-month.png" alt="Ladeverlauf für November: 114,5 kWh geladen, 40,08 Euro, 3 Ladungen, 1 unterwegs; ein Balken mit Netz- und Unterwegs-Energie, die kWh je Tag und die drei Ladungen mit Von-bis-Balken, Zuhause oder dem Ladepunkt unterwegs, Energie und Kosten (Screenshot englisch)" width="360" />
 </p>
 
 Sie liest den gespeicherten Verlauf über den Dienst `get_charging_sessions` und
@@ -299,8 +350,9 @@ Werts sicher zu sein, zeigt sie *Lernt (n/10)* statt einer springenden Zahl
 
 <a id="efficiency--range-view-efficiency"></a>
 
-Oben, wie weit das Auto mit der aktuellen Ladung wirklich kommt, darunter der
-Verbrauch, auf dem dieser Wert beruht.
+Oben, wie weit das Auto mit der aktuellen Ladung wirklich kommt, verglichen mit
+dem, was das Auto selbst sagt, und, sobald Fahrten ihr Wetter haben, mit mildem
+Wetter; darunter der Verbrauch, auf dem dieser Wert beruht.
 
 ```yaml
 type: custom:bavariandata-card
@@ -308,11 +360,12 @@ view: efficiency
 ```
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-efficiency.png?v=2026-11-06" alt="Karte Effizienz und Reichweite: reale Reichweite beim aktuellen Ladezustand, Abstand zur Prognose des Autos, gemessener Verbrauch mit Seite des Ladegeräts und Fenster, nutzbare Kapazität und Herkunft sowie ein Balkendiagramm des Verbrauchs nach Monat, und ein zweites Balkendiagramm des Verbrauchs nach Außentemperatur mit dem Kälteaufschlag darunter" width="360" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-efficiency-bars.png" alt="Karte Effizienz und Reichweite: 298 km echte Reichweite bei 80 % Ladung, 12 % weniger als die Prognose des Autos, Balken für deine Fahrweise gegen die Schätzung des Autos, der gemessene Verbrauch ab Akku über die letzten 30 Tage, die nutzbare Kapazität, die Kosten je 100 km mit dem Solaranteil des Monats, der Verbrauch nach Monat und der Hinweis, warum er höher liegt als einzelne Fahrten (Screenshot englisch)" width="360" />
 </p>
 
-Sie zeigt die reale Reichweite von hier (und mit vollem Akku), den Vergleich mit der
-Restreichweiten-Prognose des Autos, den gemessenen Verbrauch mit Seite des Ladegeräts
+Sie zeigt die reale Reichweite von hier (und mit vollem Akku), mit Balken im
+Vergleich zur Restreichweiten-Prognose des Autos und, mit Fahrtwetter, zu dem, was
+dieselbe Ladung bei 15–25 °C schaffen würde, den gemessenen Verbrauch mit Seite des Ladegeräts
 und Fenster, den gemessenen Ladeverlust, wo ein Netzwert existiert, die nutzbare
 Kapazität, durch die geteilt wurde, deine Kosten pro 100 km mit dem Solaranteil des
 Monats und ein Balkendiagramm des Verbrauchs nach Kalendermonat. Daran siehst du
@@ -331,7 +384,10 @@ sie sendet, und erklärt sonst, warum sie leer ist.
 Alles wird aus dem Ladeverlauf gemessen — zwischen zwei Ladungen liegen eine
 Strecke und die Energie, die dafür nachgeladen wurde —, daher verbraucht sie **kein API-Kontingent** und
 übernimmt nie die Prognose des Autos
-([wie gemessen wird](DE-Feature-Efficiency-and-Range)).
+([wie gemessen wird](DE-Feature-Efficiency-and-Range)). Deshalb liegt er auch
+höher als der Wert der Fahrten-Ansicht: Er zählt alles, was der Akku zwischen zwei
+Ladungen hergegeben hat, Standzeiten und Vorklimatisierung eingeschlossen, eine
+Fahrt dagegen nur die Fahrt. Beide bleiben, jeder beschriftet.
 
 Bis der Ladeverlauf rund 50 km Fahrt einschließt, sagt die Karte das, statt eine Zahl
 zu zeigen.
@@ -414,16 +470,25 @@ l/100 km, Strecken folgen der Einheit des Kilometerzählers.
 
 <a id="trips--driving-journal-view-trips"></a>
 
-Listet deine aufgezeichneten Fahrten, neueste zuerst, jeweils mit *von → nach*,
-Strecke, Dauer und einem Abzeichen geschäftlich/privat/Pendeln. Tippst du eine an,
-siehst du Verbrauch, Rekuperation und verbrauchten Ladezustand, kannst sie anders
-einstufen und — bei Fahrten, die mit **Route aufzeichnen** gespeichert wurden —
-eine kleine Karte der Route sehen
-(als saubere Linie mit Start- und Zielmarkierung; zum Zeichnen verlässt nichts deinen
-Browser). Über der Liste fasst eine **Monatsübersicht** die Strecke (mit Differenz zum
-Vormonat), die Aufteilung geschäftlich/privat/Pendeln, den Durchschnittsverbrauch,
-die rekuperierte Energie, eine Fahrstil-Bewertung und die häufigsten Ziele zusammen —
-und, sobald ein Tarif gesetzt ist, geschätzte Fahrtkosten.
+Listet deine aufgezeichneten Fahrten Monat für Monat, jeden Tag unter einer
+eigenen Überschrift mit der Strecke des Tages. Eine Fahrt zeigt *von → nach*,
+ihre Art als farbigen Punkt (geschäftlich, privat, Pendeln), Uhrzeit, Dauer und
+das Wetter unterwegs, und ihre Strecke mit dem Verbrauch daneben: grün, wenn sie
+weniger brauchte als der Monatsdurchschnitt, gelb, wenn mehr. Tippst du eine an,
+siehst du Verbrauch, Rekuperation und verbrauchten Ladezustand, kannst sie
+anders einstufen und — bei Fahrten, die mit **Route aufzeichnen** gespeichert
+wurden — eine kleine Karte der Route sehen (als saubere Linie mit Start- und
+Zielmarkierung; zum Zeichnen verlässt nichts deinen Browser).
+
+Über der Liste fasst eine **Monatsübersicht** die Strecke (mit Differenz zum
+Vormonat), die Aufteilung geschäftlich/privat/Pendeln, den Durchschnitt der
+Fahrten, die rekuperierte Energie, eine Fahrstil-Bewertung und die häufigsten
+Ziele zusammen — und, sobald ein Tarif gesetzt ist, geschätzte Fahrtkosten.
+Tippe eine Art in der Aufteilung an, um nur diese Fahrten zu listen; nochmal
+antippen für alle.
+
+Ein Schalter **Liste | Karte** oben öffnet die [Fahrtenkarte](#trip-map-view-map)
+in derselben Karte.
 
 **Ein Monat nach dem anderen.** Ein Element `‹ August 2026 ›` unter der Überschrift
 begrenzt Liste, Monatsübersicht und die Schaltflächen **CSV** / **Bericht** auf einen
@@ -451,7 +516,8 @@ view: trips
 ```
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-trips.png?v=2026-10-10" alt="Fahrten-Ansicht: Strecke und Durchschnittsverbrauch des Monats, der Privatanteil, häufige Ziele und die letzten Fahrten" width="360" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-trips-days.png" alt="Fahrten-Ansicht für November: 377 km diesen Monat, 20,8 kWh/100 km im Schnitt, der Privatanteil, häufige Ziele, dann die Fahrten nach Tagen mit der Strecke jedes Tages und dem Verbrauch jeder Fahrt in Grün oder Gelb (Screenshot englisch)" width="300" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-trips-map.png" alt="Die Fahrten-Ansicht im Reiter Karte: Chips für diesen Monat, 3 Monate oder alle und die Fahrtziele des Monats als gezählte Blasen (Screenshot englisch)" width="300" />
 </p>
 
 Sie liest die Dienste `get_trips` und `get_driving_summary` und verbraucht daher
@@ -478,9 +544,10 @@ zu zeigen, würde doppelt zählen), was eine ehrliche Zählung „so oft hier an
 Klicke auf eine Blase, um hineinzuzoomen. Eine Leiste wechselt den Zeitraum — **Dieser
 Monat** (Standard), **3 Monate** oder **Alle**.
 
-Die *Route* einer bestimmten Fahrt siehst du in der Ansicht
-[Fahrten](#trips--driving-journal-view-trips), wenn du diese Fahrt aufklappst — dort
-wird sie auf einer kleinen Karte gezeichnet.
+Die Ansicht [Fahrten](#trips--driving-journal-view-trips) zeigt dieselbe Karte im
+Reiter **Karte**; `view: map` ist die Karte allein. Die *Route* einer bestimmten
+Fahrt siehst du in der Liste der Fahrten-Ansicht, wenn du diese Fahrt aufklappst —
+dort wird sie auf einer kleinen Karte gezeichnet.
 
 ```yaml
 type: custom:bavariandata-card
@@ -508,6 +575,40 @@ eingebauten Kartenkarte).
 > Fahrt-Endpunkte, dein Zuhause eingeschlossen. Schalte die Routenaufzeichnung nur ein,
 > wenn dir das recht ist, und denk daran, dass die Karte jeder sieht, der das Dashboard
 > sehen kann.
+
+---
+
+## Das Auto (`view: car`)
+
+<a id="the-car-view-car"></a>
+
+Alles über das Auto selbst in einer Karte. Oben sagt ein Banner das Dringendste
+(etwas offen, ein Reifen zum Prüfen, eine Check-Control-Meldung) oder *Alles in
+Ordnung*, mit dem, was das umfasst. Darunter die eigene
+[Zeichnung von oben](#the-cars-shape) mit allem Offenen hervorgehoben und jedem
+Reifen nach Zustand eingefärbt, an den Ecken die vier Drücke: Tippe einen an für
+Größe, Profil, Saison, Montagedatum und Restlaufzeit dieses Reifens.
+
+Darunter je eine Zeile, wo das Auto die Daten hat: Türen und Schloss, Check
+Control (frühere Meldungen eingeklappt), die Service-Punkte mit Fälligkeit nach
+Datum oder Strecke, die 12-V-Batterie, der [Batteriezustand](#battery-health-view-health)
+und dein [Leasing- oder Jahreskilometerlimit](DE-Feature-Mileage#a-mileage-allowance).
+Tippe eine Zeile an für ihre Entität.
+
+```yaml
+type: custom:bavariandata-card
+view: car
+```
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-car.png" alt="Die Karte Auto: Alles in Ordnung, verschlossen, Reifen in Ordnung, keine Meldungen; die Zeichnung von oben mit den vier Reifendrücken an den Ecken, darunter Zeilen für Türen und Schloss, Check Control, Service und Batteriezustand (Screenshot englisch)" width="360" />
+</p>
+
+Die Karten [Reifen](#tires-cluster-tire), [Öffnungen](#security--closures-cluster-closures),
+[Batteriezustand](#battery-health-view-health) und [Kilometer](#mileage-view-mileage)
+bleiben, wie sie sind, für ein Dashboard, das eine davon allein zeigen will. Sie
+liest nur die Sensoren des Autos und den Kilometerbericht und verbraucht daher
+**kein API-Kontingent**.
 
 ---
 
@@ -594,6 +695,8 @@ steering: right   # left · right — weglassen, um es aus BMWs Fahrzeugdaten zu
 </p>
 
 ### Die Form des Autos
+
+<a id="the-cars-shape"></a>
 
 Die Reifen- und die Öffnungs-Ansicht zeichnen eine BMW-Limousine, außer bei einem
 **MINI Countryman**: Der bekommt eine eigene Zeichnung, kantiger, mit
@@ -719,6 +822,11 @@ gezeichnet wie seine eigene `view:`-Karte, mit einem Pfeil oben zurück zur
 Übersicht. Ohne `hub: true` bleibt die Übersicht, wie sie ist, und jede
 `view:`-Karte funktioniert wie bisher für sich.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hub.png" alt="Die Übersicht als Hub: unter den Kacheln Zeilen für Laden mit kWh und Kosten dieses Monats, Fahrten mit Kilometern und Fahrten dieses Monats, Effizienz mit echter Reichweite und Verbrauch und Auto mit alles in Ordnung und dem nächsten Service (Screenshot englisch)" width="300" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hub-room.png" alt="Der Bereich Fahrten, aus dem Hub geöffnet: oben links der Pfeil zurück statt des Symbols, darunter die Fahrten-Ansicht wie gewohnt (Screenshot englisch)" width="300" />
+</p>
+
 ---
 
 ## Kleine Karten und die Garage (`view: glance`, `view: row`, `view: garage`)
@@ -753,6 +861,35 @@ navigation_path: /car-hub/0
 In einem Abschnitte-Dashboard beginnt die Kachel halb so breit wie ein
 Abschnitt, sodass zwei Autos nebeneinander passen; jede andere Ansicht füllt
 die Breite.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-glance.png" alt="Die kleine Kachel: Bild des i5, 80 % und 337 km, ein schmaler Balken mit dem Ziel, Startklar, Schloss und Stecker als Symbole (Screenshot englisch)" width="220" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-glance-charging.png" alt="Die kleine Kachel beim Laden: 7,4 kW neben dem Namen, 62 % und Lädt, fertig um, in Blau (Screenshot englisch)" width="220" />
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-row.png" alt="Die einzeilige Karte: Bild des Autos, Startklar, der Name des Autos bei seinem Ziel von 80 % zu Hause, am Ende 80 % und 337 km (Screenshot englisch)" width="420" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-garage.png" alt="Die Garage: je Auto eine Zeile mit Bild, Name, Ladestand, Balken, Zeile oben und Reichweite (Screenshot englisch)" width="420" />
+</p>
+
+## Von einer älteren Karte
+
+<a id="coming-from-an-older-card"></a>
+
+Jede Karte, die du schon hast, funktioniert weiter, mit demselben YAML, im neuen
+Aussehen.
+
+| Deine Karte | Jetzt |
+| --- | --- |
+| `type: custom:bavariandata-card` | Die Übersicht: Zeile oben, Balken, Kacheln, die dem Auto folgen. Bereiche nur mit `hub: true`. |
+| `tiles: […]` | Deine Kacheln, in jeder Lage. |
+| `drivetrain:`, `device:`, `vin:`, die Entitäts-Überschreibungen | Unverändert. |
+| `view: charging` · `trips` · `efficiency` · `fuel` | Dieselbe Ansicht, neu gezeichnet. |
+| `view: map` | Unverändert; die Fahrten-Ansicht öffnet sie auch im Reiter Karte. |
+| `view: health` · `mileage` · `equipment`, `cluster: …` | Unverändert; Batteriezustand und Kilometer sind zusätzlich je eine Zeile in `view: car`. |
+| `custom:bmw-cardata-card` | Funktioniert weiter. |
+
+Neu: `hub: true`, `view: car`, `view: glance`, `view: row`, `view: garage`.
 
 ---
 

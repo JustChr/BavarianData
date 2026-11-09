@@ -48,11 +48,12 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 - **The card's overview says what the car is doing.** Under the photo, one
   line in words: *Ready to go*, *Charging · done at 05:40*, *On the road*,
   *Waiting to charge*, *Charge soon* or, in red, *Something's open*, with the
-  facts behind it underneath (where, since when, which door). Tap it for the
+  facts behind it underneath (where, since when, what is open: *Door open ·
+  2 windows open*). Tap it for the
   entity behind it, such as the minutes left of a charge. An open door outranks
   a charge, so one left open overnight on the drive is never hidden behind
   *done at*. The words replace the badges that sat on the photo; the drawing
-  of what is open stays there.
+  of what is open stays there (card 2.0.0).
 - **A bar instead of the ring.** The charge (or the tank) is a bar with the
   target as a tick: while charging, what this charge added is striped; on a
   drive, what it used shows faintly. The range sits beside it, with what the

@@ -543,7 +543,7 @@
   </ha-icon>
             <span>
   <span class="carv__bt">Something's open</span>
-  <span class="carv__bs">Front left · Door</span>
+  <span class="carv__bs">Door open</span>
   </span>
           </div>
           <div class="carv__draw">

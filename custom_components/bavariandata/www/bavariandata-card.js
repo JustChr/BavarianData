@@ -18,7 +18,7 @@
  * card's class; the strings are bavariandata-card-strings-<lang>.js, one per language.
  */
 
-const CARD_VERSION = "1.16.0";
+const CARD_VERSION = "2.0.0";
 // How long a view waits before asking a service again after it failed. Asked
 // again on the next paint instead, a refused call (an account reloading, for
 // one) repeated itself hundreds of times a second (#277).
