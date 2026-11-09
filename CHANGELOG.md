@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.28-beta.5] - 2026-11-09
+
 ### Added
 - **What a charge has cost and drawn so far.** While the car charges, the
   *Charged Energy (Session)* sensor now also carries the charge it began at
@@ -28,8 +30,9 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 - **The overview as a hub: `hub: true`.** Turn on *Rooms under the overview*
   in the card editor and the overview lists Charging, Trips, Efficiency and
   Car under its tiles (Fuel instead of Charging and Efficiency on a petrol or
-  diesel car, and after Charging on a plug-in hybrid), each with what it would say first: this month's kWh and cost,
-  this month's kilometers and trips, the real range and consumption, and
+  diesel car, and after Charging on a plug-in hybrid), each with what it would
+  say first: this month's kWh and cost, this month's kilometers and trips, the
+  real range and consumption, and
   whether all is well with the car or what isn't. While the car charges or
   drives, that row says so. A tap opens the room in the same card, with an
   arrow at its top back to the overview. Off by default, so every card stays
@@ -49,8 +52,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   line in words: *Ready to go*, *Charging · done at 05:40*, *On the road*,
   *Waiting to charge*, *Charge soon* or, in red, *Something's open*, with the
   facts behind it underneath (where, since when, what is open: *Door open ·
-  2 windows open*). Tap it for the
-  entity behind it, such as the minutes left of a charge. An open door outranks
+  2 windows open*). Tap it for the entity behind it, such as the minutes left
+  of a charge. An open door outranks
   a charge, so one left open overnight on the drive is never hidden behind
   *done at*. The words replace the badges that sat on the photo; the drawing
   of what is open stays there (card 2.0.0).
@@ -66,8 +69,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   stay as they are, in every situation. Labels are no longer in capitals.
 - **Charging history, every month in figures.** Each month, not only the
   current one, opens with what was charged, what it cost (with the price per
-  kWh, *at least* when a charge at home wasn't priced in full) and how many charges, how
-  many of them away; a bar of where the energy came from (sun, house battery,
+  kWh, *at least* when a charge at home wasn't priced in full) and how many
+  charges, how many of them away; a bar of where the energy came from (sun, house battery,
   grid, away) and the kWh of each day. Each charge shows its from → to as a
   small bar and its cost under the kWh; an open one draws its average power
   as a dashed line. The charge in progress sits on top while it runs, with
@@ -100,6 +103,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   language, and a browser loads English plus the language Home Assistant is
   set to, about 150 KB less than before. Until your language has arrived, the
   card shows English for a moment.
+- **For integrations that read our entities:** nothing is renamed or re-keyed;
+  *Charged Energy (Session)* and *Real Range* only gain the attributes above.
 
 ## [0.9.28-beta.4] - 2026-11-08
 
