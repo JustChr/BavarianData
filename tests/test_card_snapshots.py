@@ -65,7 +65,7 @@ card._hass = {
   states: input.states,
   language: "en",
   locale: { language: "en" },
-  devices: { device: { name: "Car", identifiers: [["bavariandata", "WBS1"]] } },
+  devices: { device: { id: "device", name: "Car", identifiers: [["bavariandata", "WBS1"]] } },
   callService: () => new Promise(() => {}),
 };
 if (input.display_units || input.account) {
@@ -73,7 +73,12 @@ if (input.display_units || input.account) {
   // integration publishes them: on the account device's connection sensor,
   // found through the car's config entry.
   card._hass.devices.device.config_entries = ["entry1"];
-  card._hass.devices.account = { name: "Account", identifiers: [["bavariandata", "entry1"]] };
+  card._hass.devices.account = {
+    id: "account",
+    name: "Account",
+    identifiers: [["bavariandata", "entry1"]],
+    config_entries: ["entry1"],
+  };
   card._hass.entities = {
     "sensor.connection": { platform: "bavariandata", device_id: "account" },
   };
@@ -159,6 +164,9 @@ SCREENS = {
     "equipment": {"view": "equipment"},
     "car": {"view": "car"},
     "hub": {"hub": True},
+    "glance": {"view": "glance"},
+    "row": {"view": "row"},
+    "garage": {"view": "garage"},
     "cluster-tire": {"cluster": "tire"},
     "cluster-closures": {"cluster": "closures"},
     "cluster-electric": {"cluster": "electric"},

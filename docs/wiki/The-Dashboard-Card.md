@@ -638,12 +638,67 @@ teleservice timestamps, listed below the messages when the car sends them.
 
 ---
 
+## The hub (`hub: true`)
+
+The Overview can carry the other views as rooms under it. Turn on **Rooms
+under the overview** in the visual editor, or:
+
+```yaml
+type: custom:bavariandata-card
+hub: true
+```
+
+Under the tiles, one row per room says what that room would say first:
+**Charging** (this month's kWh and cost), **Trips** (this month's distance and
+number of trips), **Efficiency** (the real range and consumption) and **Car**
+(all good, or what isn't: something open, a tire, a Check Control message;
+otherwise the next service). A petrol or diesel car lists **Fuel** (the last
+refuel and the average) instead of Charging and Efficiency; a car that proved
+no drivetrain lists Trips and Car. While the car charges, the Charging row
+says so with what this charge has added; on a drive, the Trips row does.
+
+Tap a row and the room opens in the same card, drawn exactly as its own
+`view:` card would be, with an arrow at its top back to the overview. The card
+remembers nothing: a reload starts on the overview. Without `hub: true`, the
+Overview is unchanged, and every `view:` card works on its own as before.
+
+---
+
+## Small cards and the garage (`view: glance`, `view: row`, `view: garage`)
+
+Three compact cards for a dashboard's first screen. They read the car exactly
+as the Overview does: the same charge (or tank), range and top line.
+
+- **`view: glance`**: a tile half a section wide with the car's picture, its
+  charge and range, a thin bar with the target, the top line (*Ready to go*,
+  *Charging · done at 05:40*, …), and the lock and plug as small icons. While
+  charging, the power sits beside the name.
+- **`view: row`**: the same in one line: picture, top line, the car's name
+  with the facts behind it, and the charge and range at the end.
+- **`view: garage`**: every car of every account in one card, one row each
+  with its picture, charge, bar, top line and range. It needs no `device:`.
+
+A tap opens the car's charge (or tank). With **Open on tap**
+(`navigation_path:`) it opens another dashboard instead, for example one
+holding the hub:
+
+```yaml
+type: custom:bavariandata-card
+view: glance
+navigation_path: /car-hub/0
+```
+
+In a sections dashboard the glance tile starts half a section wide, so two
+cars sit side by side; every other view fills the width.
+
+---
+
 ## Full YAML reference
 
 | Key | Purpose |
 | --- | --- |
 | `type` | Always `custom:bavariandata-card`. |
-| `view` | `charging`, `trips`, `map`, `health`, `efficiency`, `mileage`, `fuel` or `equipment`. Omit for the Overview. |
+| `view` | `charging`, `trips`, `map`, `health`, `efficiency`, `mileage`, `fuel`, `equipment`, `car`, `glance`, `row` or `garage`. Omit for the Overview. |
 | `cluster` | `electric`, `status`, `tire`, `usage`, `events`, `basic`, `contract`, `metadata`, `other`, `closures`. Renders a single-cluster list (or the special tire/closures diagrams). |
 | `device` | Device id, to pin a specific vehicle. The visual editor lists your cars only, never the account's own diagnostics device (*BMW CarData*); a card set to it shows the first car instead. |
 | `vin` | VIN, as an alternative to `device`. |
@@ -662,6 +717,8 @@ teleservice timestamps, listed below the messages when the car sends them.
 | `shape` | `sedan` or `countryman` — the car drawn in the tires and closures views. Omit to pick it from the model in BMW's basic data. |
 | `pictures` | `false` — the Equipment view as a plain list, without the option pictures (**Show option pictures** in the visual editor). Omit to show them. |
 | `fuel` | Override the fuel-tank entity (a percentage or a volume). |
+| `hub` | `true`: the Overview with the rooms under it (**Rooms under the overview**). See [The hub](#the-hub-hub-true). |
+| `navigation_path` | A dashboard path the `glance`, `row` and `garage` cards open on a tap (**Open on tap**). Omit to open the car's charge or tank. |
 
 With the integration installed, entity overrides are rarely needed — the card
 auto-discovers them from the vehicle's device. Use them only if you've renamed

@@ -7,7 +7,11 @@
  */
 
 export default (Base, { DEVICE_CLASS_ICONS, UNAVAILABLE, _lang }) => class OverviewPart extends Base {
-  _renderOverview(deviceId, entities) {
+  /** How the overview reads one car: its drivetrain, the meter (charge or
+   * tank, or the range on a car that proved neither), the range beside it,
+   * the bar's gain/used/target and the top line. The overview draws it in
+   * full; the glance, row and garage cards draw parts of it. */
+  _overviewModel(deviceId, entities) {
     const cfg = this._config || {};
     const drivetrain = this._drivetrain(entities);
     const ice = drivetrain === "ice";
@@ -147,6 +151,12 @@ export default (Base, { DEVICE_CLASS_ICONS, UNAVAILABLE, _lang }) => class Overv
       timeToFullSt: this._st(picks.timeToFull),
       ids: { timeToFull: picks.timeToFull, charging: picks.charging, gauge: gaugeId, plug: picks.plug },
     });
+
+    return { cfg, drivetrain, ice, phev, picks, name, unit, trip, socSt, chargingSt, odometerSt, fuelId, fuelSt, bare, rangeId, rangeSt, electric, charging, plugSt, plugged, target, session, closures, gaugeId, gaugeSt, gaugeNum, gaugeUnit, isPct, pct, fillColor, gaugeVal, gaugeUnitHtml, gaugeCap, gain, used, legL, legR, realSt, side, tank, verdict };
+  }
+
+  _renderOverview(deviceId, entities) {
+    const { cfg, drivetrain, ice, picks, name, unit, trip, chargingSt, odometerSt, fuelSt, bare, rangeSt, electric, charging, target, session, closures, gaugeId, gaugeSt, gaugeNum, isPct, pct, fillColor, gaugeVal, gaugeUnitHtml, gaugeCap, gain, used, legL, legR, side, tank, verdict } = this._overviewModel(deviceId, entities);
 
     // `tiles:` replaces the grid whole, in the order given. Without it the grid
     // follows what the car is doing: the four first of the situation's list
@@ -317,6 +327,158 @@ export default (Base, { DEVICE_CLASS_ICONS, UNAVAILABLE, _lang }) => class Overv
         this._render();
       });
     }
+  }
+
+  /* ---- small sizes: a tile, one line, every car -------------------------- */
+
+  /** What the small cards draw of a car, from the overview's own reading of
+   * it: the thumbnail, the number and range, a thin bar, the top line, the
+   * lock and plug as glyphs, and the power while charging. Everything that
+   * reaches markup comes back escaped. */
+  _smallModel(deviceId, entities, name) {
+    const m = this._overviewModel(deviceId, entities);
+    const refused = this._accountAttribute(deviceId, "login_refused") === true;
+    const img = m.picks.image ? this._imageUrl(m.picks.image) : null;
+    const lock = m.closures.lockId ? (m.closures.lock.key === "unlocked" ? "open" : "locked") : null;
+    const power = m.charging
+      ? this._kw(this._st(this._idByDescriptor(entities, "vehicle.powertrain.electric.battery.charging.power")))
+      : null;
+    return {
+      name: this._esc(name || m.name),
+      open: m.gaugeId || m.closures.lockId || null,
+      img,
+      ice: m.ice || m.bare,
+      val: m.gaugeVal,
+      unit: m.gaugeUnitHtml,
+      side: m.side.val,
+      bar: m.isPct && m.gaugeNum != null ? [m.pct, m.fillColor, m.target] : null,
+      title: refused ? this._t("refused_title") : m.verdict.title,
+      sub: refused ? "" : m.verdict.sub,
+      tone: refused ? "alert" : m.verdict.tone,
+      lock,
+      plugged: m.electric && m.plugged,
+      power,
+    };
+  }
+
+  _smallThumb(s) {
+    return s.img
+      ? `<img src="${this._attr(s.img)}" alt="" />`
+      : `<ha-icon icon="${s.ice ? "mdi:car" : "mdi:car-electric"}"></ha-icon>`;
+  }
+
+  _smallBar(s) {
+    if (!s.bar) return "";
+    const [pct, color, tick] = s.bar;
+    return `<span class="thin sm__bar"><span style="width:${pct}%;background:${color}"></span>${
+      tick != null ? `<span class="thin__tick" style="left:${Math.max(0, Math.min(100, tick))}%"></span>` : ""
+    }</span>`;
+  }
+
+  _smallGlyphs(s) {
+    const lock = s.lock
+      ? `<ha-icon class="sm__glyph sm__glyph--${s.lock === "open" ? "alert" : "ok"}" icon="${s.lock === "open" ? "mdi:lock-open-variant" : "mdi:lock"}" title="${this._attr(this._t(s.lock === "open" ? "vd_unlocked" : "ti_lock"))}"></ha-icon>`
+      : "";
+    const plug = s.plugged ? `<ha-icon class="sm__glyph" icon="mdi:power-plug" title="${this._attr(this._t("plug"))}"></ha-icon>` : "";
+    return lock || plug ? `<span class="sm__glyphs">${lock}${plug}</span>` : "";
+  }
+
+  _wireOpen() {
+    this.shadowRoot.querySelectorAll("[data-open]").forEach((el) => {
+      el.addEventListener("click", () => this._openCar(el.getAttribute("data-open")));
+    });
+  }
+
+  /** `view: glance`: a tile, half a sections row wide, with the car's picture,
+   * its charge (or tank) and range, a thin bar and the top line. */
+  _renderGlance(deviceId, entities) {
+    const s = this._smallModel(deviceId, entities);
+    const sig = this._signature({ m: "gl", lang: _lang(this._hass), s, nav: !!(this._config || {}).navigation_path });
+    if (sig === this._sig) return;
+    this._sig = sig;
+    this.shadowRoot.innerHTML = `
+      ${this._styles()}
+      <ha-card>
+        <button class="sm sm--glance" data-open="${this._attr(s.open || "")}">
+          <span class="sm__img${s.img ? "" : " sm__img--empty"}">${this._smallThumb(s)}</span>
+          <span class="sm__b">
+            <span class="sm__top"><span class="sm__name">${s.name}</span>${s.power ? `<span class="sm__live">${s.power}</span>` : ""}</span>
+            <span class="sm__nums"><span class="sm__mid">${s.val}<i>${s.unit}</i></span><span class="sm__side">${s.side}</span></span>
+            ${this._smallBar(s)}
+            <span class="sm__line"><span class="sm__vd sm__vd--${s.tone}">${s.title}</span>${this._smallGlyphs(s)}</span>
+          </span>
+        </button>
+      </ha-card>`;
+    this._wireOpen();
+  }
+
+  /** `view: row`: the car in one line, for a phone's first screen. */
+  _renderRow(deviceId, entities) {
+    const s = this._smallModel(deviceId, entities);
+    const sig = this._signature({ m: "rw", lang: _lang(this._hass), s, nav: !!(this._config || {}).navigation_path });
+    if (sig === this._sig) return;
+    this._sig = sig;
+    this.shadowRoot.innerHTML = `
+      ${this._styles()}
+      <ha-card>
+        <button class="sm sm--row" data-open="${this._attr(s.open || "")}">
+          <span class="sm__thumb${s.img ? "" : " sm__thumb--empty"}">${this._smallThumb(s)}</span>
+          <span class="sm__txt">
+            <span class="sm__vd sm__vd--${s.tone}">${s.title}</span>
+            <span class="sm__sub">${[s.name, s.sub].filter(Boolean).join(" · ")}</span>
+          </span>
+          <span class="sm__end"><span class="sm__mid">${s.val}<i>${s.unit}</i></span><span class="sm__side">${s.side}</span></span>
+        </button>
+      </ha-card>`;
+    this._wireOpen();
+  }
+
+  /** `view: garage`: every car of every account, one row each, in the order
+   * Home Assistant lists them. */
+  _renderGarage() {
+    const ids = this.constructor._vehicleDevices(this._hass);
+    if (!ids.length) {
+      this._renderMessage(this._t("no_vehicle_title"), this._t("no_vehicle_body"));
+      return;
+    }
+    // Every car's login refused: say so, and how to mend it, as every other
+    // view does. With some cars still working, the refused ones say it in
+    // their row.
+    if (ids.every((id) => this._accountAttribute(id, "login_refused") === true)) {
+      this._renderMessage(this._t("refused_title"), this._t("refused_body"));
+      return;
+    }
+    const cars = ids.map((id) => this._smallModel(id, this._deviceEntities(id), this._deviceName(id)));
+    const title = (this._config || {}).title || this._t("sm_garage_title");
+    const sig = this._signature({ m: "ga", lang: _lang(this._hass), title, cars });
+    if (sig === this._sig) return;
+    this._sig = sig;
+    this.shadowRoot.innerHTML = `
+      ${this._styles()}
+      <ha-card>
+        <div class="chead">
+          <ha-icon icon="mdi:garage-variant"></ha-icon>
+          <div class="chead__text">
+            <span class="chead__title">${this._esc(title)}</span>
+            <span class="chead__sub">${cars.length === 1 ? this._t("sm_car_one") : this._t("sm_car_many", { n: cars.length })}</span>
+          </div>
+        </div>
+        <div class="sm__list">${cars
+          .map(
+            (s) => `
+          <button class="sm sm--garage" data-open="${this._attr(s.open || "")}">
+            <span class="sm__thumb${s.img ? "" : " sm__thumb--empty"}">${this._smallThumb(s)}</span>
+            <span class="sm__b">
+              <span class="sm__top"><span class="sm__name">${s.name}</span><span class="sm__pct">${s.val}<i>${s.unit}</i></span></span>
+              ${this._smallBar(s)}
+              <span class="sm__line"><span class="sm__vd sm__vd--${s.tone}">${s.title}</span><span class="sm__side">${s.side}</span></span>
+            </span>
+          </button>`
+          )
+          .join("")}
+        </div>
+      </ha-card>`;
+    this._wireOpen();
   }
 
   /** The bar under the big number: the level, what a charge has added (striped)

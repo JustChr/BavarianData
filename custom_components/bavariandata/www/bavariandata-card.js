@@ -538,6 +538,10 @@ const MILEAGE_VIEW = "mileage";
 const FUEL_VIEW = "fuel";
 // Doors, tires, messages, service, battery health and lease in one card.
 const CAR_VIEW = "car";
+// The small sizes: a tile, one line, and every car of the account in one card.
+const GLANCE_VIEW = "glance";
+const ROW_VIEW = "row";
+const GARAGE_VIEW = "garage";
 
 const VIEW_MODES = new Set([
   CHARGING_VIEW,
@@ -549,6 +553,9 @@ const VIEW_MODES = new Set([
   FUEL_VIEW,
   EQUIPMENT_VIEW,
   CAR_VIEW,
+  GLANCE_VIEW,
+  ROW_VIEW,
+  GARAGE_VIEW,
 ]);
 
 // The rooms a hub (`hub: true` on the overview) can open, each the `view:` it
@@ -668,7 +675,33 @@ class BavarianDataCard extends CardParts {
     if (this._config && this._config.view === "mileage") return 8;
     if (this._config && this._config.view === "fuel") return 8;
     if (this._config && this._config.view === CAR_VIEW) return 10;
+    if (this._config && this._config.view === GLANCE_VIEW) return 3;
+    if (this._config && this._config.view === ROW_VIEW) return 2;
+    if (this._config && this._config.view === GARAGE_VIEW) {
+      return 1 + 2 * Math.max(1, BavarianDataCard._vehicleDevices(this._hass).length);
+    }
     return this._config && this._config.cluster ? 6 : 8;
+  }
+
+  /** The card's place in a sections dashboard (12 columns wide). Every view
+   * fills the width and grows with its content; the glance tile starts at
+   * half, so two cars sit side by side. None goes narrower than reads. */
+  getGridOptions() {
+    const view = this._config && this._config.view;
+    if (view === GLANCE_VIEW) return { columns: 6, min_columns: 4 };
+    return { columns: 12, min_columns: 6 };
+  }
+
+  /** What a tap on a small card does: opens `navigation_path` when the card
+   * names one (a dashboard holding the hub, say), else the car's own entity. */
+  _openCar(entityId) {
+    const path = this._config && this._config.navigation_path;
+    if (path) {
+      window.history.pushState(null, "", path);
+      window.dispatchEvent(new CustomEvent("location-changed", { detail: { replace: false } }));
+      return;
+    }
+    if (entityId) this._moreInfo(entityId);
   }
 
   /** Localized string for the active Home Assistant language. */
@@ -1259,6 +1292,11 @@ class BavarianDataCard extends CardParts {
     if (!this._hass || !this._config) return;
     if (!this.shadowRoot) this.attachShadow({ mode: "open" });
     this._wireRooms();
+    // The garage is every car, not one.
+    if (this._config.view === GARAGE_VIEW) {
+      this._renderGarage();
+      return;
+    }
 
     const deviceId = this._resolveDeviceId();
     if (!deviceId) {
@@ -1290,6 +1328,10 @@ class BavarianDataCard extends CardParts {
       this._renderFuel(deviceId, entities);
     } else if (this._config.view === CAR_VIEW) {
       this._renderCar(deviceId, entities);
+    } else if (this._config.view === GLANCE_VIEW) {
+      this._renderGlance(deviceId, entities);
+    } else if (this._config.view === ROW_VIEW) {
+      this._renderRow(deviceId, entities);
     } else if (this._config.cluster === "tire") {
       this._renderTires(deviceId, entities);
     } else if (this._config.cluster === "closures") {
@@ -1671,6 +1713,9 @@ class BavarianDataCardEditor extends HTMLElement {
       { value: FUEL_VIEW, label: t(this._hass, "fu_title") },
       { value: EQUIPMENT_VIEW, label: t(this._hass, "eq_title") },
       { value: CAR_VIEW, label: t(this._hass, "car_title") },
+      { value: GLANCE_VIEW, label: t(this._hass, "sm_glance") },
+      { value: ROW_VIEW, label: t(this._hass, "sm_row") },
+      { value: GARAGE_VIEW, label: t(this._hass, "sm_garage") },
       { value: "closures", label: t(this._hass, "cl_closures") },
       ...CLUSTER_SLUGS.map((slug) => ({
         value: slug,
@@ -1772,6 +1817,10 @@ class BavarianDataCardEditor extends HTMLElement {
         },
       });
     }
+    // The small cards can open another dashboard (one holding the hub, say).
+    if (this._config && [GLANCE_VIEW, ROW_VIEW, GARAGE_VIEW].includes(this._config.view)) {
+      schema.push({ name: "navigation_path", selector: { navigation: {} } });
+    }
     // The equipment view can drop the option pictures for a plain list.
     if (this._config && this._config.view === EQUIPMENT_VIEW) {
       schema.push({ name: "pictures", selector: { boolean: {} } });
@@ -1858,6 +1907,7 @@ class BavarianDataCardEditor extends HTMLElement {
     if (value.pictures !== false || value.view !== EQUIPMENT_VIEW) delete value.pictures;
     // The hub is off by default, and only the overview has one.
     if (value.hub !== true || value.view || value.cluster) delete value.hub;
+    if (![GLANCE_VIEW, ROW_VIEW, GARAGE_VIEW].includes(value.view)) delete value.navigation_path;
     // No tiles is the drivetrain's own grid, not an empty one.
     if (Array.isArray(value.tiles) && !value.tiles.length) delete value.tiles;
     // Drop empties so the stored config stays minimal.

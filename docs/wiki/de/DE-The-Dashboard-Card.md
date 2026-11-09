@@ -691,6 +691,71 @@ die unter den Meldungen stehen, wenn das Fahrzeug sie sendet.
 
 ---
 
+## Der Hub (`hub: true`)
+
+<a id="the-hub-hub-true"></a>
+
+Die Übersicht kann die anderen Ansichten als Bereiche unter sich tragen.
+Schalte im visuellen Editor **Bereiche unter der Übersicht** ein, oder:
+
+```yaml
+type: custom:bavariandata-card
+hub: true
+```
+
+Unter den Kacheln sagt je eine Zeile, was der Bereich als Erstes sagen würde:
+**Laden** (kWh und Kosten dieses Monats), **Fahrten** (Strecke und Zahl der
+Fahrten dieses Monats), **Effizienz** (echte Reichweite und Verbrauch) und
+**Auto** (alles in Ordnung, oder was nicht: etwas offen, ein Reifen, eine
+Check-Control-Meldung; sonst der nächste Service). Ein Benziner oder Diesel
+zeigt **Kraftstoff** (letztes Tanken und Durchschnitt) statt Laden und
+Effizienz; ein Auto ohne erkannten Antrieb zeigt Fahrten und Auto. Während das
+Auto lädt, sagt das die Zeile Laden, mit dem, was diese Ladung schon gebracht
+hat; auf einer Fahrt die Zeile Fahrten.
+
+Tippst du eine Zeile an, öffnet sich der Bereich in derselben Karte, genau so
+gezeichnet wie seine eigene `view:`-Karte, mit einem Pfeil oben zurück zur
+Übersicht. Die Karte merkt sich nichts: Nach dem Neuladen beginnt sie auf der
+Übersicht. Ohne `hub: true` bleibt die Übersicht, wie sie ist, und jede
+`view:`-Karte funktioniert wie bisher für sich.
+
+---
+
+## Kleine Karten und die Garage (`view: glance`, `view: row`, `view: garage`)
+
+<a id="small-cards-and-the-garage-view-glance-view-row-view-garage"></a>
+
+Drei kompakte Karten für den ersten Bildschirm eines Dashboards. Sie lesen das
+Auto genau wie die Übersicht: derselbe Ladestand (oder Tank), dieselbe
+Reichweite, dieselbe Zeile oben.
+
+- **`view: glance`**: eine Kachel, halb so breit wie ein Abschnitt, mit dem
+  Bild des Autos, Ladestand und Reichweite, einem schmalen Balken mit dem Ziel,
+  der Zeile oben (*Startklar*, *Lädt · fertig um 05:40*, …) und
+  Schloss und Stecker als kleinen Symbolen. Beim Laden steht die Leistung neben
+  dem Namen.
+- **`view: row`**: dasselbe in einer Zeile: Bild, die Zeile oben, der Name des
+  Autos mit den Fakten dahinter, am Ende Ladestand und Reichweite.
+- **`view: garage`**: alle Autos aller Konten in einer Karte, je eine Zeile mit
+  Bild, Ladestand, Balken, Zeile oben und Reichweite. Sie braucht kein
+  `device:`.
+
+Antippen öffnet den Ladestand (oder Tank) des Autos. Mit **Beim Antippen
+öffnen** (`navigation_path:`) öffnet sich stattdessen ein anderes Dashboard,
+zum Beispiel eines mit dem Hub:
+
+```yaml
+type: custom:bavariandata-card
+view: glance
+navigation_path: /car-hub/0
+```
+
+In einem Abschnitte-Dashboard beginnt die Kachel halb so breit wie ein
+Abschnitt, sodass zwei Autos nebeneinander passen; jede andere Ansicht füllt
+die Breite.
+
+---
+
 ## Vollständige YAML-Referenz
 
 <a id="full-yaml-reference"></a>
@@ -698,7 +763,7 @@ die unter den Meldungen stehen, wenn das Fahrzeug sie sendet.
 | Schlüssel | Zweck |
 | --- | --- |
 | `type` | Immer `custom:bavariandata-card`. |
-| `view` | `charging`, `trips`, `map`, `health`, `efficiency`, `mileage`, `fuel` oder `equipment`. Weglassen für die Übersicht. |
+| `view` | `charging`, `trips`, `map`, `health`, `efficiency`, `mileage`, `fuel`, `equipment`, `car`, `glance`, `row` oder `garage`. Weglassen für die Übersicht. |
 | `cluster` | `electric`, `status`, `tire`, `usage`, `events`, `basic`, `contract`, `metadata`, `other`, `closures`. Zeigt die Liste einer Datengruppe (oder die besonderen Diagramme für Reifen und Öffnungen). |
 | `device` | Geräte-ID, um ein bestimmtes Fahrzeug festzulegen. Der visuelle Editor listet nur deine Fahrzeuge, nie das Diagnose-Gerät des Kontos (*BMW CarData*); eine Karte, die darauf eingestellt ist, zeigt stattdessen das erste Fahrzeug. |
 | `vin` | FIN, als Alternative zu `device`. |
@@ -717,6 +782,8 @@ die unter den Meldungen stehen, wenn das Fahrzeug sie sendet.
 | `shape` | `sedan` oder `countryman` — das Auto, das die Reifen- und die Öffnungs-Ansicht zeichnen. Weglassen, um es anhand des Modells in BMWs Fahrzeugbasisdaten zu wählen. |
 | `pictures` | `false` — die Ansicht Ausstattung als reine Liste, ohne die Bilder der Optionen (**Bilder der Optionen zeigen** im visuellen Editor). Weglassen, um sie zu zeigen. |
 | `fuel` | Überschreibt die Tank-Entität (Prozent oder Volumen). |
+| `hub` | `true`: die Übersicht mit den Bereichen darunter (**Bereiche unter der Übersicht**). Siehe [Der Hub](#the-hub-hub-true). |
+| `navigation_path` | Ein Dashboard-Pfad, den die Karten `glance`, `row` und `garage` beim Antippen öffnen (**Beim Antippen öffnen**). Weglassen, um Ladestand oder Tank des Autos zu öffnen. |
 
 Mit installierter Integration braucht man Entitäts-Überschreibungen selten — die Karte
 findet sie über das Gerät des Fahrzeugs. Nutze sie nur, wenn du Entitäten umbenannt

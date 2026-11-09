@@ -393,6 +393,51 @@ export default (Base) => class StylesPart extends Base {
       .room__s--warn { color: var(--bmw-mid); }
       .room__s--alert { color: var(--bmw-low); }
       .room__go { --mdc-icon-size: 20px; color: var(--bd-muted); flex: none; }
+
+      /* the small sizes: glance tile, one line, the garage */
+      .sm { display: flex; width: 100%; color: var(--primary-text-color); }
+      .sm:hover { background: var(--bd-sub); }
+      .sm--glance { flex-direction: column; }
+      .sm__img {
+        display: flex; align-items: center; justify-content: center;
+        aspect-ratio: 16 / 9; overflow: hidden; background: var(--bd-sub);
+      }
+      .sm__img img { width: 100%; height: 100%; object-fit: cover; }
+      .sm__img--empty ha-icon, .sm__thumb--empty ha-icon { --mdc-icon-size: 40px; color: var(--bd-muted); }
+      .sm__b { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1; padding: 10px 14px 12px; }
+      .sm__top, .sm__line { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; min-width: 0; }
+      .sm__name { font-weight: 650; font-size: 0.92rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .sm__live { font-size: 0.8rem; font-weight: 600; color: var(--bmw-charge); flex: none; }
+      .sm__nums { display: flex; align-items: baseline; gap: 8px; }
+      .sm__mid, .sm__pct { font-size: 1.5rem; font-weight: 650; line-height: 1.1; font-variant-numeric: tabular-nums; }
+      .sm__pct { font-size: 1rem; flex: none; }
+      .sm__mid i, .sm__pct i { font-style: normal; font-size: 0.8rem; font-weight: 550; color: var(--bd-muted); margin-left: 1px; }
+      .sm__side { font-size: 0.82rem; color: var(--bd-muted); flex: none; }
+      .sm__bar { margin: 2px 0; }
+      .sm__vd {
+        font-size: 0.82rem; font-weight: 600; min-width: 0;
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      }
+      .sm__vd--live { color: var(--bmw-charge); }
+      .sm__vd--warn { color: var(--bmw-mid); }
+      .sm__vd--alert { color: var(--bmw-low); }
+      .sm__glyphs { display: inline-flex; gap: 6px; flex: none; color: var(--bd-muted); }
+      .sm__glyph { --mdc-icon-size: 16px; }
+      .sm__glyph--ok { color: var(--bmw-high); }
+      .sm__glyph--alert { color: var(--bmw-low); }
+      .sm--row, .sm--garage { align-items: center; gap: 14px; padding: 10px 16px 10px 10px; min-height: 76px; }
+      .sm--garage { padding-right: 6px; border-radius: 12px; }
+      .sm--garage .sm__b { padding: 0; gap: 4px; }
+      .sm__thumb {
+        display: flex; align-items: center; justify-content: center; flex: none;
+        width: 88px; height: 56px; border-radius: 10px; overflow: hidden; background: var(--bd-sub);
+      }
+      .sm__thumb img { width: 100%; height: 100%; object-fit: cover; }
+      .sm__txt { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+      .sm--row .sm__vd { font-size: 0.98rem; font-weight: 650; }
+      .sm__sub { font-size: 0.8rem; color: var(--bd-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .sm__end { display: flex; flex-direction: column; align-items: flex-end; flex: none; }
+      .sm__list { display: flex; flex-direction: column; gap: 2px; padding: 6px 8px 10px; }
       /* export buttons, pushed to the right edge of the header */
       .xbar { margin-left: auto; display: flex; gap: 6px; flex-shrink: 0; }
 

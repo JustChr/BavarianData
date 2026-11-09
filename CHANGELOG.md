@@ -35,6 +35,15 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   arrow at its top back to the overview. Off by default, so every card stays
   as it is.
 
+- **Small cards and a garage.** `view: glance` is a tile half a dashboard
+  section wide: the car's picture, its charge (or tank) and range, a thin bar,
+  the top line, and the lock and plug as small icons. `view: row` is the same
+  in one line, for a phone's first screen. `view: garage` lists every car of
+  every account in one card, one row each. A tap opens the car's charge, or,
+  with *Open on tap* (`navigation_path:`), another dashboard, such as one
+  holding the hub. Every view now tells a sections dashboard how wide it
+  likes to be, so none can be shrunk narrower than it reads.
+
 ### Changed
 - **The card's overview says what the car is doing.** Under the photo, one
   line in words: *Ready to go*, *Charging · done at 05:40*, *On the road*,
