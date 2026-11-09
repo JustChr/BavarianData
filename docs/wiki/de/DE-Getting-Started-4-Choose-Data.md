@@ -58,6 +58,18 @@ wiederholen — dieselbe Auswahl, dasselbe Lesezeichen.
 > laufenden Stream hinzu; ein bereits gestreamtes Feld entfernt er nie. Um ein
 > Feld **nicht mehr** zu streamen, hake es im Portal unter **Datenauswahl** ab.
 
+**Diagnosefelder bleiben außen vor.** Der Aktivator schaltet nur die Felder
+ein, deren Entitäten aktiviert angelegt werden. Den technischen Rest, dessen
+Entitäten deaktiviert starten (in
+[telematics-fields.md](https://github.com/JustChr/BavarianData/blob/main/docs/reference/telematics-fields.md)
+steht in der Spalte **Default** `off`, die ganze Datengruppe Metadaten
+eingeschlossen), fordert er nicht an. Um eines davon zu streamen, hake es im
+Portal unter **Datenauswahl** selbst an. Sobald das Auto es sendet, erscheint
+seine Entität von selbst, deaktiviert; aktiviere sie in Home Assistant. Nicht
+jedes Auto sendet jedes Feld: Die Klima-Timer
+(`vehicle.cabin.climate.timers.*`) kamen weder von einem i4 noch von einem i5
+an ([#308](https://github.com/JustChr/BavarianData/issues/308)), auch nicht mit einer in der MyBMW-App gesetzten Abfahrtszeit.
+
 Einzelne Streaming-*Berechtigungen* pro Deskriptor statt einer Auswahl im Portal
 lehnt BMW ab — siehe
 [stream-scope-investigation.md](https://github.com/JustChr/BavarianData/blob/main/docs/reference/stream-scope-investigation.md)
