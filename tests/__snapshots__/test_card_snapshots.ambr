@@ -332,6 +332,201 @@
         </ha-card>
   '''
 # ---
+# name: test_a_room_opened_from_the_hub_has_a_way_back[car]
+  '''
+  <ha-card>
+          <div class="chead">
+            <button class="chead__back" data-room-back aria-label="Back to the overview" title="Back to the overview">
+  <ha-icon icon="mdi:arrow-left">
+  </ha-icon>
+  </button>
+            <div class="chead__text">
+              <span class="chead__title">Car</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          <div class="carv__banner carv__banner--ok">
+            <ha-icon icon="mdi:check-circle-outline">
+  </ha-icon>
+            <span>
+  <span class="carv__bt">All good</span>
+  </span>
+          </div>
+          <div class="carv__draw">
+            <span class="carv__tp carv__tp--fl">
+  </span>
+  <span class="carv__tp carv__tp--fr">
+  </span>
+            <div class="carv__svg">
+        <svg class="carsvg" viewBox="0 0 948 1659" xmlns="http://www.w3.org/2000/svg">
+          
+          <defs>
+            <linearGradient id="carBody" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#bcc2ca"/>
+              <stop offset=".5" stop-color="#dde1e6"/>
+              <stop offset="1" stop-color="#bcc2ca"/>
+            </linearGradient>
+            <linearGradient id="carRoof" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#7c828b"/>
+              <stop offset=".5" stop-color="#969ca4"/>
+              <stop offset="1" stop-color="#7c828b"/>
+            </linearGradient>
+            <linearGradient id="carGlass" x1="0" y1="0" x2=".4" y2="1">
+              <stop offset="0" stop-color="#43515f"/>
+              <stop offset="1" stop-color="#26313c"/>
+            </linearGradient>
+            <linearGradient id="carTail" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#8e1b17"/>
+              <stop offset=".6" stop-color="#e4382b"/>
+              <stop offset="1" stop-color="#ff7a5c"/>
+            </linearGradient>
+            <filter id="carGlow" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="b"/>
+              <feMerge>
+  <feMergeNode in="b"/>
+  <feMergeNode in="SourceGraphic"/>
+  </feMerge>
+            </filter>
+            <clipPath id="carClipWs">
+  <path d="M474 386 C578 386 648 402 704 446 L668 606 C600 597 348 597 280 606 L244 446 C300 402 370 386 474 386 Z"/>
+  </clipPath>
+  <clipPath id="carClipRw">
+  <path d="M298 1190 C400 1182 548 1182 650 1190 L684 1388 C600 1426 348 1426 264 1388 Z"/>
+  </clipPath>
+  <clipPath id="carClipSr">
+  <path d="M358 712 H590 Q598 712 598 720 V1038 Q598 1046 590 1046 H358 Q348 1046 348 1038 V720 Q348 712 358 712 Z"/>
+  </clipPath>
+  <clipPath id="carClipWf">
+  <path d="M221 474 C244 520 272 620 284 720 L288 806 L211 806 L211 620 C212 560 215 512 221 474 Z"/>
+  </clipPath>
+  <clipPath id="carClipWr">
+  <path d="M211 834 L289 834 L289 1040 C286 1130 262 1210 230 1268 L220 1268 C214 1150 211 1000 211 834 Z"/>
+  </clipPath>
+          </defs>
+          <rect x="158" y="195" width="27" height="200" rx="13" class="carsvg__wheel"/>
+  <rect x="158" y="195" width="27" height="200" rx="13" class="carsvg__wheel" transform="matrix(-1 0 0 1 948 0)"/>
+  <rect x="150" y="1255" width="27" height="206" rx="13" class="carsvg__wheel"/>
+  <rect x="150" y="1255" width="27" height="206" rx="13" class="carsvg__wheel" transform="matrix(-1 0 0 1 948 0)"/>
+          
+          <path d="M222 496 C198 504 166 522 151 538 C144 547 147 561 158 563 C180 557 206 549 222 546 Z" class="carsvg__mirror"/>
+  <path d="M222 496 C198 504 166 522 151 538 C144 547 147 561 158 563 C180 557 206 549 222 546 Z" class="carsvg__mirror" transform="matrix(-1 0 0 1 948 0)"/>
+          <path d="M474 12 C420 12 386 16 366 25 C300 52 228 104 202 150 C186 178 180 205 179 245 L177 1120 C176 1180 171 1225 168 1270 L168 1440 C170 1458 176 1474 181 1495 C190 1545 214 1592 258 1620 C318 1644 420 1648 474 1648 C528 1648 630 1644 690 1620 C734 1592 758 1545 767 1495 C772 1474 778 1458 780 1440 L780 1270 C777 1225 772 1180 771 1120 L769 245 C768 205 762 178 746 150 C720 104 648 52 582 25 C562 16 528 12 474 12 Z" class="carsvg__body"/>
+          <path d="M178 466 L222 466 C250 530 280 640 292 760 L294 818 L178 818 Z" class="carsvg__shut"/>
+  <path d="M178 466 L222 466 C250 530 280 640 292 760 L294 818 L178 818 Z" class="carsvg__shut" transform="matrix(-1 0 0 1 948 0)"/>
+          <path d="M178 822 L294 822 L294 1040 C291 1110 274 1160 254 1186 L177 1186 Z" class="carsvg__shut"/>
+  <path d="M178 822 L294 822 L294 1040 C291 1110 274 1160 254 1186 L177 1186 Z" class="carsvg__shut" transform="matrix(-1 0 0 1 948 0)"/>
+          <path d="M330 54 C400 46 548 46 618 54 C676 120 708 260 712 432 C640 398 560 380 474 380 C388 380 308 398 236 432 C240 260 272 120 330 54 Z" class="carsvg__hood"/>
+          <path d="M392 56 C356 160 330 280 318 392 M556 56 C592 160 618 280 630 392" class="carsvg__crease"/>
+          <path d="M262 1402 C348 1436 600 1436 686 1402 L693 1512 C600 1532 348 1532 255 1512 Z" class="carsvg__shut"/>
+          <path d="M178 820 L212 820 M179 466 L220 466 M177 1186 L232 1186 M255 1512 L262 1574 C380 1594 568 1594 686 1574 L693 1512" class="carsvg__shut"/>
+  <path d="M178 820 L212 820 M179 466 L220 466 M177 1186 L232 1186 M255 1512 L262 1574 C380 1594 568 1594 686 1574 L693 1512" class="carsvg__shut" transform="matrix(-1 0 0 1 948 0)"/>
+          <g>
+  <rect x="181" y="704" width="7" height="44" rx="3.5" class="carsvg__handle"/>
+  <rect x="181" y="1004" width="7" height="44" rx="3.5" class="carsvg__handle"/>
+  </g>
+  <g transform="matrix(-1 0 0 1 948 0)">
+  <rect x="181" y="704" width="7" height="44" rx="3.5" class="carsvg__handle"/>
+  <rect x="181" y="1004" width="7" height="44" rx="3.5" class="carsvg__handle"/>
+  </g>
+          <path d="M338 50 C292 70 240 112 204 170 L213 174 C248 124 296 84 342 59 Z" class="carsvg__light"/>
+  <path d="M338 50 C292 70 240 112 204 170 L213 174 C248 124 296 84 342 59 Z" class="carsvg__light" transform="matrix(-1 0 0 1 948 0)"/>
+          <path d="M334 56 C292 76 246 114 210 168" class="carsvg__drl"/>
+  <path d="M334 56 C292 76 246 114 210 168" class="carsvg__drl" transform="matrix(-1 0 0 1 948 0)"/>
+          <path d="M197 1460 C203 1503 230 1538 288 1553 L346 1559 C352 1561 352 1569 346 1570 L284 1568 C220 1556 194 1518 189 1470 C189 1462 195 1456 197 1460 Z" class="carsvg__tail"/>
+  <path d="M197 1460 C203 1503 230 1538 288 1553 L346 1559 C352 1561 352 1569 346 1570 L284 1568 C220 1556 194 1518 189 1470 C189 1462 195 1456 197 1460 Z" class="carsvg__tail" transform="matrix(-1 0 0 1 948 0)"/>
+          <path d="M195 1472 C202 1512 228 1545 292 1560 L340 1564" class="carsvg__tailcore"/>
+  <path d="M195 1472 C202 1512 228 1545 292 1560 L340 1564" class="carsvg__tailcore" transform="matrix(-1 0 0 1 948 0)"/>
+          <g>
+  <rect x="366" y="12" width="104" height="38" rx="16" class="carsvg__chrome"/>
+  <rect x="371" y="17" width="94" height="28" rx="12" class="carsvg__kidney"/>
+  <path d="M382 21 V43 M393 21 V43 M404 21 V43 M415 21 V43 M426 21 V43 M437 21 V43 M448 21 V43 M459 21 V43" class="carsvg__kbar"/>
+  </g>
+  <g transform="matrix(-1 0 0 1 948 0)">
+  <rect x="366" y="12" width="104" height="38" rx="16" class="carsvg__chrome"/>
+  <rect x="371" y="17" width="94" height="28" rx="12" class="carsvg__kidney"/>
+  <path d="M382 21 V43 M393 21 V43 M404 21 V43 M415 21 V43 M426 21 V43 M437 21 V43 M448 21 V43 M459 21 V43" class="carsvg__kbar"/>
+  </g>
+          <path d="M474 386 C578 386 648 402 704 446 L668 606 C600 597 348 597 280 606 L244 446 C300 402 370 386 474 386 Z" class="carsvg__glass carsvg__frame"/>
+          <path d="M284 614 C380 604 568 604 664 614 C650 720 648 1000 652 1186 C560 1177 388 1177 296 1186 C300 1000 298 720 284 614 Z" class="carsvg__roof"/>
+          <path d="M358 712 H590 Q598 712 598 720 V1038 Q598 1046 590 1046 H358 Q348 1046 348 1038 V720 Q348 712 358 712 Z" class="carsvg__glass"/>
+          <path d="M221 474 C244 520 272 620 284 720 L288 806 L211 806 L211 620 C212 560 215 512 221 474 Z" class="carsvg__glass"/>
+  <path d="M221 474 C244 520 272 620 284 720 L288 806 L211 806 L211 620 C212 560 215 512 221 474 Z" class="carsvg__glass" transform="matrix(-1 0 0 1 948 0)"/>
+          <path d="M211 834 L289 834 L289 1040 C286 1130 262 1210 230 1268 L220 1268 C214 1150 211 1000 211 834 Z" class="carsvg__glass"/>
+  <path d="M211 834 L289 834 L289 1040 C286 1130 262 1210 230 1268 L220 1268 C214 1150 211 1000 211 834 Z" class="carsvg__glass" transform="matrix(-1 0 0 1 948 0)"/>
+          <path d="M298 1190 C400 1182 548 1182 650 1190 L684 1388 C600 1426 348 1426 264 1388 Z" class="carsvg__glass carsvg__frame"/>
+          <path d="M211 806 L288 806 L289 834 L211 834 Z" class="carsvg__pillar"/>
+  <path d="M211 806 L288 806 L289 834 L211 834 Z" class="carsvg__pillar" transform="matrix(-1 0 0 1 948 0)"/>
+          <path d="M560 370 L650 370 L440 620 L350 620 Z" class="carsvg__sheen" clip-path="url(#carClipWs)"/>
+  <path d="M670 370 L700 370 L500 620 L470 620 Z" class="carsvg__sheen" clip-path="url(#carClipWs)"/>
+  <path d="M530 1170 L600 1170 L420 1440 L350 1440 Z" class="carsvg__sheen" clip-path="url(#carClipRw)"/>
+  <path d="M520 700 L572 700 L420 1060 L368 1060 Z" class="carsvg__sheen" clip-path="url(#carClipSr)"/>
+          
+          
+        </svg>
+  </div>
+            <span class="carv__tp carv__tp--rl">
+  </span>
+  <span class="carv__tp carv__tp--rr">
+  </span>
+          </div>
+          
+          <div class="carv__lines">
+  </div>
+        </ha-card>
+  '''
+# ---
+# name: test_a_room_opened_from_the_hub_has_a_way_back[charging]
+  '''
+  <ha-card>
+          <div class="chead">
+            <button class="chead__back" data-room-back aria-label="Back to the overview" title="Back to the overview">
+  <ha-icon icon="mdi:arrow-left">
+  </ha-icon>
+  </button>
+            <div class="chead__text">
+              <span class="chead__title">Charging history</span>
+              <span class="chead__sub">Car</span>
+            </div>
+            
+        <div class="xbar">
+          <button class="xbtn" data-export="csv" data-kind="charging"
+                  title="Download this month as a spreadsheet">
+            <ha-icon icon="mdi:file-delimited-outline">
+  </ha-icon>CSV
+          </button>
+          <button class="xbtn" data-export="html" data-kind="both"
+                  title="Open a printable month report (print it to get a PDF)">
+            <ha-icon icon="mdi:file-document-outline">
+  </ha-icon>Report
+          </button>
+        </div>
+          </div>
+          <div class="ctabs" role="group">
+  <button class="ctabs__btn is-active" data-chg-tab="sessions"
+                 aria-pressed="true">Sessions</button>
+  <button class="ctabs__btn" data-chg-tab="places"
+                 aria-pressed="false">Places</button>
+  </div>
+          
+        <div class="mnav">
+          <button class="mnav__btn" data-month-kind="charging" data-month-step="-1"
+                  title="Previous month" aria-label="Previous month">
+            <ha-icon icon="mdi:chevron-left">
+  </ha-icon>
+          </button>
+          <span class="mnav__label">September 2026</span>
+          <button class="mnav__btn" data-month-kind="charging" data-month-step="1"
+                  title="Next month" aria-label="Next month"
+                  disabled>
+            <ha-icon icon="mdi:chevron-right">
+  </ha-icon>
+          </button>
+        </div>
+          
+          <div class="empty">Loading charging history…</div>
+        </ha-card>
+  '''
+# ---
 # name: test_the_car_view_says_what_needs_you_first
   '''
   <ha-card>
@@ -1876,6 +2071,424 @@
             </div>
           </div>
           <div class="empty">No battery-health data yet. Once the car logs a few wide-range charges, its usable capacity appears here.</div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[hub-i5]
+  '''
+  <ha-card>
+          <div class="hero hero--empty">
+            <ha-icon class="hero__placeholder" icon="mdi:car-electric">
+  </ha-icon>
+            <div class="hero__scrim">
+  </div>
+            <div class="hero__top">
+              <div class="hero__name" title="Car">Car</div>
+              <div class="pill" title="Last update">
+  <span class="dot dot--stale">
+  </span>21 h ago</div>
+            </div>
+            
+          </div>
+  
+          <button class="verdict" data-entity="sensor.i5_soc">
+            <span class="verdict__t verdict__t--ok">Ready to go</span>
+            
+          </button>
+  
+          <div class="meter">
+            <div class="meter__row">
+              <button class="meter__main" data-entity="sensor.i5_soc">
+                <span class="meter__big">72<i>%</i>
+  </span>
+                <span class="meter__cap">charge</span>
+              </button>
+              <button class="meter__side" data-entity="sensor.i5_range">
+                <span class="meter__mid">379 km</span>
+                <span class="meter__cap">remaining range</span>
+              </button>
+            </div>
+            <div class="bar" role="img" aria-label="charge 72 %">
+              <span class="bar__fill" style="width:72%;background:var(--bmw-high)">
+  </span>
+              
+              
+              
+            </div>
+            
+            
+          </div>
+  
+          <div class="grid">
+                  
+                    <button class="cell" data-entity="sensor.i5_odometer">
+                      <ha-icon icon="mdi:counter">
+  </ha-icon>
+                      <div class="cell__body">
+                        <span class="cell__val">41234 km</span>
+                        <span class="cell__lbl">Odometer</span>
+                      </div>
+                    </button>
+                </div>
+          <nav class="rooms" aria-label="More about the car">
+                  
+                    <button class="room" data-room="charging">
+                      <span class="room__ic">
+  <ha-icon icon="mdi:ev-station">
+  </ha-icon>
+  </span>
+                      <span class="room__txt">
+                        <span class="room__t">Charging</span>
+                        
+                      </span>
+                      <ha-icon class="room__go" icon="mdi:chevron-right">
+  </ha-icon>
+                    </button>
+                    <button class="room" data-room="trips">
+                      <span class="room__ic">
+  <ha-icon icon="mdi:road-variant">
+  </ha-icon>
+  </span>
+                      <span class="room__txt">
+                        <span class="room__t">Trips</span>
+                        
+                      </span>
+                      <ha-icon class="room__go" icon="mdi:chevron-right">
+  </ha-icon>
+                    </button>
+                    <button class="room" data-room="efficiency">
+                      <span class="room__ic">
+  <ha-icon icon="mdi:map-marker-distance">
+  </ha-icon>
+  </span>
+                      <span class="room__txt">
+                        <span class="room__t">Efficiency</span>
+                        
+                      </span>
+                      <ha-icon class="room__go" icon="mdi:chevron-right">
+  </ha-icon>
+                    </button>
+                    <button class="room" data-room="car">
+                      <span class="room__ic">
+  <ha-icon icon="mdi:car-info">
+  </ha-icon>
+  </span>
+                      <span class="room__txt">
+                        <span class="room__t">Car</span>
+                        <span class="room__s">All good</span>
+                      </span>
+                      <ha-icon class="room__go" icon="mdi:chevron-right">
+  </ha-icon>
+                    </button>
+                </nav>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[hub-m2]
+  '''
+  <ha-card>
+          <div class="hero hero--empty">
+            <ha-icon class="hero__placeholder" icon="mdi:car">
+  </ha-icon>
+            <div class="hero__scrim">
+  </div>
+            <div class="hero__top">
+              <div class="hero__name" title="Car">Car</div>
+              <div class="pill" title="Last update">
+  <span class="dot dot--stale">
+  </span>21 h ago</div>
+            </div>
+            
+          </div>
+  
+          <button class="verdict" data-entity="sensor.m2_remaining_fuel">
+            <span class="verdict__t verdict__t--ok">Ready to go</span>
+            
+          </button>
+  
+          <div class="meter">
+            <div class="meter__row">
+              <button class="meter__main" data-entity="sensor.m2_remaining_fuel">
+                <span class="meter__big">38<i>L</i>
+  </span>
+                <span class="meter__cap">fuel</span>
+              </button>
+              <button class="meter__side" data-entity="sensor.m2_range">
+                <span class="meter__mid">412 km</span>
+                <span class="meter__cap">remaining range</span>
+              </button>
+            </div>
+            
+            
+            
+          </div>
+  
+          <div class="grid">
+                  
+                    <button class="cell" data-entity="sensor.m2_odometer">
+                      <ha-icon icon="mdi:counter">
+  </ha-icon>
+                      <div class="cell__body">
+                        <span class="cell__val">41234 km</span>
+                        <span class="cell__lbl">Odometer</span>
+                      </div>
+                    </button>
+                </div>
+          <nav class="rooms" aria-label="More about the car">
+                  
+                    <button class="room" data-room="fuel">
+                      <span class="room__ic">
+  <ha-icon icon="mdi:gas-station">
+  </ha-icon>
+  </span>
+                      <span class="room__txt">
+                        <span class="room__t">Fuel</span>
+                        
+                      </span>
+                      <ha-icon class="room__go" icon="mdi:chevron-right">
+  </ha-icon>
+                    </button>
+                    <button class="room" data-room="trips">
+                      <span class="room__ic">
+  <ha-icon icon="mdi:road-variant">
+  </ha-icon>
+  </span>
+                      <span class="room__txt">
+                        <span class="room__t">Trips</span>
+                        
+                      </span>
+                      <ha-icon class="room__go" icon="mdi:chevron-right">
+  </ha-icon>
+                    </button>
+                    <button class="room" data-room="car">
+                      <span class="room__ic">
+  <ha-icon icon="mdi:car-info">
+  </ha-icon>
+  </span>
+                      <span class="room__txt">
+                        <span class="room__t">Car</span>
+                        <span class="room__s">All good</span>
+                      </span>
+                      <ha-icon class="room__go" icon="mdi:chevron-right">
+  </ha-icon>
+                    </button>
+                </nav>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[hub-mini]
+  '''
+  <ha-card>
+          <div class="hero hero--empty">
+            <ha-icon class="hero__placeholder" icon="mdi:car">
+  </ha-icon>
+            <div class="hero__scrim">
+  </div>
+            <div class="hero__top">
+              <div class="hero__name" title="Car">Car</div>
+              <div class="pill" title="Last update">
+  <span class="dot dot--stale">
+  </span>21 h ago</div>
+            </div>
+            
+          </div>
+  
+          <button class="verdict" data-entity="sensor.mini_doors">
+            <span class="verdict__t verdict__t--ok">Ready to go</span>
+            
+          </button>
+  
+          <div class="meter">
+            <div class="meter__row">
+              <button class="meter__main" data-entity="sensor.mini_range">
+                <span class="meter__big">233<i>km</i>
+  </span>
+                <span class="meter__cap">remaining range</span>
+              </button>
+              <button class="meter__side" data-entity="sensor.mini_odometer">
+                <span class="meter__mid">41234 km</span>
+                <span class="meter__cap">Odometer</span>
+              </button>
+            </div>
+            
+            
+            
+          </div>
+  
+          <div class="grid">
+                  
+                    <button class="cell" data-entity="sensor.mini_doors">
+                      <ha-icon icon="mdi:lock" style="color:var(--divider-color)">
+  </ha-icon>
+                      <div class="cell__body">
+                        <span class="cell__val">closed</span>
+                        <span class="cell__lbl">Lock</span>
+                      </div>
+                    </button>
+                </div>
+          <nav class="rooms" aria-label="More about the car">
+                  
+                    <button class="room" data-room="trips">
+                      <span class="room__ic">
+  <ha-icon icon="mdi:road-variant">
+  </ha-icon>
+  </span>
+                      <span class="room__txt">
+                        <span class="room__t">Trips</span>
+                        
+                      </span>
+                      <ha-icon class="room__go" icon="mdi:chevron-right">
+  </ha-icon>
+                    </button>
+                    <button class="room" data-room="car">
+                      <span class="room__ic">
+  <ha-icon icon="mdi:car-info">
+  </ha-icon>
+  </span>
+                      <span class="room__txt">
+                        <span class="room__t">Car</span>
+                        <span class="room__s">All good</span>
+                      </span>
+                      <ha-icon class="room__go" icon="mdi:chevron-right">
+  </ha-icon>
+                    </button>
+                </nav>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[hub-phev]
+  '''
+  <ha-card>
+          <div class="hero hero--empty">
+            <ha-icon class="hero__placeholder" icon="mdi:car-electric">
+  </ha-icon>
+            <div class="hero__scrim">
+  </div>
+            <div class="hero__top">
+              <div class="hero__name" title="Car">Car</div>
+              <div class="pill" title="Last update">
+  <span class="dot dot--stale">
+  </span>21 h ago</div>
+            </div>
+            
+          </div>
+  
+          <button class="verdict" data-entity="sensor.x3_30e_xdrive_charging_port_plug_state">
+            <span class="verdict__t verdict__t--ok">Waiting to charge</span>
+            <span class="verdict__s">target 80 %</span>
+          </button>
+  
+          <div class="meter">
+            <div class="meter__row">
+              <button class="meter__main" data-entity="sensor.x3_30e_xdrive_battery_hv_state_of_charge">
+                <span class="meter__big">72<i>%</i>
+  </span>
+                <span class="meter__cap">charge</span>
+              </button>
+              <button class="meter__side" data-entity="sensor.x3_30e_xdrive_range_ev_remaining_range">
+                <span class="meter__mid">61 km</span>
+                <span class="meter__cap">electric range</span>
+              </button>
+            </div>
+            <div class="bar" role="img" aria-label="charge 72 %">
+              <span class="bar__fill" style="width:72%;background:var(--bmw-high)">
+  </span>
+              
+              
+              <span class="bar__tick" style="left:80%">
+  </span>
+            </div>
+            <div class="bar__legend">
+  <span>Plugged in, not charging</span>
+  <span>Target 80 %</span>
+  </div>
+            <button class="meter__tank" data-entity="sensor.x3_30e_xdrive_range_tank_level">
+                <ha-icon icon="mdi:gas-station">
+  </ha-icon>
+                <span class="meter__tank-body">
+                  <span class="meter__tank-row">
+  <span>
+  <b>55 %</b> Tank</span>
+  <span>590 km together</span>
+  </span>
+                  <span class="thin">
+  <span style="width:55%">
+  </span>
+  </span>
+                </span>
+              </button>
+          </div>
+  
+          <div class="grid">
+                  
+                    <button class="cell" data-entity="sensor.x3_30e_xdrive_charging_port_plug_state">
+                      <ha-icon icon="mdi:power-plug">
+  </ha-icon>
+                      <div class="cell__body">
+                        <span class="cell__val">connected</span>
+                        <span class="cell__lbl">Plug</span>
+                      </div>
+                    </button>
+                    <button class="cell" data-entity="sensor.x3_30e_xdrive_mileage">
+                      <ha-icon icon="mdi:counter">
+  </ha-icon>
+                      <div class="cell__body">
+                        <span class="cell__val">41234 km</span>
+                        <span class="cell__lbl">Odometer</span>
+                      </div>
+                    </button>
+                </div>
+          <nav class="rooms" aria-label="More about the car">
+                  
+                    <button class="room" data-room="charging">
+                      <span class="room__ic">
+  <ha-icon icon="mdi:ev-station">
+  </ha-icon>
+  </span>
+                      <span class="room__txt">
+                        <span class="room__t">Charging</span>
+                        
+                      </span>
+                      <ha-icon class="room__go" icon="mdi:chevron-right">
+  </ha-icon>
+                    </button>
+                    <button class="room" data-room="trips">
+                      <span class="room__ic">
+  <ha-icon icon="mdi:road-variant">
+  </ha-icon>
+  </span>
+                      <span class="room__txt">
+                        <span class="room__t">Trips</span>
+                        
+                      </span>
+                      <ha-icon class="room__go" icon="mdi:chevron-right">
+  </ha-icon>
+                    </button>
+                    <button class="room" data-room="efficiency">
+                      <span class="room__ic">
+  <ha-icon icon="mdi:map-marker-distance">
+  </ha-icon>
+  </span>
+                      <span class="room__txt">
+                        <span class="room__t">Efficiency</span>
+                        
+                      </span>
+                      <ha-icon class="room__go" icon="mdi:chevron-right">
+  </ha-icon>
+                    </button>
+                    <button class="room" data-room="car">
+                      <span class="room__ic">
+  <ha-icon icon="mdi:car-info">
+  </ha-icon>
+  </span>
+                      <span class="room__txt">
+                        <span class="room__t">Car</span>
+                        <span class="room__s">All good</span>
+                      </span>
+                      <ha-icon class="room__go" icon="mdi:chevron-right">
+  </ha-icon>
+                    </button>
+                </nav>
         </ha-card>
   '''
 # ---

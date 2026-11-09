@@ -150,7 +150,7 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
       ${this._styles()}
       <ha-card>
         <div class="chead">
-          <ha-icon icon="mdi:ev-station"></ha-icon>
+          ${this._cheadIcon("mdi:ev-station")}
           <div class="chead__text">
             <span class="chead__title">${this._esc(this._config.title || this._t("ch_title"))}</span>
             <span class="chead__sub">${this._esc(name)}${count ? " · " + countLabel : ""}</span>
@@ -278,7 +278,7 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
       ${this._styles()}
       <ha-card>
         <div class="chead">
-          <ha-icon icon="mdi:ev-station"></ha-icon>
+          ${this._cheadIcon("mdi:ev-station")}
           <div class="chead__text">
             <span class="chead__title">${this._esc(this._config.title || this._t("ch_title"))}</span>
             <span class="chead__sub">${this._esc(name)}${count ? " · " + countLabel : ""}</span>

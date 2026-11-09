@@ -551,6 +551,10 @@ const VIEW_MODES = new Set([
   CAR_VIEW,
 ]);
 
+// The rooms a hub (`hub: true` on the overview) can open, each the `view:` it
+// draws. Which of them a car lists follows its drivetrain (overview part).
+const HUB_ROOMS = new Set([CHARGING_VIEW, TRIPS_VIEW, EFFICIENCY_VIEW, FUEL_VIEW, CAR_VIEW]);
+
 // What the parts take from this file. Each part names the ones it uses.
 const SHARED = {
   CAR,
@@ -573,9 +577,65 @@ const CardParts = PART_FACTORIES.reduce((Base, part) => part(Base, SHARED), HTML
 
 class BavarianDataCard extends CardParts {
   setConfig(config) {
-    this._config = { ...config };
+    // `_hubConfig` is what the user wrote; `_config` what is drawn now, which
+    // inside a hub room is the same card with that room's `view:`. A new
+    // config (the editor, a dashboard edit) starts on the overview again.
+    this._hubConfig = { ...config };
+    this._room = null;
+    this._config = this._hubConfig;
     this._sig = null; // force first render
     if (this._hass) this._render();
+  }
+
+  /** Whether this card is the hub: an overview (no `view:`, no `cluster:`)
+   * with `hub: true`, which lists the rooms under it. */
+  _isHub() {
+    const c = this._hubConfig || {};
+    return c.hub === true && !c.cluster && !VIEW_MODES.has(c.view);
+  }
+
+  /** Open one of the hub's rooms, or go back to the overview with null. The
+   * room is drawn as its own `view:` would be, under the room's own title;
+   * where the user was is kept in memory only, so a reload starts on the
+   * overview. */
+  _enterRoom(room) {
+    this._room = room && this._isHub() && HUB_ROOMS.has(room) ? room : null;
+    this._config = this._room ? { ...this._hubConfig, view: this._room, title: undefined } : this._hubConfig;
+    this._sig = null;
+    this._render();
+  }
+
+  /** The icon at the head of a room, or the way back to the overview when the
+   * room was opened from the hub. */
+  _cheadIcon(icon) {
+    if (!this._room) return `<ha-icon icon="${this._attr(icon)}"></ha-icon>`;
+    const back = this._attr(this._t("hub_back"));
+    return `<button class="chead__back" data-room-back aria-label="${back}" title="${back}"><ha-icon icon="mdi:arrow-left"></ha-icon></button>`;
+  }
+
+  /** One listener on the shadow root for the hub's buttons: it outlives every
+   * render, which replaces the markup the buttons sit in. */
+  _wireRooms() {
+    // The test harnesses' stand-in shadow roots take no listeners.
+    if (this._roomsWired || typeof this.shadowRoot.addEventListener !== "function") return;
+    this._roomsWired = true;
+    this.shadowRoot.addEventListener("click", (ev) => {
+      const path = ev.composedPath ? ev.composedPath() : [];
+      for (const el of path) {
+        if (el === this.shadowRoot) break;
+        if (!el.hasAttribute) continue;
+        if (el.hasAttribute("data-room-back")) {
+          ev.stopPropagation();
+          this._enterRoom(null);
+          return;
+        }
+        if (el.hasAttribute("data-room")) {
+          ev.stopPropagation();
+          this._enterRoom(el.getAttribute("data-room"));
+          return;
+        }
+      }
+    });
   }
 
   set hass(hass) {
@@ -1198,6 +1258,7 @@ class BavarianDataCard extends CardParts {
   _render() {
     if (!this._hass || !this._config) return;
     if (!this.shadowRoot) this.attachShadow({ mode: "open" });
+    this._wireRooms();
 
     const deviceId = this._resolveDeviceId();
     if (!deviceId) {
@@ -1532,7 +1593,7 @@ class BavarianDataCard extends CardParts {
     this._sig = null;
     this.shadowRoot.innerHTML = `
       ${this._styles()}
-      <ha-card>
+      <ha-card>${this._room ? `<div class="chead">${this._cheadIcon("")}</div>` : ""}
         <div class="msg">
           <ha-icon icon="mdi:car-off"></ha-icon>
           <div class="msg__title">${title}</div>
@@ -1646,6 +1707,9 @@ class BavarianDataCardEditor extends HTMLElement {
           },
         },
       });
+      // The hub: the rooms (charging, trips, efficiency, the car) listed under
+      // the overview, each opening in this card with a way back.
+      schema.push({ name: "hub", selector: { boolean: {} } });
       // The grid's tiles: ready-made ones first, then this car's entities. A
       // list written in YAML with `{entity, name, icon}` items is left to YAML,
       // since the picker can only hold plain values.
@@ -1768,6 +1832,7 @@ class BavarianDataCardEditor extends HTMLElement {
       steering: this._config.steering || "auto",
       shape: this._config.shape || "auto",
       pictures: this._config.pictures !== false,
+      hub: this._config.hub === true,
     };
   }
 
@@ -1791,6 +1856,8 @@ class BavarianDataCardEditor extends HTMLElement {
     // Pictures on is the default; only `false` is worth storing, and only for
     // the view that has them.
     if (value.pictures !== false || value.view !== EQUIPMENT_VIEW) delete value.pictures;
+    // The hub is off by default, and only the overview has one.
+    if (value.hub !== true || value.view || value.cluster) delete value.hub;
     // No tiles is the drivetrain's own grid, not an empty one.
     if (Array.isArray(value.tiles) && !value.tiles.length) delete value.tiles;
     // Drop empties so the stored config stays minimal.

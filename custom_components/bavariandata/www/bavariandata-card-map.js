@@ -344,7 +344,7 @@ export default (Base, { _lang }) => class MapPart extends Base {
       ${this._styles()}
       <ha-card>
         <div class="chead">
-          <ha-icon icon="${inTrips ? "mdi:road-variant" : "mdi:map-marker-multiple"}"></ha-icon>
+          ${this._cheadIcon(inTrips ? "mdi:road-variant" : "mdi:map-marker-multiple")}
           <div class="chead__text">
             <span class="chead__title">${this._esc(this._config.title || this._t(inTrips ? "tr_title" : "mp_title"))}</span>
             <span class="chead__sub">${this._esc(name)}${count ? " · " + countLabel : ""}</span>

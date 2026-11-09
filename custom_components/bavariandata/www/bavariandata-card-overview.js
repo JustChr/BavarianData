@@ -156,6 +156,9 @@ export default (Base, { DEVICE_CLASS_ICONS, UNAVAILABLE, _lang }) => class Overv
     const tileCtx = { entities, picks, fuelSt, odometerSt, charging, session, trip, unit, closures, name: this._deviceName(deviceId) };
     let secondary = wanted.map((item) => this._overviewTile(item, tileCtx)).filter((m) => m && m.st);
     if (!own) secondary = secondary.slice(0, 4);
+    const rooms = this._isHub()
+      ? this._hubRooms({ deviceId, entities, ice, bare, electric, charging, trip, unit, closures, session })
+      : [];
 
     // freshest update among the headline entities
     const freshest = [gaugeSt, rangeSt, ice ? null : chargingSt]
@@ -187,6 +190,7 @@ export default (Base, { DEVICE_CLASS_ICONS, UNAVAILABLE, _lang }) => class Overv
       side,
       tank,
       sec: secondary.map((s) => [s.label, s.val == null ? s.st.state : s.val, s.icon, s.color]),
+      rooms,
       // Elapsed minutes ride the signature so the badge's duration keeps ticking
       // between the entity's throttled attribute writes.
       trip: trip
@@ -277,6 +281,25 @@ export default (Base, { DEVICE_CLASS_ICONS, UNAVAILABLE, _lang }) => class Overv
                   )
                   .join("")}
               </div>`
+            : ""
+        }${
+          rooms.length
+            ? `
+        <nav class="rooms" aria-label="${this._attr(this._t("hub_rooms"))}">
+                ${rooms
+                  .map(
+                    (r) => `
+                  <button class="room" data-room="${r.room}">
+                    <span class="room__ic${r.tone ? ` room__ic--${r.tone}` : ""}"><ha-icon icon="${r.icon}"></ha-icon></span>
+                    <span class="room__txt">
+                      <span class="room__t">${r.title}</span>
+                      ${r.sub ? `<span class="room__s${r.tone ? ` room__s--${r.tone}` : ""}">${r.sub}</span>` : ""}
+                    </span>
+                    <ha-icon class="room__go" icon="mdi:chevron-right"></ha-icon>
+                  </button>`
+                  )
+                  .join("")}
+              </nav>`
             : ""
         }
       </ha-card>
@@ -450,6 +473,117 @@ export default (Base, { DEVICE_CLASS_ICONS, UNAVAILABLE, _lang }) => class Overv
     return ["lock", "plug", "tires", "location", "odometer", "distance_month"];
   }
 
+
+  /** The hub's rows under the overview (`hub: true`): one per room this car
+   * has, each with what that room would say first. A battery car lists
+   * Charging, Trips, Efficiency and Car; a petrol or diesel car Fuel, Trips
+   * and Car; a car that proved no drivetrain Trips and Car. Every figure
+   * comes from a sensor the car already has, except a combustion car's last
+   * refuel, which the fuel view's own read (no quota) answers. `title` and
+   * `sub` come back escaped; `tone` is live, warn, alert or empty. */
+  _hubRooms(c) {
+    const join = (parts) => parts.filter(Boolean).join(" · ");
+    const has = (st) => st && !UNAVAILABLE.has(st.state);
+    const rooms = [];
+
+    if (c.electric) {
+      let sub;
+      let tone = "";
+      if (c.charging) {
+        const added = c.session && has(c.session.st) ? this._t("hub_so_far", { v: this._fmt(c.session.st) }) : null;
+        sub = join([this._t("hub_charging_now"), added]);
+        tone = "live";
+      } else {
+        const energy = this._byDescriptor(c.entities, "charging_energy_month");
+        const cost = this._byDescriptor(c.entities, "charging_cost_month");
+        const month = join([has(energy) ? this._fmt(energy) : null, this._num(cost) ? this._fmt(cost) : null]);
+        sub = month ? this._t("hub_this_month", { v: month }) : "";
+      }
+      rooms.push({ room: "charging", icon: "mdi:ev-station", title: this._t("hub_charging"), sub, tone });
+    } else if (c.ice && !c.bare) {
+      const vin = this._deviceVin(c.deviceId);
+      if (vin) this._ensureFuel(vin, this._deviceEntry(c.deviceId), c.entities);
+      const data = (this._fuel && this._fuel.vin === vin && this._fuel.data) || {};
+      const last = Array.isArray(data.refuels) && data.refuels.length ? data.refuels[0] : null;
+      let when = null;
+      if (last && last.t && Number.isFinite(new Date(last.t).getTime())) {
+        try {
+          when = new Date(last.t).toLocaleDateString(_lang(this._hass), { day: "numeric", month: "short" });
+        } catch (_e) {
+          when = String(last.t).slice(0, 10);
+        }
+      }
+      rooms.push({
+        room: "fuel",
+        icon: "mdi:gas-station",
+        title: this._t("fu_title"),
+        sub: join([
+          when ? this._t("hub_refueled", { date: this._esc(when) }) : null,
+          data.average ? this._fuelRate(data.average.l_per_100km, this._fuelUnit(c.deviceId, c.entities)) : null,
+        ]),
+        tone: "",
+      });
+    }
+
+    if (c.trip) {
+      rooms.push({
+        room: "trips",
+        icon: "mdi:road-variant",
+        title: this._t("tr_title"),
+        sub: join([this._t("hub_trip_now"), c.trip.distance_km != null ? this._distance(c.trip.distance_km, c.unit, 1) : null]),
+        tone: "live",
+      });
+    } else {
+      const dist = this._byDescriptor(c.entities, "driving_distance_month");
+      const n = has(dist) ? Number((dist.attributes || {}).trip_count) : NaN;
+      const month = join([
+        has(dist) ? this._fmt(dist) : null,
+        Number.isFinite(n) && n > 0 ? this._t(n === 1 ? "tr_trip_one" : "tr_trip_many", { n }) : null,
+      ]);
+      rooms.push({
+        room: "trips",
+        icon: "mdi:road-variant",
+        title: this._t("tr_title"),
+        sub: month ? this._t("hub_this_month", { v: month }) : "",
+        tone: "",
+      });
+    }
+
+    if (c.electric) {
+      const real = this._byDescriptor(c.entities, "real_range");
+      const per = real ? Number((real.attributes || {}).consumption_kwh_per_100km) : NaN;
+      rooms.push({
+        room: "efficiency",
+        icon: "mdi:map-marker-distance",
+        title: this._t("hub_efficiency"),
+        sub: join([
+          this._num(real) != null ? this._t("hub_real", { v: this._fmt(real) }) : null,
+          Number.isFinite(per) && per > 0 ? `${this._dec(this._perDist(per, c.unit), 1)} ${this._kwhPer(c.unit)}` : null,
+        ]),
+        tone: "",
+      });
+    }
+
+    const { tires } = this._carTires(c.entities, c.unit);
+    const banner = this._carBanner(c.closures, tires, this._checkControl(c.entities));
+    let carSub;
+    if (banner.tone === "ok") {
+      const service = this._serviceItems(c.entities);
+      const next = service && service.items.length ? service.items[0] : null;
+      const when = next ? (next.km != null ? this._t("car_in", { d: this._distance(next.km, c.unit) }) : next.month ? this._t("car_by", { month: next.month }) : null) : null;
+      carSub = join([banner.t, next ? (when ? `${next.title} ${when}` : next.title) : null]);
+    } else {
+      carSub = join([banner.t, banner.s]);
+    }
+    rooms.push({
+      room: "car",
+      icon: banner.tone === "ok" ? "mdi:car-info" : banner.icon,
+      title: this._t("car_title"),
+      sub: carSub,
+      tone: banner.tone === "ok" ? "" : banner.tone,
+    });
+    return rooms;
+  }
 
   /** One tile of the overview grid, or null where the car has nothing for it.
    *
