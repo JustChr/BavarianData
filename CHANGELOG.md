@@ -9,6 +9,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **The car's picture on the charging-complete message.** *Notify when
+  charging completes* has a new setting, *Car picture*: on, the message
+  carries the picture of the car that stopped charging, small beside the text
+  and whole when you press and hold it. Off by default, so existing
+  automations send what they sent before. The lock-screen card can't carry a
+  picture: the Companion app's Live Activity takes only an icon.
+
 ## [0.9.28-beta.5] - 2026-11-09
 
 ### Added

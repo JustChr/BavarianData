@@ -220,7 +220,10 @@ liegen, sodass Automationen daraus weiter funktionieren.
   [`notify_charging_complete.yaml`](https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/notify_charging_complete.yaml).
   Sendet eine Nachricht, wenn ein Ladevorgang endet: nur wenn das Auto sein Ziel
   erreicht hat, oder bei jedem Ende. Der Titel nennt das Auto, und **Cars**
-  beschränkt sie auf die gewählten Autos (leer: alle). Bis v0.9.20 kamen bei einem Ladevorgang bis zum
+  beschränkt sie auf die gewählten Autos (leer: alle). Mit **Car picture** an
+  trägt die Nachricht das Bild des Autos: klein neben dem Text, ganz, wenn du
+  die Nachricht gedrückt hältst. Ein Auto ohne Bild bekommt die Nachricht ohne.
+  Bis v0.9.20 kamen bei einem Ladevorgang bis zum
   Ziel zwei Nachrichten, wenn *Only when target reached* aus war.
 - **Laden auf dem Sperrbildschirm** —
   [`charging_lock_screen.yaml`](https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/charging_lock_screen.yaml).

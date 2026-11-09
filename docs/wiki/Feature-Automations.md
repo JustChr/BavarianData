@@ -209,7 +209,9 @@ integration leaves every copy, so an automation made from one keeps working.
   [`notify_charging_complete.yaml`](https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/notify_charging_complete.yaml).
   Sends one message when a session ends, either only when the car reached its
   target or on any end. The title names the car, and **Cars** limits it to the
-  ones you pick (empty: every car). Until
+  ones you pick (empty: every car). With **Car picture** on, the message
+  carries the car's picture: small beside the text, whole when you press and
+  hold the message. A car without a picture gets the message without one. Until
   v0.9.20 a charge that reached its target sent two messages when *Only when
   target reached* was off.
 - **Charging on the lock screen** —
