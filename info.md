@@ -29,7 +29,7 @@ with it, so a usable dashboard exists out of the box.
    triggers an update).
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-car.png?v=2026-10-10" alt="Bundled Lovelace card showing a BMW i5 eDrive40 with charge level, range, charging status and odometer" width="360" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hub.png" alt="Bundled Lovelace card showing a BMW i5 eDrive40: Ready to go at its 80 % target, the charge bar, range and the real range, tiles for lock, plug, tires and location, and rows for Charging, Trips, Efficiency and Car" width="360" />
 </p>
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-security.png?v=2026-10-10" alt="Security &amp; closures card with a top-down car diagram, anti-theft alarm armed and all closures closed" width="300" />
@@ -37,8 +37,8 @@ with it, so a usable dashboard exists out of the box.
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-trips.png?v=2026-10-10" alt="Trips card: the month's distance and average consumption, the commute and private split, top destinations and the latest trips" width="300" />
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-efficiency.png?v=2026-10-10" alt="Efficiency and range card: real range now against the car's prediction, measured consumption, usable capacity, cost per 100 km and consumption by month" width="300" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-trips-days.png" alt="Trips card: the month's distance and average consumption, the private split, top destinations and the trips grouped by day" width="300" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-efficiency-bars.png" alt="Efficiency and range card: real range now set against the car's own estimate, measured consumption, usable capacity, cost per 100 km and consumption by month" width="300" />
 </p>
 <p align="center"><sub>The overview, trips and efficiency are from the <a href="https://justchr.github.io/BavarianData/">website's live demo</a>: a real i5's data, made-up places.</sub></p>
 
