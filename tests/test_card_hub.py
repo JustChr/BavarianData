@@ -48,7 +48,7 @@ const hass = {
   states: input.states,
   language: "en",
   locale: { language: "en" },
-  devices: { device: { name: "Car", identifiers: [["bavariandata", "WBS1"]] } },
+  devices: input.devices || { device: { id: "device", name: "Car", identifiers: [["bavariandata", "WBS1"]] } },
   callService: () => new Promise(() => {}),
 };
 
@@ -81,7 +81,7 @@ card.attachShadow = () => root;
 card._wireTaps = () => {};
 card._styles = () => "";
 card._resolveDeviceId = () => "device";
-card._deviceEntities = () => Object.keys(input.states);
+card._deviceEntities = (id) => (input.by_device ? input.by_device[id] || [] : Object.keys(input.states));
 if (input.fuel) {
   card._fuel = { vin: "WBS1", trigger: "", data: input.fuel, loading: false };
   card._ensureFuel = () => {};
@@ -89,6 +89,14 @@ if (input.fuel) {
 card.setConfig(input.config);
 card.hass = hass;
 const pages = [root.innerHTML];
+const opened = [];
+if (input.open) {
+  // A tap on a small card, with the browser's navigation and more-info seen.
+  globalThis.history = { pushState: (_s, _t, path) => opened.push(["navigate", path]) };
+  globalThis.dispatchEvent = (ev) => opened.push(["event", ev.type]);
+  card.dispatchEvent = (ev) => opened.push(["more-info", ev.detail.entityId]);
+  card._openCar(input.open);
+}
 for (const step of input.taps || []) {
   // What a browser hands the listener: the tapped element (or its icon
   // inside it), then up through the shadow root.
@@ -99,7 +107,9 @@ for (const step of input.taps || []) {
   listener({ composedPath: () => [icon, el, root, card], stopPropagation() {} });
   pages.push(root.innerHTML);
 }
-process.stdout.write(JSON.stringify({ pages, room: card._room, view: card._config.view || null }));
+process.stdout.write(
+  JSON.stringify({ pages, room: card._room, view: card._config.view || null, grid: card.getGridOptions(), opened })
+);
 })();
 """
 

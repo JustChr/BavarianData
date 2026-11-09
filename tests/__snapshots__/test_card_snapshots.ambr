@@ -2017,6 +2017,270 @@
         </ha-card>
   '''
 # ---
+# name: test_the_card_renders_what_it_rendered_before[garage-i5]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:garage-variant">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Garage</span>
+              <span class="chead__sub">1 car</span>
+            </div>
+          </div>
+          <div class="sm__list">
+            <button class="sm sm--garage" data-open="sensor.i5_soc">
+              <span class="sm__thumb sm__thumb--empty">
+  <ha-icon icon="mdi:car-electric">
+  </ha-icon>
+  </span>
+              <span class="sm__b">
+                <span class="sm__top">
+  <span class="sm__name">Car</span>
+  <span class="sm__pct">72<i>%</i>
+  </span>
+  </span>
+                <span class="thin sm__bar">
+  <span style="width:72%;background:var(--bmw-high)">
+  </span>
+  </span>
+                <span class="sm__line">
+  <span class="sm__vd sm__vd--ok">Ready to go</span>
+  <span class="sm__side">379 km</span>
+  </span>
+              </span>
+            </button>
+          </div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[garage-m2]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:garage-variant">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Garage</span>
+              <span class="chead__sub">1 car</span>
+            </div>
+          </div>
+          <div class="sm__list">
+            <button class="sm sm--garage" data-open="sensor.m2_remaining_fuel">
+              <span class="sm__thumb sm__thumb--empty">
+  <ha-icon icon="mdi:car">
+  </ha-icon>
+  </span>
+              <span class="sm__b">
+                <span class="sm__top">
+  <span class="sm__name">Car</span>
+  <span class="sm__pct">38<i>L</i>
+  </span>
+  </span>
+                
+                <span class="sm__line">
+  <span class="sm__vd sm__vd--ok">Ready to go</span>
+  <span class="sm__side">412 km</span>
+  </span>
+              </span>
+            </button>
+          </div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[garage-mini]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:garage-variant">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Garage</span>
+              <span class="chead__sub">1 car</span>
+            </div>
+          </div>
+          <div class="sm__list">
+            <button class="sm sm--garage" data-open="sensor.mini_range">
+              <span class="sm__thumb sm__thumb--empty">
+  <ha-icon icon="mdi:car">
+  </ha-icon>
+  </span>
+              <span class="sm__b">
+                <span class="sm__top">
+  <span class="sm__name">Car</span>
+  <span class="sm__pct">233<i>km</i>
+  </span>
+  </span>
+                
+                <span class="sm__line">
+  <span class="sm__vd sm__vd--ok">Ready to go</span>
+  <span class="sm__side">41234 km</span>
+  </span>
+              </span>
+            </button>
+          </div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[garage-phev]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:garage-variant">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Garage</span>
+              <span class="chead__sub">1 car</span>
+            </div>
+          </div>
+          <div class="sm__list">
+            <button class="sm sm--garage" data-open="sensor.x3_30e_xdrive_battery_hv_state_of_charge">
+              <span class="sm__thumb sm__thumb--empty">
+  <ha-icon icon="mdi:car-electric">
+  </ha-icon>
+  </span>
+              <span class="sm__b">
+                <span class="sm__top">
+  <span class="sm__name">Car</span>
+  <span class="sm__pct">72<i>%</i>
+  </span>
+  </span>
+                <span class="thin sm__bar">
+  <span style="width:72%;background:var(--bmw-high)">
+  </span>
+  <span class="thin__tick" style="left:80%">
+  </span>
+  </span>
+                <span class="sm__line">
+  <span class="sm__vd sm__vd--ok">Waiting to charge</span>
+  <span class="sm__side">61 km</span>
+  </span>
+              </span>
+            </button>
+          </div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[glance-i5]
+  '''
+  <ha-card>
+          <button class="sm sm--glance" data-open="sensor.i5_soc">
+            <span class="sm__img sm__img--empty">
+  <ha-icon icon="mdi:car-electric">
+  </ha-icon>
+  </span>
+            <span class="sm__b">
+              <span class="sm__top">
+  <span class="sm__name">Car</span>
+  </span>
+              <span class="sm__nums">
+  <span class="sm__mid">72<i>%</i>
+  </span>
+  <span class="sm__side">379 km</span>
+  </span>
+              <span class="thin sm__bar">
+  <span style="width:72%;background:var(--bmw-high)">
+  </span>
+  </span>
+              <span class="sm__line">
+  <span class="sm__vd sm__vd--ok">Ready to go</span>
+  </span>
+            </span>
+          </button>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[glance-m2]
+  '''
+  <ha-card>
+          <button class="sm sm--glance" data-open="sensor.m2_remaining_fuel">
+            <span class="sm__img sm__img--empty">
+  <ha-icon icon="mdi:car">
+  </ha-icon>
+  </span>
+            <span class="sm__b">
+              <span class="sm__top">
+  <span class="sm__name">Car</span>
+  </span>
+              <span class="sm__nums">
+  <span class="sm__mid">38<i>L</i>
+  </span>
+  <span class="sm__side">412 km</span>
+  </span>
+              
+              <span class="sm__line">
+  <span class="sm__vd sm__vd--ok">Ready to go</span>
+  </span>
+            </span>
+          </button>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[glance-mini]
+  '''
+  <ha-card>
+          <button class="sm sm--glance" data-open="sensor.mini_range">
+            <span class="sm__img sm__img--empty">
+  <ha-icon icon="mdi:car">
+  </ha-icon>
+  </span>
+            <span class="sm__b">
+              <span class="sm__top">
+  <span class="sm__name">Car</span>
+  </span>
+              <span class="sm__nums">
+  <span class="sm__mid">233<i>km</i>
+  </span>
+  <span class="sm__side">41234 km</span>
+  </span>
+              
+              <span class="sm__line">
+  <span class="sm__vd sm__vd--ok">Ready to go</span>
+  <span class="sm__glyphs">
+  <ha-icon class="sm__glyph sm__glyph--ok" icon="mdi:lock" title="Lock">
+  </ha-icon>
+  </span>
+  </span>
+            </span>
+          </button>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[glance-phev]
+  '''
+  <ha-card>
+          <button class="sm sm--glance" data-open="sensor.x3_30e_xdrive_battery_hv_state_of_charge">
+            <span class="sm__img sm__img--empty">
+  <ha-icon icon="mdi:car-electric">
+  </ha-icon>
+  </span>
+            <span class="sm__b">
+              <span class="sm__top">
+  <span class="sm__name">Car</span>
+  </span>
+              <span class="sm__nums">
+  <span class="sm__mid">72<i>%</i>
+  </span>
+  <span class="sm__side">61 km</span>
+  </span>
+              <span class="thin sm__bar">
+  <span style="width:72%;background:var(--bmw-high)">
+  </span>
+  <span class="thin__tick" style="left:80%">
+  </span>
+  </span>
+              <span class="sm__line">
+  <span class="sm__vd sm__vd--ok">Waiting to charge</span>
+  <span class="sm__glyphs">
+  <ha-icon class="sm__glyph" icon="mdi:power-plug" title="Plug">
+  </ha-icon>
+  </span>
+  </span>
+            </span>
+          </button>
+        </ha-card>
+  '''
+# ---
 # name: test_the_card_renders_what_it_rendered_before[health-i5]
   '''
   <ha-card>
@@ -2863,6 +3127,90 @@
                       </div>
                     </button>
                 </div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[row-i5]
+  '''
+  <ha-card>
+          <button class="sm sm--row" data-open="sensor.i5_soc">
+            <span class="sm__thumb sm__thumb--empty">
+  <ha-icon icon="mdi:car-electric">
+  </ha-icon>
+  </span>
+            <span class="sm__txt">
+              <span class="sm__vd sm__vd--ok">Ready to go</span>
+              <span class="sm__sub">Car</span>
+            </span>
+            <span class="sm__end">
+  <span class="sm__mid">72<i>%</i>
+  </span>
+  <span class="sm__side">379 km</span>
+  </span>
+          </button>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[row-m2]
+  '''
+  <ha-card>
+          <button class="sm sm--row" data-open="sensor.m2_remaining_fuel">
+            <span class="sm__thumb sm__thumb--empty">
+  <ha-icon icon="mdi:car">
+  </ha-icon>
+  </span>
+            <span class="sm__txt">
+              <span class="sm__vd sm__vd--ok">Ready to go</span>
+              <span class="sm__sub">Car</span>
+            </span>
+            <span class="sm__end">
+  <span class="sm__mid">38<i>L</i>
+  </span>
+  <span class="sm__side">412 km</span>
+  </span>
+          </button>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[row-mini]
+  '''
+  <ha-card>
+          <button class="sm sm--row" data-open="sensor.mini_range">
+            <span class="sm__thumb sm__thumb--empty">
+  <ha-icon icon="mdi:car">
+  </ha-icon>
+  </span>
+            <span class="sm__txt">
+              <span class="sm__vd sm__vd--ok">Ready to go</span>
+              <span class="sm__sub">Car</span>
+            </span>
+            <span class="sm__end">
+  <span class="sm__mid">233<i>km</i>
+  </span>
+  <span class="sm__side">41234 km</span>
+  </span>
+          </button>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[row-phev]
+  '''
+  <ha-card>
+          <button class="sm sm--row" data-open="sensor.x3_30e_xdrive_battery_hv_state_of_charge">
+            <span class="sm__thumb sm__thumb--empty">
+  <ha-icon icon="mdi:car-electric">
+  </ha-icon>
+  </span>
+            <span class="sm__txt">
+              <span class="sm__vd sm__vd--ok">Waiting to charge</span>
+              <span class="sm__sub">Car · target 80 %</span>
+            </span>
+            <span class="sm__end">
+  <span class="sm__mid">72<i>%</i>
+  </span>
+  <span class="sm__side">61 km</span>
+  </span>
+          </button>
         </ha-card>
   '''
 # ---
