@@ -128,6 +128,9 @@ class SessionState(_ReadOnlyWhenEmpty):
     # Closes a restored session the stream never confirmed; without it an
     # outage that spanned the end of a charge would leave the record open.
     restored_timer: Optional[Cancel] = None
+    # The stop a restored session is waiting out (the flap debounce) before it
+    # is closed, so a repeat of the same stop does not put the close off.
+    restored_stop: Optional[str] = None
     # When the in-progress charge was last written to the store. Refreshed on
     # a cadence: a charge runs for hours and each write rewrites the document.
     saved_at: Optional[datetime] = None

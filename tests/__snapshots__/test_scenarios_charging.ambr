@@ -21,7 +21,9 @@
      27.7  advance 27.7             est= 39.58 rate= 4.64 charging=on  open=y sessions=0
      37.7  restart (descriptors-first) est= 39.58 rate= 4.64 charging=off open=y sessions=0
      40.0  wait 40                  est= 40.52 rate= 4.64 charging=off open=y sessions=0
-     40.0  catch-up: it ended       est= 40.52 rate=    - charging=off open=n sessions=1 charging_stopped
+     40.0  catch-up: it ended       est= 40.52 rate=    - charging=off open=y sessions=0
+     41.9  advance 41.9             est= 40.52 rate=    - charging=off open=y sessions=0
+     42.1  advance 42.1             est= 40.52 rate=    - charging=off open=n sessions=1 charging_stopped
   '''
 # ---
 # name: test_a_finished_charge_is_said_at_once_with_the_cable_in
@@ -206,6 +208,24 @@
      60.0  wait 60                  est= 41.79 rate= 4.64 charging=on  open=y sessions=0
      60.0  unplugged                est= 41.79 rate=    - charging=off open=y sessions=0
      65.0  advance 65               est= 41.79 rate=    - charging=off open=n sessions=1 charging_stopped
+  '''
+# ---
+# name: test_a_stop_that_comes_straight_back_after_a_restart_keeps_one_session
+  '''
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+     10.0  wait 10                  est=     - rate=    - charging=off open=n sessions=0
+     10.0  target 100               est=     - rate=    - charging=off open=n sessions=0
+     10.0  send soc=38,status=CHARGINGACTIVE,power=3480 est= 38.00 rate= 4.64 charging=on  open=y sessions=0 charging_started
+     27.7  advance 27.7             est= 39.35 rate= 4.64 charging=on  open=y sessions=0
+     29.0  restart (descriptors-first) est= 39.35 rate= 4.64 charging=off open=y sessions=0
+     30.0  wait 30                  est= 39.51 rate= 4.64 charging=off open=y sessions=0
+     30.0  wallbox pauses as HA starts est= 39.51 rate=    - charging=off open=y sessions=0
+     30.1  wait 30.1                est= 39.51 rate=    - charging=off open=y sessions=0
+     30.1  and carries on           est= 39.51 rate= 4.64 charging=on  open=y sessions=0
+     40.0  advance 40               est= 40.24 rate= 4.64 charging=on  open=y sessions=0
+     60.0  wait 60                  est= 41.78 rate= 4.64 charging=on  open=y sessions=0
+     60.0  unplugged                est= 41.78 rate=    - charging=off open=y sessions=0
+     65.0  advance 65               est= 41.78 rate=    - charging=off open=n sessions=1 charging_stopped
   '''
 # ---
 # name: test_an_unplug_files_the_session_after_the_debounce

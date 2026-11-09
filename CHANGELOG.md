@@ -9,6 +9,16 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **A restart no longer splits a charge when it stops for a moment.** After
+  a Home Assistant restart, the first stop the car reported ended a running
+  charge on the spot. A wallbox that pauses for a few seconds while Home
+  Assistant starts thus turned one charge into two sessions, the second one
+  counting from zero. A stop after a restart now waits two minutes, as one seen
+  while Home Assistant runs does; if charging comes back, it is the same
+  session. A car that calls the charge finished still ends it at once.
+  [Charging history](https://github.com/JustChr/BavarianData/wiki/Feature-Charging-History-and-Cost#restarting-while-the-car-is-charging)
+
 ## [0.9.28] - 2026-11-09
 
 Promotes 0.9.28-beta.1 to beta.5. The dashboard card is redesigned (card 2.0.0): a line that says what the car is doing, a bar instead of the ring, tiles that follow the moment, a hub that opens every view, small cards and a garage, and a view of the car itself. Every BMW status reads in your language, a new Charging Cable sensor suits other integrations, and the lock-screen card keeps updating without using up your phone's notifications.
