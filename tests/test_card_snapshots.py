@@ -26,6 +26,7 @@ files.
 from __future__ import annotations
 
 import json
+import re
 import os
 import shutil
 import subprocess
@@ -636,8 +637,9 @@ def test_a_month_of_charging(snapshot) -> None:
     )
     # The month's figures come from its sessions, whatever month it is.
     assert "108.5" in html and "€22.40" in html
-    # One charge was priced only in part: no price per kWh that would read cheap.
-    assert "per kWh" not in html and "partial price" in html
+    # One charge was priced only in part: the price per kWh is a floor, and
+    # says so (Chris, 2026-11-09: show it, marked, rather than hide it).
+    assert re.search(r"at least €0\.\d\d per kWh", html) and "partial price" in html
     assert "Sessions, 1 away" in html
     # Where the energy came from, the away charge included.
     assert "Where it came from" in html and "PV <b>13.3</b>" in html

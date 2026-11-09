@@ -21,7 +21,7 @@ import subprocess
 import pytest
 
 from .card_source import evaluable_card
-from .test_card_drivetrain import I5, M2, MINI
+from .test_card_drivetrain import I5, M2, MINI, PHEV
 
 _CARD = evaluable_card()
 
@@ -186,6 +186,16 @@ def test_a_petrol_car_gets_fuel_instead_of_charging_and_efficiency():
     rows = _rows(_card(M2, {"hub": True}, fuel=fuel)["pages"][0])
     assert list(rows) == ["fuel", "trips", "car"]
     assert rows["fuel"] == "Refueled Nov 2 · 6.4 l/100 km"
+
+
+def test_a_plug_in_hybrid_lists_fuel_after_charging():
+    rows = _rows(
+        _card(
+            PHEV, {"hub": True}, fuel={"refuels": [], "average": {"l_per_100km": 5.1, "km": 900}}
+        )["pages"][0]
+    )
+    assert list(rows) == ["charging", "fuel", "trips", "efficiency", "car"]
+    assert rows["fuel"] == "5.1 l/100 km"
 
 
 def test_a_car_that_proved_no_drivetrain_lists_trips_and_car():

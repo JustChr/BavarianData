@@ -583,9 +583,11 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
       away,
       cost: priced ? { amount: cost, currency } : null,
       partial,
-      // A price per kWh only where every home charge was priced in full; a
-      // partial one would make it read cheaper than it was.
-      perKwh: priced && !partial && priced === sessions.length - away && kwh - mix.away > 0 ? cost / (kwh - mix.away) : null,
+      // The price per kWh at home. Where a home charge was priced only in
+      // part, or not at all, the cost is a floor and so is this: it says
+      // "at least" then (`perKwhFloor`).
+      perKwh: priced && kwh - mix.away > 0 ? cost / (kwh - mix.away) : null,
+      perKwhFloor: partial || priced !== sessions.length - away,
       mix,
       days,
     };
@@ -599,7 +601,7 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
         ? kpi(
             this._fmtCost(f.cost),
             f.perKwh != null
-              ? this._t("ch_kpi_per_kwh", { v: this._fmtCost({ amount: f.perKwh, currency: f.cost.currency }) })
+              ? this._t(f.perKwhFloor ? "ch_kpi_per_kwh_min" : "ch_kpi_per_kwh", { v: this._fmtCost({ amount: f.perKwh, currency: f.cost.currency }) })
               : this._t(f.partial ? "ch_partial" : "ch_cost")
           )
         : "",

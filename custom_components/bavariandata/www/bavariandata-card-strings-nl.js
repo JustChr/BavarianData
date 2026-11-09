@@ -232,6 +232,7 @@ export default {
   ch_tab_places: "Locaties",
   ch_kpi_energy: "Geladen",
   ch_kpi_per_kwh: "{v} per kWh",
+  ch_kpi_per_kwh_min: "minstens {v} per kWh",
   ch_kpi_sessions: "Sessies",
   ch_kpi_away: "Sessies, {n} elders",
   ch_where_from: "Waar het vandaan kwam",
