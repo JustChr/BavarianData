@@ -75,7 +75,7 @@ export default {
   ti_cost: "Zatímní cena",
   ti_trip: "Tato jízda",
   ti_trip_time: "Jízda",
-  ti_used: "Spotřebováno na této jízdě",
+  ti_used: "Spotřeba této jízdy",
   ti_open: "Otevřeno",
   odometer: "Počet km",
   ti_location: "Poloha",
