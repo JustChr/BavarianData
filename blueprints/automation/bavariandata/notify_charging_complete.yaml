@@ -40,6 +40,14 @@ blueprint:
               domain: device_tracker
             - integration: bavariandata
               domain: image
+    picture:
+      name: Car picture
+      description: >
+        Attach the car's picture to the message. The Companion app shows it
+        beside the text; press and hold the message to see it whole.
+      default: false
+      selector:
+        boolean:
     older:
       name: Older setting
       collapsed: true
@@ -89,6 +97,27 @@ variables:
       {%- endfor -%}
     {%- endfor -%}
     {{ ns.vins }}
+  what: "{{ 'charging complete' if complete else 'charging stopped' }}"
+  title: "{{ trigger.event.data.vehicle ~ ': ' ~ what if trigger.event.data.vehicle else what | capitalize }}"
+  message: >-
+    Battery at {{ soc if soc is not none else '?' }}%{% if target is not none %} (target {{ target }}%){% endif %}.
+  picture: !input picture
+  # The picture of the car that stopped charging: its device found by the VIN
+  # (as the lock-screen blueprint does). A path on Home Assistant, which the
+  # Companion app fetches with its own login. Empty for a car without one.
+  image: >-
+    {%- set ns = namespace(path='') -%}
+    {%- if picture -%}
+      {%- for entity in integration_entities('bavariandata')
+            if entity is match('image[.]') and has_value(entity) -%}
+        {%- for pair in device_attr(device_id(entity), 'identifiers') or [] -%}
+          {%- if pair[0] == 'bavariandata' and pair[1] == trigger.event.data.vin -%}
+            {%- set ns.path = '/api/image_proxy/' ~ entity -%}
+          {%- endif -%}
+        {%- endfor -%}
+      {%- endfor -%}
+    {%- endif -%}
+    {{ ns.path }}
 
 conditions:
   - condition: template
@@ -100,10 +129,8 @@ actions:
   - repeat:
       for_each: "{{ notify_actions }}"
       sequence:
+        # Without a picture, the same call as before the setting existed.
         - action: "{{ repeat.item }}"
-          data:
-            title: >
-              {% set what = 'charging complete' if complete else 'charging stopped' %}
-              {{ trigger.event.data.vehicle ~ ': ' ~ what if trigger.event.data.vehicle else what | capitalize }}
-            message: >
-              Battery at {{ soc if soc is not none else '?' }}%{% if target is not none %} (target {{ target }}%){% endif %}.
+          data: >-
+            {{ dict(title=title, message=message, data=dict(image=image)) if image
+               else dict(title=title, message=message) }}
