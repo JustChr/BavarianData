@@ -300,7 +300,7 @@ Bildschirm: **Konfigurieren → Fahrten**. Die Konzepte stehen unter
 [Fahrten](DE-Feature-Trips).
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-trips.png?v=2026-11-05" alt="Konfigurieren, Fahrten mit einem Auto: Arbeitszone, Standard-Typ, Toleranz für Zwischenstopps, Fahrterkennung, Route aufzeichnen, Adressen auflösen, Wetter entlang der Strecke und Fahrt-Diagnoseaufzeichnung" width="460" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-trips.png?v=2026-11-09" alt="Konfigurieren, Fahrten mit einem Auto: Arbeitszone, Standard-Typ, Toleranz für Zwischenstopps, Fahrterkennung, Route aufzeichnen, Adressen auflösen, Wetter entlang der Strecke und Fahrt-Diagnoseaufzeichnung" width="460" />
 </p>
 
 **Mehrere Fahrzeuge im Konto?** Fahrten fragt zuerst nach dem Fahrzeug, und jedes
@@ -318,7 +318,7 @@ Mit nur einem Auto gibt es keine Fahrzeugabfrage.
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-trips-second-car.png?v=2026-10-11b" alt="Fahrteinstellungen für ein zweites Auto mit Berichten am Fahrtende, darunter der geöffnete gemeinsame Abschnitt Alle Fahrzeuge" width="460" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-trips-second-car.png?v=2026-11-09" alt="Fahrteinstellungen für ein zweites Auto mit Berichten am Fahrtende, darunter der geöffnete gemeinsame Abschnitt Alle Fahrzeuge" width="460" />
 </p>
 
 | Option | Werte | Bedeutung |
