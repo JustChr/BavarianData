@@ -52,6 +52,17 @@ and the same bookmarklet.
 > never removes a field you already stream. To **stop** streaming a field, untick
 > it under **Data Selection** in the portal.
 
+**Diagnostic fields are left out.** The activator switches on only the fields
+whose entities are created enabled. The technical long tail, whose entities
+start disabled (the **Default** column in
+[telematics-fields.md](https://github.com/JustChr/BavarianData/blob/main/docs/reference/telematics-fields.md)
+says `off`, the whole Metadata cluster included), isn't requested. To stream
+one of them, tick it yourself under **Data Selection** in the portal. When the
+car sends it, its entity appears on its own, disabled; enable it in Home
+Assistant. Not every car sends every field: the climate timers
+(`vehicle.cabin.climate.timers.*`) never arrived from an i4 or an i5 ([#308](https://github.com/JustChr/BavarianData/issues/308)),
+even with a departure timer set in the MyBMW app.
+
 Requesting per-descriptor streaming *scopes* instead of a portal selection is
 rejected by BMW — see
 [stream-scope-investigation.md](https://github.com/JustChr/BavarianData/blob/main/docs/reference/stream-scope-investigation.md).
