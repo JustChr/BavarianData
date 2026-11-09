@@ -281,7 +281,7 @@ has its own switch and token.
 Screen: **Configure → Trips**. See [Trips](Feature-Trips) for the concepts.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-trips.png?v=2026-11-05" alt="Configure, Trips with one car: work zone, default type, commute stop tolerance, trip detection, record route, resolve addresses, weather along the route and trip-capture diagnostics" width="460" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-trips.png?v=2026-11-09" alt="Configure, Trips with one car: work zone, default type, commute stop tolerance, trip detection, record route, resolve addresses, weather along the route and trip-capture diagnostics" width="460" />
 </p>
 
 **Several cars on the account?** Trips first asks which vehicle, and each car
@@ -298,7 +298,7 @@ there is no vehicle question.
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-trips-second-car.png?v=2026-10-11b" alt="Trips settings for a second car on End-of-trip reports, with the shared All vehicles section opened below" width="460" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-trips-second-car.png?v=2026-11-09" alt="Trips settings for a second car on End-of-trip reports, with the shared All vehicles section opened below" width="460" />
 </p>
 
 | Option | Values | Meaning |

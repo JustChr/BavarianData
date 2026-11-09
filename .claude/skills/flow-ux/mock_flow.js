@@ -139,9 +139,12 @@ function withoutEntities(schema) {
   return schema.map((field) => {
     if (field.type === "expandable") return { ...field, schema: withoutEntities(field.schema) };
     const secret = (screen.secrets || []).includes(field.name);
-    if (!secret && mode === "real" && field.name in (screen.values || {}))
+    const entity = Boolean(field.selector && field.selector.entity);
+    // An entity picker always goes empty below: a preset value here would keep
+    // its description.suggested_value, the user's own zone name.
+    if (!secret && !entity && mode === "real" && field.name in (screen.values || {}))
       return { ...field, default: screen.values[field.name] };
-    if (!secret && (!field.selector || !field.selector.entity)) return field;
+    if (!secret && !entity) return field;
     const copy = { ...field };
     delete copy.description;
     delete copy.default;
