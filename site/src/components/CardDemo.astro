@@ -9,6 +9,8 @@ const { lang } = Astro.props;
 const de = lang === "de";
 const views = [
   { id: "overview", label: de ? "Übersicht" : "Overview", config: {} },
+  { id: "hub", label: "Hub", config: { hub: true } },
+  { id: "car", label: de ? "Auto" : "Car", config: { view: "car" } },
   { id: "charging", label: de ? "Laden" : "Charging", config: { view: "charging" } },
   { id: "trips", label: de ? "Fahrten" : "Trips", config: { view: "trips" } },
   { id: "map", label: de ? "Karte" : "Map", config: { view: "map" } },

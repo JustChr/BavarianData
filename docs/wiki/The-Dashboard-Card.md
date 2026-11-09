@@ -23,8 +23,10 @@ resource makes the card *available*; you place it where you want it:
 > see [Troubleshooting](Troubleshooting-and-FAQ#config-error-after-reload).
 
 The card has several **views**. The default is the Overview; set `view:` or
-`cluster:` to switch. Use **one card per view** — add several cards to a
-dashboard to show them side by side.
+`cluster:` for another. Use **one card per view** and add several cards to a
+dashboard to show them side by side, or let the Overview open the others as
+rooms in the same card ([the hub](#the-hub-hub-true)). Small sizes for a
+dashboard's first screen are [further down](#small-cards-and-the-garage-view-glance-view-row-view-garage).
 
 > If the card doesn't show up after an update, **hard-refresh the browser**. If
 > it renders in a browser but the **companion app** shows *Custom element doesn't
@@ -32,45 +34,104 @@ dashboard to show them side by side.
 > [Troubleshooting](Troubleshooting-and-FAQ#custom-element-doesnt-exist-app).
 
 - [Overview](#overview)
+- [The hub](#the-hub-hub-true)
+- [Small cards and the garage](#small-cards-and-the-garage-view-glance-view-row-view-garage)
 - [Charging history](#charging-history-view-charging)
 - [Battery health](#battery-health-view-health)
 - [Efficiency & range](#efficiency--range-view-efficiency)
 - [Trips / driving journal](#trips--driving-journal-view-trips)
 - [Trip map](#trip-map-view-map)
+- [The car](#the-car-view-car)
 - [Tires](#tires-cluster-tire)
 - [Security & closures](#security--closures-cluster-closures)
 - [Equipment](#equipment-view-equipment)
 - [Single-cluster list](#single-cluster-list)
+- [Coming from an older card](#coming-from-an-older-card)
 - [Full YAML reference](#full-yaml-reference)
 
 ---
 
 ## Overview
 
-The vehicle render, a ring, the range and a grid of key metrics. What they show
-follows the car's **drivetrain**, which the card works out from what the car
-streams:
+The car's picture, one line saying what the car is doing, its charge (or tank)
+as a bar with the range beside it, and four tiles that fit the moment.
 
-| Drivetrain | Ring | Beside it | Grid |
-| --- | --- | --- | --- |
-| Electric | State of charge (blue while charging) | Remaining range, charging status | Target, plug, time to full, odometer |
-| Plug-in hybrid | State of charge | Electric range, charging status | Tank, total range, target, plug, time to full, odometer |
-| Petrol / diesel | Tank level — or the volume in the tank, on a car that doesn't stream a percentage | Remaining range, and the tank volume or the odometer | Odometer (when it isn't beside the ring), tires, location, distance this month |
-| Neither, proved | Remaining range | Odometer | Tires, location, distance this month |
+**The top line** answers *can I go?* in words, with the facts behind it
+underneath (where, since when, which door). The first that applies wins:
 
-A tile only appears when the car has data for it: no tire pressures, no tires tile.
+| Top line | When | Underneath |
+| --- | --- | --- |
+| *Something's open* (red) | A door, window, the trunk, hood or sunroof is open, or the car is unlocked while parked and not charging | What is open, the lock, where |
+| *Charging · done at 05:40* | The car charges | Since when, where |
+| *On the road* | A trip is under way | Distance and minutes so far, where it started |
+| *Waiting to charge* | Plugged in below its target, not charging | The target, where |
+| *Charge soon* / *Refuel soon* (amber) | Below 20 % and not plugged in | How far it still goes, where |
+| *Ready to go* | Otherwise | *At its 80 % target* when plugged in, where |
+
+An open door outranks a charge, so one left open overnight on the drive is never
+hidden behind *done at*; merely unlocked doesn't, since plenty of cars charge
+unlocked in a garage. Tap the line for the entity behind it, such as the minutes
+left of a charge.
+
+**The bar** is the charge, with the target as a tick. While charging it is blue
+and what this charge added is striped (*+21 % since 04:06*); on a drive, what the
+trip used shows faintly (*−6 % this trip*). Otherwise it is green, amber at 40 %
+and below, red at 15 % and below, and says whether the cable is in. Beside the
+number sits the range, with *≈ 298 km the way you drive* under it once the
+[real range](Feature-Efficiency-and-Range) is known.
+
+**The tiles** follow what the car is doing, the first four the car has data for:
+
+| Situation | Tiles |
+| --- | --- |
+| Parked | Lock, plug, tires, location, odometer, distance this month |
+| Charging | Charging power, energy added so far, share from your solar, cost so far, time to full, plug |
+| Driving | This trip's distance, minutes, charge used, lock |
+| Something open | Lock, what is open, location, tires |
+
+Power, solar share and cost only appear while a charge runs and the integration
+knows them (cost at home only, with a tariff set; see
+[the session sensor](Feature-Charging-History-and-Cost)). Your own
+[`tiles:`](#choosing-the-tiles) replace this and stay the same in every situation.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-overview-ready.png" alt="The overview of an i5 parked at home: Ready to go, at its 80 % target, the charge bar at 80 % with the target tick, 337 km with 298 km the way you drive, and tiles for lock, plug, tires and location" width="300" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-overview-charging.png" alt="The overview while charging: Charging, done at 10:37, a blue bar with the part this charge added striped, and tiles for 7.4 kW, 16.2 kWh added, 64 % from your solar and 1.32 euros so far" width="300" />
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-overview-driving.png" alt="The overview on a drive: On the road, 23.4 km and 18 minutes from Home, the part of the charge the trip used shown faintly, and tiles for the trip's distance, minutes, charge used and the lock" width="300" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-overview-open.png" alt="The overview with something open: Something's open in red, door open, 2 windows open, unlocked, at Home, and tiles for the lock, what is open, location and tires" width="300" />
+</p>
+
+What the bar and tiles show follows the car's **drivetrain**, which the card
+works out from what the car streams:
+
+| Drivetrain | Bar | Beside it |
+| --- | --- | --- |
+| Electric | State of charge, with the target | Range, and the real range under it |
+| Plug-in hybrid | State of charge, with the target, and the tank as a thin second line with the total range | Electric range |
+| Petrol / diesel | Tank level, or the liters in the tank as a number on a car that doesn't stream a percentage | Remaining range |
+| Neither, proved | No bar: the range is the big number | Odometer |
+
+A petrol or diesel car shows nothing about charging: no target, no plug, no
+charging tiles.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-overview-hybrid.png" alt="Overview of a plug-in hybrid: Waiting to charge, the battery bar with its target and the tank as a thin line with 590 km together, tiles for the plug and odometer" width="260" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-overview-petrol.png" alt="Overview of a petrol car: Ready to go, 38 liters in the tank with the remaining range beside it, the odometer below" width="260" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-overview-plain.png" alt="Overview of a car that proved neither drivetrain: Ready to go, its range as the big number and the odometer beside it, nothing about charging" width="260" />
+</p>
 
 With **Configure → [Vehicle image](Settings-Reference#vehicle-image)** set to
-BMW's configurator, the render is your exact car, and dragging across it (mouse
-or finger) turns it all the way round. The photo also follows the car:
+BMW's configurator, the picture is your exact car, and dragging across it (mouse
+or finger) turns it all the way round. The picture also follows the car:
 
 - **Lights and time of day.** After sunset at home the car is shown at night,
   in a dark room with a pool of light under it, and while the car reports its
   lights on (*Vehicle Lights state*), with its lights on. The car itself is
   always BMW's own render: a BMW as BMW draws it at night, a MINI lit as in
   MINI's own configurator night scene.
-- **Badges** under the car's name for anything that needs you: a door, the trunk
-  or the hood open, windows open, the car unlocked, charging.
 - **Where it is open.** While something is open, the
   [top-down drawing](#security--closures-cluster-closures) appears in the corner
   with the open part lit up.
@@ -80,22 +141,15 @@ or finger) turns it all the way round. The photo also follows the car:
   otherwise); drag to look around.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hero-badges.png" alt="The overview at night with a door open, windows open and the car unlocked: badges under the name, and the top-down drawing in the corner with the open door and windows lit up" width="360" />
-</p>
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hero-interior.png" alt="The overview with the interior panorama: the cockpit seen from the driver's seat, the button back to the outside view top right" width="360" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hero-spin.png" alt="The overview card with the configurator picture: the i5 Touring seen from the rear three-quarter, turned by dragging" width="300" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hero-inside.png" alt="The overview's picture switched to the interior panorama: the cockpit seen from the driver's seat, the button back to the outside view top right" width="300" />
 </p>
 
 The card remembers the angle you turned the car to, whether you were inside or
 out, and where you were looking inside, so a reload shows the car as you left
 it. That is kept in your browser, so each device has its own.
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hero-spin.png" alt="The overview card with the configurator picture: the i5 Touring seen from the rear three-quarter, turned by dragging" width="300" />
-</p>
-
-The state of charge on the ring is the integration's own estimate. While the car
+The charge in the bar is the integration's own estimate. While the car
 is parked that is simply BMW's last reading; while it charges it keeps climbing at
 the rate the charging power implies, because BMW can go silent for hours
 mid-charge and its own figure then stands still. With a wallbox meter bound,
@@ -103,39 +157,29 @@ mid-charge and its own figure then stands still. With a wallbox meter bound,
 The next real reading replaces it. See
 [the charging page](Feature-Charging-History-and-Cost).
 
-**Time to full** is
+**Done at** in the top line, and the **Time to full** tile, are
 [the integration's own figure](Feature-evcc-and-Wallbox-Bridge#time-to-the-charge-target)
 while the car charges at home with a wallbox meter bound, and BMW's anywhere
-else. While the car charges, the tile shows the clock time the charge will be
-done, as *Done at 05:40* (with the weekday when that isn't today); tap it for the
-minutes left. If that figure has stopped updating and its time has already
-passed, the tile shows the minutes instead. Outside a charge it is labelled
-*Charge time*, and it is hidden when that time is 0.
+else. They show the clock time the charge will be done, as *05:40* (with the
+weekday when that isn't today); tap for the minutes left. If that figure has
+stopped updating and its time has already passed, the tile shows the minutes
+instead. Outside a charge the tile is labelled *Charge time*, and it is hidden
+when that time is 0.
 
-BMW's basic data decides first: it names the drivetrain as electric, plug-in
+BMW's basic data decides the drivetrain first: it names the car as electric, plug-in
 hybrid or combustion. Without it, a car that sends high-voltage battery data *and*
 fuel data is a plug-in hybrid; fuel data alone makes it petrol or diesel. Some
 petrol cars stream an EV charge target anyway, so that never makes a car look
-electric. A petrol car that streams no tank at all rings its range instead.
+electric. A petrol car that streams no tank at all shows its range instead.
 
 A car that has only just been set up has proved nothing yet, and keeps the
 electric layout until it does. But a car that has been talking for a while and
 sent **neither** kind of data has proved something: it is not electric, whatever
-else it is. Some do — a petrol MINI can stream no fuel system and no engine at
-all — and showing it a charge ring it could never fill was simply wrong, so it
-gets the last row above instead: its range in the ring, its odometer beside it,
+else it is. Some do (a petrol MINI can stream no fuel system and no engine at
+all), and showing it a charge it could never fill was simply wrong, so it
+gets the last row above instead: its range as the big number, its odometer beside it,
 and nothing about charging. If your car lands there and you know better, set
 `drivetrain:` in the card's YAML.
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-car.png" alt="Overview card showing a BMW i5 with charge level, range, charging status and odometer" width="360" />
-</p>
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-overview-phev.png" alt="Overview of a plug-in hybrid: the charge ring with electric range and charging status beside it, then tiles for the tank, total range, charge target, plug and odometer" width="260" />
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-overview-ice.png" alt="Overview of a petrol car: the tank level in the ring, the remaining range and the liters in the tank beside it, the odometer below" width="260" />
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-overview-bare.png" alt="Overview of a car that proved neither drivetrain: its range in a gray ring and the odometer beside it, nothing about charging" width="260" />
-</p>
 
 ```yaml
 type: custom:bavariandata-card
@@ -153,18 +197,19 @@ diesel car they show the [Fuel view](#fuel-view-fuel) instead. Battery health sa
 *Nothing to show for this car* rather than sitting empty as if something were
 broken. If that car does plug in, set **Drivetrain**.
 
-While a drive is under way, a **Trip in progress** badge appears at the bottom of
-the vehicle image with the distance and minutes so far; tap it for the full
+While a drive is under way, a **Trip in progress** badge also appears at the bottom of
+the picture with the distance and minutes so far; tap it for the full
 attributes. It follows the *Trip in Progress* entity, so it lingers for a few
-minutes after you arrive — [why](Feature-Trips#seeing-the-drive-thats-happening-now).
+minutes after you arrive ([why](Feature-Trips#seeing-the-drive-thats-happening-now)).
 
 Pin a specific vehicle with `device:` (device id) or `vin:`.
 
 ### Choosing the tiles
 
-The grid below the ring can show what you want instead. In the card editor, pick
+The tiles can show what you want instead. In the card editor, pick
 **Tiles**: ready-made tiles first, then every entity of the car. Drag them into
-the order you want. Leave it empty for the grid that fits the drivetrain.
+the order you want. Leave it empty for tiles that change with what the car is
+doing.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-editor-tiles.png" alt="The card editor's Tiles field: chips for Tires, Location, Lock and Driven this month, each with a drag handle and a remove button, and a Tiles button to add more" width="360" />
@@ -200,25 +245,31 @@ tiles:
     icon: mdi:thermometer
 ```
 
-The ring and the rows beside it stay as the drivetrain sets them. A petrol or
-diesel car that shows charging tiles has had its drivetrain detected wrong: set
-**Drivetrain** (above) rather than replacing the tiles.
+The top line, the bar and the range beside it stay as the car sets them. A
+petrol or diesel car that shows charging tiles has had its drivetrain detected
+wrong: set **Drivetrain** (above) rather than replacing the tiles.
 
 
 ---
 
 ## Charging history (`view: charging`)
 
-Lists recorded charging sessions, newest first, each showing the date, energy,
-cost and a Home/Away badge. Tap a session to expand its **power curve**, peak and
-average power, duration, and grid energy. The "this month" totals ride along the
-top. **CSV** and **Report** buttons export the month you are viewing
+Each month opens with its figures: what was charged, what it cost (with the
+price per kWh when every charge at home was priced in full) and how many charges,
+how many of them away. Under them, a bar of where the energy came from (sun,
+house battery, grid, away) and the kWh of each day. Then the month's sessions,
+newest first: the date, the charge from → to as a small bar, a Home/Away badge,
+the energy and, under it, the cost. Tap a session to expand its **power curve**
+(with its average as a dashed line), peak and average power, duration, and grid
+energy. **CSV** and **Report** buttons export the month you are viewing
 ([see Export](Feature-Export)).
 
+A charge in progress sits on top while it runs, with what it has added and cost
+so far.
+
 **One month at a time.** As on the trips view, a `‹ August 2026 ›` control under
-the header scopes the list to one calendar month; page back for older sessions.
-The "this month" totals band appears only on the current month — it is fed by the
-monthly sensors, which have no older value to show.
+the header scopes the figures and the list to one calendar month; page back for
+older sessions.
 
 ```yaml
 type: custom:bavariandata-card
@@ -226,7 +277,7 @@ view: charging
 ```
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-charging.png" alt="Charging history card: recorded sessions with date, SoC change, energy and a Home badge, and a this-month total across the top" width="360" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-charging-month.png" alt="Charging history for November: 114.5 kWh charged, 40.08 euros, 3 sessions, 1 away; a bar of grid and away energy, the kWh per day, and the three sessions with their from-to bar, Home or the away charger, energy and cost" width="360" />
 </p>
 
 It reads the integration's stored history via the `get_charging_sessions`
@@ -279,8 +330,9 @@ there are enough wide-range charges to be sure of the number, it shows
 
 ## Efficiency & range (`view: efficiency`)
 
-How far the car really goes from its current charge, above the consumption that
-figure is built on.
+How far the car really goes from its current charge, set against what the car
+itself says and, once trips have their weather, against mild weather; below it
+the consumption that figure is built on.
 
 ```yaml
 type: custom:bavariandata-card
@@ -288,11 +340,12 @@ view: efficiency
 ```
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-efficiency.png?v=2026-11-06" alt="Efficiency and range card: real range now at the current charge, how far that is under the car's own prediction, the measured consumption with the side of the charger and the window it used, the usable capacity and where it came from, and a bar chart of consumption by month, and a second bar chart of consumption by outside temperature with the cold penalty under it" width="360" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-efficiency-bars.png" alt="Efficiency and range card: 298 km real range at 80 % charge, 12 % less than the car predicts, bars for the way you drive against the car's estimate, the measured consumption from the battery over the last 30 days, the usable capacity, the cost per 100 km with the month's solar share, consumption by month, and the footnote on why it reads higher than single trips" width="360" />
 </p>
 
-It shows the real range from here (and on a full battery), how that compares
-with the car's own remaining-range prediction, the measured consumption with the
+It shows the real range from here (and on a full battery), with bars setting it
+against the car's own remaining-range prediction and, with trip weather on, what
+the same charge would go at 15–25 °C, the measured consumption with the
 side of the charger and the window it came from, the measured charging loss where
 a grid figure exists, the usable capacity it divided into, your cost per 100 km
 with the month's solar share, and a bar chart of consumption by calendar month —
@@ -311,6 +364,10 @@ why it is empty.
 Everything is measured from the charging ledger — two charges bracket a distance
 and the energy that went into it — so it spends **no API quota** and never
 borrows the car's own estimate ([how it's measured](Feature-Efficiency-and-Range)).
+That is also why it reads higher than the trips view's figure: it counts
+everything the battery gave between two charges, parked hours and
+preconditioning included, where a trip counts only the drive. Both stay, each
+labelled.
 
 Until there is enough charging history to bracket ~50 km of driving, the card
 says so rather than showing a number.
@@ -382,15 +439,23 @@ Consumption is always in l/100 km, distances follow the car's odometer unit.
 
 ## Trips / driving journal (`view: trips`)
 
-Lists your recorded drives, newest first, each showing *from → to*, distance,
-duration and a business/private/commute badge; tap one for consumption,
-recuperation and the SoC used, to reclassify it, and — for drives recorded with
-**Record route** on — a small map of the route (drawn as a clean line with a
-start and end marker; nothing leaves your browser to draw it). Above the list a **month in
-review** sums the distance (with a vs-last-month delta), the
-business/private/commute split, average consumption, energy recuperated, a
-driving-style score and your top destinations — and, once a tariff is set, an
-estimated driving cost.
+Lists your recorded drives month by month, each day under its own heading with
+the day's distance. A trip shows *from → to*, its type as a colored dot
+(business, private, commute), the time, the duration and the weather on the way,
+and its distance with its consumption beside it: green when it took less than
+the month's average, amber when more. Tap one for consumption, recuperation and
+the SoC used, to reclassify it, and (for drives recorded with **Record route**
+on) a small map of the route, drawn as a clean line with a start and end marker;
+nothing leaves your browser to draw it.
+
+Above the list a **month in review** sums the distance (with a vs-last-month
+delta), the business/private/commute split, the average on trips, energy
+recuperated, a driving-style score and your top destinations, and, once a tariff
+is set, an estimated driving cost. Tap a type in the split to list only those
+trips; tap it again for all.
+
+A **List | Map** switch at the top opens the [trip map](#trip-map-view-map) in
+the same card.
 
 **One month at a time.** A `‹ August 2026 ›` control under the header scopes the
 list, the month-in-review and the **CSV** / **Report** buttons to a single
@@ -417,7 +482,8 @@ view: trips
 ```
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-trips.png?v=2026-10-10" alt="Trips view: the month's distance and average consumption, the private split, top destinations and the latest trips" width="360" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-trips-days.png" alt="Trips view for November: 377 km this month, 20.8 kWh/100 km on average, the private split, top destinations, then the trips grouped by day with each day's distance and each trip's consumption in green or amber" width="300" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-trips-map.png" alt="The trips view on its Map tab: chips for this month, 3 months or all, and the month's trip ends clustered into counted bubbles" width="300" />
 </p>
 
 It reads the `get_trips` and `get_driving_summary` services, so it spends **no
@@ -441,8 +507,10 @@ start is the previous trip's end, so plotting both would double-count), giving a
 honest "times arrived here" count. Click a cluster to zoom into it. A chip row
 switches the time window — **This month** (default), **3 months** or **All**.
 
-To see the *route* of a particular drive, open the [Trips](#trips--driving-journal-view-trips)
-view and expand that trip — its route is drawn on a small map there.
+The [Trips](#trips--driving-journal-view-trips) view shows the same map on its
+**Map** tab; `view: map` is the map alone. To see the *route* of a particular
+drive, open the Trips view's list and expand that trip — its route is drawn on a
+small map there.
 
 ```yaml
 type: custom:bavariandata-card
@@ -468,6 +536,37 @@ load from OpenStreetMap, as they do for the built-in Map card).
 > never coordinates — this view uses the recorded coordinates of your trip
 > endpoints, home included. Only enable route recording if you're comfortable with
 > that, and remember the map is visible to anyone who can see the dashboard.
+
+---
+
+## The car (`view: car`)
+
+Everything about the car itself in one card. On top, a banner says the most
+pressing thing (something open, a tire to check, a Check Control message) or
+*All good*, with what that covers. Under it, the car's own
+[top-down drawing](#the-cars-shape) with whatever is open lit up and each tire
+colored by its state, and the four pressures at its corners: tap one for that
+tire's size, tread, season, when it was fitted and how long it has left.
+
+Below, one line each, where the car has the data: the doors and lock, Check
+Control (with earlier messages folded), the service items with their due date or
+distance, the 12 V battery, [battery health](#battery-health-view-health), and
+your [lease or yearly mileage limit](Feature-Mileage#a-mileage-allowance). Tap a
+line for its entity.
+
+```yaml
+type: custom:bavariandata-card
+view: car
+```
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-car.png" alt="The car card: All good, closed and locked, tires fine, no messages; the top-down drawing with the four tire pressures at its corners, and lines for doors and lock, Check Control, service and battery health" width="360" />
+</p>
+
+The [tires](#tires-cluster-tire), [closures](#security--closures-cluster-closures),
+[health](#battery-health-view-health) and [mileage](#mileage-view-mileage) cards
+stay as they are, for a dashboard that wants one of them alone. It reads only the
+car's sensors and the mileage report, so it spends **no API quota**.
 
 ---
 
@@ -662,6 +761,11 @@ Tap a row and the room opens in the same card, drawn exactly as its own
 remembers nothing: a reload starts on the overview. Without `hub: true`, the
 Overview is unchanged, and every `view:` card works on its own as before.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hub.png" alt="The overview as a hub: below the tiles, rows for Charging with this month's kWh and cost, Trips with this month's kilometers and trips, Efficiency with the real range and consumption, and Car with all good and the next service" width="300" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hub-room.png" alt="The Trips room opened from the hub: the back arrow at the top left in place of the icon, then the trips view as usual" width="300" />
+</p>
+
 ---
 
 ## Small cards and the garage (`view: glance`, `view: row`, `view: garage`)
@@ -690,6 +794,32 @@ navigation_path: /car-hub/0
 
 In a sections dashboard the glance tile starts half a section wide, so two
 cars sit side by side; every other view fills the width.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-glance.png" alt="The glance tile: the i5's picture, 80 % and 337 km, a thin bar with the target, Ready to go, and the lock and plug icons" width="220" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-glance-charging.png" alt="The glance tile while charging: 7.4 kW beside the name, 62 %, and Charging, done at, in blue" width="220" />
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-row.png" alt="The one-line card: the car's picture, Ready to go, the car's name at its 80 % target at Home, and 80 % with 337 km at the end" width="420" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-garage.png" alt="The garage card: one row per car with its picture, name, charge, bar, top line and range" width="420" />
+</p>
+
+## Coming from an older card
+
+Every card you already have keeps working, with the same YAML, in the new look.
+
+| Your card | Now |
+| --- | --- |
+| `type: custom:bavariandata-card` | The overview: top line, bar, tiles that follow the car. No rooms unless you add `hub: true`. |
+| `tiles: […]` | Your tiles, in every situation. |
+| `drivetrain:`, `device:`, `vin:`, the entity overrides | Unchanged. |
+| `view: charging` · `trips` · `efficiency` · `fuel` | The same view, redrawn. |
+| `view: map` | Unchanged; the Trips view also opens it on its Map tab. |
+| `view: health` · `mileage` · `equipment`, `cluster: …` | Unchanged; health and mileage are also a line each in `view: car`. |
+| `custom:bmw-cardata-card` | Still works. |
+
+New: `hub: true`, `view: car`, `view: glance`, `view: row`, `view: garage`.
 
 ---
 
