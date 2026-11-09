@@ -28,7 +28,7 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 - **The overview as a hub: `hub: true`.** Turn on *Rooms under the overview*
   in the card editor and the overview lists Charging, Trips, Efficiency and
   Car under its tiles (Fuel instead of Charging and Efficiency on a petrol or
-  diesel car), each with what it would say first: this month's kWh and cost,
+  diesel car, and after Charging on a plug-in hybrid), each with what it would say first: this month's kWh and cost,
   this month's kilometers and trips, the real range and consumption, and
   whether all is well with the car or what isn't. While the car charges or
   drives, that row says so. A tap opens the room in the same card, with an
@@ -66,7 +66,7 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   stay as they are, in every situation. Labels are no longer in capitals.
 - **Charging history, every month in figures.** Each month, not only the
   current one, opens with what was charged, what it cost (with the price per
-  kWh when every charge at home was priced in full) and how many charges, how
+  kWh, *at least* when a charge at home wasn't priced in full) and how many charges, how
   many of them away; a bar of where the energy came from (sun, house battery,
   grid, away) and the kWh of each day. Each charge shows its from → to as a
   small bar and its cost under the kWh; an open one draws its average power

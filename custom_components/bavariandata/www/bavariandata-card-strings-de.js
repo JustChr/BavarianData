@@ -232,6 +232,7 @@ export default {
   ch_tab_places: "Orte",
   ch_kpi_energy: "Geladen",
   ch_kpi_per_kwh: "{v} pro kWh",
+  ch_kpi_per_kwh_min: "mindestens {v} pro kWh",
   ch_kpi_sessions: "Ladevorgänge",
   ch_kpi_away: "Ladevorgänge, {n} unterwegs",
   ch_where_from: "Woher es kam",

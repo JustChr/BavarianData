@@ -232,6 +232,7 @@ export default {
   ch_tab_places: "Luoghi",
   ch_kpi_energy: "Caricato",
   ch_kpi_per_kwh: "{v} per kWh",
+  ch_kpi_per_kwh_min: "almeno {v} per kWh",
   ch_kpi_sessions: "Sessioni",
   ch_kpi_away: "Sessioni, {n} fuori casa",
   ch_where_from: "Da dove arriva",

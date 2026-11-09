@@ -94,7 +94,7 @@
   </div>
   <div class="kpi">
   <span class="kpi__v">€22.40</span>
-  <span class="kpi__l">partial price</span>
+  <span class="kpi__l">at least €0.25 per kWh</span>
   </div>
   <div class="kpi">
   <span class="kpi__v">4</span>
@@ -2711,6 +2711,18 @@
   </span>
                       <span class="room__txt">
                         <span class="room__t">Charging</span>
+                        
+                      </span>
+                      <ha-icon class="room__go" icon="mdi:chevron-right">
+  </ha-icon>
+                    </button>
+                    <button class="room" data-room="fuel">
+                      <span class="room__ic">
+  <ha-icon icon="mdi:gas-station">
+  </ha-icon>
+  </span>
+                      <span class="room__txt">
+                        <span class="room__t">Fuel</span>
                         
                       </span>
                       <ha-icon class="room__go" icon="mdi:chevron-right">

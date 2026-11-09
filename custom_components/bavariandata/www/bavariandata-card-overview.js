@@ -167,7 +167,7 @@ export default (Base, { DEVICE_CLASS_ICONS, UNAVAILABLE, _lang }) => class Overv
     let secondary = wanted.map((item) => this._overviewTile(item, tileCtx)).filter((m) => m && m.st);
     if (!own) secondary = secondary.slice(0, 4);
     const rooms = this._isHub()
-      ? this._hubRooms({ deviceId, entities, ice, bare, electric, charging, trip, unit, closures, session })
+      ? this._hubRooms({ deviceId, entities, ice, phev: drivetrain === "phev", bare, electric, charging, trip, unit, closures, session })
       : [];
 
     // freshest update among the headline entities
@@ -637,10 +637,10 @@ export default (Base, { DEVICE_CLASS_ICONS, UNAVAILABLE, _lang }) => class Overv
 
   /** The hub's rows under the overview (`hub: true`): one per room this car
    * has, each with what that room would say first. A battery car lists
-   * Charging, Trips, Efficiency and Car; a petrol or diesel car Fuel, Trips
-   * and Car; a car that proved no drivetrain Trips and Car. Every figure
-   * comes from a sensor the car already has, except a combustion car's last
-   * refuel, which the fuel view's own read (no quota) answers. `title` and
+   * Charging, Trips, Efficiency and Car; a plug-in hybrid adds Fuel after
+   * Charging; a petrol or diesel car lists Fuel, Trips and Car; a car that
+   * proved no drivetrain Trips and Car. Every figure comes from a sensor the
+   * car already has, except the last refuel, which the fuel view's own read (no quota) answers. `title` and
    * `sub` come back escaped; `tone` is live, warn, alert or empty. */
   _hubRooms(c) {
     const join = (parts) => parts.filter(Boolean).join(" · ");
@@ -661,7 +661,8 @@ export default (Base, { DEVICE_CLASS_ICONS, UNAVAILABLE, _lang }) => class Overv
         sub = month ? this._t("hub_this_month", { v: month }) : "";
       }
       rooms.push({ room: "charging", icon: "mdi:ev-station", title: this._t("hub_charging"), sub, tone });
-    } else if (c.ice && !c.bare) {
+    }
+    if (c.phev || (c.ice && !c.bare)) {
       const vin = this._deviceVin(c.deviceId);
       if (vin) this._ensureFuel(vin, this._deviceEntry(c.deviceId), c.entities);
       const data = (this._fuel && this._fuel.vin === vin && this._fuel.data) || {};

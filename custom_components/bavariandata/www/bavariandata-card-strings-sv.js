@@ -232,6 +232,7 @@ export default {
   ch_tab_places: "Platser",
   ch_kpi_energy: "Laddat",
   ch_kpi_per_kwh: "{v} per kWh",
+  ch_kpi_per_kwh_min: "minst {v} per kWh",
   ch_kpi_sessions: "Sessioner",
   ch_kpi_away: "Sessioner, {n} borta",
   ch_where_from: "Var den kom ifrån",

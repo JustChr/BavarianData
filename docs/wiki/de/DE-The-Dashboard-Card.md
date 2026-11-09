@@ -269,7 +269,8 @@ erkannt: Setze **Antrieb** (oben), statt die Kacheln zu ersetzen.
 <a id="charging-history-view-charging"></a>
 
 Jeder Monat beginnt mit seinen Zahlen: was geladen wurde, was es gekostet hat
-(mit dem Preis je kWh, wenn jede Ladung zu Hause voll bepreist wurde) und wie
+(mit dem Preis je kWh zu Hause, *mindestens …*, wenn eine Ladung nicht voll
+bepreist wurde) und wie
 viele Ladungen, wie viele davon unterwegs. Darunter ein Balken, woher die
 Energie kam (Sonne, Hausakku, Netz, unterwegs), und die kWh jedes Tages. Dann
 die Ladevorgänge des Monats, neueste zuerst: Datum, der Ladestand von → bis als
@@ -812,7 +813,8 @@ Fahrten dieses Monats), **Effizienz** (echte Reichweite und Verbrauch) und
 **Auto** (alles in Ordnung, oder was nicht: etwas offen, ein Reifen, eine
 Check-Control-Meldung; sonst der nächste Service). Ein Benziner oder Diesel
 zeigt **Kraftstoff** (letztes Tanken und Durchschnitt) statt Laden und
-Effizienz; ein Auto ohne erkannten Antrieb zeigt Fahrten und Auto. Während das
+Effizienz, ein Plug-in-Hybrid zeigt es nach Laden; ein Auto ohne erkannten
+Antrieb zeigt Fahrten und Auto. Während das
 Auto lädt, sagt das die Zeile Laden, mit dem, was diese Ladung schon gebracht
 hat; auf einer Fahrt die Zeile Fahrten.
 

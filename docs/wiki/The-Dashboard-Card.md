@@ -255,7 +255,7 @@ wrong: set **Drivetrain** (above) rather than replacing the tiles.
 ## Charging history (`view: charging`)
 
 Each month opens with its figures: what was charged, what it cost (with the
-price per kWh when every charge at home was priced in full) and how many charges,
+price per kWh at home, *at least …* when a charge wasn't priced in full) and how many charges,
 how many of them away. Under them, a bar of where the energy came from (sun,
 house battery, grid, away) and the kWh of each day. Then the month's sessions,
 newest first: the date, the charge from → to as a small bar, a Home/Away badge,
@@ -752,8 +752,8 @@ Under the tiles, one row per room says what that room would say first:
 number of trips), **Efficiency** (the real range and consumption) and **Car**
 (all good, or what isn't: something open, a tire, a Check Control message;
 otherwise the next service). A petrol or diesel car lists **Fuel** (the last
-refuel and the average) instead of Charging and Efficiency; a car that proved
-no drivetrain lists Trips and Car. While the car charges, the Charging row
+refuel and the average) instead of Charging and Efficiency, and a plug-in hybrid
+lists it after Charging; a car that proved no drivetrain lists Trips and Car. While the car charges, the Charging row
 says so with what this charge has added; on a drive, the Trips row does.
 
 Tap a row and the room opens in the same card, drawn exactly as its own

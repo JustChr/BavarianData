@@ -232,6 +232,7 @@ export default {
   ch_tab_places: "Místa",
   ch_kpi_energy: "Nabito",
   ch_kpi_per_kwh: "{v} za kWh",
+  ch_kpi_per_kwh_min: "nejméně {v} za kWh",
   ch_kpi_sessions: "Nabíjení",
   ch_kpi_away: "Nabíjení, mimo domov: {n}",
   ch_where_from: "Odkud pocházela",
