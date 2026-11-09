@@ -75,7 +75,7 @@ export default {
   ti_cost: "Koszt dotąd",
   ti_trip: "Ten przejazd",
   ti_trip_time: "Jazda",
-  ti_used: "Zużyto w tym przejeździe",
+  ti_used: "Zużyte w przejeździe",
   ti_open: "Otwarte",
   odometer: "Przebieg",
   ti_location: "Lokalizacja",

@@ -75,7 +75,7 @@ export default {
   ti_cost: "Kosten bisher",
   ti_trip: "Diese Fahrt",
   ti_trip_time: "Fahrzeit",
-  ti_used: "Auf dieser Fahrt verbraucht",
+  ti_used: "Diese Fahrt verbraucht",
   ti_open: "Offen",
   odometer: "Kilometerstand",
   ti_location: "Standort",
