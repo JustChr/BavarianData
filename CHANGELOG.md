@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.29-beta.1] - 2026-11-09
+
 ### Fixed
 - **A restart no longer splits a charge when it stops for a moment.** After
   a Home Assistant restart, the first stop the car reported ended a running
