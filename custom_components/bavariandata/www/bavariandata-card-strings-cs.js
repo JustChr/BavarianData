@@ -346,6 +346,7 @@ export default {
   ef_cmp_mild: "Při {mild}",
   ef_footnote: "Změřeno z historie nabíjení: vzdálenost mezi dvěma nabitími a energie, která se dobila, ne vlastní odhad vozu. Započítává vše, co baterie mezi dvěma nabitími vydala, včetně stání a předklimatizace, a proto vychází výš než hodnoty jednotlivých jízd, které počítají jen jízdu.",
   ef_temp_title: "Spotřeba podle venkovní teploty ({u})",
+  ef_temp_today: "Dnes asi {t} tam, kde vůz stojí",
   ef_temp_more: "Pod {cold} spotřebuje o {p} % více než při {mild}, měřeno na vašich jízdách.",
   ef_temp_less: "Pod {cold} spotřebuje o {p} % méně než při {mild}, měřeno na vašich jízdách.",
   ef_temp_waiting: "Srovnání v chladu potřebuje {d} jízd pod {cold} a stejně tolik při {mild}.",

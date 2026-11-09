@@ -265,9 +265,15 @@ trip gets the weather the car actually drove through, from
   are zones, else at your home location. Each record says which (`source`:
   `route`, `track`, `ends` or `home`).
 - A failed lookup is tried once more 15 minutes later.
+- **Once a day**, it also asks for the day's lowest and highest temperature where
+  each car is parked (at home, for a car that never sent a position), so the
+  efficiency card can mark today's band on its chart by temperature. Only the date
+  and the temperatures are kept, in memory, as the *Real Range* sensor's
+  `outside_temp_c` and `outside_temp_date`.
 
-What leaves your house is each trip's route at about 1 km precision, once, to
-Open-Meteo. That is why it is off by default.
+What leaves your house is each trip's route at about 1 km precision, once, and
+where each car is parked, at the same precision, once a day, to Open-Meteo. That
+is why it is off by default.
 
 The trip's detail on the card shows the temperature (with its range when it
 varied on the way), `get_trips` returns the whole record as `weather`, and the

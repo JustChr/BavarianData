@@ -346,6 +346,7 @@ export default {
   ef_cmp_mild: "Vid {mild}",
   ef_footnote: "Mätt ur laddhistoriken: sträckan mellan två laddningar och energin som gick in, inte bilens egen uppskattning. Den räknar allt batteriet gav mellan två laddningar, parkerad tid och förklimatisering inräknade, och blir därför högre än värdena för enskilda resor, som bara räknar körningen.",
   ef_temp_title: "Förbrukning efter utetemperatur ({u})",
+  ef_temp_today: "I dag omkring {t} där bilen står",
   ef_temp_more: "Under {cold} drar den {p} % mer än vid {mild}, mätt på dina resor.",
   ef_temp_less: "Under {cold} drar den {p} % mindre än vid {mild}, mätt på dina resor.",
   ef_temp_waiting: "Jämförelsen i kyla behöver {d} resor under {cold} och lika mycket vid {mild}.",

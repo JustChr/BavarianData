@@ -14,6 +14,11 @@ waypoint was passed. The trip stores the samples (time into the trip,
 temperature, rain, wind, ground height, heading) and a time-weighted summary.
 **No coordinate is stored**; the waypoints are dropped once asked.
 
+Once a day it also asks for the day's lowest and highest temperature where
+each car is parked (:func:`build_day_request`), so the efficiency card can mark
+today's band on its chart by temperature. Only the date and the temperatures
+are kept, in memory.
+
 Opt-in (``trip_weather``, off by default), because the route leaves the house.
 Home Assistant-free: the sampler, the request and the parsing are plain
 functions, unit-tested without an HA install; the one network call is thin and
@@ -25,7 +30,7 @@ from __future__ import annotations
 import logging
 import math
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import Any, Optional, Sequence
 
 import aiohttp
@@ -47,6 +52,8 @@ SAMPLE_DISTANCE_KM = 5.0
 MAX_POINTS = 60
 
 VARIABLES = ("temperature_2m", "precipitation", "wind_speed_10m", "wind_direction_10m")
+# The day's reading where the car is parked: its lowest and highest temperature.
+DAY_VARIABLES = ("temperature_2m_min", "temperature_2m_max")
 QUARTER = timedelta(minutes=15)
 
 # Where a trip's waypoints came from: its drive (``route``), its stored track
@@ -222,6 +229,49 @@ def build_request(points: Sequence[WeatherPoint], *, now: datetime) -> tuple[str
     return url, params
 
 
+def build_day_request(lat: float, lon: float, day: date) -> tuple[str, dict[str, str]]:
+    """The URL and query for one place's lowest and highest temperature on ``day``.
+
+    ``day`` is Home Assistant's local date; ``timezone=auto`` makes Open-Meteo
+    count the day in the place's own zone, which is the same one for a car.
+    """
+
+    return FORECAST_URL, {
+        "latitude": f"{lat:.{POINT_PRECISION}f}",
+        "longitude": f"{lon:.{POINT_PRECISION}f}",
+        "daily": ",".join(DAY_VARIABLES),
+        "start_date": day.isoformat(),
+        "end_date": day.isoformat(),
+        "timezone": "auto",
+    }
+
+
+def parse_day(payload: Any, day: date) -> Optional[dict[str, Any]]:
+    """The day's reading, or ``None`` when Open-Meteo has no temperature for it.
+
+    ``temp_c`` is the midpoint of the day's low and high: what the card marks
+    on its 5 °C bands, where a trip's figure is its time-weighted mean.
+    """
+
+    daily = payload.get("daily") if isinstance(payload, dict) else None
+    if not isinstance(daily, dict):
+        return None
+    times = daily.get("time") or []
+    if day.isoformat() not in times:
+        return None
+    index = times.index(day.isoformat())
+    low = _number(daily.get("temperature_2m_min"), index)
+    high = _number(daily.get("temperature_2m_max"), index)
+    if low is None or high is None:
+        return None
+    return {
+        "date": day.isoformat(),
+        "temp_c": round((low + high) / 2, 1),
+        "temp_min_c": round(low, 1),
+        "temp_max_c": round(high, 1),
+    }
+
+
 def _number(values: Any, index: int) -> Optional[float]:
     if not isinstance(values, list) or index >= len(values):
         return None
@@ -340,3 +390,22 @@ class RouteWeather:
             _LOGGER.debug("Open-Meteo lookup failed: %s", err)
             return None
         return summarize(parse_samples(payload, points, start), source)
+
+    async def day(self, lat: float, lon: float, day: date) -> Optional[dict[str, Any]]:
+        """``day``'s low, high and midpoint at one place, or ``None``."""
+
+        if not self.enabled:
+            return None
+        url, params = build_day_request(lat, lon, day)
+        try:
+            async with self._session.get(url, params=params, timeout=TIMEOUT) as response:
+                if response.status != 200:
+                    _LOGGER.debug(
+                        "Open-Meteo answered HTTP %s for the day's temperature", response.status
+                    )
+                    return None
+                payload = await response.json()
+        except (aiohttp.ClientError, TimeoutError, ValueError) as err:
+            _LOGGER.debug("Open-Meteo day lookup failed: %s", err)
+            return None
+        return parse_day(payload, day)

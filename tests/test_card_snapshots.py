@@ -138,7 +138,7 @@ if (input.trips) {
 }
 if (input.efficiency) {
   card._eff = { vin: "WBS1", trigger: "", data: input.efficiency, loading: false };
-  card._render = () => { card._sig = null; card._paintEfficiency("device", null); };
+  card._render = () => { card._sig = null; card._paintEfficiency("device", input.realRange || null); };
 }
 // A hub room is opened the way a tap opens it; the render below repeats it,
 // so an error there is caught and reported like any other.
@@ -815,6 +815,34 @@ def test_the_efficiency_view_by_outside_temperature(unit: str, snapshot) -> None
     assert "At 15–25 °C" in html or "At 59–77 °F" in html
     # Mild weather drawn across the temperature chart, to read each band against.
     assert "chg__chart-avg" in html
+
+
+def test_today_is_marked_where_the_car_is_parked() -> None:
+    """The day's reading (route weather on) lights today's band and says it;
+    yesterday's is no "today"."""
+
+    efficiency = {**EFFICIENCY, "by_temperature": BY_TEMPERATURE}
+
+    def real_range(day: str) -> dict:
+        return {
+            "entity_id": "sensor.i5_real_range",
+            "state": "298",
+            "attributes": {
+                "descriptor": "real_range",
+                "outside_temp_c": 2.4,
+                "outside_temp_date": day,
+            },
+        }
+
+    html = _render(
+        I5, SCREENS["efficiency"], efficiency=efficiency, realRange=real_range("2026-09-09")
+    )
+    assert html.count("ef__bar--today") == 1
+    assert "Today about 2 °C where the car is" in html
+    stale = _render(
+        I5, SCREENS["efficiency"], efficiency=efficiency, realRange=real_range("2026-09-08")
+    )
+    assert "ef__bar--today" not in stale and "Today about" not in stale
 
 
 def test_the_efficiency_view_waits_for_cold_and_mild_trips() -> None:

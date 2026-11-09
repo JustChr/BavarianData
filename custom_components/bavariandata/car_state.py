@@ -266,6 +266,10 @@ class Vehicle:
     trip: TripState = field(default_factory=TripState)
     gps: GpsState = field(default_factory=GpsState)
     report: ReportState = field(default_factory=ReportState)
+    # The day's outside temperature where the car is parked (``trip_weather``,
+    # with route weather on): ``date``, ``temp_c``, ``temp_min_c``,
+    # ``temp_max_c``, ``source`` (``car`` or ``home``). Never a position.
+    outside: Optional[dict[str, Any]] = None
     # Descriptors the stream delivered since this instance started --
     # situations are judged on these alone, never on a value restored after a
     # restart (``vehicle_triggers``).

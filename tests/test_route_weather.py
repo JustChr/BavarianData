@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 
 import pytest
 
@@ -251,3 +251,69 @@ def test_a_failed_lookup_is_none_and_never_raises(session: _Session) -> None:
         _lookup(rw.RouteWeather(session, enabled=True), [rw.WeatherPoint(_at(0), 48.1, 11.5)])
         is None
     )
+
+
+# -- the day's temperature where the car is parked -----------------------------
+
+DAY = date(2026, 11, 9)
+DAY_PAYLOAD = {
+    "daily": {"time": ["2026-11-09"], "temperature_2m_min": [1.84], "temperature_2m_max": [8.36]}
+}
+
+
+def test_the_day_request_sends_the_place_rounded_and_the_local_day() -> None:
+    url, params = rw.build_day_request(48.21734, 16.37211, DAY)
+    assert url == rw.FORECAST_URL
+    assert params == {
+        "latitude": "48.22",
+        "longitude": "16.37",
+        "daily": "temperature_2m_min,temperature_2m_max",
+        "start_date": "2026-11-09",
+        "end_date": "2026-11-09",
+        "timezone": "auto",
+    }
+
+
+def test_the_day_is_its_low_high_and_midpoint() -> None:
+    assert rw.parse_day(DAY_PAYLOAD, DAY) == {
+        "date": "2026-11-09",
+        "temp_c": 5.1,
+        "temp_min_c": 1.8,
+        "temp_max_c": 8.4,
+    }
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        None,
+        {},
+        {"daily": "x"},
+        {"daily": {"time": ["2026-11-08"], "temperature_2m_min": [1], "temperature_2m_max": [2]}},
+        {
+            "daily": {
+                "time": ["2026-11-09"],
+                "temperature_2m_min": [None],
+                "temperature_2m_max": [2],
+            }
+        },
+    ],
+)
+def test_a_day_without_a_temperature_is_none(payload) -> None:
+    assert rw.parse_day(payload, DAY) is None
+
+
+def test_the_day_client_asks_nothing_while_off_and_answers_when_on() -> None:
+    session = _Session(payload=DAY_PAYLOAD)
+    assert asyncio.run(rw.RouteWeather(session).day(48.2, 16.4, DAY)) is None
+    assert session.calls == []
+    reading = asyncio.run(rw.RouteWeather(session, enabled=True).day(48.2, 16.4, DAY))
+    assert reading["temp_c"] == 5.1 and len(session.calls) == 1
+
+
+@pytest.mark.parametrize(
+    "session",
+    [_Session(status=500), _Session(error=TimeoutError()), _Session(error=ValueError("bad json"))],
+)
+def test_a_failed_day_lookup_is_none_and_never_raises(session: _Session) -> None:
+    assert asyncio.run(rw.RouteWeather(session, enabled=True).day(48.2, 16.4, DAY)) is None

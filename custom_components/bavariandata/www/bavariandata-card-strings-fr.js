@@ -346,6 +346,7 @@ export default {
   ef_cmp_mild: "À {mild}",
   ef_footnote: "Mesurée à partir de l'historique de charge : la distance entre deux charges et l'énergie qui y est entrée, pas l'estimation de la voiture. Elle compte tout ce que la batterie a fourni entre deux charges, heures à l'arrêt et préconditionnement compris, et dépasse donc les valeurs des trajets, qui ne comptent que la conduite.",
   ef_temp_title: "Consommation selon la température extérieure ({u})",
+  ef_temp_today: "Aujourd'hui environ {t} là où se trouve la voiture",
   ef_temp_more: "En dessous de {cold}, elle consomme {p} % de plus qu'à {mild}, mesuré sur vos trajets.",
   ef_temp_less: "En dessous de {cold}, elle consomme {p} % de moins qu'à {mild}, mesuré sur vos trajets.",
   ef_temp_waiting: "La comparaison par temps froid demande {d} de trajets sous {cold} et autant à {mild}.",

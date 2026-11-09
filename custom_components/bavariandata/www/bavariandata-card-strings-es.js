@@ -346,6 +346,7 @@ export default {
   ef_cmp_mild: "A {mild}",
   ef_footnote: "Medido a partir del historial de carga: la distancia entre dos cargas y la energía que entró, no la estimación del propio coche. Cuenta todo lo que dio la batería entre dos cargas, horas aparcado y preacondicionamiento incluidos, por lo que sale más alto que las cifras de cada trayecto, que solo cuentan la conducción.",
   ef_temp_title: "Consumo según la temperatura exterior ({u})",
+  ef_temp_today: "Hoy unos {t} donde está el coche",
   ef_temp_more: "Por debajo de {cold} consume un {p} % más que a {mild}, medido en tus trayectos.",
   ef_temp_less: "Por debajo de {cold} consume un {p} % menos que a {mild}, medido en tus trayectos.",
   ef_temp_waiting: "La comparación con frío necesita {d} de trayectos por debajo de {cold} y otros tantos a {mild}.",

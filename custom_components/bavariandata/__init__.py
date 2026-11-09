@@ -348,6 +348,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     await coordinator.async_start_watchdog()
     # Trips stored before route weather was on (or while it failed) are filled in soon.
     coordinator.weather.schedule_backfill()
+    # And the day's temperature where each car is parked, for the card.
+    coordinator.weather.schedule_day()
 
     entity_registry = _async_repair_registry(hass, entry, coordinator)
 

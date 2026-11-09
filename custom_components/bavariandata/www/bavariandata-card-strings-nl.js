@@ -346,6 +346,7 @@ export default {
   ef_cmp_mild: "Bij {mild}",
   ef_footnote: "Gemeten uit de laadhistorie: de afstand tussen twee laadbeurten en de energie die erin ging, niet de eigen schatting van de auto. Het telt alles wat de accu tussen twee laadbeurten gaf, stilstaan en voorconditioneren inbegrepen, en ligt daarom hoger dan de waarden van losse ritten, die alleen het rijden tellen.",
   ef_temp_title: "Verbruik per buitentemperatuur ({u})",
+  ef_temp_today: "Vandaag ongeveer {t} waar de auto staat",
   ef_temp_more: "Onder {cold} verbruikt hij {p}% meer dan bij {mild}, gemeten op je ritten.",
   ef_temp_less: "Onder {cold} verbruikt hij {p}% minder dan bij {mild}, gemeten op je ritten.",
   ef_temp_waiting: "De vergelijking bij koud weer heeft {d} aan ritten onder {cold} nodig, en evenveel bij {mild}.",

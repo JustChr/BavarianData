@@ -162,6 +162,11 @@ Der **Kälteaufschlag** vergleicht die Fahrten unter 5 °C mit denen bei 15–25
 sobald beide Seiten 100 km haben: „Unter 5 °C verbraucht es 38 % mehr als bei
 15–25 °C.“ Bis dahin sagt die Karte, worauf sie noch wartet.
 
+**Heute** ist im Diagramm markiert: Einmal am Tag fragt die Integration die
+Temperatur dort ab, wo das Auto steht, und die Karte hebt dieses Band hervor und
+sagt *Heute etwa 6 °C, wo das Auto steht*. So liest du ab, was von den Fahrten
+heute zu erwarten ist. Es ist die Mitte zwischen Tiefst- und Höchstwert des Tages.
+
 Diese Werte gelten **je Fahrt**: der Akkurückgang während der Fahrt, also ohne
 Ladeverluste, und sie passen nicht eins zu eins zum Wert aus dem Ladeverlauf oben.
 Ein Plug-in-Hybrid bekommt keine, aus demselben Grund wie oben.

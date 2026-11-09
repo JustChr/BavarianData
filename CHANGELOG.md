@@ -84,7 +84,12 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 - **Efficiency: your range against the car's.** Under the real range, bars
   set it against the car's own estimate and, once trips have their weather,
   against what the same charge would go at 15–25 °C. The chart by outside
-  temperature draws mild weather as a dashed line to read each band against.
+  temperature draws mild weather as a dashed line to read each band against,
+  and marks today's band: with *Weather along the route* on, the integration
+  asks Open-Meteo once a day for the temperature where each car is parked
+  (to about 1 km; at home for a car that never sent a position) and keeps only
+  the date and the temperatures, as the *Real Range* sensor's
+  `outside_temp_c` and `outside_temp_date`.
   The footnote says why this consumption reads higher than single trips': it
   counts everything between two charges, parked hours and preconditioning
   included.

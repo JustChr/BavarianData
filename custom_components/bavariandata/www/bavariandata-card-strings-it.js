@@ -346,6 +346,7 @@ export default {
   ef_cmp_mild: "A {mild}",
   ef_footnote: "Misurato dallo storico delle ricariche: la distanza tra due ricariche e l'energia immessa, non la stima dell'auto. Conta tutto ciò che la batteria ha dato tra due ricariche, soste e precondizionamento compresi, quindi risulta più alto dei valori dei singoli viaggi, che contano solo la guida.",
   ef_temp_title: "Consumo per temperatura esterna ({u})",
+  ef_temp_today: "Oggi circa {t} dove si trova l'auto",
   ef_temp_more: "Sotto {cold} consuma il {p}% in più che a {mild}, misurato sui tuoi viaggi.",
   ef_temp_less: "Sotto {cold} consuma il {p}% in meno che a {mild}, misurato sui tuoi viaggi.",
   ef_temp_waiting: "Il confronto con il freddo richiede {d} di viaggi sotto {cold} e altrettanti a {mild}.",

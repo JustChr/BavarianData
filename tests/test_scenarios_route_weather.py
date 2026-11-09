@@ -131,3 +131,75 @@ def test_a_trip_just_closed_is_left_to_its_own_lookup(h):
     h.advance_to(41)
     # Not yet half an hour since the close: the backfill doesn't take it over.
     assert len(weather.calls) == 1
+
+
+# --- the day's temperature where the car is parked --------------------------
+
+
+class _FakeDay(_FakeWeather):
+    """Also answers the day's lookup: low 2, high 8, unless ``failing_days``."""
+
+    def __init__(self, *, failing_days: int = 0) -> None:
+        super().__init__()
+        self.failing_days = failing_days
+        self.days: list[tuple] = []
+
+    async def day(self, lat, lon, day):
+        self.days.append((round(lat, 2), round(lon, 2), day.isoformat()))
+        if self.failing_days:
+            self.failing_days -= 1
+            return None
+        return {"date": day.isoformat(), "temp_c": 5.0, "temp_min_c": 2.0, "temp_max_c": 8.0}
+
+
+@pytest.mark.solo  # counts the account's lookups, every car's
+def test_the_day_is_asked_once_where_the_car_is_parked(h):
+    weather = h.coordinator.route_weather = _FakeDay()
+    here = _drive(h, 5, 3)
+    h.coordinator.weather.schedule_day()
+    h.advance_to(40)
+
+    # Asked once, at the parked car's position, for today.
+    assert weather.days == [(round(here[0], 2), round(here[1], 2), "2026-09-26")]
+    reading = h.coordinator.outside_temperature(h.vin)
+    assert reading == {
+        "date": "2026-09-26",
+        "temp_c": 5.0,
+        "temp_min_c": 2.0,
+        "temp_max_c": 8.0,
+        "source": "car",
+    }
+    # The reading holds the weather, never where it was looked up.
+    assert "lat" not in json.dumps(reading) and str(here[0]) not in json.dumps(reading)
+
+    # The hourly checks leave the day alone ...
+    h.advance_to(900)
+    assert len(weather.days) == 1
+    # ... and the next day is asked again.
+    h.advance_to(960 + trip_weather.DAY_CHECK_S / 60 + 1)
+    assert [d for _, _, d in weather.days] == ["2026-09-26", "2026-09-27"]
+    assert h.coordinator.outside_temperature(h.vin)["date"] == "2026-09-27"
+
+
+@pytest.mark.solo
+def test_a_failed_day_is_asked_again_at_the_next_check(h):
+    weather = h.coordinator.route_weather = _FakeDay(failing_days=1)
+    _drive(h, 5, 3)
+    h.coordinator.weather.schedule_day()
+    h.advance_to(40)
+    assert len(weather.days) == 1 and h.coordinator.outside_temperature(h.vin) is None
+
+    h.advance_to(40 + trip_weather.DAY_CHECK_S / 60 + 1)
+    assert len(weather.days) == 2
+    assert h.coordinator.outside_temperature(h.vin)["temp_c"] == 5.0
+
+
+def test_nothing_is_asked_about_the_day_while_the_switch_is_off(h):
+    weather = h.coordinator.route_weather = _FakeDay()
+    weather.enabled = False
+    _drive(h, 5, 3)
+    h.coordinator.weather.schedule_day()
+    h.advance_to(200)
+
+    assert weather.days == []
+    assert h.coordinator.outside_temperature(h.vin) is None

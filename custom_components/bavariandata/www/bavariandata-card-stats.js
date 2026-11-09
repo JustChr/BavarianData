@@ -349,6 +349,7 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
     const profile = state.data;
     const f = this._efFigures(st, profile);
     const trend = (profile && Array.isArray(profile.trend) && profile.trend) || [];
+    const today = this._outsideToday(st);
 
     const sig = this._signature({
       m: "ef",
@@ -366,6 +367,7 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
       life: profile && profile.bmw_lifetime,
       temps: profile && profile.by_temperature,
       tempUnit,
+      today,
     });
     if (sig === this._sig) return;
     this._sig = sig;
@@ -394,7 +396,7 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
       // missing rather than showing the same "no data yet" as an empty ledger.
       body = `<div class="empty">${this._t("ef_no_capacity")}</div>`;
     } else {
-      body = this._efBody(f, trend, profile || {}, unit, tempUnit);
+      body = this._efBody(f, trend, profile || {}, unit, tempUnit, today);
     }
 
     this.shadowRoot.innerHTML = `
@@ -412,7 +414,7 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
     `;
   }
 
-  _efBody(f, trend, profile, unit, tempUnit = "c") {
+  _efBody(f, trend, profile, unit, tempUnit = "c", today = null) {
     const unitLabel = unit === "mi" ? "mi" : "km";
     const hero =
       f.nowKm != null
@@ -508,7 +510,7 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
               )}</span>${chart}</div>`
             : ""
         }
-        ${this._efTemperature(profile.by_temperature, unit, tempUnit)}
+        ${this._efTemperature(profile.by_temperature, unit, tempUnit, today)}
         <span class="ef__note">${this._t("ef_footnote")}</span>
       </div>
     `;
@@ -548,7 +550,19 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
   /** Consumption per outside-temperature band (opt-in route weather), and how
    * much more the car uses in the cold. Nothing at all until a trip has its
    * weather: the switch is off by default, and an empty chart would nag. */
-  _efTemperature(byTemp, unit, tempUnit) {
+  /** Today's outside temperature where the car is parked (°C), from the Real
+   * Range sensor's `outside_temp_c`, or null: the integration asks for it once
+   * a day with route weather on, and yesterday's reading is no "today". */
+  _outsideToday(st) {
+    const a = (st && st.attributes) || {};
+    const t = Number(a.outside_temp_c);
+    if (a.outside_temp_c == null || !Number.isFinite(t) || !a.outside_temp_date) return null;
+    const d = new Date();
+    const day = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    return a.outside_temp_date === day ? t : null;
+  }
+
+  _efTemperature(byTemp, unit, tempUnit, today = null) {
     if (!byTemp || byTemp.status !== "ok" || !Array.isArray(byTemp.bands)) return "";
     // Empty bands are trimmed off the ends only: one missing in the middle
     // stays as a stub, or the axis would skip it without saying so.
@@ -574,7 +588,10 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
         // A band with too few km behind it gets a stub, not a figure.
         const h = values[i] == null ? 2 : (values[i] / max) * (H - bottom - pad);
         const y = H - bottom - h;
-        const cls = values[i] == null ? "ef__bar ef__bar--thin" : "ef__bar";
+        // Today's band, where the car is parked, stands out from the rest.
+        const now =
+          today != null && (b.from_c == null || today >= b.from_c) && (b.to_c == null || today < b.to_c);
+        const cls = (values[i] == null ? "ef__bar ef__bar--thin" : "ef__bar") + (now ? " ef__bar--today" : "");
         return `<rect class="${cls}" x="${this._px(x)}" y="${this._px(y)}" width="${this._px(
           width
         )}" height="${this._px(Math.max(h, 1))}" rx="2"></rect>
@@ -600,9 +617,11 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
       p == null
         ? this._t("ef_temp_waiting", { cold, mild, d: unit === "mi" ? "60 mi" : "100 km" })
         : this._t(p >= 0 ? "ef_temp_more" : "ef_temp_less", { p: this._dec(Math.abs(p), 0), cold, mild });
+    const todayLine =
+      today == null ? "" : `<span class="ef__fact-note ef__today">${this._t("ef_temp_today", { t: this._temp(today, tempUnit) })}</span>`;
     return `<div class="ef__trend"><span class="ef__trend-title">${this._t("ef_temp_title", {
       u: tempUnit === "f" ? "°F" : "°C",
-    })}</span>${chart}<span class="ef__fact-note">${line}</span></div>`;
+    })}</span>${chart}${todayLine}<span class="ef__fact-note">${line}</span></div>`;
   }
 
   /** Monthly consumption as bars. Zero-based on purpose, unlike the capacity

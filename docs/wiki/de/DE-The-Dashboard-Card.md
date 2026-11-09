@@ -373,7 +373,8 @@ Monats und ein Balkendiagramm des Verbrauchs nach Kalendermonat. Daran siehst du
 die Jahreszeiten: Im Winter liegt der Verbrauch regelmäßig ein Drittel über dem
 Sommer. Mit [Wetter entlang der Strecke](DE-Feature-Trips#weather-along-the-route-opt-in)
 zeigt ein zweites Diagramm den Verbrauch je 5-°C-Band der Außentemperatur und wie viel
-mehr das Auto unter 5 °C braucht als bei 15–25 °C
+mehr das Auto unter 5 °C braucht als bei 15–25 °C, mit dem heutigen Band dort
+markiert, wo das Auto steht
 ([wie](DE-Feature-Efficiency-and-Range#consumption-by-outside-temperature)); die
 Details jeder Fahrt in der Fahrtenansicht zeigen dann auch ihre Außentemperatur.
 Bei einem Plug-in-Hybrid gibt es keinen Verbrauch und keine Reichweite aus dem

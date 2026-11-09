@@ -152,6 +152,11 @@ The **cold penalty** compares the trips below 5 °C with those at 15–25 °C, o
 each side has 100 km: "Below 5 °C it uses 38% more than at 15–25 °C." Until then the
 card says what it is still waiting for.
 
+**Today** is marked on the chart: once a day the integration asks for the
+temperature where the car is parked, and the card lights that band and says
+*Today about 6 °C where the car is*, so you can read what to expect from today's
+driving. It is the midpoint of the day's low and high.
+
 These figures are **per trip**: the battery drop over the drive, so charging losses
 are not in them, and they don't match the ledger figure above one to one. A plug-in
 hybrid gets none, for the same reason as above.
