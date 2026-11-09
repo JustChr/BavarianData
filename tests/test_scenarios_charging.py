@@ -349,12 +349,57 @@ def test_a_restart_mid_charge_that_the_catch_up_confirms_stays_one_session(h, sn
     assert h.render() == snapshot
 
 
+def test_a_stop_that_comes_straight_back_after_a_restart_keeps_one_session(h, snapshot):
+    """9 Nov 2026, live: the wallbox paused for 10 s while Home Assistant started.
+
+    The first word after the restart was NOCHARGING, and the restored charge
+    was closed on it at once, so the charge that carried on 5 s later became a
+    second session. A stop seen after a restart waits out the same debounce as
+    one seen live.
+    """
+
+    _start_charge(h)
+    h.advance_to(27.7)
+    h.restart(downtime_s=80)
+    h.send(30, status="NOCHARGING", power=0, step="wallbox pauses as HA starts")
+    h.send(30.1, status="CHARGINGACTIVE", power=3480, step="and carries on")
+    h.advance_to(40)
+
+    assert h.sessions() == []
+    assert h.has_open_session()
+
+    h.send(60, status="NOCHARGING", power=0, step="unplugged")
+    h.advance_to(65)
+
+    sessions = h.sessions()
+    assert len(sessions) == 1
+    assert sessions[0].start == h.at(10)
+    assert h.render() == snapshot
+
+
+def test_a_repeated_stop_after_a_restart_does_not_put_off_the_close(h):
+    """The debounce counts from the first stop, not from each repeat of it."""
+
+    _start_charge(h)
+    h.advance_to(27.7)
+    h.restart(downtime_s=600)
+    h.send(40, stamped=33, status="NOCHARGING", power=0, step="catch-up: it ended")
+    h.send(41, status="NOCHARGING", power=0, step="said again")
+    h.advance_to(42.1)
+
+    assert len(h.sessions()) == 1
+
+
 def test_a_charge_that_ended_during_the_restart_is_filed_where_it_was_last_seen(h, snapshot):
     _start_charge(h)
     h.send(20, soc=39, status="CHARGINGACTIVE", power=3480)
     h.advance_to(27.7)
     h.restart(downtime_s=600)
     h.send(40, stamped=33, status="NOCHARGING", power=0, step="catch-up: it ended")
+    # A stop after a restart waits out the flap debounce, as a live one does.
+    h.advance_to(41.9)
+    assert h.sessions() == []
+    h.advance_to(42.1)
 
     sessions = h.sessions()
     assert len(sessions) == 1

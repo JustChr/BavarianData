@@ -525,14 +525,21 @@ class VehicleCharging:
             # First word from the stream since a restart left a charge open.
             # Either it is still running -- the same record continues -- or it
             # ended while we were away, in which case it is closed at its last
-            # sample rather than now. Deliberately not routed through the
-            # flap debounce: that window exists to rejoin a session we were
-            # watching, and here the gap has already happened.
+            # sample rather than now.
+            word = str(status).strip().upper()
             if now_charging:
                 self._resume_restored_session(vin)
-            elif str(status).strip().upper() in CHARGE_TERMINAL_STATUSES:
+            elif word == CHARGE_FINISHED_STATUS:
+                # Finished, in the car's own word: nothing to wait for.
                 self._close_restored_session(vin, status)
                 self._clear_charge_progress(vin)
+            elif word in CHARGE_TERMINAL_STATUSES:
+                # A stop. It may be the end that came while we were away, or a
+                # blip that comes straight back: on 9 Nov 2026 a wallbox paused
+                # for 10 s while Home Assistant started, and closing on the
+                # spot split one charge into two. So it waits out the same
+                # flap debounce as a stop seen live.
+                self._arm_restored_stop_timer(vin, status)
             # Anything else -- initialization, a pause, a status we don't know --
             # says nothing about whether this charge is over, so the session is
             # left restored and the grace timer keeps the deadline.
@@ -974,6 +981,33 @@ class VehicleCharging:
             self._host.hass, RESTORED_SESSION_GRACE_S, _fire
         )
 
+    def _arm_restored_stop_timer(self, vin: str, status: str) -> None:
+        """Close a restored session on a stop, unless charging comes back first.
+
+        Counts from the first stop: a repeat of it keeps the timer that runs.
+        A resume in between continues the session (``_resume_restored_session``
+        cancels this timer); otherwise it closes at its last sample, as a stop
+        found right away would have.
+        """
+
+        if self._host._peek(vin).session.restored_stop is not None:
+            return
+        self._cancel_restored_open_timer(vin)
+
+        # @callback so HA runs it on the event loop: the close touches
+        # async_dispatcher_send, which is loop-only.
+        @callback
+        def _fire(_now: datetime) -> None:
+            session = self._host._car(vin).session
+            session.restored_timer = None
+            session.restored_stop = None
+            self._close_restored_session(vin, status)
+            self._clear_charge_progress(vin)
+
+        session = self._host._car(vin).session
+        session.restored_stop = status
+        session.restored_timer = async_call_later(self._host.hass, CHARGE_CLOSE_DEBOUNCE_S, _fire)
+
     def _charge_is_evidently_running(self, vin: str) -> bool:
         """Whether the stream still shows this restored charge under way.
 
@@ -1010,6 +1044,8 @@ class VehicleCharging:
         return meter_now is not None and meter_now - builder.grid_meter_last >= METER_MOVED_KWH
 
     def _cancel_restored_open_timer(self, vin: str) -> bool:
+        if self._host._peek(vin).session.restored_stop is not None:
+            self._host._car(vin).session.restored_stop = None
         cancel = self._host._peek(vin).session.take("restored_timer")
         if cancel is None:
             return False

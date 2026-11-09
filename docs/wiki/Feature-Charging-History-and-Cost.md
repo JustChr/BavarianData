@@ -106,6 +106,12 @@ no longer loses it. When Home Assistant comes back:
   actually seen, not at the moment the integration noticed. Whatever flowed
   after that reading is not in the figure, so the record is a *floor*.
 
+A stop the car reports just after the restart waits two minutes before the
+session ends, as a stop seen while Home Assistant runs does. If charging comes
+back within them, say a wallbox that pauses for a few seconds while Home
+Assistant starts, it is still the same session. A car that calls the charge
+finished ends it at once.
+
 Either way the session is flagged **`interrupted`**, which is visible in
 `get_charging_sessions` and in an export. Battery health skips such a session
 (see [Battery health](Feature-Battery-Health)); energy and cost still count

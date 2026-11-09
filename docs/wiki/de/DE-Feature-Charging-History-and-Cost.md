@@ -121,6 +121,12 @@ zurückkommt:
   Wert, nicht in dem Moment, in dem die Integration es bemerkte. Was danach noch
   floss, ist nicht im Wert enthalten, der Datensatz ist also eine *Untergrenze*.
 
+Meldet das Auto kurz nach dem Neustart einen Stopp, wartet der Ladevorgang zwei
+Minuten, bevor er endet, so wie bei einem Stopp im laufenden Betrieb. Lädt es
+in dieser Zeit wieder, etwa weil die Wallbox beim Start von Home Assistant ein
+paar Sekunden pausiert, bleibt es derselbe Ladevorgang. Meldet das Auto das
+Laden als beendet, endet er sofort.
+
 In beiden Fällen wird der Ladevorgang als **`interrupted`** markiert, sichtbar in
 `get_charging_sessions` und im Export. Der Batteriezustand überspringt einen
 solchen Ladevorgang (siehe [Batteriezustand](DE-Feature-Battery-Health)); Energie

@@ -158,9 +158,10 @@ METER_MOVED_KWH = 0.1
 # chargingactive / chargingpaused / chargingended / chargingerror, and the
 # middle two are *transient*: a charge that is handshaking or paused is still
 # the same charge. Only used to decide the fate of a session restored across a
-# restart -- a live session has the flap debounce for this, which a restored one
-# cannot use because its gap has already happened. Anything unrecognised counts
-# as transient and waits for the grace timer instead.
+# restart: CHARGINGENDED closes it at once, the other two after the same flap
+# debounce a live stop waits out (a stop can come just after the restart and
+# go straight back). Anything unrecognised counts as transient and waits for
+# the grace timer instead.
 CHARGE_TERMINAL_STATUSES = frozenset({"NOCHARGING", "CHARGINGENDED", "CHARGINGERROR"})
 
 # BMW's in-charge progress figures, which it simply stops sending when a charge
