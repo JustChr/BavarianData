@@ -9,13 +9,184 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.28] - 2026-11-09
+
+Promotes 0.9.28-beta.1 to beta.5. The dashboard card is redesigned (card 2.0.0): a line that says what the car is doing, a bar instead of the ring, tiles that follow the moment, a hub that opens every view, small cards and a garage, and a view of the car itself. Every BMW status reads in your language, a new Charging Cable sensor suits other integrations, and the lock-screen card keeps updating without using up your phone's notifications.
+
 ### Added
+- **A card for the car itself: `view: car`.** The car's own top-down drawing
+  with whatever is open lit up and each tire's state on its wheel, the four
+  pressures at its corners (tap one for its size, tread, season and how long
+  it has left), and a line each for the doors and lock, Check Control, the
+  service items, the 12 V battery, battery health and your lease or yearly
+  mileage limit. A banner on top says the most pressing thing, or that all is
+  good. The tires, closures, health and mileage cards stay as they are.
+- **The overview as a hub: `hub: true`.** Turn on *Rooms under the overview*
+  in the card editor and the overview lists Charging, Trips, Efficiency and
+  Car under its tiles (Fuel instead of Charging and Efficiency on a petrol or
+  diesel car, and after Charging on a plug-in hybrid), each with what it would
+  say first: this month's kWh and cost, this month's kilometers and trips, the
+  real range and consumption, and whether all is well with the car or what
+  isn't. While the car charges or drives, that row says so. A tap opens the
+  room in the same card, with an arrow at its top back to the overview. Off by
+  default, so every card stays as it is.
+- **Small cards and a garage.** `view: glance` is a tile half a dashboard
+  section wide: the car's picture, its charge (or tank) and range, a thin bar,
+  the top line, and the lock and plug as small icons. `view: row` is the same
+  in one line, for a phone's first screen. `view: garage` lists every car of
+  every account in one card, one row each. A tap opens the car's charge, or,
+  with *Open on tap* (`navigation_path:`), another dashboard, such as one
+  holding the hub. Every view tells a sections dashboard how wide it likes to
+  be, so none can be shrunk narrower than it reads.
+- **A Charging Cable sensor for every car with a charging port.** It is Home
+  Assistant's standard plug sensor: *Plugged in* or *Unplugged*, the same in
+  every language, so other integrations and automations that look for one
+  find it. It follows the car's charging-port status by the same rule as the
+  evcc bridge, and reads unknown while the port reports `invalid`. The card's
+  plug tile shows it. For integrations: `unique_id` `<VIN>_charging_cable`,
+  `translation_key` `charging_cable`, device class `plug`. Thanks to
+  @henrikekblad (SpotNav#2).
+- **What a charge has cost and drawn so far.** While the car charges, the
+  *Charged Energy (Session)* sensor also carries the charge it began at
+  (`soc_start`), its cost so far at your tariff (`cost_so_far`, `currency`,
+  `cost_partial`) and the share from your solar (`solar_percent`). At home
+  only, as with a finished charge's cost; empty, never 0, when it can't be
+  told. The values go when the charge ends. The dashboard card shows them
+  while the car charges.
 - **The car's picture on the charging-complete message.** *Notify when
   charging completes* has a new setting, *Car picture*: on, the message
   carries the picture of the car that stopped charging, small beside the text
   and whole when you press and hold it. Off by default, so existing
   automations send what they sent before. The lock-screen card can't carry a
   picture: the Companion app's Live Activity takes only an icon.
+  [Automations](https://github.com/JustChr/BavarianData/wiki/Feature-Automations#starter-blueprints)
+- **The diagnostics download says whether BMW granted the REST API.** It
+  lists the permissions BMW gave your client: their names, never a token. A
+  client without *CarData API* still streams, but BMW refuses every fetch,
+  the car's picture and *Discover vehicles* with HTTP 403. Until now nothing
+  in the download told those two apart. Thanks to @strybushnyi (#296).
+  [Download diagnostics](https://github.com/JustChr/BavarianData/wiki/Troubleshooting-and-FAQ#download-diagnostics)
+
+### Changed
+- **The card's overview says what the car is doing.** Under the photo, one
+  line in words: *Ready to go*, *Charging · done at 05:40*, *On the road*,
+  *Waiting to charge*, *Charge soon* or, in red, *Something's open*, with the
+  facts behind it underneath (where, since when, what is open: *Door open ·
+  2 windows open*). Tap it for the entity behind it, such as the minutes left
+  of a charge. An open door outranks a charge, so one left open overnight on
+  the drive is never hidden behind *done at*. The words replace the badges
+  that sat on the photo; the drawing of what is open stays there. While the
+  car charges, the *Time to full* tile reads *Done at 05:40* (with the weekday
+  when that isn't today) instead of the minutes left, which are a tap away.
+- **A bar instead of the ring.** The charge (or the tank) is a bar with the
+  target as a tick: while charging, what this charge added is striped; on a
+  drive, what it used shows faintly. The range sits beside it, with what the
+  car really does the way you drive. A plug-in hybrid shows its tank as a
+  second line under the battery.
+- **Tiles that follow the car.** Without your own `tiles:`, the overview shows
+  the four that fit the moment: lock, plug, tires and location when parked;
+  power, energy added, solar share and cost while charging; distance, time and
+  charge used on a drive; what is open when something is. Your own `tiles:`
+  stay as they are, in every situation. Labels across the card are no longer
+  in capitals.
+- **Charging history, every month in figures.** Each month, not only the
+  current one, opens with what was charged, what it cost (with the price per
+  kWh, *at least* when a charge at home wasn't priced in full) and how many
+  charges, how many of them away; a bar of where the energy came from (sun,
+  house battery, grid, away) and the kWh of each day. Each charge shows its
+  from → to as a small bar and its cost under the kWh; an open one draws its
+  average power as a dashed line. The charge in progress sits on top while it
+  runs, with what it added and cost so far.
+- **Trips by day, and the map as a tab.** The trips view lists each day under
+  its own heading with the day's distance; a trip shows its type as a colored
+  dot, its time, duration and the weather on the way, and its consumption
+  beside the distance, green when it took less than the month's average and
+  amber when more. Tap a type under the month's split to list only those
+  trips. A *List | Map* switch opens the trip map inside the same card
+  (`view: map` still shows it alone). The change against last month is no
+  longer colored as if fewer kilometers were bad news.
+- **Efficiency: your range against the car's.** Under the real range, bars
+  set it against the car's own estimate and, once trips have their weather,
+  against what the same charge would go at 15–25 °C. The chart by outside
+  temperature draws mild weather as a dashed line to read each band against,
+  and marks today's band: with *Weather along the route* on, the integration
+  asks Open-Meteo once a day for the temperature where each car is parked
+  (to about 1 km; at home for a car that never sent a position) and keeps only
+  the date and the temperatures, as the *Real Range* sensor's
+  `outside_temp_c` and `outside_temp_date`. The footnote says why this
+  consumption reads higher than single trips': it counts everything between
+  two charges, parked hours and preconditioning included.
+- **The card loads only your language.** Its texts are one file per language,
+  and a browser loads English plus the language Home Assistant is set to,
+  about 150 KB less than before. Until your language has arrived, the card
+  shows English for a moment.
+- **Tapping the lock-screen card opens Home Assistant, or your car's
+  dashboard.** Until now a tap on the *Charging on the lock screen* card opened
+  the car's device page under Settings. It opens Home Assistant's start page,
+  and the new *Open on tap* setting in the blueprint takes a dashboard of your
+  own, such as `/dashboard-car`. A whole address pasted from the browser works
+  too.
+  [Automations](https://github.com/JustChr/BavarianData/wiki/Feature-Automations#starter-blueprints)
+- **State values other integrations and automations may read** (#300). An
+  automation that compares against one of the old values needs the new one:
+  - *Battery Health* while learning: `Learning (3/10)` → `learning_3`
+    (`learning_0` … `learning_10`); it still displays as *Learning (3/10)*.
+  - *Tire Condition*: `GOOD` → `good`, `DATA_OK` → `data_ok` (lowercase, like
+    every other enum state).
+  - *Phase number* gains the options `1-phases`, `2-phases`, `3-phases`, and
+    the departure-time display `no_display_departure_time`. The values the car
+    sends are unchanged.
+- **For integrations that read our entities:** no entity is renamed or
+  re-keyed. Beside the state values above, there is the new *Charging Cable*
+  sensor, and *Charged Energy (Session)* and *Real Range* gain the attributes
+  above.
+
+### Fixed
+- **Every BMW status shows in your language.** 202 states of 40 sensors
+  (charging end reason, cable lock, charging mode, preconditioning,
+  bidirectional charging and more) showed in English on a German, French or
+  any other non-English install, and many read awkwardly in English too
+  ("Dont display"). All of them have proper labels in all ten languages, and
+  no state shows a raw value any more: *3-PHASES* reads *3 phases*, an iX's
+  *NO_DISPLAY_DEPARTURE_TIME* has a label, the tire traffic light (*green*)
+  and *Tire Condition* (*DATA_OK*) are translated, and *Battery Health*'s
+  *Learning (n/10)* is shown in your language. The German labels were written
+  and checked by @stepas72, a native speaker (#300).
+- **The lock-screen card keeps updating on an iPhone.** When the charging
+  power jumped right after the start, *Charging on the lock screen* sent the
+  card several times within a minute. Before the iPhone had told Home
+  Assistant where the card's updates go, each of those sends started a new
+  card, and the one on the screen could stop updating for the rest of the
+  charge, with no countdown. After each refresh, only a stop or a pause is
+  sent within the next 3 minutes, and a new charge first ends any card left
+  over from an earlier one.
+- **The lock-screen card no longer uses up your phone's notifications.** A
+  phone gets at most 500 notifications a day from Home Assistant, and every
+  refresh of the card counts. A long charge with a swinging wallbox could go
+  past that, and the phone then got message after message saying the limit
+  was reached. The card refreshes every 5 minutes instead of every 2 (if you
+  kept the default) and never within 3 minutes of the last refresh, so even a
+  whole day of charging stays under 500.
+- **Setup no longer waits forever when you click an old bookmark.** Every
+  setup makes a new **Activate BMW data** button. One kept from an earlier
+  try reported to an address Home Assistant had already closed, but the
+  portal still said "Home Assistant will continue automatically" while the
+  setup dialog kept waiting. The bookmark tells you it is from an earlier
+  setup and asks you to drag the new one, and the setup steps say to replace
+  an older bookmark instead of "once". Thanks to @cloudbr34k84 (#293).
+- **One failed address lookup no longer makes the next trip from the same
+  place "Unknown" too.** With *Resolve addresses* on, a lookup at
+  OpenStreetMap that timed out or found the server busy was remembered as
+  "no address" for that spot until Home Assistant restarted. So the trip
+  that ended there and the next one starting there both read Unknown. Such
+  a lookup is tried once more a few seconds later, and only a real answer
+  is remembered. Thanks to @mihabo1 (#294).
+  [Trips](https://github.com/JustChr/BavarianData/wiki/Feature-Trips#privacy-by-default)
+- **The configurator's other pictures no longer vanish for a minute after a
+  redraw.** Submitting *Configure → Vehicle image* (or picking an upholstery)
+  redraws the plain 360° spin first and the rest behind it. Until then the
+  card lost the interior, lights-on and night spins, the top view and the
+  equipment names for about a minute. They stay until the new ones are ready.
 
 ## [0.9.28-beta.5] - 2026-11-09
 
