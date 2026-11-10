@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.30-beta.2] - 2026-11-10
+
 ### Fixed
 - **Home charges count as home on the card when the home zone has its own name.**
   Home Assistant names the home zone after your location ("Thuis", "Zuhause"),
