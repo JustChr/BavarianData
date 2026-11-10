@@ -224,6 +224,8 @@ export default {
   ch_mix_battery: "Batteria di casa",
   ch_mix_grid: "Rete",
   ch_mix_unknown: "non attribuito",
+  ch_restart: "Riavvio",
+  ch_restart_note: "Home Assistant si è riavviato durante questa ricarica",
   ch_duration: "Durata",
   ch_cost: "Costo",
   ch_no_cost: "nessun prezzo impostato",

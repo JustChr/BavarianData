@@ -286,7 +286,9 @@ set under **Configure → Charging costs & history**
 ([see Charging history & cost](Feature-Charging-History-and-Cost)); until then
 sessions still list with their energy. A session charged without GPS is badged
 *Home · assumed*, and one priced while the tariff was briefly unknown is tagged
-*partial price*.
+*partial price*. Energy no sensor could place, including what a charge took
+while Home Assistant restarted, shows as *unattributed*, so *Where it came from*
+adds up to the month's charging.
 
 **Places.** A **Sessions | Places** switch at the top shows, instead of the
 month's sessions, every place the car has charged at: visits, AC or DC, the

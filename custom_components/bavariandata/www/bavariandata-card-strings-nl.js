@@ -224,6 +224,8 @@ export default {
   ch_mix_battery: "Thuisaccu",
   ch_mix_grid: "Net",
   ch_mix_unknown: "niet toegerekend",
+  ch_restart: "Herstart",
+  ch_restart_note: "Home Assistant is tijdens deze laadbeurt opnieuw gestart",
   ch_duration: "Duur",
   ch_cost: "Kosten",
   ch_no_cost: "geen prijs ingesteld",

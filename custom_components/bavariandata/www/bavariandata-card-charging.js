@@ -551,6 +551,21 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
     return kwh == null ? null : Number(kwh);
   }
 
+  /** Where a charge's energy came from, adding up to the charge itself. The
+   * mix holds only what was watched live: kWh taken while Home Assistant was
+   * restarting reach the charge's total but no source, and count as
+   * unattributed here rather than vanish from the breakdown (#320). Null for a
+   * charge with no mix at all. */
+  _sessionMix(session) {
+    const mix = session.energy_mix;
+    if (!mix) return null;
+    const out = {};
+    for (const k of ["pv", "battery", "grid", "unknown"]) out[k] = Number(mix[k] || 0);
+    const gap = (this._sessionKwh(session) || 0) - (out.pv + out.battery + out.grid + out.unknown);
+    if (gap > 0.05) out.unknown += gap;
+    return out;
+  }
+
   /** A month's charging in figures, from its sessions: energy, cost, how many
    * and how many away, where the energy came from, and kWh per day. */
   _monthFigures(sessions) {
@@ -575,7 +590,8 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
         away += 1;
         mix.away += e;
       } else if (s.energy_mix) {
-        for (const k of ["pv", "battery", "grid", "unknown"]) mix[k] += Number(s.energy_mix[k] || 0);
+        const own = this._sessionMix(s);
+        for (const k of ["pv", "battery", "grid", "unknown"]) mix[k] += own[k];
       } else {
         mix.unknown += e;
       }
@@ -794,8 +810,10 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
     if (session.cost && session.cost.amount != null) {
       facts.push([this._t("ch_cost"), this._fmtCost(session.cost)]);
     }
-    const mixLabel = this._mixLabel(session.energy_mix);
+    const mixLabel = this._mixLabel(this._sessionMix(session));
     if (mixLabel) facts.push([this._t("ch_mix"), mixLabel]);
+    // Why part of it has no price or source.
+    if (session.interrupted) facts.push([this._t("ch_restart"), this._t("ch_restart_note")]);
 
     const factRow = facts
       .map(

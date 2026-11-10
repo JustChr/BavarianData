@@ -669,6 +669,26 @@ def test_a_home_zone_with_its_own_name_is_still_home() -> None:
     assert html.count('class="chg__badge chg__badge--home"') == 3
 
 
+def test_a_charge_split_by_a_restart_counts_its_gap_as_unattributed() -> None:
+    """#320: a restart mid-charge leaves kWh in the charge's total that no step
+    attributed (or priced). The month's bar and the charge's own breakdown count
+    them as unattributed, so both add up to what was charged, and the charge
+    says a restart happened."""
+
+    sessions = _month_of_charging()
+    split = next(s for s in sessions if s["energy_kwh"] == 49.8)
+    split["energy_mix"] = {"grid": 20.0, "unknown": 5.0, "solar_percent": 0.0}
+    split["interrupted"] = True
+    html = _render(I5, SCREENS["charging"], sessions=sessions, sessionsExpanded=split["start"])
+    # 5.0 measured as unknown plus the 24.8 kWh no step saw.
+    assert "unattributed <b>29.8</b>" in html
+    assert "Grid <b>36.7</b>" in html
+    assert "Grid 20 · unattributed 29.8 kWh" in html
+    assert "Home Assistant restarted during this charge" in html
+    # Only the charge that was split says so.
+    assert html.count("Home Assistant restarted") == 1
+
+
 def test_the_charge_in_progress_sits_on_top() -> None:
     session = {
         "state": "16.2",

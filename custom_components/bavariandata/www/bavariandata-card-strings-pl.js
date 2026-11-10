@@ -224,6 +224,8 @@ export default {
   ch_mix_battery: "Magazyn domowy",
   ch_mix_grid: "Sieć",
   ch_mix_unknown: "nieprzypisane",
+  ch_restart: "Ponowne uruchomienie",
+  ch_restart_note: "Home Assistant został ponownie uruchomiony podczas tego ładowania",
   ch_duration: "Czas",
   ch_cost: "Koszt",
   ch_no_cost: "brak ustawionej ceny",

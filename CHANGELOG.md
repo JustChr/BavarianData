@@ -9,6 +9,16 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **A charge split by a restart adds up again on the card.** When Home Assistant
+  restarts during a charge (saving a Configure screen does too), the energy
+  taken in the meantime counts in the charge's total but has no source or price.
+  The card dropped it from *Where it came from* and from the charge's own
+  breakdown, so they added up to less than was charged. It now counts as
+  unattributed, and the charge's detail says Home Assistant restarted during
+  it. Thanks @Kars-de-Jong (#320).
+  [The card](https://github.com/JustChr/BavarianData/wiki/The-Dashboard-Card)
+
 ## [0.9.30-beta.2] - 2026-11-10
 
 ### Fixed
