@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.30-beta.3] - 2026-11-10
+
 ### Changed
 - **The Charging Cable sensor's `restored` attribute is now `from_before_restart`.**
   Home Assistant uses `restored` itself, to mark an entity its integration no
