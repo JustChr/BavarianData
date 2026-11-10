@@ -306,8 +306,7 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
   _placeName(place) {
     if (place.unnamed) return this._t("pl_unnamed");
     if (place.zone) {
-      const home = /^home$/i.test(place.zone) || place.zone === this._homeZoneName();
-      const label = home ? this._t("ch_home") : place.zone;
+      const label = this._isHomeZone(place.zone) ? this._t("ch_home") : place.zone;
       return place.assumed ? `${label} · ${this._t("ch_assumed")}` : label;
     }
     const parts = [place.provider, place.address].filter((v) => v);
@@ -324,6 +323,13 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
   _homeZoneName() {
     const st = this._hass && this._hass.states && this._hass.states["zone.home"];
     return (st && st.attributes && st.attributes.friendly_name) || "Home";
+  }
+
+  /** Whether a stored zone name is the home zone. The server stores the name
+   * Home Assistant gives `zone.home`, which follows the location's name
+   * ("Thuis", #320), so "Home" alone is not enough. */
+  _isHomeZone(zone) {
+    return !!zone && (/^home$/i.test(zone) || zone === this._homeZoneName());
   }
 
   /** The row's one-line verdict: "10.9 kW · 1 h" or "142 kW avg · 18 min". */
@@ -529,14 +535,13 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
     draw();
   }
 
-  /** "This month" figures, read from the summary sensors when they exist. */
   /** Whether a session was charged away from home: a named zone that isn't
    * Home, a public address, or no place at all. One assumed at home (no GPS)
    * counts as home, as its badge says. */
   _isAway(session) {
     if (session.location_assumed) return false;
     const loc = session.location || {};
-    return !(loc.zone && /^home$/i.test(loc.zone));
+    return !this._isHomeZone(loc.zone);
   }
 
   /** The energy a session's row shows: the measured grid figure where there is
@@ -858,7 +863,7 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
     if (assumed) {
       label = `${this._t("ch_home")} · ${this._t("ch_assumed")}`;
       cls += " chg__badge--assumed";
-    } else if (zone && !/^home$/i.test(zone)) {
+    } else if (zone && !this._isHomeZone(zone)) {
       label = zone;
       cls += " chg__badge--away";
     } else if (zone) {

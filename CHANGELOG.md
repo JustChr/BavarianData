@@ -9,6 +9,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Home charges count as home on the card when the home zone has its own name.**
+  Home Assistant names the home zone after your location ("Thuis", "Zuhause"),
+  and the card's Sessions view only recognized the word "Home". Its month
+  summary counted every home charge as away ("15 sessions, 14 away"), left them
+  out of *Where it came from* and showed their badge as an away zone. The price
+  and the Places tab were already right. Thanks @Kars-de-Jong (#320).
+
 ## [0.9.30-beta.1] - 2026-11-10
 
 ### Added
