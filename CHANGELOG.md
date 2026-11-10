@@ -9,6 +9,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **A finished charge no longer leaves its progress on the session sensor.**
+  *Charged Energy (Session)* shows a running charge's start SoC, cost so far
+  and solar share. When the car reported its charging power as 0 just before
+  reporting the charge finished, those figures stayed on the sensor after the
+  charge ended, until the next one began. The end of a charge now clears them
+  whatever order the car's last readings arrive in.
+
 ## [0.9.29] - 2026-11-09
 
 Promotes 0.9.29-beta.1. One fix: a Home Assistant restart in the middle of a charge no longer splits it in two when the charge stops for a moment just after the restart.

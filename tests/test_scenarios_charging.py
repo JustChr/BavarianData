@@ -696,6 +696,27 @@ def test_a_charge_at_home_tells_its_cost_and_sun_while_it_runs():
         assert session.cost["amount"] >= later["cost_so_far"]
 
 
+def test_a_finished_charge_takes_its_progress_off_the_session_sensor():
+    """The maintainer's i5, 2026-11-10 00:03: BMW sent the power's 0 before
+    CHARGINGENDED, so nothing re-rendered the session sensor after the close,
+    and its start SoC and cost so far stayed on it all morning. The close itself
+    has to tell the energy sensors, whatever order the last readings came in."""
+
+    home = (48.1, 11.5)
+    with _house_harness(home) as h:
+        h.fix(5, *home)
+        _start_charge(h)
+        h.send(70, soc=42, status="CHARGINGACTIVE", power=3480)
+        h.send(100, power=0, step="power first")
+        before = len(h.hass.signals)
+        h.send(100.1, status="CHARGINGENDED", step="then the end")
+
+        assert h.coordinator.session_progress(h.vin) is None
+        told = [signal for signal, args in h.hass.signals[before:] if args[:1] == (h.vin,)]
+        assert h.coordinator.signal_history in told, "the end closed the charge"
+        assert h.coordinator.signal_energy in told, "and told the session sensor"
+
+
 def test_a_charge_elsewhere_tells_no_cost_and_no_sun_while_it_runs():
     """Away the house's tariff and meters say nothing about this charge (#97)."""
 
