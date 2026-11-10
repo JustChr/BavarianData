@@ -75,11 +75,13 @@ variables:
   notify_target: !input notify_target
   # The picked phones' notification actions (the Companion app names each after
   # the device's own name), plus a service typed in before the picker existed.
+  # Each phone once, even when it is picked and also typed in the old field
+  # (an automation moved to the picker kept its typed phone: two messages).
   notify_actions: >-
-    {{ ((phones if phones is list else [phones]) | select
+    {{ (((phones if phones is list else [phones]) | select
         | map('device_attr', 'name') | map('slugify')
         | map('regex_replace', '^', 'notify.mobile_app_') | list)
-       + ([notify_target | trim] if notify_target | trim else []) }}
+       + ([notify_target | trim] if notify_target | trim else [])) | unique | list }}
   only_on_complete: !input only_on_complete
   vehicles: !input vehicles
   # Whole percent: the event can say 80.0.
