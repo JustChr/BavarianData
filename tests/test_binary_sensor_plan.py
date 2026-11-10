@@ -248,11 +248,13 @@ def test_the_cable_says_when_the_car_measured_it() -> None:
     assert _attributes({PORT: _reading("CONNECTED", NOW)}, heard=True) == {
         "source": PORT,
         "timestamp": NOW,
-        "restored": False,
+        "from_before_restart": False,
     }
     # The car's first reading made the sensor, which never heard that reading's
     # signal: still the car's own value from this run, not a restored one.
-    assert _attributes({PORT: _reading("CONNECTED", NOW)}, heard=False)["restored"] is False
+    assert (
+        _attributes({PORT: _reading("CONNECTED", NOW)}, heard=False)["from_before_restart"] is False
+    )
 
 
 def test_the_reading_that_decided_gives_the_time() -> None:
@@ -268,16 +270,20 @@ def test_a_state_from_before_the_restart_says_so_and_keeps_its_old_time() -> Non
     assert _attributes({PORT: _reading("connected", BEFORE, restored=True)}) == {
         "source": PORT,
         "timestamp": BEFORE,
-        "restored": True,
+        "from_before_restart": True,
     }
     # Only the cable sensor's own last state so far.
     memory = plan_module.CableMemory(on=True, source=PORT, timestamp=BEFORE)
-    assert _attributes({}, memory) == {"source": PORT, "timestamp": BEFORE, "restored": True}
+    assert _attributes({}, memory) == {
+        "source": PORT,
+        "timestamp": BEFORE,
+        "from_before_restart": True,
+    }
     # A last state written before these attributes existed: restored, time unknown.
     assert _attributes({}, plan_module.CableMemory(on=True)) == {
         "source": None,
         "timestamp": None,
-        "restored": True,
+        "from_before_restart": True,
     }
 
 
@@ -286,15 +292,33 @@ def test_a_plug_reading_after_the_restart_confirms_or_clears_it() -> None:
     assert _attributes({PORT: _reading("DISCONNECTED", NOW)}, memory, heard=True) == {
         "source": PORT,
         "timestamp": NOW,
-        "restored": False,
+        "from_before_restart": False,
     }
     # The car said INVALID: unknown, and nothing from before the restart either.
     assert _attributes({PORT: _reading("INVALID", NOW)}, memory, heard=True) == {
         "source": None,
         "timestamp": None,
-        "restored": False,
+        "from_before_restart": False,
     }
 
 
 def test_a_car_that_never_said_has_nothing_to_tell() -> None:
-    assert _attributes({}) == {"source": None, "timestamp": None, "restored": False}
+    assert _attributes({}) == {"source": None, "timestamp": None, "from_before_restart": False}
+
+
+def test_the_cable_never_uses_home_assistants_own_attribute_names() -> None:
+    """HA's ``restored`` marks an orphaned entity: the frontend offers to delete it.
+
+    beta.1 named the cable's "from before the restart" flag ``restored``, so
+    after every restart the sensor looked orphaned and the recorder dropped it.
+    """
+
+    reserved = {"restored", "attribution", "supported_features"}
+    memory = plan_module.CableMemory(on=True, source=PORT, timestamp=BEFORE)
+    for attributes in (
+        _attributes({}),
+        _attributes({}, memory),
+        _attributes({PORT: _reading("connected", BEFORE, restored=True)}),
+        _attributes({PORT: _reading("CONNECTED", NOW)}, memory, heard=True),
+    ):
+        assert not reserved & set(attributes)

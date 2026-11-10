@@ -9,6 +9,15 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Changed
+- **The Charging Cable sensor's `restored` attribute is now `from_before_restart`.**
+  Home Assistant uses `restored` itself, to mark an entity its integration no
+  longer provides. So after every restart, until the cable next went in or out,
+  Home Assistant said the sensor was no longer provided and offered to delete
+  it, and its history never kept the flag. Same meaning, new name: an
+  automation or integration that reads it needs the new name. Thanks @memphi2 (#317).
+  [Entities](https://github.com/JustChr/BavarianData/wiki/Feature-Entities-and-Devices)
+
 ### Fixed
 - **A charge split by a restart adds up again on the card.** When Home Assistant
   restarts during a charge (saving a Configure screen does too), the energy

@@ -133,10 +133,12 @@ def cable_attributes(
     car measured it, so a consumer can tell an old "plugged in" from a new one
     (#317). While the sensor shows its own last state, both come from that state.
 
-    ``restored`` is true while the shown state comes from before the restart (the
-    sensor's own memory, or a port value restored with its entity) and no plug
-    reading has replaced it. BMW does not resend an unchanged value, so it can
-    stay true for hours.
+    ``from_before_restart`` is true while the shown state comes from before the
+    restart (the sensor's own memory, or a port value restored with its entity)
+    and no plug reading has replaced it. BMW does not resend an unchanged value,
+    so it can stay true for hours. Never name it ``restored``: that is Home
+    Assistant's own attribute for an entity its integration no longer provides
+    (the frontend then offers to delete it, and the recorder drops it).
     """
 
     values = _plug_values(host, vin)
@@ -146,11 +148,11 @@ def cable_attributes(
         return {
             "source": source,
             "timestamp": getattr(state, "timestamp", None) or None,
-            "restored": bool(getattr(state, "restored", False)),
+            "from_before_restart": bool(getattr(state, "restored", False)),
         }
     if cable_shown(None, memory.on, heard) is not None:
-        return {"source": memory.source, "timestamp": memory.timestamp, "restored": True}
-    return {"source": None, "timestamp": None, "restored": False}
+        return {"source": memory.source, "timestamp": memory.timestamp, "from_before_restart": True}
+    return {"source": None, "timestamp": None, "from_before_restart": False}
 
 
 def cable_shown(current: Optional[bool], restored: Optional[bool], heard: bool) -> Optional[bool]:
