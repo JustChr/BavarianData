@@ -224,6 +224,8 @@ export default {
   ch_mix_battery: "Domácí baterie",
   ch_mix_grid: "Síť",
   ch_mix_unknown: "nepřiřazeno",
+  ch_restart: "Restart",
+  ch_restart_note: "Home Assistant se během tohoto nabíjení restartoval",
   ch_duration: "Doba",
   ch_cost: "Náklady",
   ch_no_cost: "cena není nastavena",

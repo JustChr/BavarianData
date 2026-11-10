@@ -224,6 +224,8 @@ export default {
   ch_mix_battery: "House battery",
   ch_mix_grid: "Grid",
   ch_mix_unknown: "unattributed",
+  ch_restart: "Restart",
+  ch_restart_note: "Home Assistant restarted during this charge",
   ch_duration: "Duration",
   ch_cost: "Cost",
   ch_no_cost: "no price set",

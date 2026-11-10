@@ -241,6 +241,14 @@ Zwei Folgen, die man kennen sollte:
   Eine Ausnahme: Meldet der PV-Sensor bei Sonne unter dem Horizont „unbekannt“
   (viele Wechselrichter gehen nachts offline), zählt er als 0 W, sodass auch
   eine Ladung in der Nacht auf Netz und Hausspeicher aufgeteilt wird.
+- **Ein Neustart während einer Ladung hinterlässt eine Lücke**. Die Ladung läuft
+  weiter, und die Energie, die sie während des Neustarts von Home Assistant
+  aufgenommen hat, zählt in ihrer Summe mit. Für sie wurde aber kein Sensor
+  gelesen, sie hat also weder Quelle noch Preis. Die Karte zählt sie als „nicht
+  zuordenbar“, damit die Aufteilung einer Ladung immer die ganze Ladung ergibt,
+  und im Detail der Ladung steht, dass Home Assistant währenddessen neu gestartet
+  wurde. Auch das Speichern eines Konfigurieren-Bildschirms startet die
+  Integration neu.
 
 ### Was es kostet
 

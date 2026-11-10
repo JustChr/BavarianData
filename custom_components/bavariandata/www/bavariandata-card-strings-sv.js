@@ -224,6 +224,8 @@ export default {
   ch_mix_battery: "Hembatteri",
   ch_mix_grid: "Nät",
   ch_mix_unknown: "ej fördelat",
+  ch_restart: "Omstart",
+  ch_restart_note: "Home Assistant startades om under den här laddningen",
   ch_duration: "Varaktighet",
   ch_cost: "Kostnad",
   ch_no_cost: "inget pris angivet",

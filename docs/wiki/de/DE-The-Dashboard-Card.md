@@ -302,7 +302,9 @@ verbraucht daher **kein API-Kontingent**. Kosten erscheinen erst, wenn unter
 ([siehe Ladeverlauf & Kosten](DE-Feature-Charging-History-and-Cost)); bis dahin
 stehen die Ladevorgänge mit ihrer Energie da. Ein ohne GPS geladener Ladevorgang
 trägt *Zuhause · angenommen*, einer, der bepreist wurde, während der Tarif kurz
-unbekannt war, *Teilpreis*.
+unbekannt war, *Teilpreis*. Energie, die kein Sensor zuordnen konnte, auch die,
+die eine Ladung während eines Neustarts von Home Assistant aufgenommen hat, steht
+als *nicht zuordenbar* da, sodass *Woher es kam* die Ladungen des Monats ergibt.
 
 **Orte.** Ein Schalter **Ladevorgänge | Orte** oben zeigt statt der Ladevorgänge
 des Monats jeden Ort, an dem das Auto geladen hat: Besuche, AC oder DC, die

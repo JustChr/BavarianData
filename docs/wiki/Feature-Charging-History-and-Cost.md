@@ -215,6 +215,12 @@ Two consequences worth knowing:
   what *could* be attributed. One exception: a PV sensor that reads unknown
   while the sun is down (many inverters go offline at night) counts as 0 W, so
   a night charge is still split between grid and house battery.
+- **A restart during a charge leaves a gap**. The charge carries on, and the
+  energy it took while Home Assistant was restarting still counts in its total,
+  but no sensor was read for it, so it has no source and no price. The card
+  counts it as unattributed, so a charge's breakdown always adds up to the
+  charge, and the charge's detail says Home Assistant restarted during it.
+  Saving a Configure screen restarts the integration too.
 
 ### What it costs
 

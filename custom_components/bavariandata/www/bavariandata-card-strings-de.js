@@ -224,6 +224,8 @@ export default {
   ch_mix_battery: "Hausspeicher",
   ch_mix_grid: "Netz",
   ch_mix_unknown: "nicht zuordenbar",
+  ch_restart: "Neustart",
+  ch_restart_note: "Home Assistant wurde während dieser Ladung neu gestartet",
   ch_duration: "Dauer",
   ch_cost: "Kosten",
   ch_no_cost: "kein Preis gesetzt",

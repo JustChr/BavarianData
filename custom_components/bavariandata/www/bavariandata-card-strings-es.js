@@ -224,6 +224,8 @@ export default {
   ch_mix_battery: "Batería doméstica",
   ch_mix_grid: "Red",
   ch_mix_unknown: "sin atribuir",
+  ch_restart: "Reinicio",
+  ch_restart_note: "Home Assistant se reinició durante esta carga",
   ch_duration: "Duración",
   ch_cost: "Coste",
   ch_no_cost: "sin precio definido",
