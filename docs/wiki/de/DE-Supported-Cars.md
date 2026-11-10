@@ -15,6 +15,13 @@ siehe [Schritt 1](DE-Getting-Started-1-BMW-Portal-Setup#open-the-cardata-portal)
 Gibt es dort eine Kachel **BMW CarData** oder **Mini CarData**, funktioniert
 BavarianData mit diesem Auto.
 
+**Keine Kachel, weil die Seite deines Landes keine hat?** Schau mit demselben
+Login in der UK-Fahrzeugübersicht nach
+([so geht's](DE-Getting-Started-1-BMW-Portal-Setup#open-the-cardata-portal)).
+Autos in Australien funktionieren so. Andere Märkte außerhalb Europas wurden noch
+nicht gemeldet; wenn deiner funktioniert, schreib es in die
+[Diskussionen](https://github.com/JustChr/BavarianData/discussions).
+
 Die einzige Ausnahme ist **BMW Motorrad**: Motorräder werden in CarData geführt,
 BMW streamt für sie aber keine Daten
 ([mehr](DE-Troubleshooting-and-FAQ#does-bavariandata-work-with-a-bmw-motorcycle)).
@@ -43,6 +50,7 @@ CarData sollte funktionieren; die Liste zeigt nur, was schon gesehen wurde.
 | --- | --- | --- |
 | BMW i5 eDrive40 | Elektrisch | Das Auto des Maintainers. |
 | BMW i4 M60 xDrive, i4 eDrive35 | Elektrisch | — |
+| BMW i4 M50 | Elektrisch | Läuft in Australien, eingerichtet über das UK-Portal, weil die australische Seite keine CarData-Kachel hat ([D#293](https://github.com/JustChr/BavarianData/discussions/293)). |
 | BMW iX3 (neue Generation) | Elektrisch | BMW streamt zusätzlich zur echten Einstellung immer wieder ein Ladeziel von 100 % ([#52](https://github.com/JustChr/BavarianData/issues/52)). |
 | BMW i3s 120 Ah | Elektrisch | — |
 | BMW X3 30e xDrive | Plug-in-Hybrid | Streamt den Ladestand nicht; er kommt mit der [täglichen REST-Aktualisierung](DE-Feature-API-Quota#the-daily-refresh). |
