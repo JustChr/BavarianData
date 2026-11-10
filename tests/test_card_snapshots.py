@@ -650,6 +650,25 @@ def test_a_month_of_charging(snapshot) -> None:
     assert html == snapshot
 
 
+def test_a_home_zone_with_its_own_name_is_still_home() -> None:
+    """#320: Home Assistant names the home zone after the location, "Thuis" on a
+    Dutch install, and the sessions store that name. The month's figures and the
+    badges must read it as home, as the server, the price and the Places tab do."""
+
+    sessions = _month_of_charging()
+    for s in sessions:
+        if s["location"].get("zone") == "Home":
+            s["location"] = {**s["location"], "zone": "Thuis"}
+    states = {
+        **I5,
+        "zone.home": {"state": "0", "attributes": {"friendly_name": "Thuis"}},
+    }
+    html = _render(states, SCREENS["charging"], sessions=sessions)
+    assert "Sessions, 1 away" in html
+    assert "PV <b>13.3</b>" in html
+    assert html.count('class="chg__badge chg__badge--home"') == 3
+
+
 def test_the_charge_in_progress_sits_on_top() -> None:
     session = {
         "state": "16.2",
