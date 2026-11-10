@@ -9,6 +9,16 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **The Charging Cable sensor says when the car measured it.** New attributes:
+  `timestamp` (BMW's time for the plug state), `source` (which of the car's
+  plug readings decided it) and `restored` (true while the state is the one from
+  before a Home Assistant restart and the car hasn't confirmed it yet). An
+  integration or automation that acts on a plug-in can now tell a new plug-in
+  from one that is older than its own last look, such as a car driven off while
+  Home Assistant was down. Thanks @memphi2 (#317).
+  [Entities](https://github.com/JustChr/BavarianData/wiki/Feature-Entities-and-Devices)
+
 ### Fixed
 - **A finished charge no longer leaves its progress on the session sensor.**
   *Charged Energy (Session)* shows a running charge's start SoC, cost so far

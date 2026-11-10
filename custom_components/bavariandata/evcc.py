@@ -165,16 +165,28 @@ def plug_state(values: Mapping[str, Any]) -> Optional[bool]:
     entity's lower-case state rather than BMW's upper-case original.
     """
 
+    source = plug_source(values)
+    return None if source is None else _plug_answer(values[source])
+
+
+def plug_source(values: Mapping[str, Any]) -> Optional[str]:
+    """The descriptor whose value :func:`plug_state` answers by, or ``None``."""
+
     for descriptor in PLUG_DESCRIPTORS:
-        value = values.get(descriptor)
-        if isinstance(value, bool):
-            return value
-        if isinstance(value, str):
-            word = value.strip().upper()
-            if word == "CONNECTED":
-                return True
-            if word == "DISCONNECTED":
-                return False
+        if _plug_answer(values.get(descriptor)) is not None:
+            return descriptor
+    return None
+
+
+def _plug_answer(value: Any) -> Optional[bool]:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        word = value.strip().upper()
+        if word == "CONNECTED":
+            return True
+        if word == "DISCONNECTED":
+            return False
     return None
 
 

@@ -88,18 +88,17 @@ async def test_the_charging_cable_is_a_plug_sensor_off_the_port_status(
     """SpotNav#2: Home Assistant's standard "cable in", in every language."""
 
     entry, _device = await _car(hass, no_bmw)
-    coordinator = entry.runtime_data.coordinator
     assert not [
         e
         for e in er.async_entries_for_config_entry(er.async_get(hass), entry.entry_id)
         if e.unique_id == f"{VIN}_charging_cable"
     ]
 
-    async def port(value: str) -> str:
-        await coordinator.async_handle_message(
+    async def port(value: str, stamp: str = STAMP) -> str:
+        await entry.runtime_data.coordinator.async_handle_message(
             {
                 "vin": VIN,
-                "data": {"vehicle.body.chargingPort.status": {"value": value, "timestamp": STAMP}},
+                "data": {"vehicle.body.chargingPort.status": {"value": value, "timestamp": stamp}},
             }
         )
         await hass.async_block_till_done()
@@ -109,15 +108,29 @@ async def test_the_charging_cable_is_a_plug_sensor_off_the_port_status(
     assert await port("CONNECTED") == "on"
     cable = hass.states.get(_binary(hass, entry, "charging_cable").entity_id)
     assert cable.attributes["device_class"] == "plug"
+    # #317: when the car measured it, and by which reading.
+    assert cable.attributes["timestamp"] == STAMP
+    assert cable.attributes["source"] == "vehicle.body.chargingPort.status"
+    assert cable.attributes["restored"] is False
     assert await port("DISCONNECTED") == "off"
     # INVALID is no answer: unknown, not "unplugged" and not the last reading.
     assert await port("INVALID") == "unknown"
     assert await port("CONNECTED") == "on"
 
-    # A reload brings it back with the car's plug state.
+    # A reload brings it back with the car's plug state, marked as from before
+    # the reload and with the time the car measured it, not the reload's (#317).
     assert await hass.config_entries.async_reload(entry.entry_id)
     await hass.async_block_till_done()
-    assert hass.states.get(cable.entity_id).state == "on"
+    cable = hass.states.get(cable.entity_id)
+    assert cable.state == "on"
+    assert cable.attributes["timestamp"] == STAMP
+    assert cable.attributes["restored"] is True
+
+    # The car's next plug reading confirms it.
+    later = "2026-10-24T09:30:00Z"
+    assert await port("DISCONNECTED", later) == "off"
+    cable = hass.states.get(cable.entity_id)
+    assert (cable.attributes["timestamp"], cable.attributes["restored"]) == (later, False)
 
 
 async def test_a_car_is_offered_only_the_triggers_it_can_fire(hass: HomeAssistant, no_bmw) -> None:

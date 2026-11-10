@@ -68,6 +68,9 @@ class DescriptorState:
     value: Any
     unit: Optional[str]
     timestamp: Optional[str]
+    # Came back from before a restart (an entity's last state), not from BMW in
+    # this run. ``timestamp`` is still the time the car measured it.
+    restored: bool = False
 
 
 @dataclass
