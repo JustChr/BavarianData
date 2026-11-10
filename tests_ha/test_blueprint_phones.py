@@ -58,6 +58,9 @@ CASES = {
     "picker": (["Pixel 10"], "", {"pixel_10"}),
     "older field": ([], "notify.mobile_app_iphone", {"iphone"}),
     "both": (["Pixel 10"], "notify.mobile_app_iphone", {"pixel_10", "iphone"}),
+    # Picked and still typed in the old field: one message, not two (each
+    # expected phone below must hear exactly once).
+    "same phone in both": (["iPhone"], "notify.mobile_app_iphone", {"iphone"}),
     "neither": ([], "", set()),
 }
 

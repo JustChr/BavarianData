@@ -16,6 +16,12 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   reporting the charge finished, those figures stayed on the sensor after the
   charge ended, until the next one began. The end of a charge now clears them
   whatever order the car's last readings arrive in.
+- **One message per phone from the notifying blueprints.** *Notify when
+  charging completes* and *Stop charging at target %* sent every message
+  twice to a phone that was picked under *Phones* and also still typed under
+  *Older setting*. That happens to an automation moved to the picker that
+  kept its typed phone. Each phone now gets one message. The update brings
+  the fixed blueprints; one imported by its link needs importing again.
 
 ## [0.9.29] - 2026-11-09
 
