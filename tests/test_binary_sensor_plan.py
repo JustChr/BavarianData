@@ -224,3 +224,77 @@ def test_the_restored_state_holds_only_until_the_car_speaks() -> None:
     assert shown(False, True, heard=False) is False  # the port sensor restored first
     assert shown(None, True, heard=True) is None  # the car said INVALID: unknown, not stale
     assert shown(True, None, heard=True) is True
+
+
+CLEAR_TEXT = "vehicle.body.chargingPort.statusClearText"
+BEFORE = "2026-11-10T05:12:40Z"  # measured before Home Assistant went down
+NOW = "2026-11-10T06:31:33Z"
+
+
+def _reading(value: Any, timestamp: str, restored: bool = False) -> SimpleNamespace:
+    return SimpleNamespace(value=value, timestamp=timestamp, restored=restored)
+
+
+def _attributes(states: dict[str, Any], memory=None, heard: bool = False) -> dict[str, Any]:
+    coordinator = FakeCoordinator()
+    for descriptor, state in states.items():
+        coordinator.states[(EV, descriptor)] = state
+    return plan_module.cable_attributes(coordinator, EV, memory or plan_module.CableMemory(), heard)
+
+
+def test_the_cable_says_when_the_car_measured_it() -> None:
+    """#317: a consumer acting on a plug-in needs BMW's time, not HA's write time."""
+
+    assert _attributes({PORT: _reading("CONNECTED", NOW)}, heard=True) == {
+        "source": PORT,
+        "timestamp": NOW,
+        "restored": False,
+    }
+    # The car's first reading made the sensor, which never heard that reading's
+    # signal: still the car's own value from this run, not a restored one.
+    assert _attributes({PORT: _reading("CONNECTED", NOW)}, heard=False)["restored"] is False
+
+
+def test_the_reading_that_decided_gives_the_time() -> None:
+    states = {PORT: _reading("INVALID", NOW), CLEAR_TEXT: _reading("CONNECTED", BEFORE)}
+    assert _attributes(states, heard=True)["source"] == CLEAR_TEXT
+    assert _attributes(states, heard=True)["timestamp"] == BEFORE
+
+
+def test_a_state_from_before_the_restart_says_so_and_keeps_its_old_time() -> None:
+    """#317: unplugged and driven off while HA was down must not look fresh."""
+
+    # The port sensor's restore came first: its value keeps BMW's time.
+    assert _attributes({PORT: _reading("connected", BEFORE, restored=True)}) == {
+        "source": PORT,
+        "timestamp": BEFORE,
+        "restored": True,
+    }
+    # Only the cable sensor's own last state so far.
+    memory = plan_module.CableMemory(on=True, source=PORT, timestamp=BEFORE)
+    assert _attributes({}, memory) == {"source": PORT, "timestamp": BEFORE, "restored": True}
+    # A last state written before these attributes existed: restored, time unknown.
+    assert _attributes({}, plan_module.CableMemory(on=True)) == {
+        "source": None,
+        "timestamp": None,
+        "restored": True,
+    }
+
+
+def test_a_plug_reading_after_the_restart_confirms_or_clears_it() -> None:
+    memory = plan_module.CableMemory(on=True, source=PORT, timestamp=BEFORE)
+    assert _attributes({PORT: _reading("DISCONNECTED", NOW)}, memory, heard=True) == {
+        "source": PORT,
+        "timestamp": NOW,
+        "restored": False,
+    }
+    # The car said INVALID: unknown, and nothing from before the restart either.
+    assert _attributes({PORT: _reading("INVALID", NOW)}, memory, heard=True) == {
+        "source": None,
+        "timestamp": None,
+        "restored": False,
+    }
+
+
+def test_a_car_that_never_said_has_nothing_to_tell() -> None:
+    assert _attributes({}) == {"source": None, "timestamp": None, "restored": False}

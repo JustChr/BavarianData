@@ -164,20 +164,34 @@ class CardataChargingCableBinarySensor(CardataEntity, BinarySensorEntity):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, binary_sensor_plan.CHARGING_CABLE)
-        self._restored: Optional[bool] = None
+        self._memory = binary_sensor_plan.CableMemory()
         self._heard = False
 
     @property
     def is_on(self) -> Optional[bool]:
         return binary_sensor_plan.cable_shown(
-            binary_sensor_plan.plugged(self._coordinator, self.vin), self._restored, self._heard
+            binary_sensor_plan.plugged(self._coordinator, self.vin), self._memory.on, self._heard
         )
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        attrs = dict(super().extra_state_attributes)
+        attrs.update(
+            binary_sensor_plan.cable_attributes(
+                self._coordinator, self.vin, self._memory, self._heard
+            )
+        )
+        return attrs
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
         last_state = await self.async_get_last_state()
         if last_state and last_state.state in ("on", "off"):
-            self._restored = last_state.state == "on"
+            self._memory = binary_sensor_plan.CableMemory(
+                on=last_state.state == "on",
+                source=last_state.attributes.get("source"),
+                timestamp=last_state.attributes.get("timestamp"),
+            )
         self.async_on_remove(
             async_dispatcher_connect(
                 self.hass, self._coordinator.signal_update, self._handle_update

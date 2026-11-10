@@ -1649,6 +1649,7 @@ class CardataCoordinator:
             value=stored_value,
             unit=unit,
             timestamp=timestamp,
+            restored=True,
         )
         self.events.seed_edge(vin, descriptor, stored_value)
         if descriptor in (DESC_GPS_LAT, DESC_GPS_LON):

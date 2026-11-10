@@ -284,7 +284,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | Look-alike BMW fields: which range and which state-of-charge entity to use; `unknown` (no value yet, what each derived entity waits for, Real Range's `status`) vs `unavailable` (integration not running) | 🟢 Feature-Entities-and-Devices → "Which range entity to use" + "Which state-of-charge entity to use" + "Unknown or unavailable?" + Feature-Efficiency-and-Range → "The Real Range sensor" + Troubleshooting-and-FAQ → "One sensor reads unknown or looks stuck" (EN + DE; issue #62) |
 | `driving_distance_month` | Monthly distance + split | 🟡 |
 | `trip_in_progress` (binary_sensor) | The drive under way, with live attributes | 🟢 Feature-Trips → "Seeing the drive that's happening now" + Feature-Entities-and-Devices + The-Dashboard-Card |
-| `charging_cable` (binary_sensor, `plug` class) | Whether a cable is in, by the evcc bridge's plug rule; for other integrations (SpotNav#2) | 🟢 Feature-Entities-and-Devices → derived table (EN + DE) |
+| `charging_cable` (binary_sensor, `plug` class) | Whether a cable is in, by the evcc bridge's plug rule; for other integrations (SpotNav#2); attrs `timestamp`/`source`/`restored` (#317) | 🟢 Feature-Entities-and-Devices → derived table (EN + DE) |
 | `tyre_status`, `tyre_<position>` (×4) | Tire wear / condition from the REST diagnosis | 🟢 Feature-Entities-and-Devices + The-Dashboard-Card |
 | `api_quota_remaining` | Diagnostic | 🟡 |
 | `connection_status`, `last_message`, `last_telematic_api` | Diagnostics | ❌ |
