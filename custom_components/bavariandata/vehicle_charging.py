@@ -1152,6 +1152,10 @@ class VehicleCharging:
         # snapshot has to go even when there is no history to file the record in,
         # or the next start would resurrect it.
         self._clear_open_session(vin)
+        # The session sensor shows this charge's progress until told it is over;
+        # a power reading of 0 that arrived before the end re-rendered it too
+        # early to drop it (the i5, 2026-11-10 00:03).
+        async_dispatcher_send(self._host.hass, self._host.signal_energy, vin)
         if builder is None or self._host.history is None:
             return None
 
