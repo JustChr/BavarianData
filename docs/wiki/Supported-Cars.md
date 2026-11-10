@@ -12,6 +12,12 @@ Open your car in the BMW or MINI portal (**My Vehicles → Vehicle overview**, s
 [step 1](Getting-Started-1-BMW-Portal-Setup#open-the-cardata-portal)). If there is a
 **BMW CarData** or **Mini CarData** tile, BavarianData works with that car.
 
+**No tile because your country's site has none?** Look on the UK vehicle overview
+with the same login ([how](Getting-Started-1-BMW-Portal-Setup#open-the-cardata-portal)).
+Cars in Australia work that way. Other markets outside Europe haven't been
+reported yet; if yours works, say so in
+[Discussions](https://github.com/JustChr/BavarianData/discussions).
+
 The one exception is **BMW Motorrad**: motorcycles are listed in CarData, but BMW
 streams no data for them ([more](Troubleshooting-and-FAQ#does-bavariandata-work-with-a-bmw-motorcycle)).
 
@@ -35,6 +41,7 @@ Any car with CarData should work; this list is only what has been seen.
 | --- | --- | --- |
 | BMW i5 eDrive40 | Electric | The maintainer's car. |
 | BMW i4 M60 xDrive, i4 eDrive35 | Electric | — |
+| BMW i4 M50 | Electric | Runs in Australia, set up from the UK portal because the Australian site has no CarData tile ([D#293](https://github.com/JustChr/BavarianData/discussions/293)). |
 | BMW iX3 (new generation) | Electric | BMW streams a repeating 100 % charge target on top of the real setting ([#52](https://github.com/JustChr/BavarianData/issues/52)). |
 | BMW i3s 120 Ah | Electric | — |
 | BMW X3 30e xDrive | Plug-in hybrid | Doesn't stream the state of charge; it arrives with the [daily REST refresh](Feature-API-Quota#the-daily-refresh). |

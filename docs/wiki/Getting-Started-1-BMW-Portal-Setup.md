@@ -38,8 +38,8 @@ Direct links to the vehicle overview per market:
 
 **No BMW CarData tile on your country's site?** Sign in with the same BMW login
 on the English (UK) vehicle overview above and look there. An owner in Australia,
-whose local site has no tile, found it on the UK page, and the client ID it gave
-authorized their car.
+whose local site has no tile, found it on the UK page, and with the client ID it
+gave their car streams like one from Europe.
 
 ## Create the client ID
 

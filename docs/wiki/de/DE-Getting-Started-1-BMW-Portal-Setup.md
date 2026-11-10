@@ -45,7 +45,7 @@ Direktlinks zur Fahrzeugübersicht je Markt:
 **Keine Kachel BMW CarData auf der Seite deines Landes?** Melde dich mit demselben
 BMW-Login in der englischen (UK) Fahrzeugübersicht oben an und schau dort nach.
 In Australien, wo die Landesseite keine Kachel hat, fand sie ein Besitzer auf der
-UK-Seite, und die Client-ID von dort hat das Auto autorisiert.
+UK-Seite, und mit der Client-ID von dort streamt sein Auto wie eines aus Europa.
 
 ## Die Client-ID erstellen
 
