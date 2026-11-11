@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.30-beta.6] - 2026-11-11
+
 ### Changed
 - **A lease's prices for extra and unused km are entered in cents.** Contracts
   print them that way ("20.06 ct/km"), and the field in euros only took three
