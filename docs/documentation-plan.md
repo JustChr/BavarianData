@@ -188,7 +188,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `charge_locations` (Remember charging locations; off deletes coordinates) | Charging costs & history | 🟢 Settings-Reference + Feature-Charging-History-and-Cost → "Remember charging locations" (EN + DE) |
 | `refresh_on_start` | Automatic data refresh | 🟢 Settings-Reference → "Automatic data refresh" + Feature-Charging-History-and-Cost → "Restarting while the car is charging" |
 | `bridge_enabled` | MQTT bridge (evcc & more) | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge (incl. "Away from home, the status is withheld") |
-| `mileage_kind`, `mileage_start`, `mileage_end`, `mileage_allowance_km`, `mileage_start_km` | Mileage allowance (stored under `vehicles[VIN]`) | 🟢 Settings-Reference → "Mileage allowance" + Feature-Mileage |
+| `mileage_kind`, `mileage_start`, `mileage_end`, `mileage_allowance_km`, `mileage_start_km`, `mileage_extra_price`, `mileage_unused_refund`, `mileage_tolerance_km` (lease only, section `lease_costs`; #325: Feature-Mileage → "What it costs at the return", EN + DE; `-lease.png` needs a reshoot with the collapsed section) | Mileage allowance (stored under `vehicles[VIN]`) | 🟢 Settings-Reference → "Mileage allowance" + Feature-Mileage |
 | `unit_distance`, `unit_fuel`, `unit_temperature`, `unit_pressure` | Units | 🟢 Settings-Reference → "Units" (EN + DE) |
 | `bridge_stream_enabled` | MQTT bridge (evcc & more), per car | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge → "Sharing the whole stream, with other apps" |
 | `bridge_stream_hide_position` | MQTT bridge (evcc & more), all vehicles | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge → "Sharing the whole stream, with other apps" |
@@ -260,6 +260,7 @@ Targeting (the **Vehicle** picker `device_id`, `vin`, `entry_id`; one-car servic
 | `get_fuel_history` | free | 🟢 Services-Reference + The-Dashboard-Card → "Fuel" |
 | `get_evcc_config` | free | 🟢 Services-Reference + Feature-evcc-and-Wallbox-Bridge |
 | `set_trip_class` | free | 🟡 |
+| `set_charge_cost` | free | 🟢 Services-Reference + Feature-Charging-History-and-Cost → "Entering what a charge cost" + The-Dashboard-Card (EN + DE) |
 | `mark_trip_start` | free | 🟢 Services-Reference + Feature-Trips → "Older cars…" (EN + DE) |
 | `export_history` | free | 🟡 |
 | `import_statistics` | free | 🟡 |

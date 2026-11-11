@@ -68,6 +68,21 @@ Was du siehst:
 | **Pro Tag bis zum Ende** | Der Rest des Kontingents geteilt durch die verbleibenden Tage. |
 | **Bei diesem Tempo** | Gefahren plus dein 90-Tage-Tempo bis zum Ende, und wie weit das vom Kontingent entfernt landet. |
 
+### Was es bei Rückgabe kostet
+
+<a id="what-it-costs-at-the-return"></a>
+
+Ein Leasing berechnet oft jeden Kilometer über dem Kontingent und vergütet einen
+Teil der nicht gefahrenen, meist erst jenseits einer Freigrenze (2.500 km sind
+üblich). Trag diese Bedingungen unter **Mehr- und Minderkilometer** in der
+Leasing-Maske ein ([Felder](DE-Settings-Reference#kilometerkontingent)), und die
+Karte zeigt unter *Bei diesem Tempo* eine weitere Zeile: was die erwarteten
+Mehrkilometer bei Rückgabe kosten, die Vergütung für die erwarteten
+Minderkilometer oder dass du innerhalb der Freigrenze bleibst. Der Betrag gilt in
+der Währung unter **Konfigurieren → Ladekosten & Verlauf**. Jede Angabe ist
+optional: Ohne Vergütung zeigt ein Auto, das unter dem Kontingent bleibt, keine
+Geldzeile statt einer Vergütung von null.
+
 Der Kilometerstand bei Übergabe ist die Grundlage des Vergleichs. Hast du ihn
 nicht, füllt die Maske den heutigen Stand ein. Das stimmt nur, wenn der Vertrag
 heute beginnt; bei einem älteren Vertrag nimm die Zahl aus dem
@@ -83,7 +98,9 @@ hinzugefügtes Auto übernimmt nie das Leasing eines anderen.
 - Die Ansicht **Kilometer** der Karte ([`view: mileage`](DE-The-Dashboard-Card#mileage-view-mileage)).
 - Der Sensor **Kilometerkontingent-Saldo**, **standardmäßig deaktiviert**: unter
   (+) oder über (−) Plan in km, mit gefahren, verbleibend, Kilometer pro Tag und
-  dem erwarteten Ende als Attributen. Unbekannt, solange das Auto kein
+  dem erwarteten Ende als Attributen, dazu `projected_lease_cost` (negativ bei
+  einer Vergütung) mit seiner `currency`, wenn das Leasing
+  [seine Bedingungen](#was-es-bei-rückgabe-kostet) hat. Unbekannt, solange das Auto kein
   Kontingent hat. Am Gerät des Autos aktivieren, wenn du ihn für Automationen
   brauchst, etwa für eine Warnung ab 500 km über Plan.
 - Der Dienst `bavariandata.get_mileage_report`

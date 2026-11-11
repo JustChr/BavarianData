@@ -1103,6 +1103,12 @@ export default (Base) => class StylesPart extends Base {
         opacity: 0.6;
       }
       .tr__cls-btn:hover { opacity: 1; }
+      .chg__paid-in {
+        width: 6.5em; font: inherit; font-size: 0.8rem; padding: 3px 6px;
+        border: 1px solid var(--divider-color); border-radius: 6px;
+        background: var(--card-background-color, transparent); color: var(--primary-text-color);
+      }
+      .chg__paid-cur { font-size: 0.72rem; color: var(--secondary-text-color); }
       .tr__cls-btn.is-active { opacity: 1; color: #fff; border-color: transparent; }
 
       @media (prefers-reduced-motion: reduce) {

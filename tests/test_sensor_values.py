@@ -212,6 +212,13 @@ def test_mileage_attributes_carry_every_allowance_field() -> None:
     assert attrs["kind"] == "lease" and attrs["used_km"] == 1200
 
 
+def test_a_lease_with_terms_carries_its_projected_cost() -> None:
+    attrs = values.mileage_attributes(
+        {"kind": "lease", "lease_cost": {"amount": -20.0, "currency": "EUR"}}
+    )
+    assert attrs["projected_lease_cost"] == -20.0 and attrs["currency"] == "EUR"
+
+
 # -- tyres --------------------------------------------------------------------
 
 

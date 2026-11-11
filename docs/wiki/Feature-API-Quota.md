@@ -39,8 +39,8 @@ values move on the scale of days, not minutes.
 
 - The **MQTT stream** — the primary data path. All the streamed sensors, the
   charging/trip/health history, statistics and export are **free**.
-- The **`get_*`** and `export_history` / `import_statistics` / `set_trip_class`
-  services — they read or write the integration's own local store.
+- The **`get_*`** and `export_history` / `import_statistics` / `set_trip_class` /
+  `set_charge_cost` services — they read or write the integration's own local store.
 
 Prefer the stream. Poll only what the stream genuinely cannot carry, and cache
 what's fetched — the vehicle image and the tire diagnosis are both kept across

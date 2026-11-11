@@ -1097,6 +1097,8 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
           );
         }
       }
+      const cost = this._miLeaseCost(a.lease_cost, dist);
+      if (cost) lines.push(cost);
       rows = `
         <div class="mi__bar${over ? " mi__bar--over" : ""}" role="img"
              aria-label="${this._attr(this._t("mi_of", { used: dist(used), total: dist(total) }))}">
@@ -1110,6 +1112,20 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
         <span class="ef__trend-title">${head}</span>
         ${rows}
       </div>`;
+  }
+
+  /** What the projected distance over or under a lease costs at the return
+   * (#325), from the contract's terms under Configure. Nothing without them. */
+  _miLeaseCost(c, dist) {
+    if (!c || c.amount == null) return "";
+    const money = this._fmtCost({ amount: Math.abs(c.amount), currency: c.currency });
+    const text =
+      c.amount > 0
+        ? this._t("mi_cost_extra", { cost: money, d: dist(c.extra_km) })
+        : c.amount < 0
+        ? this._t("mi_cost_refund", { cost: money, d: dist(c.unused_km) })
+        : this._t("mi_cost_none");
+    return `<span class="ef__note${c.amount > 0 ? " ef__vs--over" : ""}">${text}</span>`;
   }
 
   /** Distance per month as bars, oldest left. A month the log doesn't reach

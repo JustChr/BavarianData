@@ -21,6 +21,7 @@ from .history.summary import (
     summarise,
     trips_in_month,
 )
+from .history.pricing import cleared_cost, entered_cost
 from .history.trips import CLASSIFICATIONS, SOURCE_USER
 from .debug import (
     mask_vin,
@@ -76,6 +77,49 @@ async def async_handle_set_trip_class(ctx: ServiceContext, call: Any) -> None:
     trip.classification_source = SOURCE_USER
     runtime.history.add_trip(trip)
     async_dispatcher_send(hass, coordinator.signal_trips, vin)
+
+
+SET_CHARGE_COST_SCHEMA = vol.Schema(
+    {
+        vol.Optional("entry_id"): str,
+        vol.Optional("device_id"): str,
+        vol.Optional("vin"): str,
+        vol.Required("session_id"): str,
+        # Left out, the entered amount is taken back.
+        vol.Optional("amount"): vol.All(vol.Coerce(float), vol.Range(min=0)),
+    }
+)
+
+
+async def async_handle_set_charge_cost(ctx: ServiceContext, call: Any) -> None:
+    """Enter what a charge cost (a receipt), or take an entered amount back (#324).
+
+    Local only -- no quota. The amount is in the account's currency and
+    outranks BMW's figure and the tariff's; the one it replaces is kept.
+    """
+
+    hass = ctx.hass
+    _entry_id, entry, runtime, vin = ctx.resolve_target(call)
+    if runtime.history is None:
+        raise invalid(Refusal("no_charging_history"))
+    coordinator = runtime.coordinator
+    session_id = call.data["session_id"]
+    if vin is None:
+        # A charge's id starts with its car's VIN, like a trip's.
+        vin = service_answers.trip_vin(session_id, ctx.account_vins(entry, runtime))
+    vin = ctx.pick_vin(entry, runtime, vin, required=True)
+    session = runtime.history.find_session(vin, session_id)
+    if session is None:
+        shown = session_id.replace(vin, mask_vin(vin))
+        raise invalid(Refusal("charge_not_found", charge=repr(shown), vin=mask_vin(vin)))
+    amount = call.data.get("amount")
+    if amount is None:
+        session.cost = cleared_cost(session.cost)
+    else:
+        currency = coordinator.pricing_for(vin).currency
+        session.cost = entered_cost(amount, currency, session.cost)
+    runtime.history.add_session(session)
+    async_dispatcher_send(hass, coordinator.signal_history, vin)
 
 
 async def async_handle_mark_trip_start(ctx: ServiceContext, call: Any) -> None:

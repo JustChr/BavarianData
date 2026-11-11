@@ -2133,6 +2133,68 @@
             }),
           }),
         }),
+        dict({
+          'default': dict({
+          }),
+          'expanded': False,
+          'name': 'lease_costs',
+          'optional': True,
+          'required': False,
+          'schema': list([
+            dict({
+              'description': dict({
+                'suggested_value': None,
+              }),
+              'name': 'mileage_extra_price',
+              'optional': True,
+              'required': False,
+              'selector': dict({
+                'number': dict({
+                  'max': 10.0,
+                  'min': 0.0,
+                  'mode': 'box',
+                  'step': 0.001,
+                  'unit_of_measurement': 'EUR/km',
+                }),
+              }),
+            }),
+            dict({
+              'description': dict({
+                'suggested_value': None,
+              }),
+              'name': 'mileage_unused_refund',
+              'optional': True,
+              'required': False,
+              'selector': dict({
+                'number': dict({
+                  'max': 10.0,
+                  'min': 0.0,
+                  'mode': 'box',
+                  'step': 0.001,
+                  'unit_of_measurement': 'EUR/km',
+                }),
+              }),
+            }),
+            dict({
+              'description': dict({
+                'suggested_value': None,
+              }),
+              'name': 'mileage_tolerance_km',
+              'optional': True,
+              'required': False,
+              'selector': dict({
+                'number': dict({
+                  'max': 100000.0,
+                  'min': 0.0,
+                  'mode': 'box',
+                  'step': 1.0,
+                  'unit_of_measurement': 'km',
+                }),
+              }),
+            }),
+          ]),
+          'type': 'expandable',
+        }),
       ]),
       'description_placeholders': dict({
         'vehicle': 'i5 eDrive40',
@@ -2198,6 +2260,68 @@
               'unit_of_measurement': 'km',
             }),
           }),
+        }),
+        dict({
+          'default': dict({
+          }),
+          'expanded': False,
+          'name': 'lease_costs',
+          'optional': True,
+          'required': False,
+          'schema': list([
+            dict({
+              'description': dict({
+                'suggested_value': None,
+              }),
+              'name': 'mileage_extra_price',
+              'optional': True,
+              'required': False,
+              'selector': dict({
+                'number': dict({
+                  'max': 10.0,
+                  'min': 0.0,
+                  'mode': 'box',
+                  'step': 0.001,
+                  'unit_of_measurement': 'EUR/km',
+                }),
+              }),
+            }),
+            dict({
+              'description': dict({
+                'suggested_value': None,
+              }),
+              'name': 'mileage_unused_refund',
+              'optional': True,
+              'required': False,
+              'selector': dict({
+                'number': dict({
+                  'max': 10.0,
+                  'min': 0.0,
+                  'mode': 'box',
+                  'step': 0.001,
+                  'unit_of_measurement': 'EUR/km',
+                }),
+              }),
+            }),
+            dict({
+              'description': dict({
+                'suggested_value': None,
+              }),
+              'name': 'mileage_tolerance_km',
+              'optional': True,
+              'required': False,
+              'selector': dict({
+                'number': dict({
+                  'max': 100000.0,
+                  'min': 0.0,
+                  'mode': 'box',
+                  'step': 1.0,
+                  'unit_of_measurement': 'km',
+                }),
+              }),
+            }),
+          ]),
+          'type': 'expandable',
         }),
       ]),
       'description_placeholders': dict({
@@ -2266,6 +2390,68 @@
             }),
           }),
         }),
+        dict({
+          'default': dict({
+          }),
+          'expanded': False,
+          'name': 'lease_costs',
+          'optional': True,
+          'required': False,
+          'schema': list([
+            dict({
+              'description': dict({
+                'suggested_value': None,
+              }),
+              'name': 'mileage_extra_price',
+              'optional': True,
+              'required': False,
+              'selector': dict({
+                'number': dict({
+                  'max': 10.0,
+                  'min': 0.0,
+                  'mode': 'box',
+                  'step': 0.001,
+                  'unit_of_measurement': 'EUR/km',
+                }),
+              }),
+            }),
+            dict({
+              'description': dict({
+                'suggested_value': None,
+              }),
+              'name': 'mileage_unused_refund',
+              'optional': True,
+              'required': False,
+              'selector': dict({
+                'number': dict({
+                  'max': 10.0,
+                  'min': 0.0,
+                  'mode': 'box',
+                  'step': 0.001,
+                  'unit_of_measurement': 'EUR/km',
+                }),
+              }),
+            }),
+            dict({
+              'description': dict({
+                'suggested_value': None,
+              }),
+              'name': 'mileage_tolerance_km',
+              'optional': True,
+              'required': False,
+              'selector': dict({
+                'number': dict({
+                  'max': 100000.0,
+                  'min': 0.0,
+                  'mode': 'box',
+                  'step': 1.0,
+                  'unit_of_measurement': 'km',
+                }),
+              }),
+            }),
+          ]),
+          'type': 'expandable',
+        }),
       ]),
       'description_placeholders': dict({
         'vehicle': 'i5 eDrive40',
@@ -2286,6 +2472,363 @@
             'mileage_kind': 'lease',
             'mileage_start': '2026-11-01',
             'mileage_start_km': 1200.0,
+          }),
+        }),
+      }),
+      'description_placeholders': None,
+      'title': '',
+      'type': 'create_entry',
+    }),
+    "a lease's terms for km over or under (#325): saved, then shown expanded",
+    dict({
+      'data_schema': list([
+        dict({
+          'default': 'lease',
+          'name': 'mileage_kind',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'list',
+              'multiple': False,
+              'options': list([
+                'none',
+                'lease',
+                'yearly',
+              ]),
+              'sort': False,
+              'translation_key': 'mileage_kind',
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'i5 eDrive40',
+      }),
+      'errors': dict({
+      }),
+      'last_step': False,
+      'step_id': 'action_mileage',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'description': dict({
+            'suggested_value': '2026-11-01',
+          }),
+          'name': 'mileage_start',
+          'required': True,
+          'selector': dict({
+            'date': dict({
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': '2029-10-31',
+          }),
+          'name': 'mileage_end',
+          'required': True,
+          'selector': dict({
+            'date': dict({
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': 15000,
+          }),
+          'name': 'mileage_allowance_km',
+          'required': True,
+          'selector': dict({
+            'number': dict({
+              'max': 200000.0,
+              'min': 0.0,
+              'mode': 'box',
+              'step': 1.0,
+              'unit_of_measurement': 'km',
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': 1200,
+          }),
+          'name': 'mileage_start_km',
+          'required': True,
+          'selector': dict({
+            'number': dict({
+              'max': 2000000.0,
+              'min': 0.0,
+              'mode': 'box',
+              'step': 1.0,
+              'unit_of_measurement': 'km',
+            }),
+          }),
+        }),
+        dict({
+          'default': dict({
+          }),
+          'expanded': False,
+          'name': 'lease_costs',
+          'optional': True,
+          'required': False,
+          'schema': list([
+            dict({
+              'description': dict({
+                'suggested_value': None,
+              }),
+              'name': 'mileage_extra_price',
+              'optional': True,
+              'required': False,
+              'selector': dict({
+                'number': dict({
+                  'max': 10.0,
+                  'min': 0.0,
+                  'mode': 'box',
+                  'step': 0.001,
+                  'unit_of_measurement': 'EUR/km',
+                }),
+              }),
+            }),
+            dict({
+              'description': dict({
+                'suggested_value': None,
+              }),
+              'name': 'mileage_unused_refund',
+              'optional': True,
+              'required': False,
+              'selector': dict({
+                'number': dict({
+                  'max': 10.0,
+                  'min': 0.0,
+                  'mode': 'box',
+                  'step': 0.001,
+                  'unit_of_measurement': 'EUR/km',
+                }),
+              }),
+            }),
+            dict({
+              'description': dict({
+                'suggested_value': None,
+              }),
+              'name': 'mileage_tolerance_km',
+              'optional': True,
+              'required': False,
+              'selector': dict({
+                'number': dict({
+                  'max': 100000.0,
+                  'min': 0.0,
+                  'mode': 'box',
+                  'step': 1.0,
+                  'unit_of_measurement': 'km',
+                }),
+              }),
+            }),
+          ]),
+          'type': 'expandable',
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'i5 eDrive40',
+      }),
+      'errors': dict({
+      }),
+      'last_step': None,
+      'step_id': 'mileage_lease',
+      'type': 'form',
+    }),
+    dict({
+      'data': dict({
+        'vehicles': dict({
+          'WBATEST0000000001': dict({
+            'mileage_allowance_km': 15000.0,
+            'mileage_end': '2029-10-31',
+            'mileage_extra_price': 0.08,
+            'mileage_kind': 'lease',
+            'mileage_start': '2026-11-01',
+            'mileage_start_km': 1200.0,
+            'mileage_tolerance_km': 2500.0,
+            'mileage_unused_refund': 0.05,
+          }),
+        }),
+      }),
+      'description_placeholders': None,
+      'title': '',
+      'type': 'create_entry',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'default': 'lease',
+          'name': 'mileage_kind',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'list',
+              'multiple': False,
+              'options': list([
+                'none',
+                'lease',
+                'yearly',
+              ]),
+              'sort': False,
+              'translation_key': 'mileage_kind',
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'i5 eDrive40',
+      }),
+      'errors': dict({
+      }),
+      'last_step': False,
+      'step_id': 'action_mileage',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'description': dict({
+            'suggested_value': '2026-11-01',
+          }),
+          'name': 'mileage_start',
+          'required': True,
+          'selector': dict({
+            'date': dict({
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': '2029-10-31',
+          }),
+          'name': 'mileage_end',
+          'required': True,
+          'selector': dict({
+            'date': dict({
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': 15000,
+          }),
+          'name': 'mileage_allowance_km',
+          'required': True,
+          'selector': dict({
+            'number': dict({
+              'max': 200000.0,
+              'min': 0.0,
+              'mode': 'box',
+              'step': 1.0,
+              'unit_of_measurement': 'km',
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': 1200,
+          }),
+          'name': 'mileage_start_km',
+          'required': True,
+          'selector': dict({
+            'number': dict({
+              'max': 2000000.0,
+              'min': 0.0,
+              'mode': 'box',
+              'step': 1.0,
+              'unit_of_measurement': 'km',
+            }),
+          }),
+        }),
+        dict({
+          'default': dict({
+          }),
+          'expanded': True,
+          'name': 'lease_costs',
+          'optional': True,
+          'required': False,
+          'schema': list([
+            dict({
+              'description': dict({
+                'suggested_value': 0.08,
+              }),
+              'name': 'mileage_extra_price',
+              'optional': True,
+              'required': False,
+              'selector': dict({
+                'number': dict({
+                  'max': 10.0,
+                  'min': 0.0,
+                  'mode': 'box',
+                  'step': 0.001,
+                  'unit_of_measurement': 'EUR/km',
+                }),
+              }),
+            }),
+            dict({
+              'description': dict({
+                'suggested_value': 0.05,
+              }),
+              'name': 'mileage_unused_refund',
+              'optional': True,
+              'required': False,
+              'selector': dict({
+                'number': dict({
+                  'max': 10.0,
+                  'min': 0.0,
+                  'mode': 'box',
+                  'step': 0.001,
+                  'unit_of_measurement': 'EUR/km',
+                }),
+              }),
+            }),
+            dict({
+              'description': dict({
+                'suggested_value': 2500,
+              }),
+              'name': 'mileage_tolerance_km',
+              'optional': True,
+              'required': False,
+              'selector': dict({
+                'number': dict({
+                  'max': 100000.0,
+                  'min': 0.0,
+                  'mode': 'box',
+                  'step': 1.0,
+                  'unit_of_measurement': 'km',
+                }),
+              }),
+            }),
+          ]),
+          'type': 'expandable',
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'i5 eDrive40',
+      }),
+      'errors': dict({
+      }),
+      'last_step': None,
+      'step_id': 'mileage_lease',
+      'type': 'form',
+    }),
+    dict({
+      'data': dict({
+        'vehicles': dict({
+          'WBATEST0000000001': dict({
+            'mileage_allowance_km': 15000.0,
+            'mileage_end': '2029-10-31',
+            'mileage_extra_price': 0.08,
+            'mileage_kind': 'lease',
+            'mileage_start': '2026-11-01',
+            'mileage_start_km': 1200.0,
+            'mileage_tolerance_km': 2500.0,
+            'mileage_unused_refund': 0.05,
           }),
         }),
       }),

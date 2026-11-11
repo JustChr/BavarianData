@@ -141,6 +141,12 @@ def async_setup_services(hass: HomeAssistant) -> None:
     )
     hass.services.async_register(
         DOMAIN,
+        "set_charge_cost",
+        partial(service_history.async_handle_set_charge_cost, ctx),
+        schema=service_history.SET_CHARGE_COST_SCHEMA,
+    )
+    hass.services.async_register(
+        DOMAIN,
         "mark_trip_start",
         partial(service_history.async_handle_mark_trip_start, ctx),
         schema=service_history.MARK_TRIP_START_SCHEMA,

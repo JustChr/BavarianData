@@ -51,6 +51,7 @@ These read (or write) the integration's own store and cost **no** quota.
 | `bavariandata.get_fuel_history` | A petrol, diesel or plug-in hybrid car's refuels and fuel consumption, read off its tank level — see below. |
 | `bavariandata.get_evcc_config` | The evcc `custom` vehicle configuration for a car, plus the bridge's MQTT topics — see below. |
 | `bavariandata.set_trip_class` | Corrects a trip's business/private/commute class. |
+| `bavariandata.set_charge_cost` | Enters what a charge cost (a receipt), or takes it back — see below. |
 | `bavariandata.mark_trip_start` | Notes when a drive began, for a car that reports only once parked — see below. |
 | `bavariandata.export_history` | Returns a month as CSV or a printable HTML report. |
 | `bavariandata.get_coverage_report` | Descriptor-coverage self-test — see below. |
@@ -214,6 +215,15 @@ See [evcc & wallbox bridge](Feature-evcc-and-Wallbox-Bridge).
 ### `set_trip_class`
 `vin`, `trip_id` (as returned by `get_trips`), `classification`
 (`business` · `private` · `commute`). Writes the local store only.
+
+### `set_charge_cost`
+`vin`, `session_id` (the `id` from `get_charging_sessions`, or the
+`bavariandata_charging_stopped` event's `session_id`), `amount` (optional). The
+amount is the charge's total in the currency set under **Configure → Charging
+costs & history**; it replaces BMW's or the tariff's cost, which is kept. Leave
+`amount` out to take an entered amount back and restore that cost. Writes the
+local store only. See
+[Entering what a charge cost](Feature-Charging-History-and-Cost#entering-what-a-charge-cost).
 
 ### `mark_trip_start`
 `vin`, `at` (optional; defaults to now). For a car that reports only once parked,

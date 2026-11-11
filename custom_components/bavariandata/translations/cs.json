@@ -540,6 +540,21 @@
           "mileage_end": "Den, kdy ho vracíte.",
           "mileage_allowance_km": "Ze smlouvy. Celkový limit je tato hodnota krát délka smlouvy.",
           "mileage_start_km": "Z předávacího protokolu. Vyplněno dnešním stavem, dokud žádný není uložen: opravte ho, pokud smlouva začala dřív."
+        },
+        "sections": {
+          "lease_costs": {
+            "name": "Nadlimitní a nevyužité km",
+            "data": {
+              "mileage_extra_price": "Cena za km nad limit",
+              "mileage_unused_refund": "Vrácení za nevyužitý km",
+              "mileage_tolerance_km": "Tolerance"
+            },
+            "data_description": {
+              "mileage_extra_price": "Kolik smlouva účtuje za každý km nad limit. Nechte prázdné, pokud nic neúčtuje.",
+              "mileage_unused_refund": "Kolik dostanete zpět za každý km pod limitem. Nechte prázdné, pokud se nic nevrací.",
+              "mileage_tolerance_km": "Kolik km nad nebo pod limitem nic nestojí, jak to mnoho smluv umožňuje. Nechte prázdné, pokud ji vaše nemá."
+            }
+          }
         }
       },
       "mileage_yearly": {
@@ -3608,6 +3623,32 @@
         }
       }
     },
+    "set_charge_cost": {
+      "name": "Nastavit cenu nabíjení",
+      "description": "Zadejte, kolik nabíjení stálo, např. součet z účtenky veřejné nabíječky, v měně účtu. Nahradí částku od BMW nebo z tarifu, která zůstane uložena: bez částky se vrátí. Zapisuje jen do místního úložiště.",
+      "fields": {
+        "device_id": {
+          "name": "Vozidlo",
+          "description": "Auto, kterého se akce týká. Potřeba jen při více než jednom autě."
+        },
+        "entry_id": {
+          "name": "Konfigurační záznam",
+          "description": "Volitelné ID konfigurační položky účtu. Potřeba jen při více účtech, pokud není zadáno vozidlo ani VIN."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Volitelný VIN místo výběru vozidla. Potřeba jen, pokud má účet více než jedno auto."
+        },
+        "session_id": {
+          "name": "ID nabíjení",
+          "description": "ID nabíjení, jak je vrací akce Získat relace nabíjení."
+        },
+        "amount": {
+          "name": "Částka",
+          "description": "Celková cena nabíjení. Nechte prázdné pro odstranění zadané částky."
+        }
+      }
+    },
     "mark_trip_start": {
       "name": "Označit začátek jízdy",
       "description": "Zaznamená, že právě začíná jízda, pro auto, které se hlásí až po zaparkování: jízda, kterou ukončí jeho další hlášení, pak začíná v tento čas. Použije se jen tehdy, když je detekce jízd nastavena na Hlášení na konci jízdy. Zapisuje pouze do místního úložiště.",
@@ -3787,6 +3828,12 @@
     },
     "trip_not_found": {
       "message": "Jízda {trip} pro {vin} nebyla nalezena"
+    },
+    "no_charging_history": {
+      "message": "Historie nabíjení není k dispozici"
+    },
+    "charge_not_found": {
+      "message": "Nabíjení {charge} pro {vin} nebylo nalezeno"
     },
     "trips_not_from_reports": {
       "message": "mark_trip_start se používá jen tehdy, když se jízdy rozpoznávají z hlášení vozidla (Nastavit -> Jízdy -> Detekce jízd)"

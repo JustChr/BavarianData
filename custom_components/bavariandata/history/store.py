@@ -347,6 +347,14 @@ class HistoryStore:
             found = found[:limit]
         return found
 
+    def find_session(self, vin: str, session_id: str) -> Optional[ChargingSession]:
+        """A single stored charge by id, for the cost service."""
+
+        for session in self._sessions.get(vin, []):
+            if session.id == session_id:
+                return session
+        return None
+
     def add_session(self, session: ChargingSession) -> None:
         """Store a finished session (replacing one with the same id) and save."""
 

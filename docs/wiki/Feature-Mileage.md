@@ -60,6 +60,18 @@ What you see:
 | **A day left until the end** | What's left of the allowance, divided by the days left. |
 | **At this pace** | Used plus your 90-day pace until the end, and how far that lands from the allowance. |
 
+### What it costs at the return
+
+A lease often charges for each km over the allowance and refunds some of the
+km left unused, usually past a tolerance (2,500 km is common). Enter those terms
+under **Extra and unused distance** on the lease screen
+([fields](Settings-Reference#mileage-allowance)), and the card adds a line under
+*At this pace*: what the projected km over would cost at the return, the refund
+for the projected km under, or that you're within the tolerance. The amount is
+in the currency under **Configure → Charging costs & history**. Each term is
+optional: with no refund set, a car heading under the allowance shows no money
+line rather than a refund of nothing.
+
 The odometer at handover is what the comparison stands on. If you don't have
 it, the screen fills in today's reading. That's only right if the contract
 starts today; for an older contract, take the number from the handover papers.
@@ -72,7 +84,9 @@ never takes over another car's lease.
 - The card's **Mileage** view ([`view: mileage`](The-Dashboard-Card#mileage-view-mileage)).
 - The **Mileage Allowance Balance** sensor, **disabled by default**: under (+)
   or over (−) plan in km, with used, remaining, km a day left and the projected
-  end as attributes. Unknown while the car has no allowance. Enable it on the
+  end as attributes, and `projected_lease_cost` (negative for a refund) with its
+  `currency` when the lease has
+  [its terms](#what-it-costs-at-the-return). Unknown while the car has no allowance. Enable it on the
   car's device for automations, e.g. a warning once you're 500 km over plan.
 - The `bavariandata.get_mileage_report` service
   ([fields](Services-Reference#get_mileage_report)) returns all of it as

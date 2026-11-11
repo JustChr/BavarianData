@@ -40,6 +40,8 @@ MESSAGES: dict[str, str] = {
     # What the account can't do right now.
     "no_trip_history": "Trip history is not available",
     "trip_not_found": "No trip {trip} found for {vin}",
+    "no_charging_history": "Charging history is not available",
+    "charge_not_found": "No charge {charge} found for {vin}",
     "trips_not_from_reports": (
         "mark_trip_start is used only when trips are detected from the "
         "car's reports (Configure -> Trips -> Trip detection)"

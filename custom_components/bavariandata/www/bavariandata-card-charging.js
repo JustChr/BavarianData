@@ -50,6 +50,7 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
     if (!current || this._wantsFetch(cache, "data")) {
       this._chg = {
         vin,
+        entryId,
         trigger,
         month,
         data: current && cache ? cache.data : null,
@@ -120,7 +121,7 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
       figures,
       live,
       expanded,
-      rows: (sessions || []).map((s) => [s.start, s.energy_kwh, s.cost && s.cost.amount]),
+      rows: (sessions || []).map((s) => [s.start, s.energy_kwh, s.cost && s.cost.amount, s.cost && s.cost.source]),
     });
     if (sig === this._sig) return;
     this._sig = sig;
@@ -808,7 +809,8 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
     // Cost moved off the collapsed row to here, so it's kept for tariff users
     // without competing with the kWh for the row's headline figure.
     if (session.cost && session.cost.amount != null) {
-      facts.push([this._t("ch_cost"), this._fmtCost(session.cost)]);
+      const entered = session.cost.source === "user" ? ` · ${this._t("ch_cost_entered")}` : "";
+      facts.push([this._t("ch_cost"), `${this._fmtCost(session.cost)}${entered}`]);
     }
     const mixLabel = this._mixLabel(this._sessionMix(session));
     if (mixLabel) facts.push([this._t("ch_mix"), mixLabel]);
@@ -826,8 +828,50 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
       <div class="chg__detail">
         ${chart}
         <div class="chg__facts">${factRow}</div>
+        ${session.end && session.id ? this._costEntry(session) : ""}
       </div>
     `;
+  }
+
+  // What the charge cost, typed in from a receipt (#324). It replaces BMW's or
+  // the tariff's figure; Remove brings that figure back. The amount is in the
+  // account's currency, named when a charge in the list already says it.
+  _costEntry(session) {
+    const cost = session.cost || {};
+    const entered = cost.source === "user";
+    const draft = this._chgCostDraft && this._chgCostDraft.id === session.id ? this._chgCostDraft.value : null;
+    const value = draft != null ? draft : entered && cost.amount != null ? String(cost.amount) : "";
+    const known = ((this._chg && this._chg.data) || []).find((s) => s.cost && s.cost.currency);
+    const currency = cost.currency || (known && known.cost.currency) || "";
+    const id = this._attr(session.id);
+    return `<div class="tr__classify chg__paid">
+        <span class="tr__classify-lbl">${this._t("ch_paid")}</span>
+        <input class="chg__paid-in" type="number" inputmode="decimal" min="0" step="0.01"
+          data-cost-in="${id}" value="${this._attr(value)}" aria-label="${this._attr(this._t("ch_paid"))}">
+        ${currency ? `<span class="chg__paid-cur">${this._esc(currency)}</span>` : ""}
+        <span class="tr__cls-btns">
+          <button class="tr__cls-btn" data-cost-save="${id}">${this._t("ch_cost_save")}</button>
+          ${entered ? `<button class="tr__cls-btn" data-cost-clear="${id}">${this._t("ch_cost_clear")}</button>` : ""}
+        </span>
+      </div>`;
+  }
+
+  _setChargeCost(sessionId, amount) {
+    const vin = this._chg && this._chg.vin;
+    if (!vin || !sessionId) return;
+    const data = { vin, session_id: sessionId };
+    if (amount != null) data.amount = amount;
+    this._hass
+      .callService("bavariandata", "set_charge_cost", this._withEntry(data, this._chg.entryId))
+      .then(() => {
+        // Ask again rather than guess: the service decides what the cost falls
+        // back to, and the month's figures follow it.
+        this._chgCostDraft = null;
+        if (!this._chg || this._chg.vin !== vin) return;
+        this._chg = { ...this._chg, loading: true };
+        this._fetchCharging(vin, this._chg.entryId, this._chg.month);
+      })
+      .catch(() => {});
   }
 
   /** Inline SVG step chart of the [seconds, kW] power curve. No dependencies.
@@ -978,6 +1022,26 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
         const deviceId = this._resolveDeviceId();
         this._paintCharging(deviceId, this._deviceEntities(deviceId));
       });
+    });
+    this.shadowRoot.querySelectorAll("[data-cost-in]").forEach((el) => {
+      // Kept across a repaint (a live charge redraws the card while typing).
+      el.addEventListener("input", () => {
+        this._chgCostDraft = { id: el.getAttribute("data-cost-in"), value: el.value };
+      });
+    });
+    this.shadowRoot.querySelectorAll("[data-cost-save]").forEach((el) => {
+      el.addEventListener("click", () => {
+        const id = el.getAttribute("data-cost-save");
+        const input = [...this.shadowRoot.querySelectorAll("[data-cost-in]")].find(
+          (i) => i.getAttribute("data-cost-in") === id
+        );
+        const amount = input ? parseFloat(String(input.value).replace(",", ".")) : NaN;
+        if (!(amount >= 0)) return;
+        this._setChargeCost(id, amount);
+      });
+    });
+    this.shadowRoot.querySelectorAll("[data-cost-clear]").forEach((el) => {
+      el.addEventListener("click", () => this._setChargeCost(el.getAttribute("data-cost-clear"), null));
     });
   }
 };

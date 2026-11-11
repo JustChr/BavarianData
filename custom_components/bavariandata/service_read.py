@@ -47,7 +47,8 @@ async def async_handle_get_charging_sessions(ctx: ServiceContext, call: Any) -> 
         end=service_bound(call, "to", end_of_day=True),
         limit=service_answers.as_limit(call.data.get("limit")),
     )
-    return {"sessions": [session.to_dict() for session in sessions]}
+    # ``id`` is what ``set_charge_cost`` and the charging events name a charge by.
+    return {"sessions": [{"id": session.id, **session.to_dict()} for session in sessions]}
 
 
 GET_PLACES_SCHEMA = vol.Schema(

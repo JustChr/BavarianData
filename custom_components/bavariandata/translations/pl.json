@@ -540,6 +540,21 @@
           "mileage_end": "Dzień, w którym je oddajesz.",
           "mileage_allowance_km": "Z umowy. Łączny limit to ta wartość razy długość umowy.",
           "mileage_start_km": "Z protokołu wydania. Wypełnione dzisiejszym odczytem, dopóki żaden nie jest zapisany: popraw go, jeśli umowa zaczęła się wcześniej."
+        },
+        "sections": {
+          "lease_costs": {
+            "name": "Nadprzebieg i niewykorzystane km",
+            "data": {
+              "mileage_extra_price": "Cena za km nadprzebiegu",
+              "mileage_unused_refund": "Zwrot za niewykorzystany km",
+              "mileage_tolerance_km": "Tolerancja"
+            },
+            "data_description": {
+              "mileage_extra_price": "Ile umowa nalicza za każdy km ponad limit. Zostaw puste, jeśli nic nie nalicza.",
+              "mileage_unused_refund": "Ile otrzymujesz z powrotem za każdy km poniżej limitu. Zostaw puste, jeśli nie ma zwrotu.",
+              "mileage_tolerance_km": "Ile km ponad lub poniżej limitu nic nie kosztuje, jak przewiduje wiele umów. Zostaw puste, jeśli Twoja jej nie ma."
+            }
+          }
         }
       },
       "mileage_yearly": {
@@ -3608,6 +3623,32 @@
         }
       }
     },
+    "set_charge_cost": {
+      "name": "Ustaw koszt ładowania",
+      "description": "Wpisz, ile kosztowało ładowanie, np. sumę z paragonu publicznej ładowarki, w walucie konta. Zastępuje kwotę od BMW lub z taryfy, która zostaje zachowana: bez kwoty wraca ona. Zapisuje tylko w pamięci lokalnej.",
+      "fields": {
+        "device_id": {
+          "name": "Pojazd",
+          "description": "Samochód, którego to dotyczy. Potrzebny tylko przy więcej niż jednym samochodzie."
+        },
+        "entry_id": {
+          "name": "Wpis konfiguracji",
+          "description": "Opcjonalny identyfikator wpisu konfiguracji konta. Potrzebny tylko przy kilku kontach, gdy nie podano pojazdu ani VIN."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Opcjonalny VIN zamiast wyboru pojazdu. Potrzebny tylko, gdy konto ma więcej niż jeden samochód."
+        },
+        "session_id": {
+          "name": "ID ładowania",
+          "description": "ID ładowania, jak zwraca je akcja Pobierz sesje ładowania."
+        },
+        "amount": {
+          "name": "Kwota",
+          "description": "Łączny koszt ładowania. Pozostaw puste, aby usunąć wpisaną kwotę."
+        }
+      }
+    },
     "mark_trip_start": {
       "name": "Oznacz początek przejazdu",
       "description": "Zapisuje, że właśnie zaczyna się przejazd, dla auta, które melduje się dopiero po zaparkowaniu: przejazd zamknięty jego następnym raportem zaczyna się wtedy o tej godzinie. Używane tylko, gdy wykrywanie przejazdów jest ustawione na Raporty po zakończeniu jazdy. Zapisuje tylko do lokalnego magazynu.",
@@ -3787,6 +3828,12 @@
     },
     "trip_not_found": {
       "message": "Nie znaleziono przejazdu {trip} dla {vin}"
+    },
+    "no_charging_history": {
+      "message": "Historia ładowania jest niedostępna"
+    },
+    "charge_not_found": {
+      "message": "Nie znaleziono ładowania {charge} dla {vin}"
     },
     "trips_not_from_reports": {
       "message": "mark_trip_start służy tylko wtedy, gdy przejazdy są wykrywane z raportów pojazdu (Konfiguruj -> Przejazdy -> Wykrywanie przejazdów)"

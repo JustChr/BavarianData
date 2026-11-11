@@ -21,10 +21,13 @@ from .const import OPTION_TRIP_DETECTION, OPTION_TRIP_TRACK, TRIP_DETECTION_REPO
 from .history.pricing import MODE_ENTITY, MODE_FIXED, MODE_NONE
 from .mileage import (
     KEY_END,
+    KEY_EXTRA_PRICE,
     KEY_KIND,
     KEY_PER_YEAR,
     KEY_START,
     KEY_START_KM,
+    KEY_TOLERANCE_KM,
+    KEY_UNUSED_REFUND,
     KIND_LEASE,
     allowance_settings,
     anniversary,
@@ -36,6 +39,9 @@ from .service_calendar import KM_PER_MILE
 # The section holding the settings every car shares, on a screen with per-car
 # settings (Trips, Charging costs, evcc bridge) of an account with two cars.
 SHARED_SECTION = "all_vehicles"
+# The lease screen's collapsed section: what the contract says about km over
+# or under the allowance (#325).
+LEASE_COST_SECTION = "lease_costs"
 
 _FUEL_LABELS = {"l": "l/100 km", "l_mpg_uk": "mpg (UK)", "gal_us": "mpg (US)"}
 
@@ -253,14 +259,38 @@ def to_display(km: Optional[float], miles: bool) -> Optional[float]:
     return round(km / KM_PER_MILE if miles else km)
 
 
-def mileage_typed(user_input: Mapping[str, Any], miles: bool) -> dict[str, Any]:
-    """An allowance form's values as stored: dates as typed, distances in km."""
+def price_to_km(value: Any, miles: bool) -> Optional[float]:
+    """A price per distance typed in the car's unit, per km (empty or 0 is none)."""
 
+    if value is None or value == "" or not float(value):
+        return None
+    number = float(value)
+    return round(number / KM_PER_MILE if miles else number, 4)
+
+
+def price_display(per_km: Optional[float], miles: bool) -> Optional[float]:
+    """A stored price per km, in the car's unit."""
+
+    if per_km is None:
+        return None
+    return round(per_km * KM_PER_MILE if miles else per_km, 3)
+
+
+def mileage_typed(user_input: Mapping[str, Any], miles: bool) -> dict[str, Any]:
+    """An allowance form's values as stored: dates as typed, distances in km.
+
+    A lease's terms for km over or under come from their section, prices per km.
+    """
+
+    costs = user_input.get(LEASE_COST_SECTION) or {}
     return {
         KEY_START: user_input.get(KEY_START),
         KEY_END: user_input.get(KEY_END),
         KEY_PER_YEAR: to_km(user_input.get(KEY_PER_YEAR), miles),
         KEY_START_KM: to_km(user_input.get(KEY_START_KM), miles),
+        KEY_EXTRA_PRICE: price_to_km(costs.get(KEY_EXTRA_PRICE), miles),
+        KEY_UNUSED_REFUND: price_to_km(costs.get(KEY_UNUSED_REFUND), miles),
+        KEY_TOLERANCE_KM: to_km(costs.get(KEY_TOLERANCE_KM), miles) or None,
     }
 
 
@@ -293,6 +323,8 @@ def mileage_to_store(
     stored = {KEY_KIND: kind, **values}
     if kind != KIND_LEASE:
         stored[KEY_END] = None
+        for key in (KEY_EXTRA_PRICE, KEY_UNUSED_REFUND, KEY_TOLERANCE_KM):
+            stored[key] = None
         if (first := parse_date(values.get(KEY_START))) is not None and first <= today:
             stored[KEY_START] = yearly_period(first, today)[0].isoformat()
     if not values.get(KEY_PER_YEAR):

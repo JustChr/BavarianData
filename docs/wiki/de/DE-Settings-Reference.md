@@ -366,6 +366,9 @@ im Sensor.
 | **Ende** | Datum | Nur Leasing: der Tag der Rückgabe. Muss nach dem Beginn liegen. |
 | **Kilometer pro Jahr** | km oder mi (siehe unten) | Aus Vertrag oder Police. Das Gesamtkontingent eines Leasings ist dieser Wert mal die Laufzeit. |
 | **Kilometerstand bei Beginn** / **Kilometerstand an dem Tag** | km oder mi | Der Stand am Starttag, aus dem Übergabeprotokoll. Vorbelegt mit dem heutigen Stand, solange keiner gespeichert ist; bei einer Jahresgrenze der Stand am letzten Jahresbeginn. |
+| **Preis je Mehrkilometer** | Währung je km oder mi, optional | Nur Leasing, unter **Mehr- und Minderkilometer** (eingeklappt, bis etwas eingetragen ist): was der Vertrag je Kilometer über dem Kontingent berechnet. |
+| **Vergütung je Minderkilometer** | Währung je km oder mi, optional | Nur Leasing: was du je Kilometer unter dem Kontingent zurückbekommst. |
+| **Freigrenze** | km oder mi, optional | Nur Leasing: wie weit darüber oder darunter nichts kostet. Aus diesen drei zeigt die Karte die [Kosten bei Rückgabe](DE-Feature-Mileage#was-es-bei-rückgabe-kostet). |
 
 Die Felder zeigen, welche Einheit sie erwarten: die Strecken-Einheit unter
 [Einheiten](#einheiten), deren Automatisch die des Autos ist (die Einheit, in

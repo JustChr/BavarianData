@@ -9,6 +9,25 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **Enter what a charge cost.** Tap a charge on the card's charging view and type
+  the total from the receipt into **Paid**: useful for a public charger, which
+  otherwise has no cost unless BMW billed it, or when BMW's or the tariff's figure
+  doesn't match what you paid. The amount counts in the month's total, the cost
+  sensors and the export; the figure it replaced is kept, and **Remove** brings
+  it back. Automations can do the same with the new `set_charge_cost` action,
+  and `get_charging_sessions` now returns each charge's `id`. Thanks
+  @Kars-de-Jong for the idea (#324).
+  [Charging history & cost](https://github.com/JustChr/BavarianData/wiki/Feature-Charging-History-and-Cost#entering-what-a-charge-cost)
+- **What a lease's extra or unused km cost at the return.** Under Configure →
+  Mileage allowance → Lease or financing, a new section *Extra and unused
+  distance* takes the contract's price per extra km, its refund per unused km
+  and a tolerance (all optional). The card's Mileage view then says what the
+  projected km over would cost at the return, the refund for the km under, or
+  that you're within the tolerance; the allowance sensor carries it as
+  `projected_lease_cost`. Thanks @kerzebrozzer for the idea (#325).
+  [Mileage & allowance](https://github.com/JustChr/BavarianData/wiki/Feature-Mileage#what-it-costs-at-the-return)
+
 ## [0.9.30-beta.3] - 2026-11-10
 
 ### Changed

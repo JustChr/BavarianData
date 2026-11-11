@@ -34,9 +34,12 @@ from .const import (
     OPTION_GRID_ENERGY_ENTITY,
     OPTION_MILEAGE_ALLOWANCE_KM,
     OPTION_MILEAGE_END,
+    OPTION_MILEAGE_EXTRA_PRICE,
     OPTION_MILEAGE_KIND,
     OPTION_MILEAGE_START,
     OPTION_MILEAGE_START_KM,
+    OPTION_MILEAGE_TOLERANCE_KM,
+    OPTION_MILEAGE_UNUSED_REFUND,
     OPTION_TRIP_COMMUTE_GAP,
     OPTION_TRIP_DEFAULT_CLASS,
     OPTION_TRIP_DETECTION,
@@ -74,6 +77,9 @@ MILEAGE_OPTIONS = (
     OPTION_MILEAGE_END,
     OPTION_MILEAGE_ALLOWANCE_KM,
     OPTION_MILEAGE_START_KM,
+    OPTION_MILEAGE_EXTRA_PRICE,
+    OPTION_MILEAGE_UNUSED_REFUND,
+    OPTION_MILEAGE_TOLERANCE_KM,
 )
 # Always stored under the car, like the mileage allowance: the token belongs to
 # the car saved in the ABRP app (``abrp_values``).
@@ -180,6 +186,13 @@ def mileage_values(options: Mapping[str, Any], vin: Optional[str]) -> dict[str, 
     return own_values(options, vin, MILEAGE_OPTIONS) or {}
 
 
+_LEASE_TERMS = (
+    OPTION_MILEAGE_EXTRA_PRICE,
+    OPTION_MILEAGE_UNUSED_REFUND,
+    OPTION_MILEAGE_TOLERANCE_KM,
+)
+
+
 def store_mileage(
     options: Mapping[str, Any], vin: str, values: Mapping[str, Any]
 ) -> dict[str, Any]:
@@ -193,6 +206,10 @@ def store_mileage(
         # No allowance: the car keeps no mileage keys at all.
         return _without_group(options, vin, MILEAGE_OPTIONS)
     picked = {key: values.get(key) for key in MILEAGE_OPTIONS}
+    # A lease's terms for km over or under are optional: unset, not stored.
+    for key in _LEASE_TERMS:
+        if picked[key] is None:
+            del picked[key]
     return store_values(options, picked, MILEAGE_OPTIONS, vin=vin, per_vehicle=True)
 
 

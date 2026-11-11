@@ -33,9 +33,12 @@ from typing import Any, Mapping, Optional
 from .const import (
     OPTION_MILEAGE_ALLOWANCE_KM,
     OPTION_MILEAGE_END,
+    OPTION_MILEAGE_EXTRA_PRICE,
     OPTION_MILEAGE_KIND,
     OPTION_MILEAGE_START,
     OPTION_MILEAGE_START_KM,
+    OPTION_MILEAGE_TOLERANCE_KM,
+    OPTION_MILEAGE_UNUSED_REFUND,
 )
 from .history.odometer import km_per_day, readings
 
@@ -51,6 +54,9 @@ KEY_START = OPTION_MILEAGE_START
 KEY_END = OPTION_MILEAGE_END
 KEY_PER_YEAR = OPTION_MILEAGE_ALLOWANCE_KM
 KEY_START_KM = OPTION_MILEAGE_START_KM
+KEY_EXTRA_PRICE = OPTION_MILEAGE_EXTRA_PRICE
+KEY_UNUSED_REFUND = OPTION_MILEAGE_UNUSED_REFUND
+KEY_TOLERANCE_KM = OPTION_MILEAGE_TOLERANCE_KM
 
 MONTHS_SHOWN = 12
 
@@ -189,7 +195,50 @@ def allowance_settings(values: Mapping[str, Any]) -> Optional[dict[str, Any]]:
         if end is None or end <= start:
             return None
         settings["end"] = end
+        # The contract's terms for km over or under (#325); each optional.
+        settings["extra_price"] = _number(values.get(KEY_EXTRA_PRICE))
+        settings["unused_refund"] = _number(values.get(KEY_UNUSED_REFUND))
+        settings["tolerance_km"] = _number(values.get(KEY_TOLERANCE_KM)) or 0.0
     return settings
+
+
+def lease_cost(
+    settings: Mapping[str, Any], projected_over_km: float, currency: Optional[str]
+) -> Optional[dict[str, Any]]:
+    """What the projected km over or under the allowance cost at the return (#325).
+
+    ``amount`` is what is owed for extra km, or a negative refund for unused km,
+    each counted only past the tolerance. ``None`` when the contract's terms
+    aren't set: no price for the side the car is heading to is not the same as
+    a cost of nothing.
+    """
+
+    price = settings.get("extra_price")
+    refund = settings.get("unused_refund")
+    if not price and not refund:
+        return None
+    tolerance = settings.get("tolerance_km") or 0.0
+    extra = max(0.0, projected_over_km - tolerance)
+    unused = max(0.0, -projected_over_km - tolerance)
+    if extra:
+        if not price:
+            return None
+        amount = extra * price
+    elif unused:
+        if not refund:
+            return None
+        amount = -unused * refund
+    else:
+        amount = 0.0
+    return {
+        "amount": round(amount, 2),
+        "currency": currency,
+        "extra_km": round(extra),
+        "unused_km": round(unused),
+        "tolerance_km": round(tolerance),
+        "price_per_km": price,
+        "refund_per_km": refund,
+    }
 
 
 def anniversary(start: date, year: int) -> date:
@@ -244,7 +293,10 @@ def yearly_period(start: date, today: date) -> tuple[date, date]:
 
 
 def allowance_status(
-    settings: Mapping[str, Any], log: Mapping[str, float], today: date
+    settings: Mapping[str, Any],
+    log: Mapping[str, float],
+    today: date,
+    currency: Optional[str] = None,
 ) -> dict[str, Any]:
     """Where the car stands against its allowance today.
 
@@ -300,15 +352,20 @@ def allowance_status(
             "projected_over_km": round(projected - total),
         }
     )
+    if kind == KIND_LEASE:
+        report["lease_cost"] = lease_cost(settings, projected - total, currency)
     return report
 
 
 def mileage_report(
-    log: Mapping[str, float], today: date, allowance: Optional[Mapping[str, Any]] = None
+    log: Mapping[str, float],
+    today: date,
+    allowance: Optional[Mapping[str, Any]] = None,
+    currency: Optional[str] = None,
 ) -> dict[str, Any]:
     """The overview, plus ``allowance`` (``None`` when the car has none)."""
 
     settings = allowance_settings(allowance or {})
     report = overview(log, today)
-    report["allowance"] = allowance_status(settings, log, today) if settings else None
+    report["allowance"] = allowance_status(settings, log, today, currency) if settings else None
     return report

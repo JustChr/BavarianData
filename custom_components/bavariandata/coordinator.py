@@ -960,7 +960,7 @@ class CardataCoordinator:
 
         log = self.history.odometer_log(vin) if self.history is not None else {}
         today = dt_util.as_local(datetime.now(timezone.utc)).date()
-        return mileage_report(log, today, self.mileage_allowances.get(vin))
+        return mileage_report(log, today, self.mileage_allowances.get(vin), self.pricing.currency)
 
     def km_per_day(self, vin: str) -> Optional[float]:
         """The car's average km a day over the last 90 days, or ``None``."""

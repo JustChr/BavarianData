@@ -238,6 +238,16 @@ MILEAGE = {
             "km_per_day_left": 29.9,
             "projected_km": 44100,
             "projected_over_km": -900,
+            # #325: the contract refunds unused km past a 500 km tolerance.
+            "lease_cost": {
+                "amount": -20.0,
+                "currency": "EUR",
+                "extra_km": 0,
+                "unused_km": 400,
+                "tolerance_km": 500,
+                "price_per_km": 0.08,
+                "refund_per_km": 0.05,
+            },
         },
     },
     "young": {
@@ -627,7 +637,8 @@ def _month_of_charging() -> list:
             {"battery": 14.4, "grid": 35.4, "solar_percent": 0.0},
         ),
     ]
-    return [session.to_dict() for session in reversed(sessions)]
+    # As ``get_charging_sessions`` answers: with the id ``set_charge_cost`` takes.
+    return [{"id": session.id, **session.to_dict()} for session in reversed(sessions)]
 
 
 def test_a_month_of_charging(snapshot) -> None:
@@ -648,6 +659,24 @@ def test_a_month_of_charging(snapshot) -> None:
     # The expanded charge carries its dashed average.
     assert "chg__chart-avg" in html
     assert html == snapshot
+
+
+def test_a_charge_takes_the_amount_paid() -> None:
+    """#324: an expanded charge offers the amount paid; an entered one says so
+    and can be removed, which brings back the figure it replaced."""
+
+    sessions = _month_of_charging()
+    away = next(s for s in sessions if s["location"].get("zone") is None)
+    away["cost"] = {"amount": 9.87, "currency": "EUR", "source": "user"}
+    html = _render(I5, SCREENS["charging"], sessions=sessions, sessionsExpanded=away["start"])
+    assert f'data-cost-in="{away["id"]}"' in html and 'value="9.87"' in html
+    assert "€9.87 · entered" in html and "data-cost-clear" in html
+
+    # A charge priced by the tariff: an empty field, no Remove.
+    home = sessions[0]
+    html = _render(I5, SCREENS["charging"], sessions=sessions, sessionsExpanded=home["start"])
+    assert 'value=""' in html and "data-cost-save" in html and "data-cost-clear" not in html
+    assert "EUR" in html  # the currency the amount is in
 
 
 def test_a_home_zone_with_its_own_name_is_still_home() -> None:

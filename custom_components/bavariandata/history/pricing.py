@@ -264,6 +264,45 @@ def bmw_cost(payload: Optional[dict[str, Any]]) -> Optional[dict[str, Any]]:
     return cost
 
 
+# A cost typed in by hand (a public charger's receipt, #324). It is what was
+# paid, so it outranks BMW's figure and the tariff's; whatever it replaced rides
+# along under ``replaced``, so clearing it brings that figure back.
+SOURCE_USER = "user"
+
+
+def entered_cost(
+    amount: float, currency: str, previous: Optional[dict[str, Any]]
+) -> dict[str, Any]:
+    """The cost record for an amount the user entered, keeping what it replaces.
+
+    Entering a second amount keeps the *original* figure, not the first typed one.
+    """
+
+    underneath = previous.get("replaced") if previous and is_entered(previous) else previous
+    cost: dict[str, Any] = {
+        "amount": round(float(amount), 2),
+        "currency": currency,
+        "source": SOURCE_USER,
+    }
+    if underneath:
+        cost["replaced"] = underneath
+    return cost
+
+
+def cleared_cost(cost: Optional[dict[str, Any]]) -> Optional[dict[str, Any]]:
+    """The cost once an entered amount is taken back: the figure it replaced."""
+
+    if is_entered(cost):
+        return (cost or {}).get("replaced") or None
+    return cost
+
+
+def is_entered(cost: Optional[dict[str, Any]]) -> bool:
+    """True when ``cost`` is an amount the user entered."""
+
+    return bool(cost) and (cost or {}).get("source") == SOURCE_USER
+
+
 def resolve_cost(
     *,
     bmw: Optional[dict[str, Any]] = None,

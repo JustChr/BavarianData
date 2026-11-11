@@ -73,6 +73,7 @@ from .configurator import async_upholstery
 from .distance import car_distance_unit
 from .evcc import BridgeConfig, bridge_payloads, evcc_yaml
 from .flow_answers import (
+    LEASE_COST_SECTION,
     SHARED_SECTION,
     abrp_check_error,
     abrp_error,
@@ -82,6 +83,7 @@ from .flow_answers import (
     mileage_to_store,
     mileage_typed,
     phone_route_follows,
+    price_display,
     price_error,
     split_shared,
     to_display,
@@ -97,10 +99,13 @@ from .history.pricing import (
 )
 from .mileage import (
     KEY_END as MILEAGE_END,
+    KEY_EXTRA_PRICE as MILEAGE_EXTRA_PRICE,
     KEY_KIND as MILEAGE_KIND,
     KEY_PER_YEAR as MILEAGE_PER_YEAR,
     KEY_START as MILEAGE_START,
     KEY_START_KM as MILEAGE_START_KM,
+    KEY_TOLERANCE_KM as MILEAGE_TOLERANCE_KM,
+    KEY_UNUSED_REFUND as MILEAGE_UNUSED_REFUND,
     KIND_LEASE,
     KIND_NONE,
     KIND_YEARLY,
@@ -1092,6 +1097,43 @@ class PerCarScreens(_FlowBase):
             async_dispatcher_send(self.hass, runtime.coordinator.signal_mileage, vin)
         return self.async_create_entry(title="", data=options)
 
+    def _lease_cost_section(self, values: Mapping[str, Any], miles: bool) -> Any:
+        """The lease's terms for km over or under (#325): collapsed until set."""
+
+        unit = "mi" if miles else "km"
+        currency = self._config_entry.options.get(OPTION_PRICE_CURRENCY) or DEFAULT_CURRENCY
+
+        def price() -> selector.NumberSelector:
+            return selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=0,
+                    max=10,
+                    step=0.001,
+                    mode=selector.NumberSelectorMode.BOX,
+                    unit_of_measurement=f"{currency}/{unit}",
+                )
+            )
+
+        shown = {
+            MILEAGE_EXTRA_PRICE: price_display(values.get(MILEAGE_EXTRA_PRICE), miles),
+            MILEAGE_UNUSED_REFUND: price_display(values.get(MILEAGE_UNUSED_REFUND), miles),
+            MILEAGE_TOLERANCE_KM: to_display(values.get(MILEAGE_TOLERANCE_KM), miles),
+        }
+        fields = {
+            vol.Optional(
+                MILEAGE_EXTRA_PRICE, description={"suggested_value": shown[MILEAGE_EXTRA_PRICE]}
+            ): price(),
+            vol.Optional(
+                MILEAGE_UNUSED_REFUND,
+                description={"suggested_value": shown[MILEAGE_UNUSED_REFUND]},
+            ): price(),
+            vol.Optional(
+                MILEAGE_TOLERANCE_KM, description={"suggested_value": shown[MILEAGE_TOLERANCE_KM]}
+            ): self._mileage_number(maximum=100000, miles=miles),
+        }
+        collapsed = not any(value for value in shown.values())
+        return section(vol.Schema(fields), {"collapsed": collapsed})
+
     async def async_step_mileage_lease(
         self, user_input: Optional[Dict[str, Any]] = None
     ) -> ConfigFlowResult:
@@ -1145,6 +1187,11 @@ class PerCarScreens(_FlowBase):
                 MILEAGE_START_KM, description={"suggested_value": to_display(start_km, miles)}
             )
         ] = self._mileage_number(maximum=2000000, miles=miles)
+        if kind == KIND_LEASE:
+            # Optional: a lease saved without the section keeps no terms.
+            fields[vol.Optional(LEASE_COST_SECTION, default={})] = self._lease_cost_section(
+                values, miles
+            )
         placeholders = {"vehicle": self._vehicle_label(vehicles, vin)}
 
         errors: Dict[str, str] = {}

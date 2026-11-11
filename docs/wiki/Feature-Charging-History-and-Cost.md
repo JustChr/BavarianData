@@ -262,6 +262,25 @@ You then get, per vehicle:
   plug-in hybrid, whose odometer also counts the kilometers driven on fuel
   ([why](Feature-Efficiency-and-Range#plug-in-hybrids)).
 
+### Entering what a charge cost
+
+A charge away from home has no cost unless BMW billed it, and a figure from BMW
+or the tariff may not match what you paid. Tap the charge on the
+[charging view](The-Dashboard-Card#charging-history-view-charging), type the total
+from the receipt into **Paid** and press **Save**. The amount is in the currency
+set under **Configure → Charging costs & history**, and the card marks it
+*entered*.
+
+An entered amount replaces BMW's figure and the tariff's, and counts wherever a
+cost does: the month's total, **Charging Cost (This Month)**, cost per 100 km and
+the export. The figure it replaced is kept: **Remove** brings it back, and a
+later import of BMW's history updates that kept figure without touching yours.
+The long-term statistics take the new amount on the next `import_statistics`.
+
+Automations can do the same with
+[`bavariandata.set_charge_cost`](Services-Reference#set_charge_cost); the
+`session_id` of the `bavariandata_charging_stopped` event names the charge.
+
 ## Grid energy vs. battery energy
 
 Energy is measured **at the battery**, so it's slightly below what the grid

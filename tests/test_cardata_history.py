@@ -502,6 +502,50 @@ def test_bmws_own_billed_cost_still_wins():
     assert result[0].cost == billed
 
 
+# --- an amount the user entered (#324) ------------------------------------
+
+
+def test_an_entered_amount_keeps_what_it_replaces_and_gives_it_back():
+    entered = pricing.entered_cost(23.4, "EUR", _TARIFF_COST)
+    assert entered == {
+        "amount": 23.4,
+        "currency": "EUR",
+        "source": "user",
+        "replaced": _TARIFF_COST,
+    }
+    # A second amount keeps the original underneath, not the first typed one.
+    again = pricing.entered_cost(25, "EUR", entered)
+    assert again["amount"] == 25.0 and again["replaced"] == _TARIFF_COST
+    assert pricing.cleared_cost(again) == _TARIFF_COST
+    # Nothing underneath (an away charge): clearing leaves no cost.
+    assert "replaced" not in pricing.entered_cost(9, "EUR", None)
+    assert pricing.cleared_cost(pricing.entered_cost(9, "EUR", None)) is None
+    # Clearing a cost nobody entered changes nothing.
+    assert pricing.cleared_cost(_TARIFF_COST) == _TARIFF_COST
+
+
+def test_bmws_history_does_not_overwrite_an_entered_amount():
+    billed = {"amount": 5.5, "currency": "EUR", "source": "bmw"}
+    priced = session_from_cardata("WBY1", _raw(), cost_fn=lambda kwh: billed, **_HOME)
+    mine = _metered_session(cost=pricing.entered_cost(30.0, "EUR", _TARIFF_COST))
+
+    result, _, _ = merge_cardata_sessions([mine], [priced])
+
+    cost = result[0].cost
+    assert (cost["amount"], cost["source"]) == (30.0, "user")
+    # BMW's billed figure lands underneath, where clearing will find it.
+    assert cost["replaced"] == billed
+    assert pricing.cleared_cost(cost) == billed
+
+
+def test_an_entered_amount_on_a_frozen_arc_is_not_flagged_partial():
+    frozen = _frozen_session(cost=pricing.entered_cost(12.0, "EUR", _TARIFF_COST))
+    result, _, _ = merge_cardata_sessions([frozen], [session_from_cardata("WBY1", _raw())])
+    cost = result[0].cost
+    assert cost["source"] == "user" and "partial" not in cost
+    assert cost["replaced"]["partial"] is True
+
+
 def test_a_charge_without_a_meter_figure_takes_bmws():
     result, _, _ = merge_cardata_sessions([_live_session()], [session_from_cardata("WBY1", _raw())])
     assert result[0].grid_kwh == 15.92

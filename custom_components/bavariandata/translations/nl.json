@@ -540,6 +540,21 @@
           "mileage_end": "De dag waarop je hem inlevert.",
           "mileage_allowance_km": "Uit je contract. Het totaal is deze waarde maal de looptijd.",
           "mileage_start_km": "Uit het afleverrapport. Ingevuld met de stand van vandaag zolang er geen is opgeslagen: pas hem aan als het contract eerder begon."
+        },
+        "sections": {
+          "lease_costs": {
+            "name": "Meer- en minderkilometers",
+            "data": {
+              "mileage_extra_price": "Prijs per meerkilometer",
+              "mileage_unused_refund": "Vergoeding per minderkilometer",
+              "mileage_tolerance_km": "Marge"
+            },
+            "data_description": {
+              "mileage_extra_price": "Wat het contract per km boven de limiet rekent. Laat leeg als het niets rekent.",
+              "mileage_unused_refund": "Wat je per km onder de limiet terugkrijgt. Laat leeg als er geen vergoeding is.",
+              "mileage_tolerance_km": "Hoeveel km erboven of eronder niets kosten, zoals veel contracten toestaan. Laat leeg als het jouwe er geen heeft."
+            }
+          }
         }
       },
       "mileage_yearly": {
@@ -3608,6 +3623,32 @@
         }
       }
     },
+    "set_charge_cost": {
+      "name": "Laadkosten invullen",
+      "description": "Vul in wat een laadsessie kostte, bijvoorbeeld het totaal op het bonnetje van een openbare laadpaal, in de valuta van het account. Vervangt het bedrag van BMW of van het tarief; dat blijft bewaard: zonder bedrag komt het terug. Schrijft alleen naar de lokale opslag.",
+      "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "De auto waarom het gaat. Alleen nodig bij meer dan één auto."
+        },
+        "entry_id": {
+          "name": "Configuratie-item",
+          "description": "Optionele id van de configuratie-invoer van het account. Alleen nodig bij meerdere accounts als er geen voertuig of VIN is opgegeven."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optionele VIN, in plaats van het voertuig te kiezen. Alleen nodig als het account meer dan één auto heeft."
+        },
+        "session_id": {
+          "name": "Laadsessie-ID",
+          "description": "De ID van de laadsessie, zoals de actie Laadsessies opvragen die teruggeeft."
+        },
+        "amount": {
+          "name": "Bedrag",
+          "description": "Wat de laadsessie in totaal kostte. Laat het leeg om een ingevuld bedrag weer te verwijderen."
+        }
+      }
+    },
     "mark_trip_start": {
       "name": "Ritstart markeren",
       "description": "Legt vast dat er nu een rit begint, voor een auto die pas na het parkeren meldt: de rit die zijn volgende rapport afsluit, begint dan op dit tijdstip. Alleen gebruikt als Ritdetectie op Rapporten aan het einde van de rit staat. Schrijft alleen naar de lokale opslag.",
@@ -3787,6 +3828,12 @@
     },
     "trip_not_found": {
       "message": "Geen rit {trip} gevonden voor {vin}"
+    },
+    "no_charging_history": {
+      "message": "De laadgeschiedenis is niet beschikbaar"
+    },
+    "charge_not_found": {
+      "message": "Geen laadsessie {charge} gevonden voor {vin}"
     },
     "trips_not_from_reports": {
       "message": "mark_trip_start wordt alleen gebruikt als ritten uit de rapporten van de auto worden herkend (Configureer -> Ritten -> Ritdetectie)"

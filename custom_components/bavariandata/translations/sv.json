@@ -540,6 +540,21 @@
           "mileage_end": "Dagen du lämnar tillbaka den.",
           "mileage_allowance_km": "Enligt ditt avtal. Det totala taket är detta gånger avtalets längd.",
           "mileage_start_km": "Enligt leveransprotokollet. Ifylld med dagens ställning så länge ingen är sparad: rätta den om avtalet började tidigare."
+        },
+        "sections": {
+          "lease_costs": {
+            "name": "Extra och outnyttjade km",
+            "data": {
+              "mileage_extra_price": "Pris per extra km",
+              "mileage_unused_refund": "Återbetalning per outnyttjad km",
+              "mileage_tolerance_km": "Tolerans"
+            },
+            "data_description": {
+              "mileage_extra_price": "Vad avtalet tar per km över gränsen. Lämna tomt om det inte tar något.",
+              "mileage_unused_refund": "Vad du får tillbaka per km under gränsen. Lämna tomt om det inte finns någon återbetalning.",
+              "mileage_tolerance_km": "Hur många km över eller under som inte kostar något, som många avtal tillåter. Lämna tomt om ditt inte har någon."
+            }
+          }
         }
       },
       "mileage_yearly": {
@@ -3608,6 +3623,32 @@
         }
       }
     },
+    "set_charge_cost": {
+      "name": "Ange laddkostnad",
+      "description": "Ange vad en laddning kostade, till exempel summan på kvittot från en publik laddare, i kontots valuta. Ersätter BMW:s eller tariffens belopp, som sparas: utan belopp kommer det tillbaka. Skriver bara till den lokala lagringen.",
+      "fields": {
+        "device_id": {
+          "name": "Fordon",
+          "description": "Bilen det gäller. Behövs bara om det finns mer än en bil."
+        },
+        "entry_id": {
+          "name": "Konfigurationspost",
+          "description": "Valfritt id för kontots konfigurationspost. Behövs bara med flera konton när inget fordon eller VIN anges."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Valfritt VIN, i stället för att välja fordonet. Behövs bara om kontot har mer än en bil."
+        },
+        "session_id": {
+          "name": "Laddnings-ID",
+          "description": "Laddningens ID, så som åtgärden Hämta laddningssessioner returnerar det."
+        },
+        "amount": {
+          "name": "Belopp",
+          "description": "Vad laddningen kostade totalt. Lämna tomt för att ta bort ett angivet belopp."
+        }
+      }
+    },
     "mark_trip_start": {
       "name": "Markera resans start",
       "description": "Noterar att en resa börjar nu, för en bil som rapporterar först när den parkerats: resan som dess nästa rapport avslutar börjar då vid denna tid. Används bara när reseidentifieringen står på Rapporter vid resans slut. Skriver bara till den lokala lagringen.",
@@ -3787,6 +3828,12 @@
     },
     "trip_not_found": {
       "message": "Ingen resa {trip} hittades för {vin}"
+    },
+    "no_charging_history": {
+      "message": "Laddhistoriken är inte tillgänglig"
+    },
+    "charge_not_found": {
+      "message": "Ingen laddning {charge} hittades för {vin}"
     },
     "trips_not_from_reports": {
       "message": "mark_trip_start används bara när resor identifieras från bilens rapporter (Konfigurera -> Resor -> Reseidentifiering)"

@@ -46,7 +46,7 @@ Diese Werte ändern sich über Tage, nicht über Minuten.
   Lade-, Fahrten- und Batterieverlauf, die Statistiken und der Export sind
   **kostenlos**.
 - Die Dienste **`get_*`** sowie `export_history` / `import_statistics` /
-  `set_trip_class` — sie lesen oder schreiben den lokalen Speicher der
+  `set_trip_class` / `set_charge_cost` — sie lesen oder schreiben den lokalen Speicher der
   Integration.
 
 Bevorzuge den Stream. Frage nur ab, was der Stream wirklich nicht

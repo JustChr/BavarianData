@@ -202,6 +202,15 @@ LEASE_VALUES = {
 }
 
 
+def test_a_leases_terms_are_stored_when_set_and_dropped_when_cleared():
+    terms = {**LEASE_VALUES, "mileage_extra_price": 0.08, "mileage_tolerance_km": None}
+    stored = OPTIONS.store_mileage({}, "VIN1", terms)
+    own = stored["vehicles"]["VIN1"]
+    assert own["mileage_extra_price"] == 0.08 and "mileage_tolerance_km" not in own
+    cleared = OPTIONS.store_mileage(stored, "VIN1", {**terms, "mileage_extra_price": None})
+    assert "mileage_extra_price" not in cleared["vehicles"]["VIN1"]
+
+
 def test_a_single_car_account_stores_its_lease_under_the_car():
     stored = OPTIONS.store_mileage({"trip_work_zone": "zone.work"}, "VIN1", LEASE_VALUES)
     assert stored["vehicles"]["VIN1"] == LEASE_VALUES
