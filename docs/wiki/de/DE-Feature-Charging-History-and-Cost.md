@@ -295,6 +295,27 @@ Danach bekommst du pro Fahrzeug:
   mit Kraftstoff gefahrenen Kilometer zählt
   ([warum](DE-Feature-Efficiency-and-Range#plug-in-hybride)).
 
+### Eintragen, was eine Ladung gekostet hat
+
+Eine Ladung unterwegs hat keine Kosten, außer BMW hat sie abgerechnet, und ein
+Betrag von BMW oder aus dem Tarif passt nicht immer zu dem, was du bezahlt hast.
+Tippe die Ladung in der
+[Ladeansicht](DE-The-Dashboard-Card#charging-history-view-charging) an, trage die
+Summe vom Beleg unter **Bezahlt** ein und tippe **Speichern**.
+Der Betrag gilt in der Währung unter **Konfigurieren → Ladekosten & Verlauf**,
+und die Karte markiert ihn als *eingetragen*.
+
+Ein eingetragener Betrag ersetzt den von BMW und den aus dem Tarif und zählt
+überall, wo Kosten zählen: in der Monatssumme, bei **Ladekosten (dieser Monat)**,
+bei den Kosten pro 100 km und im Export. Der ersetzte Betrag bleibt erhalten:
+**Entfernen** holt ihn zurück, und ein späterer Import des BMW-Verlaufs
+aktualisiert diesen aufbewahrten Betrag, ohne deinen anzufassen. Die
+Langzeitstatistik übernimmt den neuen Betrag beim nächsten `import_statistics`.
+
+Automationen können dasselbe mit
+[`bavariandata.set_charge_cost`](DE-Services-Reference#set_charge_cost); die
+`session_id` des Ereignisses `bavariandata_charging_stopped` benennt die Ladung.
+
 ## Netzenergie oder Batterieenergie
 
 <a id="grid-energy-vs-battery-energy"></a>

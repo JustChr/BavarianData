@@ -71,7 +71,8 @@ class ChargingSession:
     location: Optional[dict[str, Any]] = None
     # True when no GPS was available and the home tariff was applied anyway.
     location_assumed: bool = False
-    # {"amount": float, "currency": "EUR", "source": "tariff"|"bmw"}
+    # {"amount": float, "currency": "EUR", "source": "tariff"|"bmw"|"user"};
+    # an entered ("user") cost keeps the figure it replaced under "replaced".
     cost: Optional[dict[str, Any]] = None
     end_reason: Optional[str] = None
     # Odometer at the end of the session; lets cost be expressed per distance.

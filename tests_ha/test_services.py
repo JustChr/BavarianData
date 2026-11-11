@@ -186,6 +186,29 @@ async def test_a_trip_is_classified_by_its_id_alone(hass: HomeAssistant, no_bmw)
         await _call(hass, "set_trip_class", {"trip_id": f"{VIN}-nope", "classification": "private"})
 
 
+async def test_a_charge_takes_an_entered_amount_and_gives_it_back(
+    hass: HomeAssistant, no_bmw
+) -> None:
+    """#324: the amount paid replaces the cost; left out, the old one is back."""
+
+    _entry, runtime, _trip = await _account(hass)
+    (charge,) = (await _ask(hass, "get_charging_sessions"))["sessions"]
+    assert charge["cost"] is None
+
+    # The id alone names the car, as a trip's does.
+    await hass.services.async_call(
+        DOMAIN, "set_charge_cost", {"session_id": charge["id"], "amount": 23.4}, blocking=True
+    )
+    (stored,) = runtime.history.sessions(VIN)
+    assert stored.cost == {"amount": 23.4, "currency": "EUR", "source": "user"}
+
+    await _call(hass, "set_charge_cost", {"session_id": charge["id"]})
+    assert runtime.history.sessions(VIN)[0].cost is None
+
+    with pytest.raises(ServiceValidationError, match="No charge"):
+        await _call(hass, "set_charge_cost", {"session_id": f"{VIN}-nope", "amount": 1})
+
+
 async def test_mark_trip_start_needs_report_mode(hass: HomeAssistant, no_bmw) -> None:
     _entry, runtime, _trip = await _account(hass)
     with pytest.raises(ServiceValidationError, match="reports"):
@@ -400,6 +423,7 @@ async def test_an_account_without_history_answers_empty(hass: HomeAssistant, no_
     assert await _ask(hass, "import_statistics") == {"statistics": {}}
     for service, data in (
         ("set_trip_class", {"trip_id": f"{VIN}-x", "classification": "private"}),
+        ("set_charge_cost", {"session_id": f"{VIN}-x", "amount": 1}),
         ("mark_trip_start", {}),
     ):
         with pytest.raises(ServiceValidationError, match="not available"):

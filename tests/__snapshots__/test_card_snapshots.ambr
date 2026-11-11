@@ -261,6 +261,16 @@
   <span class="chg__fact-val">House battery 14.4 · Grid 35.4 kWh</span>
   </div>
   </div>
+          <div class="tr__classify chg__paid">
+          <span class="tr__classify-lbl">Paid</span>
+          <input class="chg__paid-in" type="number" inputmode="decimal" min="0" step="0.01"
+            data-cost-in="WBS1-2026-09-06T08:00:00+00:00" value="" aria-label="Paid">
+          <span class="chg__paid-cur">EUR</span>
+          <span class="tr__cls-btns">
+            <button class="tr__cls-btn" data-cost-save="WBS1-2026-09-06T08:00:00+00:00">Save</button>
+            
+          </span>
+        </div>
         </div>
       
         </div>
@@ -4244,6 +4254,7 @@
           <span class="ef__vs">820 km under plan</span>
   <span class="ef__note">30 km a day left until the end</span>
   <span class="ef__note">At this pace: 44,100 km at the end (−900 km)</span>
+  <span class="ef__note">Refund for unused distance: €20.00 for 400 km</span>
         </div>
         </div>
       
@@ -4392,6 +4403,7 @@
           <span class="ef__vs">510 mi under plan</span>
   <span class="ef__note">19 mi a day left until the end</span>
   <span class="ef__note">At this pace: 27,402 mi at the end (−559 mi)</span>
+  <span class="ef__note">Refund for unused distance: €20.00 for 249 mi</span>
         </div>
         </div>
       

@@ -284,6 +284,33 @@ set_trip_class:
             - business
             - private
             - commute
+set_charge_cost:
+  fields:
+    device_id:
+      selector:
+        device:
+          filter:
+            - integration: bavariandata
+    entry_id:
+      selector:
+        text:
+    vin:
+      example: WBAEXAMPLE0000000
+      selector:
+        text:
+    session_id:
+      required: true
+      example: WBAEXAMPLE0000000-2026-07-06T18:00:00+00:00
+      selector:
+        text:
+    amount:
+      example: 23.4
+      selector:
+        number:
+          min: 0
+          max: 10000
+          step: 0.01
+          mode: box
 mark_trip_start:
   fields:
     device_id:

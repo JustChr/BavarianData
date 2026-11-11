@@ -14794,6 +14794,7 @@
     'get_trips': 'only',
     'import_statistics': 'optional',
     'mark_trip_start': 'none',
+    'set_charge_cost': 'none',
     'set_trip_class': 'none',
   })
 # ---

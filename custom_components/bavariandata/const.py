@@ -313,6 +313,11 @@ OPTION_MILEAGE_START = "mileage_start"  # ISO date
 OPTION_MILEAGE_END = "mileage_end"  # ISO date, lease only
 OPTION_MILEAGE_ALLOWANCE_KM = "mileage_allowance_km"  # per year
 OPTION_MILEAGE_START_KM = "mileage_start_km"  # odometer on the start date
+# A lease's terms for km over or under the allowance (#325), lease only. Prices
+# per km in the account's currency, the tolerance in km; absent = not in the contract.
+OPTION_MILEAGE_EXTRA_PRICE = "mileage_extra_price"
+OPTION_MILEAGE_UNUSED_REFUND = "mileage_unused_refund"
+OPTION_MILEAGE_TOLERANCE_KM = "mileage_tolerance_km"
 
 # The units values are shown in (Configure -> Units; ``units.py``). Account-wide,
 # "auto" by default. Display only: everything stored stays km, litres, °C and bar.

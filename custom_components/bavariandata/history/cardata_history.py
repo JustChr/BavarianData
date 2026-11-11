@@ -24,6 +24,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Optional
 
 from .models import ChargingSession
+from .pricing import entered_cost, is_entered
 from .sessions import house_supplies_this_session
 
 # Keep the stored curve small: BMW returns one block per power change (hundreds
@@ -399,6 +400,12 @@ def _enrich_in_place(
     """
 
     metered = target.grid_source == "meter" and target.grid_kwh is not None
+    # An amount the user entered is what was paid and stays. The rules below
+    # update the figure it replaced instead, so clearing it later brings back
+    # what BMW or the tariff would have said by then (#324).
+    entered = target.cost if is_entered(target.cost) else None
+    if entered is not None:
+        target.cost = entered.get("replaced")
     if _soc_arc_was_frozen(target, incoming, pad):
         target.soc_start = incoming.soc_start
         target.soc_end = incoming.soc_end
@@ -458,6 +465,8 @@ def _enrich_in_place(
         else not target.cost or target.cost.get("source") != "bmw"
     ):
         target.cost = incoming.cost
+    if entered is not None:
+        target.cost = entered_cost(entered["amount"], entered["currency"], target.cost)
     target.enriched = True
 
 

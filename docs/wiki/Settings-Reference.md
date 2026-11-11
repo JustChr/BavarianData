@@ -343,6 +343,9 @@ starts without one. It applies at once, to the card and the sensor.
 | **End date** | date | Lease only: the day you hand the car back. Must be after the start. |
 | **Allowance per year** | km or mi (see below) | From the contract or policy. A lease's total is this times its length. |
 | **Odometer at the start** / **Odometer that day** | km or mi | The reading on the start date, from the handover papers. Filled in with today's reading while none is saved; for a yearly limit, the reading at the most recent start of the year. |
+| **Price for extra distance** | currency per km or mi, optional | Lease only, under **Extra and unused distance** (collapsed until set): what the contract charges for each km or mile over the allowance. |
+| **Refund for unused distance** | currency per km or mi, optional | Lease only: what you get back for each km or mile under the allowance. |
+| **Tolerance** | km or mi, optional | Lease only: how far over or under costs nothing. The card shows the [cost at the return](Feature-Mileage#what-it-costs-at-the-return) from these three. |
 
 The boxes say which unit they take: the distance unit under
 [Units](#units), whose Automatic choice is the car's own (the unit its odometer

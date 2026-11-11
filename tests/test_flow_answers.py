@@ -216,7 +216,36 @@ def test_a_typed_allowance_is_stored_in_km() -> None:
         mileage.KEY_END: None,
         mileage.KEY_PER_YEAR: 16093.4,
         mileage.KEY_START_KM: None,
+        mileage.KEY_EXTRA_PRICE: None,
+        mileage.KEY_UNUSED_REFUND: None,
+        mileage.KEY_TOLERANCE_KM: None,
     }
+
+
+def test_a_leases_terms_are_stored_per_km() -> None:
+    """#325: typed per mile on a car that counts in miles, kept per km."""
+
+    typed = {
+        mileage.KEY_START: "2026-01-01",
+        mileage.KEY_PER_YEAR: 10000,
+        answers.LEASE_COST_SECTION: {
+            mileage.KEY_EXTRA_PRICE: 0.16,
+            mileage.KEY_UNUSED_REFUND: 0,
+            mileage.KEY_TOLERANCE_KM: 1500,
+        },
+    }
+    stored = answers.mileage_typed(typed, True)
+    assert stored[mileage.KEY_EXTRA_PRICE] == pytest.approx(0.0994, abs=1e-4)
+    assert stored[mileage.KEY_UNUSED_REFUND] is None  # 0 is no refund, not a price
+    assert stored[mileage.KEY_TOLERANCE_KM] == 2414.0
+    assert answers.price_display(stored[mileage.KEY_EXTRA_PRICE], True) == 0.16
+    assert answers.price_display(0.08, False) == 0.08
+
+
+def test_a_yearly_limit_keeps_no_lease_terms() -> None:
+    values = _allowance(**{mileage.KEY_EXTRA_PRICE: 0.08, mileage.KEY_TOLERANCE_KM: 100})
+    stored, _errors = answers.mileage_to_store(mileage.KIND_YEARLY, values, TODAY)
+    assert stored[mileage.KEY_EXTRA_PRICE] is None and stored[mileage.KEY_TOLERANCE_KM] is None
 
 
 def test_a_fresh_lease_runs_three_years_from_today() -> None:

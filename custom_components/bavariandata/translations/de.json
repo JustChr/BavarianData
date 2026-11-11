@@ -540,6 +540,21 @@
           "mileage_end": "Der Tag, an dem du es zurückgibst.",
           "mileage_allowance_km": "Aus deinem Vertrag. Das Gesamtkontingent ist dieser Wert mal die Vertragslaufzeit.",
           "mileage_start_km": "Aus dem Übergabeprotokoll. Vorbelegt mit dem heutigen Stand, solange keiner gespeichert ist: korrigiere ihn, wenn der Vertrag früher begann."
+        },
+        "sections": {
+          "lease_costs": {
+            "name": "Mehr- und Minderkilometer",
+            "data": {
+              "mileage_extra_price": "Preis je Mehrkilometer",
+              "mileage_unused_refund": "Vergütung je Minderkilometer",
+              "mileage_tolerance_km": "Freigrenze"
+            },
+            "data_description": {
+              "mileage_extra_price": "Was der Vertrag je Kilometer über dem Kontingent berechnet. Leer lassen, wenn er nichts berechnet.",
+              "mileage_unused_refund": "Was du je Kilometer unter dem Kontingent zurückbekommst. Leer lassen, wenn es keine Vergütung gibt.",
+              "mileage_tolerance_km": "Wie viele Kilometer darüber oder darunter nichts kosten, wie es viele Verträge vorsehen. Leer lassen, wenn deiner keine hat."
+            }
+          }
         }
       },
       "mileage_yearly": {
@@ -3608,6 +3623,32 @@
         }
       }
     },
+    "set_charge_cost": {
+      "name": "Ladekosten eintragen",
+      "description": "Trägt ein, was ein Ladevorgang gekostet hat, etwa die Summe vom Beleg einer öffentlichen Ladesäule, in der Währung des Kontos. Ersetzt den Betrag von BMW oder aus dem Tarif; der bleibt erhalten: ohne Betrag kommt er zurück. Schreibt nur in den lokalen Speicher.",
+      "fields": {
+        "device_id": {
+          "name": "Fahrzeug",
+          "description": "Das Auto, um das es geht. Nur nötig bei mehr als einem Auto."
+        },
+        "entry_id": {
+          "name": "Konfigurationseintrag",
+          "description": "Optionale ID des Konfigurationseintrags des Kontos. Nur nötig bei mehreren Konten, wenn weder Fahrzeug noch VIN angegeben ist."
+        },
+        "vin": {
+          "name": "FIN",
+          "description": "Optionale VIN, statt das Fahrzeug auszuwählen. Nur nötig, wenn das Konto mehr als ein Auto hat."
+        },
+        "session_id": {
+          "name": "Ladevorgang-ID",
+          "description": "Die ID des Ladevorgangs, wie von der Aktion Ladevorgänge abfragen geliefert."
+        },
+        "amount": {
+          "name": "Betrag",
+          "description": "Was der Ladevorgang insgesamt gekostet hat. Weglassen, um einen eingetragenen Betrag wieder zu entfernen."
+        }
+      }
+    },
     "mark_trip_start": {
       "name": "Fahrtbeginn markieren",
       "description": "Vermerkt, dass jetzt eine Fahrt beginnt, für ein Auto, das erst nach dem Parken meldet: Die Fahrt, die sein nächster Bericht beendet, beginnt dann zu dieser Zeit. Wird nur genutzt, wenn die Fahrterkennung auf Berichte am Fahrtende steht. Schreibt nur in den lokalen Speicher.",
@@ -3787,6 +3828,12 @@
     },
     "trip_not_found": {
       "message": "Keine Fahrt {trip} für {vin} gefunden"
+    },
+    "no_charging_history": {
+      "message": "Der Ladeverlauf ist nicht verfügbar"
+    },
+    "charge_not_found": {
+      "message": "Kein Ladevorgang {charge} für {vin} gefunden"
     },
     "trips_not_from_reports": {
       "message": "mark_trip_start gilt nur, wenn Fahrten aus den Berichten des Fahrzeugs erkannt werden (Konfigurieren -> Fahrten -> Fahrterkennung)"

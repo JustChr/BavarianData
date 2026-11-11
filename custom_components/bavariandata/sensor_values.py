@@ -265,7 +265,14 @@ def driving_month_attributes(summary: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def mileage_attributes(allowance: Mapping[str, Any]) -> dict[str, Any]:
-    return {key: allowance.get(key) for key in MILEAGE_ATTRIBUTES}
+    attrs = {key: allowance.get(key) for key in MILEAGE_ATTRIBUTES}
+    # A lease's projected cost at the return (#325): owed for extra km, negative
+    # for a refund; absent without the contract's terms.
+    cost = allowance.get("lease_cost")
+    if cost:
+        attrs["projected_lease_cost"] = cost.get("amount")
+        attrs["currency"] = cost.get("currency")
+    return attrs
 
 
 def tyre_attributes(

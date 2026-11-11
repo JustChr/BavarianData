@@ -277,7 +277,10 @@ die Ladevorgänge des Monats, neueste zuerst: Datum, der Ladestand von → bis a
 kleiner Balken, ein Abzeichen Zuhause/Unterwegs, die Energie und darunter die
 Kosten. Tippe einen Ladevorgang an für seine **Ladekurve** (mit dem Durchschnitt
 als gestrichelter Linie), Spitzen- und Durchschnittsleistung, Dauer und
-Netzenergie. Die Schaltflächen **CSV** und **Bericht** exportieren den
+Netzenergie. Darunter nimmt **Bezahlt** an, was die Ladung laut Beleg gekostet
+hat; das ersetzt den Betrag von BMW oder aus dem Tarif, bis du ihn **entfernst**
+([siehe Eintragen, was eine Ladung gekostet hat](DE-Feature-Charging-History-and-Cost#eintragen-was-eine-ladung-gekostet-hat)).
+Die Schaltflächen **CSV** und **Bericht** exportieren den
 angezeigten Monat ([siehe Export](DE-Feature-Export)).
 
 Eine laufende Ladung steht oben, solange sie läuft, mit dem, was sie bisher

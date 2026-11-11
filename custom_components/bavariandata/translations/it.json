@@ -540,6 +540,21 @@
           "mileage_end": "Il giorno in cui la restituisci.",
           "mileage_allowance_km": "Dal tuo contratto. Il totale è questo valore per la durata del contratto.",
           "mileage_start_km": "Dal verbale di consegna. Precompilato con la lettura di oggi finché non ne è salvata una: correggilo se il contratto è iniziato prima."
+        },
+        "sections": {
+          "lease_costs": {
+            "name": "Km in eccesso e non percorsi",
+            "data": {
+              "mileage_extra_price": "Prezzo per km in eccesso",
+              "mileage_unused_refund": "Rimborso per km non percorso",
+              "mileage_tolerance_km": "Tolleranza"
+            },
+            "data_description": {
+              "mileage_extra_price": "Quanto il contratto addebita per ogni km oltre il limite. Lascia vuoto se non addebita nulla.",
+              "mileage_unused_refund": "Quanto ti viene restituito per ogni km sotto il limite. Lascia vuoto se non c'è rimborso.",
+              "mileage_tolerance_km": "I km in più o in meno che non costano nulla, come prevedono molti contratti. Lascia vuoto se il tuo non ne ha."
+            }
+          }
         }
       },
       "mileage_yearly": {
@@ -3608,6 +3623,32 @@
         }
       }
     },
+    "set_charge_cost": {
+      "name": "Imposta il costo di una ricarica",
+      "description": "Inserisci quanto è costata una ricarica, ad esempio il totale della ricevuta di una colonnina pubblica, nella valuta dell'account. Sostituisce l'importo di BMW o della tariffa, che resta salvato: senza importo torna quello. Scrive solo nella memoria locale.",
+      "fields": {
+        "device_id": {
+          "name": "Veicolo",
+          "description": "L'auto su cui agire. Serve solo se hai più di un'auto."
+        },
+        "entry_id": {
+          "name": "Voce di configurazione",
+          "description": "ID facoltativo della voce di configurazione dell'account. Serve solo con più account, se non indichi né veicolo né VIN."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "VIN facoltativo, invece di scegliere il veicolo. Serve solo se l'account ha più di un'auto."
+        },
+        "session_id": {
+          "name": "ID della ricarica",
+          "description": "L'ID della ricarica, come restituito dall'azione Ottieni le sessioni di ricarica."
+        },
+        "amount": {
+          "name": "Importo",
+          "description": "Il costo totale della ricarica. Lascialo vuoto per rimuovere un importo inserito."
+        }
+      }
+    },
     "mark_trip_start": {
       "name": "Segna inizio viaggio",
       "description": "Annota che un viaggio inizia adesso, per un'auto che trasmette solo da parcheggiata: il viaggio chiuso dal suo prossimo report inizia allora a quest'ora. Usato solo se il rilevamento viaggi è impostato su Report di fine viaggio. Scrive solo nell'archivio locale.",
@@ -3787,6 +3828,12 @@
     },
     "trip_not_found": {
       "message": "Nessun viaggio {trip} trovato per {vin}"
+    },
+    "no_charging_history": {
+      "message": "La cronologia delle ricariche non è disponibile"
+    },
+    "charge_not_found": {
+      "message": "Nessuna ricarica {charge} trovata per {vin}"
     },
     "trips_not_from_reports": {
       "message": "mark_trip_start si usa solo quando i viaggi sono rilevati dai report del veicolo (Configura -> Viaggi -> Rilevamento viaggi)"

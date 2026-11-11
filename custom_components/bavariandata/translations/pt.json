@@ -540,6 +540,21 @@
           "mileage_end": "O dia em que o devolve.",
           "mileage_allowance_km": "Do seu contrato. O total é este valor vezes a duração do contrato.",
           "mileage_start_km": "Do auto de entrega. Preenchido com a leitura de hoje enquanto não houver uma guardada: corrija-o se o contrato começou antes."
+        },
+        "sections": {
+          "lease_costs": {
+            "name": "Km em excesso e não percorridos",
+            "data": {
+              "mileage_extra_price": "Preço por km em excesso",
+              "mileage_unused_refund": "Reembolso por km não percorrido",
+              "mileage_tolerance_km": "Tolerância"
+            },
+            "data_description": {
+              "mileage_extra_price": "O que o contrato cobra por cada km acima do limite. Deixe vazio se não cobrar nada.",
+              "mileage_unused_refund": "O que recebe de volta por cada km abaixo do limite. Deixe vazio se não houver reembolso.",
+              "mileage_tolerance_km": "Os km acima ou abaixo que não custam nada, como preveem muitos contratos. Deixe vazio se o seu não tiver."
+            }
+          }
         }
       },
       "mileage_yearly": {
@@ -3608,6 +3623,32 @@
         }
       }
     },
+    "set_charge_cost": {
+      "name": "Definir o custo de um carregamento",
+      "description": "Introduza quanto custou um carregamento, por exemplo o total do recibo de um posto público, na moeda da conta. Substitui o valor da BMW ou da tarifa, que é guardado: sem valor, esse volta. Escreve apenas no armazenamento local.",
+      "fields": {
+        "device_id": {
+          "name": "Veículo",
+          "description": "O carro em causa. Só é necessário com mais de um carro."
+        },
+        "entry_id": {
+          "name": "Entrada de configuração",
+          "description": "ID opcional da entrada de configuração da conta. Só é necessário com várias contas, quando não é indicado veículo nem VIN."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "VIN opcional, em vez de escolher o veículo. Só é necessário se a conta tiver mais de um carro."
+        },
+        "session_id": {
+          "name": "ID do carregamento",
+          "description": "O ID do carregamento, tal como devolvido pela ação Obter sessões de carregamento."
+        },
+        "amount": {
+          "name": "Valor",
+          "description": "O custo total do carregamento. Deixe vazio para remover um valor introduzido."
+        }
+      }
+    },
     "mark_trip_start": {
       "name": "Marcar início da viagem",
       "description": "Regista que uma viagem começa agora, para um carro que só comunica depois de estacionado: a viagem que o seu próximo relatório termina começa então a esta hora. Só é usado quando a deteção de viagens está em Relatórios de fim de viagem. Escreve apenas no armazenamento local.",
@@ -3787,6 +3828,12 @@
     },
     "trip_not_found": {
       "message": "Nenhuma viagem {trip} encontrada para {vin}"
+    },
+    "no_charging_history": {
+      "message": "O histórico de carregamentos não está disponível"
+    },
+    "charge_not_found": {
+      "message": "Nenhum carregamento {charge} encontrado para {vin}"
     },
     "trips_not_from_reports": {
       "message": "mark_trip_start só é usado quando as viagens são detetadas a partir dos relatórios do veículo (Configurar -> Viagens -> Deteção de viagens)"

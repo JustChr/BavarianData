@@ -54,6 +54,7 @@ Diese lesen (oder schreiben) den eigenen Speicher der Integration und kosten
 | `bavariandata.get_fuel_history` | Tankvorgänge und Kraftstoffverbrauch eines Benziners, Diesels oder Plug-in-Hybrids, abgelesen am Tankinhalt — siehe unten. |
 | `bavariandata.get_evcc_config` | Die evcc-Fahrzeugkonfiguration `custom` für ein Auto, dazu die MQTT-Topics der Brücke — siehe unten. |
 | `bavariandata.set_trip_class` | Korrigiert die Zuordnung einer Fahrt (geschäftlich/privat/Pendeln). |
+| `bavariandata.set_charge_cost` | Trägt ein, was eine Ladung gekostet hat (ein Beleg), oder nimmt es zurück — siehe unten. |
 | `bavariandata.mark_trip_start` | Vermerkt, wann eine Fahrt begann, für ein Auto, das erst nach dem Parken meldet — siehe unten. |
 | `bavariandata.export_history` | Liefert einen Monat als CSV oder druckbaren HTML-Bericht. |
 | `bavariandata.get_coverage_report` | Selbsttest der Deskriptor-Abdeckung — siehe unten. |
@@ -229,6 +230,16 @@ Siehe [evcc- & Wallbox-Brücke](DE-Feature-evcc-and-Wallbox-Bridge).
 
 `vin`, `trip_id` (wie von `get_trips` geliefert), `classification`
 (`business` · `private` · `commute`). Schreibt nur den lokalen Speicher.
+
+### `set_charge_cost`
+
+`vin`, `session_id` (die `id` aus `get_charging_sessions` oder die `session_id`
+des Ereignisses `bavariandata_charging_stopped`), `amount` (optional). Der Betrag
+ist die Summe der Ladung in der Währung unter **Konfigurieren → Ladekosten &
+Verlauf**; er ersetzt die Kosten von BMW oder aus dem Tarif, die erhalten
+bleiben. Ohne `amount` wird ein eingetragener Betrag zurückgenommen und diese
+Kosten kommen zurück. Schreibt nur den lokalen Speicher. Siehe
+[Eintragen, was eine Ladung gekostet hat](DE-Feature-Charging-History-and-Cost#eintragen-was-eine-ladung-gekostet-hat).
 
 ### `mark_trip_start`
 

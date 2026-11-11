@@ -92,6 +92,49 @@ def test_a_lease_under_plan():
     assert status["km_per_day_left"] > 35
 
 
+# -- what km over or under cost at the return (#325) -------------------------
+
+
+def test_extra_km_past_the_tolerance_cost_the_contracts_price():
+    terms = {"extra_price": 0.08, "unused_refund": 0.05, "tolerance_km": 2500}
+    cost = mileage.lease_cost(terms, 2800, "EUR")
+    assert (cost["amount"], cost["extra_km"], cost["unused_km"]) == (24.0, 300, 0)
+    assert cost["currency"] == "EUR" and cost["tolerance_km"] == 2500
+
+
+def test_unused_km_past_the_tolerance_are_refunded_as_a_negative_amount():
+    terms = {"extra_price": 0.08, "unused_refund": 0.05, "tolerance_km": 2500}
+    cost = mileage.lease_cost(terms, -4500, "EUR")
+    assert (cost["amount"], cost["unused_km"]) == (-100.0, 2000)
+
+
+def test_within_the_tolerance_nothing_is_owed():
+    terms = {"extra_price": 0.08, "unused_refund": None, "tolerance_km": 2500}
+    assert mileage.lease_cost(terms, 2400, "EUR")["amount"] == 0.0
+    assert mileage.lease_cost(terms, -2400, "EUR")["amount"] == 0.0
+
+
+def test_a_side_without_a_price_says_nothing_rather_than_zero():
+    # Heading under with no refund in the contract: not "nothing back", unknown.
+    assert mileage.lease_cost({"extra_price": 0.08}, -900, "EUR") is None
+    assert mileage.lease_cost({"unused_refund": 0.05}, 900, "EUR") is None
+    assert mileage.lease_cost({}, 900, "EUR") is None
+
+
+def test_the_lease_report_carries_its_cost_and_a_yearly_limit_none():
+    log = _steady(date(2025, 10, 14), TODAY, 35.0)  # heading for ~6,700 km under
+    lease = {**LEASE, "mileage_unused_refund": 0.05, "mileage_tolerance_km": 2500}
+    status = mileage.mileage_report(log, TODAY, lease, "EUR")["allowance"]
+    cost = status["lease_cost"]
+    unused = -status["projected_over_km"] - 2500
+    assert cost["amount"] == pytest.approx(-unused * 0.05, abs=0.06)
+    assert cost["currency"] == "EUR"
+    # Without the terms the lease says nothing about money.
+    assert mileage.mileage_report(log, TODAY, LEASE)["allowance"]["lease_cost"] is None
+    yearly = {**LEASE, "mileage_kind": "yearly", "mileage_extra_price": 0.08}
+    assert "lease_cost" not in mileage.mileage_report(log, TODAY, yearly)["allowance"]
+
+
 def test_a_lease_without_its_handover_reading_is_unknown_not_guessed():
     lease = {**LEASE, "mileage_start_km": None}
     status = mileage.mileage_report(_steady(date(2026, 1, 1), TODAY, 30.0), TODAY, lease)[

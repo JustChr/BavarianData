@@ -540,6 +540,21 @@
           "mileage_end": "Le jour où vous la rendez.",
           "mileage_allowance_km": "Selon votre contrat. Le total est cette valeur multipliée par la durée du contrat.",
           "mileage_start_km": "Selon le procès-verbal de livraison. Prérempli avec le relevé du jour tant qu'aucun n'est enregistré : corrigez-le si le contrat a commencé plus tôt."
+        },
+        "sections": {
+          "lease_costs": {
+            "name": "Kilomètres supplémentaires et non parcourus",
+            "data": {
+              "mileage_extra_price": "Prix par km supplémentaire",
+              "mileage_unused_refund": "Remboursement par km non parcouru",
+              "mileage_tolerance_km": "Tolérance"
+            },
+            "data_description": {
+              "mileage_extra_price": "Ce que le contrat facture par km au-delà du forfait. Laissez vide s'il ne facture rien.",
+              "mileage_unused_refund": "Ce qui vous est remboursé par km en deçà du forfait. Laissez vide s'il n'y a pas de remboursement.",
+              "mileage_tolerance_km": "Les km au-delà ou en deçà qui ne coûtent rien, comme le prévoient de nombreux contrats. Laissez vide si le vôtre n'en a pas."
+            }
+          }
         }
       },
       "mileage_yearly": {
@@ -3608,6 +3623,32 @@
         }
       }
     },
+    "set_charge_cost": {
+      "name": "Définir le coût d'une recharge",
+      "description": "Saisit ce qu'a coûté une recharge, par exemple le total du reçu d'une borne publique, dans la devise du compte. Remplace le montant de BMW ou du tarif, qui est conservé : sans montant, il revient. Écrit uniquement dans le stockage local.",
+      "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "La voiture concernée. Nécessaire seulement s'il y a plus d'une voiture."
+        },
+        "entry_id": {
+          "name": "Entrée de configuration",
+          "description": "Identifiant facultatif de l'entrée de configuration du compte. Nécessaire seulement avec plusieurs comptes, si aucun véhicule ni VIN n'est indiqué."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "VIN facultatif, au lieu de choisir le véhicule. Nécessaire seulement si le compte a plus d'une voiture."
+        },
+        "session_id": {
+          "name": "ID de la recharge",
+          "description": "L'identifiant de la recharge, tel que renvoyé par l'action Obtenir les sessions de recharge."
+        },
+        "amount": {
+          "name": "Montant",
+          "description": "Le coût total de la recharge. Laissez-le vide pour retirer un montant saisi."
+        }
+      }
+    },
     "mark_trip_start": {
       "name": "Marquer le début du trajet",
       "description": "Indique qu'un trajet commence maintenant, pour une voiture qui ne transmet qu'une fois garée : le trajet que clôt son prochain rapport commence alors à cette heure. Utilisé uniquement si la détection des trajets est réglée sur Rapports de fin de trajet. Écrit uniquement dans le stockage local.",
@@ -3787,6 +3828,12 @@
     },
     "trip_not_found": {
       "message": "Aucun trajet {trip} trouvé pour {vin}"
+    },
+    "no_charging_history": {
+      "message": "L'historique des recharges n'est pas disponible"
+    },
+    "charge_not_found": {
+      "message": "Aucune recharge {charge} trouvée pour {vin}"
     },
     "trips_not_from_reports": {
       "message": "mark_trip_start ne sert que lorsque les trajets sont détectés à partir des rapports du véhicule (Configurer -> Trajets -> Détection des trajets)"

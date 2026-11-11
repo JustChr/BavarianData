@@ -261,7 +261,10 @@ house battery, grid, away) and the kWh of each day. Then the month's sessions,
 newest first: the date, the charge from → to as a small bar, a Home/Away badge,
 the energy and, under it, the cost. Tap a session to expand its **power curve**
 (with its average as a dashed line), peak and average power, duration, and grid
-energy. **CSV** and **Report** buttons export the month you are viewing
+energy. Below them, **Paid** takes what the charge cost from a receipt, which
+replaces BMW's or the tariff's figure until you **Remove** it
+([see Entering what a charge cost](Feature-Charging-History-and-Cost#entering-what-a-charge-cost)).
+**CSV** and **Report** buttons export the month you are viewing
 ([see Export](Feature-Export)).
 
 A charge in progress sits on top while it runs, with what it has added and cost
