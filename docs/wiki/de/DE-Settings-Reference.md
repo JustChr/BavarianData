@@ -355,7 +355,7 @@ im Sensor.
 | Option | Werte | Bedeutung |
 | --- | --- | --- |
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-mileage-lease.png" alt="Leasing oder Finanzierung: Beginn, Ende, Kilometer pro Jahr und Kilometerstand bei Beginn, ausgefüllt für ein dreijähriges Leasing mit 15.000 km im Jahr" width="460" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-mileage-lease-de.png" alt="Leasing oder Finanzierung: Beginn, Ende, Kilometer pro Jahr und Kilometerstand bei Beginn, ausgefüllt für ein dreijähriges Leasing mit 15.000 km im Jahr, dazu der geöffnete Abschnitt Mehr- und Minderkilometer mit 20,06 ct/km Aufpreis, 13,38 ct/km Vergütung und 2.500 km Freigrenze" width="460" />
 </p>
 
 <p align="center">

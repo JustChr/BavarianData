@@ -11,7 +11,7 @@
 //
 // Run from a directory with playwright-core installed (see the shoot skill):
 //   HA_URL=http://<host> HA_TOKEN=<token> \
-//     node mock_flow.js <trips|trips_new|charging|bridge|phone|menu|share|image|upholstery|abrp> <real|staged> <lang> <width> <outdir>
+//     node mock_flow.js <trips|trips_new|charging|bridge|phone|lease|menu|share|image|upholstery|abrp> <real|staged> <lang> <width> <outdir>
 // ``phone`` is staged only: Trips for a car on end-of-trip reports with Record
 // route on, and the follow-up Route from a phone screen its submit leads to.
 // A new per-car screen: add it to SCREENS, starting from the real step the
@@ -110,12 +110,58 @@ const SCREENS = {
     // labels from the working tree's translations instead (browser only).
     translate: "options.step.trips_phone",
   },
+  // Lease or financing, staged only: the live car's lease is real, so the form
+  // is built here (as HA serializes it, see test_flow_snapshots) with a demo
+  // lease, the extra/unused section open, and never comes from the server.
+  lease: {
+    menu: { en: "Mileage allowance", de: "Kilometerkontingent" },
+    step: "action_mileage",
+    build: (base) => {
+      const km = (name, max, value, optional) => ({
+        description: { suggested_value: value },
+        name,
+        ...(optional ? { optional: true, required: false } : { required: true }),
+        selector: { number: { max, min: 0, mode: "box", step: 1, unit_of_measurement: "km" } },
+      });
+      const cents = (name, value) => ({
+        description: { suggested_value: value },
+        name,
+        optional: true,
+        required: false,
+        selector: { number: { max: 1000, min: 0, mode: "box", step: 0.01, unit_of_measurement: "ct/km" } },
+      });
+      return {
+        ...base,
+        type: "form",
+        step_id: "mileage_lease",
+        data_schema: [
+          { description: { suggested_value: "2025-03-01" }, name: "mileage_start", required: true, selector: { date: {} } },
+          { description: { suggested_value: "2028-02-29" }, name: "mileage_end", required: true, selector: { date: {} } },
+          km("mileage_allowance_km", 200000, 15000),
+          km("mileage_start_km", 2000000, 12),
+          {
+            // HA's dialog seeds a section's fields from its default, not their suggestions.
+            default: { mileage_extra_price: 20.06, mileage_unused_refund: 13.38, mileage_tolerance_km: 2500 },
+            expanded: true,
+            name: "lease_costs",
+            optional: true,
+            required: false,
+            type: "expandable",
+            schema: [cents("mileage_extra_price", 20.06), cents("mileage_unused_refund", 13.38), km("mileage_tolerance_km", 100000, 2500, true)],
+          },
+        ],
+        description_placeholders: { vehicle: "i4 eDrive40" },
+        errors: {},
+        last_step: null,
+      };
+    },
+  },
 };
 
 const [screenName, mode, lang, width, outdir] = process.argv.slice(2);
 const screen = SCREENS[screenName];
-if (!screen || !["real", "staged"].includes(mode) || (screen.followup && mode !== "staged"))
-  throw new Error("usage: <trips|trips_new|charging|bridge|phone|menu|share|image|upholstery|abrp> <real|staged> <lang> <width> <outdir>");
+if (!screen || !["real", "staged"].includes(mode) || ((screen.followup || screen.build) && mode !== "staged"))
+  throw new Error("usage: <trips|trips_new|charging|bridge|phone|lease|menu|share|image|upholstery|abrp> <real|staged> <lang> <width> <outdir>");
 const NEXT = { en: "Next", de: "Weiter" };
 
 // The working tree's strings for one step, as the frontend keys them.
@@ -326,7 +372,21 @@ async function shot(page, name) {
   }
   const page = await context.newPage();
 
-  if (screen.followup) {
+  if (screen.build) {
+    // The menu click reaches HA (it saves nothing); its answer is replaced by
+    // the built step, and every later call is refused.
+    await page.route("**/api/config/config_entries/options/flow/*", async (route) => {
+      const request = route.request();
+      if (request.method() !== "POST") return route.continue();
+      const body = JSON.parse(request.postData() || "{}");
+      if (phase === "menu" && body.next_step_id === screen.step) {
+        const response = await route.fetch();
+        phase = "form";
+        return route.fulfill({ json: screen.build(await response.json()) });
+      }
+      return route.abort();
+    });
+  } else if (screen.followup) {
     await page.route("**/api/config/config_entries/options/flow/*", async (route) => {
       const request = route.request();
       if (request.method() !== "POST") return route.continue();
@@ -403,7 +463,8 @@ async function shot(page, name) {
     await page.getByRole("button", { name: NEXT[lang] }).first().click();
     await page.waitForTimeout(2500);
     await shot(page, "2-followup");
-  } else if (mode === "real") {
+  } else if (mode === "real" || screen.build) {
+    await page.mouse.move(0, 0); // a hovered number field shows its spinner
     await shot(page, "form");
   } else {
     await shot(page, "1-picker");
