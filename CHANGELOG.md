@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.30-beta.5] - 2026-11-11
+
 ### Fixed
 - **The Paid field takes a decimal comma.** The amount paid for a charge was
   shown and typed with a point, and a browser set to English refused "9,87".
