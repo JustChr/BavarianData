@@ -9,6 +9,69 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.30] - 2026-11-11
+
+Promotes 0.9.30-beta.1 to beta.6. Type in what a charge really cost, see what a lease's extra or unused km will cost at the return, and tell a fresh plug-in from one older than a restart. Plus fixes to the card's home charges and charge totals, the session sensor and the notifying blueprints.
+
+### Added
+- **Enter what a charge cost.** Tap a charge on the card's charging view and
+  type the total from the receipt into **Paid**, in your own number format
+  ("9,87" or "9.87"). Useful for a public charger, which otherwise has no cost
+  unless BMW billed it, or when BMW's or the tariff's figure doesn't match what
+  you paid. The amount counts in the month's total, the cost sensors and the
+  export; the figure it replaced is kept, and **Remove** brings it back.
+  Automations can do the same with the new `set_charge_cost` action, and
+  `get_charging_sessions` now returns each charge's `id`. Thanks @Kars-de-Jong
+  for the idea ([#324](https://github.com/JustChr/BavarianData/discussions/324)).
+  [Charging history & cost](https://github.com/JustChr/BavarianData/wiki/Feature-Charging-History-and-Cost#entering-what-a-charge-cost)
+- **What a lease's extra or unused km cost at the return.** Under Configure →
+  Mileage allowance → Lease or financing, a new section *Extra and unused
+  distance* takes the contract's price per extra km and its refund per unused
+  km, in cents as the contract prints them (`ct/km`; `p/mi` for pounds, and so
+  on), plus a tolerance; all optional. If the contract splits a rate into parts
+  such as mileage and maintenance, enter the sum. The card's Mileage view then
+  says what the projected km over would cost at the return, the refund for the
+  km under, or that you're within the tolerance; the allowance sensor carries
+  it as `projected_lease_cost`. Thanks @kerzebrozzer for the idea
+  ([#325](https://github.com/JustChr/BavarianData/discussions/325)).
+  [Mileage & allowance](https://github.com/JustChr/BavarianData/wiki/Feature-Mileage#what-it-costs-at-the-return)
+- **The Charging Cable sensor says when the car measured it.** New attributes:
+  `timestamp` (BMW's time for the plug state), `source` (which of the car's
+  plug readings decided it) and `from_before_restart` (true while the state is
+  the one from before a Home Assistant restart and the car hasn't confirmed it
+  yet). An integration or automation that acts on a plug-in can now tell a new
+  plug-in from one older than its own last look, such as a car driven off
+  while Home Assistant was down. Thanks @memphi2 (#317).
+  [Entities](https://github.com/JustChr/BavarianData/wiki/Feature-Entities-and-Devices)
+
+### Fixed
+- **Home charges count as home on the card when the home zone has its own
+  name.** Home Assistant names the home zone after your location ("Thuis",
+  "Zuhause"), and the card's Sessions view only recognized the word "Home". Its
+  month summary counted every home charge as away ("15 sessions, 14 away"),
+  left them out of *Where it came from* and showed their badge as an away zone.
+  The price and the Places tab were already right. Thanks @Kars-de-Jong (#320).
+- **A charge split by a restart adds up on the card.** When Home Assistant
+  restarts during a charge (saving a Configure screen does too), the energy
+  taken in the meantime counts in the charge's total but has no source or
+  price. The card dropped it from *Where it came from* and from the charge's
+  own breakdown, so they added up to less than was charged. It now counts as
+  unattributed, and the charge's detail says Home Assistant restarted during
+  it. Thanks @Kars-de-Jong (#320).
+  [The card](https://github.com/JustChr/BavarianData/wiki/The-Dashboard-Card)
+- **A finished charge leaves no progress on the session sensor.** *Charged
+  Energy (Session)* shows a running charge's start SoC, cost so far and solar
+  share. When the car reported its charging power as 0 just before reporting
+  the charge finished, those figures stayed on the sensor after the charge
+  ended, until the next one began. The end of a charge now clears them
+  whatever order the car's last readings arrive in.
+- **One message per phone from the notifying blueprints.** *Notify when
+  charging completes* and *Stop charging at target %* sent every message twice
+  to a phone that was picked under *Phones* and also still typed under *Older
+  setting*. That happens to an automation moved to the picker that kept its
+  typed phone. Each phone now gets one message. The update brings the fixed
+  blueprints; one imported by its link needs importing again.
+
 ## [0.9.30-beta.6] - 2026-11-11
 
 ### Changed
