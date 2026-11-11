@@ -263,7 +263,7 @@
   </div>
           <div class="tr__classify chg__paid">
           <span class="tr__classify-lbl">Paid</span>
-          <input class="chg__paid-in" type="number" inputmode="decimal" min="0" step="0.01"
+          <input class="chg__paid-in" type="text" inputmode="decimal" autocomplete="off"
             data-cost-in="WBS1-2026-09-06T08:00:00+00:00" value="" aria-label="Paid">
           <span class="chg__paid-cur">EUR</span>
           <span class="tr__cls-btns">

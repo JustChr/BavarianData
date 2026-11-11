@@ -840,13 +840,13 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
     const cost = session.cost || {};
     const entered = cost.source === "user";
     const draft = this._chgCostDraft && this._chgCostDraft.id === session.id ? this._chgCostDraft.value : null;
-    const value = draft != null ? draft : entered && cost.amount != null ? String(cost.amount) : "";
+    const value = draft != null ? draft : entered && cost.amount != null ? this._costText(cost.amount) : "";
     const known = ((this._chg && this._chg.data) || []).find((s) => s.cost && s.cost.currency);
     const currency = cost.currency || (known && known.cost.currency) || "";
     const id = this._attr(session.id);
     return `<div class="tr__classify chg__paid">
         <span class="tr__classify-lbl">${this._t("ch_paid")}</span>
-        <input class="chg__paid-in" type="number" inputmode="decimal" min="0" step="0.01"
+        <input class="chg__paid-in" type="text" inputmode="decimal" autocomplete="off"
           data-cost-in="${id}" value="${this._attr(value)}" aria-label="${this._attr(this._t("ch_paid"))}">
         ${currency ? `<span class="chg__paid-cur">${this._esc(currency)}</span>` : ""}
         <span class="tr__cls-btns">
@@ -854,6 +854,35 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
           ${entered ? `<button class="tr__cls-btn" data-cost-clear="${id}">${this._t("ch_cost_clear")}</button>` : ""}
         </span>
       </div>`;
+  }
+
+  // The amount in the field, written the way the card writes every other cost:
+  // "9,87" on a Dutch or German dashboard. No grouping, so what is shown is
+  // what _costParse reads back. A text field, not type="number": a number field
+  // follows the browser's locale, not Home Assistant's, and drops "9,87" as
+  // invalid before the card ever sees it (#324).
+  _costText(amount) {
+    const num = Number(amount);
+    if (!Number.isFinite(num)) return "";
+    const locale = _numberLocale(this._hass);
+    if (locale === null) return String(num);
+    try {
+      return num.toLocaleString(locale, { maximumFractionDigits: 2, useGrouping: false });
+    } catch (e) {
+      return String(num);
+    }
+  }
+
+  // What was typed, as a number: a comma or a point as the decimal mark,
+  // whatever the number format. Anything else (a minus, letters, two marks)
+  // is null and nothing is saved.
+  _costParse(text) {
+    const s = String(text == null ? "" : text)
+      .replace(/\s/g, "")
+      .replace(",", ".");
+    if (!/^(\d+\.?\d*|\.\d+)$/.test(s)) return null;
+    const num = Number(s);
+    return Number.isFinite(num) ? num : null;
   }
 
   _setChargeCost(sessionId, amount) {
@@ -1035,8 +1064,8 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
         const input = [...this.shadowRoot.querySelectorAll("[data-cost-in]")].find(
           (i) => i.getAttribute("data-cost-in") === id
         );
-        const amount = input ? parseFloat(String(input.value).replace(",", ".")) : NaN;
-        if (!(amount >= 0)) return;
+        const amount = input ? this._costParse(input.value) : null;
+        if (amount == null) return;
         this._setChargeCost(id, amount);
       });
     });
