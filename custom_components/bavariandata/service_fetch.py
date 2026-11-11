@@ -73,7 +73,7 @@ async def async_handle_fetch_mappings(ctx: ServiceContext, call: ServiceCall) ->
     prepared = await ctx.prepare_api_call(call, "fetch_vehicle_mappings", require_vin=False)
     target_entry, runtime, _vin, access_token = prepared
     try:
-        payload = await async_get_vehicle_mappings(runtime.session, access_token)
+        payload = await runtime.rest.send(async_get_vehicle_mappings, access_token)
     except CardataApiError as err:
         _LOGGER.error("Cardata fetch_vehicle_mappings failed: %s", err)
         raise failed("bmw_error", service="fetch_vehicle_mappings", error=err) from err
@@ -135,7 +135,7 @@ async def async_handle_fetch_basic_data(ctx: ServiceContext, call: ServiceCall) 
     # removed while the other stays loaded.
     target_entry, runtime, vin, access_token = prepared
     try:
-        payload = await async_get_basic_data(runtime.session, access_token, vin)
+        payload = await runtime.rest.send(async_get_basic_data, access_token, vin)
     except CardataApiError as err:
         _LOGGER.error("Cardata fetch_basic_data failed for %s: %s", mask_vin(vin), err)
         raise failed("bmw_error", service="fetch_basic_data", error=err) from err
@@ -177,8 +177,8 @@ async def async_handle_fetch_charging_history(ctx: ServiceContext, call: Service
         now - timedelta(days=30)
     )
     try:
-        payload = await async_get_charging_history(
-            runtime.session,
+        payload = await runtime.rest.send(
+            async_get_charging_history,
             access_token,
             vin,
             from_date=from_date,
@@ -215,7 +215,7 @@ async def async_handle_fetch_tyre_diagnosis(ctx: ServiceContext, call: ServiceCa
     prepared = await ctx.prepare_api_call(call, "fetch_tyre_diagnosis", require_vin=True)
     _entry, runtime, vin, access_token = prepared
     try:
-        payload = await async_get_tyre_diagnosis(runtime.session, access_token, vin)
+        payload = await runtime.rest.send(async_get_tyre_diagnosis, access_token, vin)
     except CardataApiError as err:
         _LOGGER.error("Cardata fetch_tyre_diagnosis failed for %s: %s", mask_vin(vin), err)
         raise failed("bmw_error", service="fetch_tyre_diagnosis", error=err) from err
@@ -234,8 +234,8 @@ async def async_handle_fetch_location_charging(ctx: ServiceContext, call: Servic
     )
     _entry, runtime, vin, access_token = prepared
     try:
-        payload = await async_get_location_based_charging_settings(
-            runtime.session, access_token, vin
+        payload = await runtime.rest.send(
+            async_get_location_based_charging_settings, access_token, vin
         )
     except CardataApiError as err:
         _LOGGER.error(

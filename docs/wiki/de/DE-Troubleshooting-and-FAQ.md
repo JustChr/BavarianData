@@ -354,6 +354,7 @@ Konto stammen — was zählt, weil BMW pro Konto nur einen laufenden Stream erla
 | Verbindungsverlauf mit MQTT-`rc`-Codes | Autorisierungsfehler und ein anderer Client, der den einzigen Stream belegt. |
 | Bootstrap-Zustand und deine Optionen | Eine nie abgeschlossene Einrichtung; eine Einstellung, die anders steht, als du dachtest. |
 | Die Berechtigungen, die BMW erteilt hat (nur ihre Namen, nie ein Token) | Ob dein Client BMWs REST-API überhaupt nutzen darf. Ohne **CarData API** läuft der Stream weiter, aber jeder Abruf wird mit HTTP 403 abgelehnt. |
+| Wie BMW seit dem letzten Neustart auf REST-Anfragen geantwortet hat: wie viele geklappt haben, wie viele nicht, und der letzte Fehler (welche Anfrage, der HTTP-Status, BMWs `CU-`-Code) | Ob Abrufe überhaupt funktionieren, auch wenn der Stream läuft. |
 | Modell und Antrieb des Autos | Welche Übersicht die Karte zeichnen soll und welche reinen E-Entitäten es geben darf. |
 | Wie das Auto meldet, seit dem letzten Neustart (nur Zählungen, keine Werte) | Ob der Ladestand gestreamt wird oder nur mit einem Abruf kommt, ob das Auto während der Fahrt meldet oder einmal nach dem Parken, und welche Felder unverändert wiederkommen. |
 
@@ -574,6 +575,7 @@ Protokoll. Der `CU-`-Code ist BMWs eigener. Die wichtigsten:
 | --- | --- | --- |
 | CU-104 | Keine Berechtigung für dieses Auto | Das Auto ist deinem Konto nicht zugeordnet oder nicht telematikfähig. Prüfe, ob es in BMWs CarData-Portal steht. |
 | CU-105 / CU-121 | Der Telemetrie-Container ist unbekannt oder fehlerhaft | Konfigurieren → Verbindung → **Telemetrie-Container zurücksetzen** ([Einstellungen](DE-Settings-Reference#das-menü-konfigurieren)), dann erneut abrufen. |
+| CU-403 | Verboten | BMW lehnt jede Anfrage deines Kontos ab, sogar die Liste seiner Autos, während der Stream weiterläuft. Prüfe die Berechtigungen in den [Diagnosedaten](#download-diagnostics). Fehlt **CarData API**, lösche den Client im Portal, lege einen neuen mit beiden Abos an und gib Home Assistant die neue ID mit **Neu konfigurieren** ([so geht's](DE-Getting-Started-1-BMW-Portal-Setup#finding-your-client-id-again)). Ist **CarData API** erteilt und BMW lehnt trotzdem ab, kann nur BMW sagen, warum: schreib an **bmwcardata-b2c-support@bmwgroup.com**, mit der Logzeile und ihrer Uhrzeit. |
 | CU-400 | Fehlerhafte Anfrage | BMW lehnt ein Feld eines Containers ab und damit den ganzen Abruf (im Oktober 2026 eine Woche lang für die Serviceumfänge). Schlägt der tägliche Abruf mit CU-400 fehl, melde es in einem Issue. |
 | CU-429 | Zu viele Anfragen | Siehe [Kontingent aufgebraucht](#quota-exhausted) unten. |
 
