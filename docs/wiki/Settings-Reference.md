@@ -332,7 +332,7 @@ starts without one. It applies at once, to the card and the sensor.
 | Option | Values | Meaning |
 | --- | --- | --- |
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-mileage-lease.png" alt="Lease or financing: start date, end date, allowance per year and odometer at the start, filled in for a three-year lease at 15,000 km a year" width="460" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-mileage-lease.png?v=2" alt="Lease or financing: start date, end date, allowance per year and odometer at the start, filled in for a three-year lease at 15,000 km a year, and the open section Extra and unused distance with 20.06 ct/km over, 13.38 ct/km back and a 2,500 km tolerance" width="460" />
 </p>
 
 <p align="center">
