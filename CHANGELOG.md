@@ -9,6 +9,16 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Changed
+- **A lease's prices for extra and unused km are entered in cents.** Contracts
+  print them that way ("20.06 ct/km"), and the field in euros only took three
+  decimals, so 20.06 ct could not be entered exactly. The field now reads
+  `ct/km` (`p/mi` for pounds, and so on), and its help says to enter the sum
+  when the contract splits a rate into parts such as mileage and maintenance.
+  Prices saved with beta.4 carry over as they were
+  ([#325](https://github.com/JustChr/BavarianData/discussions/325), thanks
+  @kerzebrozzer).
+
 ## [0.9.30-beta.5] - 2026-11-11
 
 ### Fixed

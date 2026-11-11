@@ -65,7 +65,9 @@ What you see:
 A lease often charges for each km over the allowance and refunds some of the
 km left unused, usually past a tolerance (2,500 km is common). Enter those terms
 under **Extra and unused distance** on the lease screen
-([fields](Settings-Reference#mileage-allowance)), and the card adds a line under
+([fields](Settings-Reference#mileage-allowance)) in cents per km, as contracts
+print them; if yours splits a rate into parts, such as mileage and maintenance,
+enter their sum. The card then adds a line under
 *At this pace*: what the projected km over would cost at the return, the refund
 for the projected km under, or that you're within the tolerance. The amount is
 in the currency under **Configure → Charging costs & history**. Each term is

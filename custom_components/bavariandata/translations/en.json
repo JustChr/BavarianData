@@ -550,8 +550,8 @@
               "mileage_tolerance_km": "Tolerance"
             },
             "data_description": {
-              "mileage_extra_price": "What the contract charges per km or mile over the allowance. Leave empty if it charges nothing.",
-              "mileage_unused_refund": "What you get back per km or mile under the allowance. Leave empty if there is no refund.",
+              "mileage_extra_price": "What the contract charges per km or mile over the allowance, in cents. If it lists several parts, such as maintenance, enter their sum. Leave empty if it charges nothing.",
+              "mileage_unused_refund": "What you get back per km or mile under the allowance, in cents. If it lists several parts, enter their sum. Leave empty if there is no refund.",
               "mileage_tolerance_km": "How far over or under costs nothing, as many contracts allow. Leave empty if yours has none."
             }
           }

@@ -550,8 +550,8 @@
               "mileage_tolerance_km": "Tolerance"
             },
             "data_description": {
-              "mileage_extra_price": "Kolik smlouva účtuje za každý km nad limit. Nechte prázdné, pokud nic neúčtuje.",
-              "mileage_unused_refund": "Kolik dostanete zpět za každý km pod limitem. Nechte prázdné, pokud se nic nevrací.",
+              "mileage_extra_price": "Kolik smlouva účtuje za každý km nad limit, v haléřích či centech. Uvádí-li více složek, třeba servis, zadejte jejich součet. Nechte prázdné, pokud nic neúčtuje.",
+              "mileage_unused_refund": "Kolik dostanete zpět za každý km pod limitem, v haléřích či centech. Uvádí-li smlouva více složek, zadejte jejich součet. Nechte prázdné, pokud se nic nevrací.",
               "mileage_tolerance_km": "Kolik km nad nebo pod limitem nic nestojí, jak to mnoho smluv umožňuje. Nechte prázdné, pokud ji vaše nemá."
             }
           }

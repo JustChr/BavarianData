@@ -260,20 +260,51 @@ def to_display(km: Optional[float], miles: bool) -> Optional[float]:
 
 
 def price_to_km(value: Any, miles: bool) -> Optional[float]:
-    """A price per distance typed in the car's unit, per km (empty or 0 is none)."""
+    """A price typed in cents per distance in the car's unit, stored in the
+    currency per km (empty or 0 is none).
+
+    Contracts print it in cents, "20.06 ct/km" (#325); kept in the currency
+    so what beta.4 stored still reads the same.
+    """
 
     if value is None or value == "" or not float(value):
         return None
-    number = float(value)
-    return round(number / KM_PER_MILE if miles else number, 4)
+    number = float(value) / 100
+    return round(number / KM_PER_MILE if miles else number, 6)
 
 
 def price_display(per_km: Optional[float], miles: bool) -> Optional[float]:
-    """A stored price per km, in the car's unit."""
+    """A stored price per km, in cents per distance in the car's unit."""
 
     if per_km is None:
         return None
-    return round(per_km * KM_PER_MILE if miles else per_km, 3)
+    return round((per_km * KM_PER_MILE if miles else per_km) * 100, 2)
+
+
+# The hundredth of a currency as a price list writes it. One not listed is
+# written "1/100 XYZ", which is clumsy but never wrong.
+_CENT_NAMES = {
+    "EUR": "ct",
+    "USD": "¢",
+    "GBP": "p",
+    "CHF": "Rp.",
+    "SEK": "öre",
+    "NOK": "øre",
+    "DKK": "øre",
+    "PLN": "gr",
+    "CZK": "hal",
+    "AUD": "c",
+    "CAD": "¢",
+    "NZD": "c",
+}
+
+
+def cent_unit(currency: str, miles: bool) -> str:
+    """The unit the lease's prices are typed in: "ct/km", "p/mi"."""
+
+    code = (currency or "").strip().upper()
+    cent = _CENT_NAMES.get(code) or f"1/100 {code or 'EUR'}"
+    return f"{cent}/{'mi' if miles else 'km'}"
 
 
 def mileage_typed(user_input: Mapping[str, Any], miles: bool) -> dict[str, Any]:

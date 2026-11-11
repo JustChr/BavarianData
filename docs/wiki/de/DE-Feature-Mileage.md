@@ -75,8 +75,9 @@ Was du siehst:
 Ein Leasing berechnet oft jeden Kilometer über dem Kontingent und vergütet einen
 Teil der nicht gefahrenen, meist erst jenseits einer Freigrenze (2.500 km sind
 üblich). Trag diese Bedingungen unter **Mehr- und Minderkilometer** in der
-Leasing-Maske ein ([Felder](DE-Settings-Reference#kilometerkontingent)), und die
-Karte zeigt unter *Bei diesem Tempo* eine weitere Zeile: was die erwarteten
+Leasing-Maske ein ([Felder](DE-Settings-Reference#kilometerkontingent)), in Cent je
+Kilometer, wie der Vertrag sie nennt; teilt er einen Satz in Anteile, etwa
+Kilometer und Wartung, trag die Summe ein. Die Karte zeigt dann unter *Bei diesem Tempo* eine weitere Zeile: was die erwarteten
 Mehrkilometer bei Rückgabe kosten, die Vergütung für die erwarteten
 Minderkilometer oder dass du innerhalb der Freigrenze bleibst. Der Betrag gilt in
 der Währung unter **Konfigurieren → Ladekosten & Verlauf**. Jede Angabe ist

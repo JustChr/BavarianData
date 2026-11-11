@@ -2150,11 +2150,11 @@
               'required': False,
               'selector': dict({
                 'number': dict({
-                  'max': 10.0,
+                  'max': 1000.0,
                   'min': 0.0,
                   'mode': 'box',
-                  'step': 0.001,
-                  'unit_of_measurement': 'EUR/km',
+                  'step': 0.01,
+                  'unit_of_measurement': 'ct/km',
                 }),
               }),
             }),
@@ -2167,11 +2167,11 @@
               'required': False,
               'selector': dict({
                 'number': dict({
-                  'max': 10.0,
+                  'max': 1000.0,
                   'min': 0.0,
                   'mode': 'box',
-                  'step': 0.001,
-                  'unit_of_measurement': 'EUR/km',
+                  'step': 0.01,
+                  'unit_of_measurement': 'ct/km',
                 }),
               }),
             }),
@@ -2278,11 +2278,11 @@
               'required': False,
               'selector': dict({
                 'number': dict({
-                  'max': 10.0,
+                  'max': 1000.0,
                   'min': 0.0,
                   'mode': 'box',
-                  'step': 0.001,
-                  'unit_of_measurement': 'EUR/km',
+                  'step': 0.01,
+                  'unit_of_measurement': 'ct/km',
                 }),
               }),
             }),
@@ -2295,11 +2295,11 @@
               'required': False,
               'selector': dict({
                 'number': dict({
-                  'max': 10.0,
+                  'max': 1000.0,
                   'min': 0.0,
                   'mode': 'box',
-                  'step': 0.001,
-                  'unit_of_measurement': 'EUR/km',
+                  'step': 0.01,
+                  'unit_of_measurement': 'ct/km',
                 }),
               }),
             }),
@@ -2407,11 +2407,11 @@
               'required': False,
               'selector': dict({
                 'number': dict({
-                  'max': 10.0,
+                  'max': 1000.0,
                   'min': 0.0,
                   'mode': 'box',
-                  'step': 0.001,
-                  'unit_of_measurement': 'EUR/km',
+                  'step': 0.01,
+                  'unit_of_measurement': 'ct/km',
                 }),
               }),
             }),
@@ -2424,11 +2424,11 @@
               'required': False,
               'selector': dict({
                 'number': dict({
-                  'max': 10.0,
+                  'max': 1000.0,
                   'min': 0.0,
                   'mode': 'box',
-                  'step': 0.001,
-                  'unit_of_measurement': 'EUR/km',
+                  'step': 0.01,
+                  'unit_of_measurement': 'ct/km',
                 }),
               }),
             }),
@@ -2584,11 +2584,11 @@
               'required': False,
               'selector': dict({
                 'number': dict({
-                  'max': 10.0,
+                  'max': 1000.0,
                   'min': 0.0,
                   'mode': 'box',
-                  'step': 0.001,
-                  'unit_of_measurement': 'EUR/km',
+                  'step': 0.01,
+                  'unit_of_measurement': 'ct/km',
                 }),
               }),
             }),
@@ -2601,11 +2601,11 @@
               'required': False,
               'selector': dict({
                 'number': dict({
-                  'max': 10.0,
+                  'max': 1000.0,
                   'min': 0.0,
                   'mode': 'box',
-                  'step': 0.001,
-                  'unit_of_measurement': 'EUR/km',
+                  'step': 0.01,
+                  'unit_of_measurement': 'ct/km',
                 }),
               }),
             }),
@@ -2755,35 +2755,35 @@
           'schema': list([
             dict({
               'description': dict({
-                'suggested_value': 0.08,
+                'suggested_value': 8.0,
               }),
               'name': 'mileage_extra_price',
               'optional': True,
               'required': False,
               'selector': dict({
                 'number': dict({
-                  'max': 10.0,
+                  'max': 1000.0,
                   'min': 0.0,
                   'mode': 'box',
-                  'step': 0.001,
-                  'unit_of_measurement': 'EUR/km',
+                  'step': 0.01,
+                  'unit_of_measurement': 'ct/km',
                 }),
               }),
             }),
             dict({
               'description': dict({
-                'suggested_value': 0.05,
+                'suggested_value': 5.0,
               }),
               'name': 'mileage_unused_refund',
               'optional': True,
               'required': False,
               'selector': dict({
                 'number': dict({
-                  'max': 10.0,
+                  'max': 1000.0,
                   'min': 0.0,
                   'mode': 'box',
-                  'step': 0.001,
-                  'unit_of_measurement': 'EUR/km',
+                  'step': 0.01,
+                  'unit_of_measurement': 'ct/km',
                 }),
               }),
             }),

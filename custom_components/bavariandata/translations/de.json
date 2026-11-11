@@ -550,8 +550,8 @@
               "mileage_tolerance_km": "Freigrenze"
             },
             "data_description": {
-              "mileage_extra_price": "Was der Vertrag je Kilometer über dem Kontingent berechnet. Leer lassen, wenn er nichts berechnet.",
-              "mileage_unused_refund": "Was du je Kilometer unter dem Kontingent zurückbekommst. Leer lassen, wenn es keine Vergütung gibt.",
+              "mileage_extra_price": "Was der Vertrag je Kilometer über dem Kontingent berechnet, in Cent. Nennt er mehrere Anteile, etwa für Wartung, trag die Summe ein. Leer lassen, wenn er nichts berechnet.",
+              "mileage_unused_refund": "Was du je Kilometer unter dem Kontingent zurückbekommst, in Cent. Nennt der Vertrag mehrere Anteile, trag die Summe ein. Leer lassen, wenn es keine Vergütung gibt.",
               "mileage_tolerance_km": "Wie viele Kilometer darüber oder darunter nichts kosten, wie es viele Verträge vorsehen. Leer lassen, wenn deiner keine hat."
             }
           }

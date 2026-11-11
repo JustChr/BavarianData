@@ -634,8 +634,8 @@ async def test_configure_mileage(hass: HomeAssistant, no_bmw, freezer, snapshot)
     walk.note("a lease's terms for km over or under (#325): saved, then shown expanded")
     signed = {**lease, "mileage_end": "2029-10-31", "mileage_allowance_km": 15000}
     terms = {
-        "mileage_extra_price": 0.08,
-        "mileage_unused_refund": 0.05,
+        "mileage_extra_price": 8,  # cents per km (D#325)
+        "mileage_unused_refund": 5,
         "mileage_tolerance_km": 2500,
     }
     result = await _configure(hass, entry, walk, "action_mileage")

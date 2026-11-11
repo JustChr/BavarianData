@@ -550,8 +550,8 @@
               "mileage_tolerance_km": "Tolerans"
             },
             "data_description": {
-              "mileage_extra_price": "Vad avtalet tar per km över gränsen. Lämna tomt om det inte tar något.",
-              "mileage_unused_refund": "Vad du får tillbaka per km under gränsen. Lämna tomt om det inte finns någon återbetalning.",
+              "mileage_extra_price": "Vad avtalet tar per km över gränsen, i öre eller cent. Anger det flera delar, till exempel service, ange summan. Lämna tomt om det inte tar något.",
+              "mileage_unused_refund": "Vad du får tillbaka per km under gränsen, i öre eller cent. Anger avtalet flera delar, ange summan. Lämna tomt om det inte finns någon återbetalning.",
               "mileage_tolerance_km": "Hur många km över eller under som inte kostar något, som många avtal tillåter. Lämna tomt om ditt inte har någon."
             }
           }
