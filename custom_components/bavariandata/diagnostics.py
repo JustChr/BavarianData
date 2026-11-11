@@ -150,6 +150,9 @@ async def async_get_config_entry_diagnostics(
             "scopes": granted_scopes(entry.data.get("scope")),
         },
         "quota": quota_info,
+        # Since this start: whether BMW answers REST at all, and with which
+        # ``CU-`` code it refused last (#296: the stream ran, every fetch 403).
+        "rest": runtime.rest.outcomes.as_dict(),
         "stream": {
             "connection_status": coordinator.connection_status,
             "last_disconnect_reason": coordinator.last_disconnect_reason,

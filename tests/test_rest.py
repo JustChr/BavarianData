@@ -204,3 +204,84 @@ def test_bmws_error_code_reaches_the_container_error():
         asyncio.run(manager.async_ensure_hv_container())
     assert err.value.error_id == "CU-124"
     assert "Maximum number of containers" in str(err.value)
+
+
+# What BMW answered, for the diagnostics (#296): the stream ran for days while
+# every fetch was refused with CU-403, and the file could not show it.
+
+
+def test_outcomes_count_successes_and_name_the_last_refusal():
+    now = [1_700_000_000.0]
+    gw = rest.RestGateway(None, _Account().keeper(), clock=lambda: now[0])
+    api = load_module("api")
+
+    async def get_vehicle_mappings(session, token):
+        return []
+
+    async def async_get_basic_data(session, token, vin):
+        raise api.CardataApiError(
+            f"HTTP 403 (CU-403: Bad Request. Forbidden) for GET /x/{vin}",
+            status=403,
+            error_id="CU-403",
+        )
+
+    asyncio.run(gw.call(get_vehicle_mappings))
+    now[0] += 60
+    with pytest.raises(api.CardataApiError):
+        asyncio.run(gw.call(async_get_basic_data, "WBA00000000000001"))
+
+    report = gw.outcomes.as_dict()
+    assert report == {
+        "succeeded": 1,
+        "failed": 1,
+        "last_success_at": "2023-11-14T22:13:20+00:00",
+        "last_failure": {
+            "at": "2023-11-14T22:14:20+00:00",
+            "request": "get_basic_data",
+            "status": 403,
+            "error_id": "CU-403",
+        },
+    }
+    # The request's name, never its path or BMW's words: the path holds the VIN.
+    assert "WBA00000000000001" not in repr(report)
+
+
+def test_an_unreachable_bmw_is_a_failure_without_a_status():
+    gw = rest.RestGateway(None, _Account().keeper())
+    api = load_module("api")
+
+    async def request(session, token):
+        raise api.CardataApiError("Timed out for GET /customers/vehicles/mappings")
+
+    with pytest.raises(api.CardataApiError):
+        asyncio.run(gw.call(request, what="mappings"))
+    failure = gw.outcomes.as_dict()["last_failure"]
+    assert (failure["request"], failure["status"], failure["error_id"]) == ("mappings", None, None)
+
+
+def test_a_request_never_sent_is_no_outcome():
+    # No token, or no quota: BMW was not asked, so it neither worked nor failed.
+    gw = rest.RestGateway(None, _Account().keeper(), _Quota(0).claim)
+
+    async def request(session, token):
+        raise AssertionError("sent past the quota")
+
+    with pytest.raises(rest.CardataQuotaError):
+        asyncio.run(gw.call(request))
+    assert gw.outcomes.as_dict() == {
+        "succeeded": 0,
+        "failed": 0,
+        "last_success_at": None,
+        "last_failure": None,
+    }
+
+
+def test_a_container_refusal_is_named_by_method_not_path():
+    session = FakeSession([FakeResponse(403, {"exveErrorId": "CU-403"})])
+    gw = gateway(session)
+    manager = container.CardataContainerManager(rest=gw, entry_id="e")
+    with pytest.raises(container.CardataContainerError):
+        asyncio.run(manager.async_ensure_hv_container())
+    failure = gw.outcomes.as_dict()["last_failure"]
+    assert failure["error_id"] == "CU-403"
+    assert failure["request"].endswith(" containers")

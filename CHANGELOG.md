@@ -9,6 +9,16 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **Diagnostics show whether fetching works.** The download now says how BMW
+  answered REST requests since the last restart: how many worked, how many
+  failed, and the last failure's request, HTTP status and BMW's `CU-` code
+  (never its path, which holds the VIN). Until now a refused fetch was only a
+  log line, so a car whose stream ran while BMW refused every fetch looked fine
+  in the file ([#296](https://github.com/JustChr/BavarianData/issues/296)). The
+  troubleshooting page also explains `CU-403`.
+  [Troubleshooting](https://github.com/JustChr/BavarianData/wiki/Troubleshooting-and-FAQ#download-diagnostics)
+
 ## [0.9.30] - 2026-11-11
 
 Promotes 0.9.30-beta.1 to beta.6. Type in what a charge really cost, see what a lease's extra or unused km will cost at the return, and tell a fresh plug-in from one older than a restart. Plus fixes to the card's home charges and charge totals, the session sensor and the notifying blueprints.

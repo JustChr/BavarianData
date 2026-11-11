@@ -336,6 +336,7 @@ What's left is exactly what distinguishes the common failures from each other:
 | Connection history with MQTT `rc` codes | Authorization failures, and another client stealing the single stream. |
 | Bootstrap state and your options | Setup that never finished; a setting that isn't what you thought. |
 | The permissions BMW granted (their names only, never a token) | Whether your client may use BMW's REST API at all. Without **CarData API**, the stream still works but every fetch is refused with HTTP 403. |
+| How BMW answered REST requests since the last restart: how many worked, how many failed, and the last failure (which request, the HTTP status, BMW's `CU-` code) | Whether fetching works at all, even while the stream does. |
 | The car's model and drivetrain | Which overview the card should draw, and which electric-only entities should exist. |
 | How the car reports, since the last restart (counts only, no values) | Whether the charge level streams or only comes with a fetch, whether the car reports while driving or once after parking, and which fields repeat unchanged. |
 
@@ -548,6 +549,7 @@ A `fetch_*` call or the daily refresh that BMW refuses logs a line like
 | --- | --- | --- |
 | CU-104 | No permission for this car | The car isn't mapped to your account or isn't telematics-capable. Check it is listed at BMW's CarData portal. |
 | CU-105 / CU-121 | The telemetry container is unknown or malformed | Configure → Connection → **Reset telemetry container** ([Settings](Settings-Reference#the-configure-menu)), then fetch again. |
+| CU-403 | Forbidden | BMW refuses every request from your account, even the list of its cars, while the stream keeps working. Check the permissions in the [diagnostics](#download-diagnostics). Without **CarData API**, delete the client in the portal, create a new one with both subscriptions ticked, and give Home Assistant the new ID with **Reconfigure** ([how](Getting-Started-1-BMW-Portal-Setup#finding-your-client-id-again)). If **CarData API** is there and BMW still refuses, only BMW can say why: write to **bmwcardata-b2c-support@bmwgroup.com** with the log line and its time. |
 | CU-400 | Bad request | BMW refuses one field of a container, and with it the whole fetch (it did so for the service items for a week in October 2026). If the daily fetch fails with CU-400, report it in an issue. |
 | CU-429 | Too many requests | See [quota exhausted](#quota-exhausted) below. |
 
