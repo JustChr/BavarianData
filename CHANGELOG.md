@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.30-beta.4] - 2026-11-11
+
 ### Added
 - **Enter what a charge cost.** Tap a charge on the card's charging view and type
   the total from the receipt into **Paid**: useful for a public charger, which
