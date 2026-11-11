@@ -550,8 +550,8 @@
               "mileage_tolerance_km": "Marge"
             },
             "data_description": {
-              "mileage_extra_price": "Wat het contract per km boven de limiet rekent. Laat leeg als het niets rekent.",
-              "mileage_unused_refund": "Wat je per km onder de limiet terugkrijgt. Laat leeg als er geen vergoeding is.",
+              "mileage_extra_price": "Wat het contract per km boven de limiet rekent, in centen. Noemt het meerdere delen, zoals onderhoud, vul dan de som in. Laat leeg als het niets rekent.",
+              "mileage_unused_refund": "Wat je per km onder de limiet terugkrijgt, in centen. Noemt het contract meerdere delen, vul dan de som in. Laat leeg als er geen vergoeding is.",
               "mileage_tolerance_km": "Hoeveel km erboven of eronder niets kosten, zoals veel contracten toestaan. Laat leeg als het jouwe er geen heeft."
             }
           }

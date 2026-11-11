@@ -83,6 +83,7 @@ from .flow_answers import (
     mileage_to_store,
     mileage_typed,
     phone_route_follows,
+    cent_unit,
     price_display,
     price_error,
     split_shared,
@@ -1100,17 +1101,17 @@ class PerCarScreens(_FlowBase):
     def _lease_cost_section(self, values: Mapping[str, Any], miles: bool) -> Any:
         """The lease's terms for km over or under (#325): collapsed until set."""
 
-        unit = "mi" if miles else "km"
         currency = self._config_entry.options.get(OPTION_PRICE_CURRENCY) or DEFAULT_CURRENCY
 
         def price() -> selector.NumberSelector:
+            # In cents, as contracts print it: "20.06 ct/km" (#325).
             return selector.NumberSelector(
                 selector.NumberSelectorConfig(
                     min=0,
-                    max=10,
-                    step=0.001,
+                    max=1000,
+                    step=0.01,
                     mode=selector.NumberSelectorMode.BOX,
-                    unit_of_measurement=f"{currency}/{unit}",
+                    unit_of_measurement=cent_unit(currency, miles),
                 )
             )
 

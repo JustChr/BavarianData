@@ -550,8 +550,8 @@
               "mileage_tolerance_km": "Tolérance"
             },
             "data_description": {
-              "mileage_extra_price": "Ce que le contrat facture par km au-delà du forfait. Laissez vide s'il ne facture rien.",
-              "mileage_unused_refund": "Ce qui vous est remboursé par km en deçà du forfait. Laissez vide s'il n'y a pas de remboursement.",
+              "mileage_extra_price": "Ce que le contrat facture par km au-delà du forfait, en centimes. S'il indique plusieurs parts, par exemple l'entretien, saisissez leur somme. Laissez vide s'il ne facture rien.",
+              "mileage_unused_refund": "Ce qui vous est remboursé par km en deçà du forfait, en centimes. Si le contrat indique plusieurs parts, saisissez leur somme. Laissez vide s'il n'y a pas de remboursement.",
               "mileage_tolerance_km": "Les km au-delà ou en deçà qui ne coûtent rien, comme le prévoient de nombreux contrats. Laissez vide si le vôtre n'en a pas."
             }
           }

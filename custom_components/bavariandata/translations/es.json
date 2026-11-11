@@ -550,8 +550,8 @@
               "mileage_tolerance_km": "Tolerancia"
             },
             "data_description": {
-              "mileage_extra_price": "Lo que cobra el contrato por cada km por encima del límite. Déjalo vacío si no cobra nada.",
-              "mileage_unused_refund": "Lo que te devuelven por cada km por debajo del límite. Déjalo vacío si no hay reembolso.",
+              "mileage_extra_price": "Lo que cobra el contrato por cada km por encima del límite, en céntimos. Si indica varias partes, como el mantenimiento, introduce la suma. Déjalo vacío si no cobra nada.",
+              "mileage_unused_refund": "Lo que te devuelven por cada km por debajo del límite, en céntimos. Si el contrato indica varias partes, introduce la suma. Déjalo vacío si no hay reembolso.",
               "mileage_tolerance_km": "Los km de más o de menos que no cuestan nada, como prevén muchos contratos. Déjalo vacío si el tuyo no tiene."
             }
           }

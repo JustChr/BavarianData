@@ -550,8 +550,8 @@
               "mileage_tolerance_km": "Tolerancja"
             },
             "data_description": {
-              "mileage_extra_price": "Ile umowa nalicza za każdy km ponad limit. Zostaw puste, jeśli nic nie nalicza.",
-              "mileage_unused_refund": "Ile otrzymujesz z powrotem za każdy km poniżej limitu. Zostaw puste, jeśli nie ma zwrotu.",
+              "mileage_extra_price": "Ile umowa nalicza za każdy km ponad limit, w groszach. Jeśli podaje kilka części, np. serwis, wpisz ich sumę. Zostaw puste, jeśli nic nie nalicza.",
+              "mileage_unused_refund": "Ile otrzymujesz z powrotem za każdy km poniżej limitu, w groszach. Jeśli umowa podaje kilka części, wpisz ich sumę. Zostaw puste, jeśli nie ma zwrotu.",
               "mileage_tolerance_km": "Ile km ponad lub poniżej limitu nic nie kosztuje, jak przewiduje wiele umów. Zostaw puste, jeśli Twoja jej nie ma."
             }
           }

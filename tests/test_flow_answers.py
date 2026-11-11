@@ -229,7 +229,7 @@ def test_a_leases_terms_are_stored_per_km() -> None:
         mileage.KEY_START: "2026-01-01",
         mileage.KEY_PER_YEAR: 10000,
         answers.LEASE_COST_SECTION: {
-            mileage.KEY_EXTRA_PRICE: 0.16,
+            mileage.KEY_EXTRA_PRICE: 16,
             mileage.KEY_UNUSED_REFUND: 0,
             mileage.KEY_TOLERANCE_KM: 1500,
         },
@@ -238,8 +238,33 @@ def test_a_leases_terms_are_stored_per_km() -> None:
     assert stored[mileage.KEY_EXTRA_PRICE] == pytest.approx(0.0994, abs=1e-4)
     assert stored[mileage.KEY_UNUSED_REFUND] is None  # 0 is no refund, not a price
     assert stored[mileage.KEY_TOLERANCE_KM] == 2414.0
-    assert answers.price_display(stored[mileage.KEY_EXTRA_PRICE], True) == 0.16
-    assert answers.price_display(0.08, False) == 0.08
+    assert answers.price_display(stored[mileage.KEY_EXTRA_PRICE], True) == 16
+    assert answers.price_display(0.08, False) == 8
+
+
+def test_a_leases_prices_are_typed_in_cents() -> None:
+    """D#325: contracts print "20.06 ct/km"; three decimals of a euro could not
+    hold it. Stored in the currency per km, so beta.4's values still read."""
+
+    typed = {
+        answers.LEASE_COST_SECTION: {
+            mileage.KEY_EXTRA_PRICE: 20.06,
+            mileage.KEY_UNUSED_REFUND: 13.38,
+        },
+    }
+    stored = answers.mileage_typed(typed, False)
+    assert stored[mileage.KEY_EXTRA_PRICE] == pytest.approx(0.2006)
+    assert stored[mileage.KEY_UNUSED_REFUND] == pytest.approx(0.1338)
+    assert answers.price_display(stored[mileage.KEY_EXTRA_PRICE], False) == 20.06
+    assert answers.price_display(stored[mileage.KEY_UNUSED_REFUND], False) == 13.38
+    # Per mile, round trip exact to the cent.
+    per_mile = answers.mileage_typed(typed, True)
+    assert answers.price_display(per_mile[mileage.KEY_EXTRA_PRICE], True) == 20.06
+
+    assert answers.cent_unit("EUR", False) == "ct/km"
+    assert answers.cent_unit("gbp", True) == "p/mi"
+    assert answers.cent_unit("XYZ", False) == "1/100 XYZ/km"
+    assert answers.cent_unit("", False) == "1/100 EUR/km"
 
 
 def test_a_yearly_limit_keeps_no_lease_terms() -> None:
