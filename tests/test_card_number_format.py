@@ -99,6 +99,37 @@ def test_the_number_format_setting_outranks_the_language():
 
 
 @needs_node
+def test_the_amount_paid_is_written_and_read_in_the_users_number_format():
+    """#324: the Paid field showed and wanted "9.87" on a Dutch dashboard."""
+    shown = {"v": ["_costText", 9.87], "big": ["_costText", 1234.5]}
+    assert _run(shown, language="nl") == {"v": "9,87", "big": "1234,5"}
+    assert _run(shown, language="en") == {"v": "9.87", "big": "1234.5"}
+    assert _run({"v": ["_costText", 9.87]}, number_format="none") == {"v": "9.87"}
+
+    # Either mark is read back, whatever the format; junk saves nothing.
+    typed = {
+        "comma": ["_costParse", "9,87"],
+        "point": ["_costParse", "9.87"],
+        "spaced": ["_costParse", " 12,5 "],
+        "whole": ["_costParse", "20"],
+        "empty": ["_costParse", ""],
+        "negative": ["_costParse", "-3"],
+        "two_marks": ["_costParse", "1.234,50"],
+        "letters": ["_costParse", "9,87 €"],
+    }
+    assert _run(typed, language="nl") == {
+        "comma": 9.87,
+        "point": 9.87,
+        "spaced": 12.5,
+        "whole": 20,
+        "empty": None,
+        "negative": None,
+        "two_marks": None,
+        "letters": None,
+    }
+
+
+@needs_node
 def test_rounding_edge_cases():
     out = _run(
         {"neg_zero": ["_dec", -0.04, 1], "junk": ["_dec", "n/a", 1], "whole": ["_dec", 77, 1]}

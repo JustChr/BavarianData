@@ -9,6 +9,13 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **The Paid field takes a decimal comma.** The amount paid for a charge was
+  shown and typed with a point, and a browser set to English refused "9,87".
+  The field now writes the amount in your number format, like every other cost
+  on the card, and takes a comma or a point
+  ([#324](https://github.com/JustChr/BavarianData/discussions/324)).
+
 ## [0.9.30-beta.4] - 2026-11-11
 
 ### Added
