@@ -37,6 +37,16 @@
      60.0  ended                    est= 80.00 rate=    - charging=off open=n sessions=1 charging_stopped,charging_complete
   '''
 # ---
+# name: test_a_late_batch_still_bounds_the_session_by_its_own_soc
+  '''
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+      5.0  wait 5                   est=     - rate=    - charging=off open=n sessions=0
+      5.0  parked                   est= 21.00 rate=    - charging=off open=n sessions=0
+    112.0  wait 112                 est= 21.00 rate=    - charging=off open=n sessions=0
+    112.0  late batch               est=100.00 rate=21.56 charging=on  open=y sessions=0 charging_started
+   1012.0  advance 1012             est=100.00 rate=21.56 charging=on  open=y sessions=0
+  '''
+# ---
 # name: test_a_plug_in_hybrid_gets_no_consumption_or_range
   '''
       0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
@@ -184,6 +194,16 @@
     142.0  advance 142              est= 48.17 rate= 4.64 charging=off open=n sessions=1 charging_stopped
     142.4  wait 142.4               est= 48.21 rate= 4.64 charging=off open=n sessions=1
     142.4  app wakes the car        est= 47.00 rate= 4.69 charging=on  open=y sessions=1 charging_started
+  '''
+# ---
+# name: test_a_session_without_its_own_soc_cannot_outgrow_the_pack
+  '''
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+      5.0  wait 5                   est=     - rate=    - charging=off open=n sessions=0
+      5.0  parked                   est= 21.00 rate=    - charging=off open=n sessions=0
+     20.0  wait 20                  est= 21.00 rate=    - charging=off open=n sessions=0
+     20.0  charging, no SoC         est= 21.00 rate=21.56 charging=on  open=y sessions=0 charging_started
+    920.0  advance 920              est=100.00 rate=21.56 charging=on  open=y sessions=0
   '''
 # ---
 # name: test_a_silent_charge_keeps_the_estimate_climbing

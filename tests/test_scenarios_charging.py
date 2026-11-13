@@ -967,3 +967,44 @@ def test_a_garbled_solar_reading_is_not_read_as_no_sun():
     # Unknown, not 0 % solar; the tariff still bills the energy.
     assert session.energy_mix is None
     assert session.cost["source"] == "tariff"
+
+
+# --- a late batch and a silent car (#332) -----------------------------------
+
+
+def test_a_late_batch_still_bounds_the_session_by_its_own_soc(snapshot):
+    """An X3 30e's batch arrived 76 minutes late, then the car fell silent.
+
+    The session opened on our clock, its SoC carried BMW's, so the session
+    rejected its own reading, had no ceiling, and held 2.35 kW through fifteen
+    silent hours: 36 kWh in a 10.9 kWh pack. BMW's time against BMW's time
+    keeps the reading, and with it the ceiling.
+    """
+
+    with CoordinatorHarness(capacity_kwh=10.9) as h:
+        h.send(5, soc=21, status="NOCHARGING", step="parked")
+        h.send(112, stamped=36, soc=86, status="CHARGINGACTIVE", power=2350, step="late batch")
+        h.advance_to(112 + 15 * 60)
+
+        # 86 -> 86 % plus the 2-point margin, until a newer reading arrives.
+        assert h.coordinator.get_session_energy_kwh(h.vin) == pytest.approx(0.218, abs=0.01)
+        assert h.render() == snapshot
+
+
+def test_a_session_without_its_own_soc_cannot_outgrow_the_pack(snapshot):
+    """No SoC from the session means no SoC ceiling, never an unbounded total.
+
+    The status came alone and the car went silent, still saying it charged:
+    the last power reading must not run past what fills the pack from the SoC
+    the session started at.
+    """
+
+    with CoordinatorHarness(capacity_kwh=10.9) as h:
+        h.send(5, soc=21, status="NOCHARGING", step="parked")
+        h.send(20, status="CHARGINGACTIVE", power=2350, step="charging, no SoC")
+        h.advance_to(20 + 15 * 60)
+
+        room = (100 - 21 + 2) / 100 * 10.9
+        assert h.coordinator.get_session_energy_kwh(h.vin) == pytest.approx(room, abs=0.01)
+        assert h.coordinator.get_lifetime_energy_kwh(h.vin) <= room + 0.01
+        assert h.render() == snapshot

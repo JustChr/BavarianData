@@ -18,6 +18,22 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   in the file ([#296](https://github.com/JustChr/BavarianData/issues/296)). The
   troubleshooting page also explains `CU-403`.
   [Troubleshooting](https://github.com/JustChr/BavarianData/wiki/Troubleshooting-and-FAQ#download-diagnostics)
+- **`CU-403` from Ukraine or Russia.** BMW blocks its API for requests from
+  there, whatever country the account belongs to; the stream still works. The
+  troubleshooting page now says so. Thanks @strybushnyi for getting BMW's answer
+  ([#296](https://github.com/JustChr/BavarianData/issues/296)).
+
+### Fixed
+- **Charged energy no longer runs past the battery.** When a car's batch
+  arrived late, the session opened on Home Assistant's clock and threw away
+  its own state of charge, because that reading carried BMW's earlier time.
+  Without it nothing held the total back: one power reading counted on through
+  fifteen silent hours and filed 36 kWh for a 10.9 kWh pack, in the session,
+  the total and the month. A reading is now checked against BMW's time on the
+  status that opened the charge, and a session that has no reading of its own
+  can never count more than fills the battery from where it started. Thanks
+  @dvasiloiu for the precise report
+  ([#332](https://github.com/JustChr/BavarianData/issues/332)).
 
 ## [0.9.30] - 2026-11-11
 
