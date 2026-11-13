@@ -47,7 +47,9 @@ arrives a whole percent at a time. It is a ceiling, never a correction: a
 session that under-read is left alone, because nothing can tell an under-read
 from a genuinely slow charge. The bound applies to the total rather than to each
 step, so a charge held back while a SoC reading is pending recovers in full the
-moment it lands. Where SoC or capacity is unknown, no bound applies.
+moment it lands. A session with no SoC reading of its own is still held to what
+fills the battery from the level it started at (from empty, if even that is
+unknown). Only without a capacity does no bound apply.
 
 That includes a car that sleeps through its charge and sends the new level only
 with the end of it: the charge is settled against that reading once more when it

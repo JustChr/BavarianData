@@ -51,8 +51,10 @@ Obergrenze, nie eine Korrektur: Ein Ladevorgang, der zu niedrig gemessen hat,
 bleibt unangetastet, weil nichts einen zu niedrigen Messwert von einer wirklich
 langsamen Ladung unterscheiden kann. Die Grenze gilt für die Summe, nicht für jeden
 einzelnen Schritt, daher holt eine zurückgehaltene Ladung, die auf einen
-Ladezustandswert wartet, alles wieder auf, sobald er eintrifft. Sind Ladezustand
-oder Kapazität unbekannt, gilt keine Grenze.
+Ladezustandswert wartet, alles wieder auf, sobald er eintrifft. Ein Ladevorgang
+ohne eigenen Ladezustandswert bleibt trotzdem auf das begrenzt, was die Batterie
+vom Startstand aus füllt (von leer, wenn auch der unbekannt ist). Nur ohne
+Kapazität gilt keine Grenze.
 
 Das gilt auch für ein Auto, das während der Ladung schläft und den neuen
 Ladezustand erst mit dem Ende der Ladung schickt: Beim Abschluss wird die Ladung
