@@ -96,6 +96,11 @@ class ChargeState(_ReadOnlyWhenEmpty):
     energy_lifetime_wh: Optional[float] = None
     energy_session_wh: Optional[float] = None
     energy_session_start: Optional[datetime] = None
+    # How far back a SoC reading may date and still belong to this session, on
+    # BMW's clock: the opening status's own timestamp where it predates our
+    # ``energy_session_start``. A batch that arrives late carries readings
+    # stamped before we saw it, and they are this session's all the same (#332).
+    energy_session_soc_since: Optional[datetime] = None
     # SoC at the moment the current session opened, for the energy ceiling.
     energy_session_soc: Optional[float] = None
     # Unbounded integral behind ``energy_session_wh``. Kept so the exposed total

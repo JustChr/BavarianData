@@ -333,9 +333,23 @@ class VehicleCharging:
             held.release(kwh, self._host._peek(vin).session.mix, self._host._peek(vin).session.cost)
 
     def _bounded_session_wh(self, vin: str, raw_wh: float) -> float:
-        """The raw running total, held to what the pack can have absorbed."""
+        """The raw running total, held to what the pack can have absorbed.
+
+        Without a SoC from this session there is no ceiling, but there is still
+        the pack: a charge cannot put in more than fills it from where it began
+        (from empty, if that is unknown). Unbounded, one power reading held
+        through a silent car with its status still charging ran a 10.9 kWh
+        pack's session to 36 kWh (#332).
+        """
 
         ceiling = self._session_energy_ceiling_wh(vin)
+        if ceiling is None:
+            room_kwh = energy_ceiling_kwh(
+                self._host._peek(vin).charge.energy_session_soc or 0.0,
+                100.0,
+                self._host.battery_capacity_kwh(vin),
+            )
+            ceiling = None if room_kwh is None else room_kwh * 1000.0
         return raw_wh if ceiling is None else min(raw_wh, ceiling)
 
     def _session_soc_percent(self, vin: str) -> Optional[float]:
@@ -347,11 +361,13 @@ class VehicleCharging:
         See :func:`soc_is_from_session` for what that costs.
         """
 
-        tracking = self._host._peek(vin).charge.tracking
+        charge = self._host._peek(vin).charge
+        tracking = charge.tracking
         if tracking is None or tracking.last_soc_percent is None:
             return None
+        since = charge.energy_session_soc_since
         if not soc_is_from_session(
-            tracking.last_update, self._host._peek(vin).charge.energy_session_start
+            tracking.last_update, since if since is not None else charge.energy_session_start
         ):
             return None
         return tracking.last_soc_percent
@@ -513,12 +529,17 @@ class VehicleCharging:
         was_charging: bool,
         tracking: SocTracking,
         status: str,
+        *,
+        status_at: Optional[datetime] = None,
     ) -> None:
         """Fire a HA bus event when a charging session begins or ends.
 
         A stopped session that reached (or exceeded) the configured target SoC
         also fires a dedicated ``complete`` event so automations can distinguish
         "finished as planned" from "unplugged early".
+
+        ``status_at`` is BMW's own timestamp on the status, which a late batch
+        puts well before the moment we open the session.
         """
         now_charging = tracking.charging_active
         if self._host._peek(vin).session.restored_at is not None:
@@ -592,6 +613,13 @@ class VehicleCharging:
             charge.energy_session_wh = 0.0
             charge.energy_session_raw_wh = 0.0
             charge.energy_session_start = started_at
+            # A SoC reading is checked against the session on BMW's clock where
+            # BMW gave one: a batch that arrived 76 minutes late opened its
+            # session on ours, rejected its own SoC, and with no ceiling held one
+            # power reading through fifteen silent hours (#332).
+            charge.energy_session_soc_since = (
+                min(started_at, status_at) if status_at is not None else None
+            )
             # The SoC this session started from, kept here rather than read off
             # the session record so the energy ceiling still applies when history
             # is switched off (the record is optional; the counters are not).
@@ -915,6 +943,7 @@ class VehicleCharging:
                 _snapshot_float(snapshot.get("energy_raw_wh")) or energy_wh
             )
             charge.energy_session_start = builder.start
+            charge.energy_session_soc_since = None
             charge.energy_session_soc = _snapshot_float(snapshot.get("soc_baseline"))
             # Resume the billing cursor where the snapshot left it, so the
             # kilowatt-hours the wallbox counted while we were away are not

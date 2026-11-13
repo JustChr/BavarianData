@@ -163,7 +163,8 @@ class _Batch:
     gps_parts: set[str] = field(default_factory=set)
     gps_ts: Optional[datetime] = None
     # ``(was charging, new status)``: acted on once the whole batch is read.
-    status_change: Optional[tuple[bool, str]] = None
+    # (was charging, the new status, BMW's timestamp on it)
+    status_change: Optional[tuple[bool, str, Optional[datetime]]] = None
 
 
 @dataclass
@@ -671,7 +672,7 @@ class CardataCoordinator:
                 # Acted on once the whole batch is read: the target, the SoC
                 # and the power may come after the status in the same batch,
                 # and the session and its event must see them.
-                batch.status_change = (was_charging, value)
+                batch.status_change = (was_charging, value, parsed_ts)
         elif descriptor == DESC_MOVING and isinstance(value, bool):
             batch.motion = value
         elif descriptor == DESC_IGNITION and isinstance(value, bool):
@@ -702,8 +703,9 @@ class CardataCoordinator:
         vin, now, tracking = batch.vin, batch.now, batch.tracking
         batch.profile.finish_batch(now, batch.source)
         if batch.status_change is not None:
+            was_charging, status, status_at = batch.status_change
             self.charging.fire_charging_event(
-                vin, batch.status_change[0], tracking, batch.status_change[1]
+                vin, was_charging, tracking, status, status_at=status_at
             )
         if any(descriptor in data for descriptor in PLUG_DESCRIPTORS):
             self.charging.close_held_charge_on_unplug(vin)
