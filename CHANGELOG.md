@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.31-beta.1] - 2026-11-13
+
 ### Added
 - **Diagnostics show whether fetching works.** The download now says how BMW
   answered REST requests since the last restart: how many worked, how many
