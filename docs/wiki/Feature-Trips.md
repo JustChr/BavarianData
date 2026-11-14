@@ -268,8 +268,9 @@ trip gets the weather the car actually drove through, from
 - **Once a day**, it also asks for the day's lowest and highest temperature where
   each car is parked (at home, for a car that never sent a position), so the
   efficiency card can mark today's band on its chart by temperature. Only the date
-  and the temperatures are kept, in memory, as the *Real Range* sensor's
-  `outside_temp_c` and `outside_temp_date`.
+  and the temperatures are kept, never the position, as the *Real Range* sensor's
+  `outside_temp_c` and `outside_temp_date`. They are stored with the history, so a
+  restart keeps them and doesn't ask again.
 
 What leaves your house is each trip's route at about 1 km precision, once, and
 where each car is parked, at the same precision, once a day, to Open-Meteo. That
