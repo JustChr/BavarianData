@@ -287,6 +287,13 @@ class TripWeather:
             car = self._host._peek(vin)
             if car.outside is not None and car.outside.get("date") == today.isoformat():
                 continue
+            history = self._host.history
+            stored = history.outside(vin) if history is not None else None
+            if stored is not None and stored.get("date") == today.isoformat():
+                # Asked before a restart: today's answer is already known.
+                self._host._car(vin).outside = stored
+                async_dispatcher_send(self._host.hass, self._host.signal_history, vin)
+                continue
             where, source = car.gps.last_position, "car"
             if where is None:
                 where, source = self._host._home_location(), "home"
@@ -296,6 +303,8 @@ class TripWeather:
             if reading is None:
                 continue  # asked again at the next check
             self._host._car(vin).outside = {**reading, "source": source}
+            if history is not None:
+                history.async_set_outside(vin, {**reading, "source": source})
             async_dispatcher_send(self._host.hass, self._host.signal_history, vin)
             done += 1
         self.schedule_day(DAY_CHECK_S)

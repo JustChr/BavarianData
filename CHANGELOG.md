@@ -15,6 +15,10 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   accepted its deletion, and answers a second delete with `CU-122`. That
   counted as a failed request in diagnostics and logged a warning for each.
   Such a container is now left alone.
+- **Real Range keeps the day's outside temperature through a restart.** With
+  weather along trips on, the temperature where the car is parked went missing
+  for about three minutes after every restart, until it was looked up again.
+  It is now kept with the history, so it stays and is not asked for twice.
 
 ## [0.9.31-beta.2] - 2026-11-14
 
