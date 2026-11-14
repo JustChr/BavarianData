@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.31-beta.2] - 2026-11-14
+
 ### Fixed
 - **Adding the integration again no longer leaves a BMW container behind.**
   Removing BavarianData never deleted the container it reads your car's data
