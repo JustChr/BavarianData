@@ -194,9 +194,10 @@ def test_a_spent_quota_stops_a_container_request_before_it_is_sent():
 def test_bmws_error_code_reaches_the_container_error():
     session = FakeSession(
         [
+            FakeResponse(200, {"containers": []}),
             FakeResponse(
                 403, {"exveErrorId": "CU-124", "exveErrorMsg": "Maximum number of containers"}
-            )
+            ),
         ]
     )
     manager = container.CardataContainerManager(rest=gateway(session), entry_id="e")
@@ -277,7 +278,9 @@ def test_a_request_never_sent_is_no_outcome():
 
 
 def test_a_container_refusal_is_named_by_method_not_path():
-    session = FakeSession([FakeResponse(403, {"exveErrorId": "CU-403"})])
+    session = FakeSession(
+        [FakeResponse(200, {"containers": []}), FakeResponse(403, {"exveErrorId": "CU-403"})]
+    )
     gw = gateway(session)
     manager = container.CardataContainerManager(rest=gw, entry_id="e")
     with pytest.raises(container.CardataContainerError):
