@@ -95,6 +95,11 @@ class HistoryStore:
         # Fuel view of a petrol or diesel car.
         self._fuel: dict[str, dict[str, Any]] = {}
         self._fuel_saved_at: dict[str, datetime] = {}
+        # The day's outside temperature where each car is parked
+        # (``trip_weather``): kept so a restart neither leaves the Real Range
+        # sensor without it until the next lookup nor asks Open-Meteo again.
+        # Never a position.
+        self._outside: dict[str, dict[str, Any]] = {}
         self._loaded = False
 
     async def async_load(self) -> None:
@@ -178,6 +183,10 @@ class HistoryStore:
             ]
             if restored_trips:
                 self._trips[vin] = self._prune_trips(restored_trips)
+        # Additive, like ``fuel``: absent in every older store.
+        for vin, reading in (data.get("outside") or {}).items():
+            if isinstance(reading, dict):
+                self._outside[vin] = reading
 
         if debug_enabled():
             # Confirms the store survived a restart, and how much of it did --
@@ -407,6 +416,19 @@ class HistoryStore:
         self._reports[vin] = dict(report)
         self.async_schedule_save()
 
+    def outside(self, vin: str) -> Optional[dict[str, Any]]:
+        """The last day's outside temperature stored for one VIN (a copy), or ``None``."""
+
+        reading = self._outside.get(vin)
+        return dict(reading) if reading is not None else None
+
+    @callback
+    def async_set_outside(self, vin: str, reading: dict[str, Any]) -> None:
+        """Keep the day's outside temperature for one VIN."""
+
+        self._outside[vin] = dict(reading)
+        self.async_schedule_save()
+
     def odometer_log(self, vin: str) -> dict[str, float]:
         """The daily odometer log for one VIN (a copy), ``{"YYYY-MM-DD": km}``."""
 
@@ -573,6 +595,7 @@ class HistoryStore:
             "reports": dict(self._reports),
             "odometer": {vin: dict(log) for vin, log in self._odometer.items()},
             "fuel": {vin: dict(log) for vin, log in self._fuel.items()},
+            "outside": {vin: dict(reading) for vin, reading in self._outside.items()},
         }
 
     async def async_save_now(self) -> None:
@@ -591,6 +614,7 @@ class HistoryStore:
             self._reports,
             self._odometer,
             self._fuel,
+            self._outside,
         ):
             records.pop(vin, None)
         self.async_schedule_save()
@@ -606,4 +630,5 @@ class HistoryStore:
         self._reports = {}
         self._odometer = {}
         self._fuel = {}
+        self._outside = {}
         await self._store.async_remove()

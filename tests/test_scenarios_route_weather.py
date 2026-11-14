@@ -181,6 +181,29 @@ def test_the_day_is_asked_once_where_the_car_is_parked(h):
     assert h.coordinator.outside_temperature(h.vin)["date"] == "2026-09-27"
 
 
+@pytest.mark.solo  # counts the account's lookups, every car's
+def test_the_day_survives_a_restart_without_asking_again(h):
+    """Real Range lost its outside temperature for three minutes after every
+    restart, until the day's first check asked Open-Meteo again."""
+
+    weather = h.coordinator.route_weather = _FakeDay()
+    _drive(h, 5, 3)
+    h.coordinator.weather.schedule_day()
+    h.advance_to(40)
+    before = h.coordinator.outside_temperature(h.vin)
+    assert before is not None and len(weather.days) == 1
+
+    h.restart()
+    # At once, before the day's first check ...
+    assert h.coordinator.outside_temperature(h.vin) == before
+    # ... and that check adopts it rather than asking again.
+    h.coordinator.route_weather = weather
+    h.coordinator.weather.schedule_day()
+    h.advance_to(50)
+    assert len(weather.days) == 1
+    assert h.coordinator.outside_temperature(h.vin) == before
+
+
 @pytest.mark.solo
 def test_a_failed_day_is_asked_again_at_the_next_check(h):
     weather = h.coordinator.route_weather = _FakeDay(failing_days=1)

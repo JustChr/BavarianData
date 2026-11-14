@@ -1072,6 +1072,13 @@ class CardataCoordinator:
         """
 
         reading = self._peek(vin).outside
+        if reading is None and self.history is not None:
+            # Right after a restart, until the day's first check adopts it:
+            # the reading stored before the restart, if it is today's.
+            stored = self.history.outside(vin)
+            today = dt_util.as_local(datetime.now(timezone.utc)).date().isoformat()
+            if stored is not None and stored.get("date") == today:
+                return stored
         return dict(reading) if reading is not None else None
 
     def bmw_range_km(self, vin: str) -> Optional[float]:

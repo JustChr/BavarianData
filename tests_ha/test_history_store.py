@@ -152,3 +152,28 @@ async def test_an_import_seen_before_adds_nothing(hass: HomeAssistant) -> None:
         assert store.import_cardata_sessions(VIN, [raw]) == (0, 0)
     save.assert_not_called()
     assert len(store.sessions(VIN)) == 1
+
+
+async def test_the_days_outside_temperature_survives_and_goes_with_the_car(
+    hass: HomeAssistant, hass_storage
+) -> None:
+    reading = {"date": "2026-11-14", "temp_c": 5.0, "source": "car"}
+    hass_storage[KEY] = {
+        "version": 1,
+        "minor_version": 1,
+        "key": KEY,
+        "data": {"schema": SCHEMA_VERSION, "outside": {VIN: reading, OTHER: "garbage"}},
+    }
+    store = HistoryStore(hass, "entry-1")
+    await store.async_load()
+    assert store.outside(VIN) == reading
+    assert store.outside(OTHER) is None
+
+    store.async_set_outside(OTHER, reading)
+    await store.async_save_now()
+    assert hass_storage[KEY]["data"]["outside"][OTHER] == reading
+
+    store.forget_vehicle(VIN)
+    assert store.outside(VIN) is None
+    await store.async_clear()
+    assert store.outside(OTHER) is None
