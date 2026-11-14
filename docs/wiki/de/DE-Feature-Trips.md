@@ -291,8 +291,9 @@ und jede Fahrt bekommt das Wetter, durch das das Auto tatsächlich gefahren ist,
 - **Einmal am Tag** fragt es außerdem die tiefste und höchste Temperatur des Tages
   dort ab, wo jedes Auto steht (zu Hause, bei einem Auto, das nie eine Position
   gesendet hat), damit die Effizienz-Karte das heutige Band in ihrem Diagramm nach
-  Temperatur markieren kann. Behalten werden nur Datum und Temperaturen, im
-  Speicher, als `outside_temp_c` und `outside_temp_date` des Sensors *Echte Reichweite*.
+  Temperatur markieren kann. Behalten werden nur Datum und Temperaturen, nie die
+  Position, als `outside_temp_c` und `outside_temp_date` des Sensors *Echte Reichweite*.
+  Sie liegen beim Verlauf, ein Neustart behält sie also und fragt nicht erneut.
 
 Was dein Zuhause verlässt, ist die Strecke jeder Fahrt auf etwa 1 km genau, einmal,
 und einmal am Tag, ebenso genau, wo jedes Auto steht, an Open-Meteo. Deshalb ist
