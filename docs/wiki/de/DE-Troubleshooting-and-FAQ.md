@@ -303,9 +303,20 @@ Weile nichts gebracht hat. Zwei übliche Ursachen:
 
 <a id="only-one-stream-per-account"></a>
 
-BMW erlaubt **nur einen gleichzeitigen Streaming-Client** pro Konto (GCID), es kann also
-kein anderes Werkzeug zur selben Zeit verbunden sein. Läuft ein anderer CarData-Client,
-trenne ihn.
+BMW erlaubt **nur einen gleichzeitigen Streaming-Client** pro Konto (GCID). Verbindet
+sich ein zweites Programm, wirft BMW das erste hinaus, und die beiden nehmen sich den
+Stream ständig gegenseitig weg: Werte bleiben für Minuten oder Stunden stehen, der
+Verbindungssensor wechselt zwischen verbunden und getrennt, und evcc verliert den
+Ladezustand.
+
+Der häufigste zweite Client ist **evccs eigenes BMW-CarData-Fahrzeug**; andere sind
+eine zweite CarData-Integration, ein ioBroker- oder openHAB-Adapter, ein
+MagicMirror-Modul oder ein Garmin-Widget. Du musst dich nicht zwischen ihnen
+entscheiden: Lass BavarianData den Stream halten und gib ihn mit der
+[MQTT-Brücke](DE-Feature-evcc-and-Wallbox-Bridge#one-stream-per-account) über MQTT an
+die anderen weiter; dort steht in einer Tabelle, was du für welches Werkzeug
+einstellst. Eine zweite CarData-Integration in Home Assistant kann ihn nicht teilen;
+entscheide dich für eine.
 
 ## Das Auto lässt sich nicht steuern
 

@@ -28,7 +28,7 @@
 - [Events & blueprints](Feature-Automations)
 - [Ask Assist & AI](Feature-Assist-and-AI)
 - [Energy & statistics](Feature-Energy-and-Statistics)
-- [evcc & wallbox bridge](Feature-evcc-and-Wallbox-Bridge)
+- [MQTT bridge (evcc & more)](Feature-evcc-and-Wallbox-Bridge)
 - [ABRP live data](Feature-ABRP)
 - [Export](Feature-Export)
 
@@ -75,7 +75,7 @@
 - [Ereignisse & Blueprints](DE-Feature-Automations)
 - [Assist & KI fragen](DE-Feature-Assist-and-AI)
 - [Energie & Statistiken](DE-Feature-Energy-and-Statistics)
-- [evcc- & Wallbox-Brücke](DE-Feature-evcc-and-Wallbox-Bridge)
+- [MQTT-Brücke (evcc & mehr)](DE-Feature-evcc-and-Wallbox-Bridge)
 - [ABRP-Live-Daten](DE-Feature-ABRP)
 - [Export](DE-Feature-Export)
 

@@ -89,4 +89,4 @@ dann über seine eigenen Einstellungen oder über eine Automation auf
 ## evcc
 
 evcc kann den Ladezustand per MQTT direkt von BavarianData lesen. Dafür gibt es
-eine eigene Seite: [evcc- & Wallbox-Brücke](DE-Feature-evcc-and-Wallbox-Bridge).
+eine eigene Seite: [MQTT-Brücke (evcc & mehr)](DE-Feature-evcc-and-Wallbox-Bridge).

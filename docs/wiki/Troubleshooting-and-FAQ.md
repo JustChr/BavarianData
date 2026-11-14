@@ -289,9 +289,18 @@ recovered it for a while. Two usual causes:
 
 <a id="only-one-stream-per-account"></a>
 
-BMW allows a **single concurrent streaming client** per account (GCID), so no
-other tool can be connected at the same time. If another CarData client is
-running, disconnect it.
+BMW allows a **single concurrent streaming client** per account (GCID). When a
+second program connects, BMW drops the first, and the two keep taking the stream
+from each other: values stop for minutes or hours, the connection sensor flips
+between connected and disconnected, and evcc loses the state of charge.
+
+The most common second client is **evcc's own BMW CarData vehicle**; others are
+a second CarData integration, an ioBroker or openHAB adapter, a MagicMirror
+module or a Garmin widget. You don't have to choose between them: let
+BavarianData hold the stream and give it to the others over MQTT with the
+[MQTT bridge](Feature-evcc-and-Wallbox-Bridge#one-stream-per-account), which
+has a table of what to set for each tool. A second CarData integration in Home
+Assistant can't share it; pick one.
 
 ## The car can't be controlled
 

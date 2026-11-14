@@ -210,7 +210,7 @@ so it costs no BMW API quota.
   car actually reports. A `status` missing from this list means the car reports
   no plug state — see the bridge page's troubleshooting.
 
-See [evcc & wallbox bridge](Feature-evcc-and-Wallbox-Bridge).
+See [MQTT bridge (evcc & more)](Feature-evcc-and-Wallbox-Bridge).
 
 ### `set_trip_class`
 `vin`, `trip_id` (as returned by `get_trips`), `classification`

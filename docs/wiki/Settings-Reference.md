@@ -203,7 +203,7 @@ of `W` or `kW`) and it will appear.
 <a id="evcc--wallbox-bridge"></a>
 
 Screen: **Configure → Share live data → MQTT bridge (evcc & more)**. See
-[evcc & wallbox bridge](Feature-evcc-and-Wallbox-Bridge) for the concepts, the
+[MQTT bridge (evcc & more)](Feature-evcc-and-Wallbox-Bridge) for the concepts, the
 topic table and the troubleshooting.
 
 <p align="center">
@@ -227,6 +227,11 @@ Node-RED flow can read a state of charge that costs no
 Home Assistant — the bridge publishes through it, so there is no broker host or
 password to enter here. Switching evcc on shows a second screen with the
 ready-to-paste evcc configuration; sharing only the stream saves straight away.
+
+It is also the answer when another app wants the car's data: BMW allows
+[one stream per account](Feature-evcc-and-Wallbox-Bridge#one-stream-per-account),
+so evcc's own BMW vehicle, a MagicMirror or a script should read it from here
+rather than connect to BMW and take the stream away from Home Assistant.
 
 | Option | Values | Meaning |
 | --- | --- | --- |

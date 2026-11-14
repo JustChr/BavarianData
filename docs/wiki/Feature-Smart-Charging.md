@@ -84,4 +84,4 @@ settings, or through an automation on `binary_sensor.predbat_car_charging_slot`.
 ## evcc
 
 evcc can read the car's state of charge straight from BavarianData over MQTT.
-That has its own page: [evcc & wallbox bridge](Feature-evcc-and-Wallbox-Bridge).
+That has its own page: [MQTT bridge (evcc & more)](Feature-evcc-and-Wallbox-Bridge).

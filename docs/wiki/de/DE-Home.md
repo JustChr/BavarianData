@@ -60,7 +60,7 @@ hat mehrere Ansichten:
 - [Ereignisse & Automations-Blueprints](DE-Feature-Automations) — Geräte-Auslöser, Lade-Ereignisse und fertige Automationen
 - [Assist & KI nach dem Auto fragen](DE-Feature-Assist-and-AI) — Fragen per Sprache und Chat, dazu MCP für KI-Apps am Rechner
 - [Energie-Dashboard & Langzeitstatistiken](DE-Feature-Energy-and-Statistics) — das Laden des Autos im Energie-Dashboard von Home Assistant
-- [evcc- & Wallbox-Brücke](DE-Feature-evcc-and-Wallbox-Bridge) — den Ladezustand ohne API-Kosten an eine Ladesteuerung weitergeben
+- [MQTT-Brücke (evcc & mehr)](DE-Feature-evcc-and-Wallbox-Bridge) — den Ladezustand an evcc und den Live-Stream an jede andere App geben (BMW erlaubt einen Stream pro Konto)
 - [ABRP-Live-Daten](DE-Feature-ABRP) — dein echter Akkustand in A Better Routeplanner, mit kostenlosem ABRP-Konto
 - [Export (CSV / HTML-Bericht)](DE-Feature-Export)
 

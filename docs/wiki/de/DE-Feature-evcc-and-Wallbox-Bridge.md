@@ -1,37 +1,83 @@
-# evcc- & Wallbox-Brücke
+# MQTT-Brücke (evcc & mehr)
 
 > 🇬🇧 [English version](Feature-evcc-and-Wallbox-Bridge)
 
-Gib deiner Ladesteuerung den **Live-Ladezustand** des Autos, direkt aus BMWs
-Stream — und lass den Zähler deiner Wallbox dem
-[Ladeverlauf](DE-Feature-Charging-History-and-Cost) genau sagen, was jede Ladung
-aus dem Netz gezogen hat.
+BMW gibt jedem Konto **einen Live-Stream**, und nur ein Programm kann ihn halten.
+Mit der Brücke hält ihn BavarianData und gibt die Daten des Autos über deinen
+eigenen MQTT-Broker an alles weiter, was sie haben will: evcc, openWB, Node-RED,
+einen MagicMirror, ein Skript. Keines davon braucht eine eigene BMW-Anmeldung,
+und nichts davon kostet [API-Kontingent](DE-Feature-API-Quota).
 
-Zwei Richtungen, an zwei verschiedenen Stellen eingerichtet und unabhängig
-voneinander nützlich. Derselbe Bildschirm kann außerdem
-[den ganzen Stream des Autos teilen](#sharing-the-whole-stream-with-other-apps), mit
-jeder anderen App auf deinem Broker.
+Sie arbeitet in beide Richtungen:
+
+- **Hinaus:** der [Ladezustand des Autos für evcc](#outbound-the-cars-state-of-charge-for-evcc)
+  und der [ganze Stream](#sharing-the-whole-stream-with-other-apps) des Autos für
+  jede andere App.
+- **Herein:** der [eigene Zähler deiner Wallbox](#inbound-your-wallboxs-meter-for-the-charging-history)
+  sagt dem [Ladeverlauf](DE-Feature-Charging-History-and-Cost) genau, was jede
+  Ladung aus dem Netz gezogen hat.
+
+---
+
+## Ein Stream pro Konto
+
+<a id="one-stream-per-account"></a>
+
+BMW CarData erlaubt **eine Stream-Verbindung pro Konto** zur selben Zeit. Verbindet
+sich ein zweites Programm mit demselben Konto, wirft BMW das erste hinaus, das
+erste verbindet sich neu und wirft das zweite hinaus, und so weiter. Beide
+verlieren Daten, und keines sagt dir, warum. Was du siehst:
+
+- Werte in Home Assistant bleiben für Minuten oder Stunden stehen und holen dann auf;
+- der Verbindungssensor wechselt ständig zwischen verbunden und getrennt;
+- evccs Ladezustand friert ein oder fehlt mitten in einer Ladung.
+
+Die üblichen Verdächtigen sind **evccs eigenes BMW-CarData-Fahrzeug**
+(`template: cardata` ohne `broker:`), eine zweite CarData-Integration in Home
+Assistant, ein ioBroker- oder openHAB-Adapter, ein MagicMirror-Modul, ein
+Garmin-Widget oder ein Stream-Sammler. Jedes davon öffnet einen eigenen Stream
+auf deinem Konto.
+
+**Die Lösung: Ein Programm hält den Stream und teilt ihn.** BavarianData hält
+ihn, und die Brücke legt die Daten des Autos auf den MQTT-Broker, den Home
+Assistant ohnehin nutzt. Die anderen Programme lesen sie dort:
+
+| Du nutzt außerdem | So geht's |
+| --- | --- |
+| **evcc** | Hake **Dieses Auto für evcc veröffentlichen** an und füge den erzeugten Block ein ([Einrichten](#setting-it-up)). evcc braucht dann keine BMW-Anmeldung und verbraucht keine Anfragen. Das ist der empfohlene Weg. |
+| **evccs eigenes BMW-CarData-Fahrzeug** (`template: cardata`) | Richte es auf den geteilten Stream statt auf BMW: siehe [evccs eigenes CarData-Fahrzeug](#evccs-own-cardata-vehicle). |
+| **openWB**, **Node-RED**, ein Skript | Lies die evcc-Topics (`soc`, `status`, `state`…) oder die Feld-Topics des [geteilten Streams](#sharing-the-whole-stream-with-other-apps). |
+| Ein Werkzeug, das **BMWs eigene Nachrichten** liest (MagicMirror, Garmin, Grafana, ein Sammler) | Hake **Ganzen Stream dieses Autos teilen** an und stelle das Topic des Werkzeugs auf `<prefix>/+/stream`. Ein Werkzeug mit fest eingebautem Topic lässt sich nicht darauf richten. |
+| Eine **zweite CarData-Integration** in Home Assistant | Am selben Konto nicht möglich. Entscheide dich für eine. |
+
+Auch die 50 täglichen [API-Anfragen](DE-Feature-API-Quota) zählen pro Konto: Ein
+zweites Programm, das BMW weiterhin direkt fragt, verbraucht von denselben 50.
 
 ---
 
 ## Ausgehend: der Ladezustand des Autos für evcc
 
+<a id="outbound-the-cars-state-of-charge-for-evcc"></a>
+
 ### Warum sich das lohnt
 
-evcc, openWB und ähnliche Steuerungen können selbst mit BMW sprechen. Sie fragen
-dazu BMWs Kunden-API zyklisch ab, und die ist begrenzt und für viele unzuverlässig
-— es ist die häufigste Beschwerde in deren Issue-Trackern.
+evcc und openWB können BMW selbst nach dem Zustand des Autos fragen. Entweder
+fragen sie BMWs API zyklisch ab, begrenzt auf 50 Anfragen am Tag pro Konto, oder
+sie öffnen den [einen Stream](#one-stream-per-account) des Kontos und nehmen ihn
+damit Home Assistant weg.
 
-BavarianData fragt nicht ab. Der Ladezustand kommt über BMWs MQTT-Stream, sobald
-das Auto ihn meldet, und kostet **keine** deiner
+BavarianData hält den Stream bereits. Der Ladezustand kommt, sobald das Auto ihn
+meldet, und kostet **keine** deiner
 [50 täglichen API-Anfragen](DE-Feature-API-Quota). Gibst du ihn an evcc weiter,
-bekommt evcc einen besseren Ladezustand, als es allein bekäme, und das kostenlos.
+bekommt evcc einen Live-Ladezustand ohne zweite Verbindung zu BMW.
 
 Genau das macht diese Brücke: Sie veröffentlicht, was wir ohnehin wissen, erneut
 auf deinem eigenen MQTT-Broker, in der Form, die evccs Fahrzeugtyp `custom`
 erwartet.
 
 ### Einrichten
+
+<a id="setting-it-up"></a>
 
 **Voraussetzung:** Die **MQTT-Integration** muss in Home Assistant eingerichtet sein
 (*Einstellungen → Geräte & Dienste*). Die Brücke veröffentlicht über sie, deshalb
@@ -135,13 +181,56 @@ Jedes Fahrzeug bekommt einen eigenen Topic-Zweig, benannt nach seiner FIN, und d
 erzeugte Konfiguration führt jedes Auto, das der Eintrag kennt, unter einem einzigen
 Schlüssel `vehicles:` auf.
 
+### evccs eigenes CarData-Fahrzeug
+
+<a id="evccs-own-cardata-vehicle"></a>
+
+evcc hat ein eigenes BMW/MINI-Fahrzeug, `template: cardata`. So wie es kommt,
+öffnet es den Stream des Kontos selbst, und evcc und Home Assistant werfen sich
+abwechselnd hinaus. Ziehst du es dem erzeugten `custom`-Block vor, gib ihm den
+Stream, den BavarianData teilt:
+
+1. Hake in der Brücke **Ganzen Stream dieses Autos teilen** an.
+2. Setze in evccs Fahrzeug `broker` (und `user`/`password`, falls dein Broker sie
+   verlangt) auf den Broker, auf den Home Assistant veröffentlicht, und `topic`
+   auf den geteilten Stream:
+
+```yaml
+vehicles:
+  - name: bmw
+    type: template
+    template: cardata
+    vin: WBA...                  # deine FIN
+    clientid: ...                # deine CarData-Client-ID
+    capacity: 81                 # kWh
+    broker: 192.168.1.10:1883    # der Broker der MQTT-Integration von Home Assistant
+    topic: bavariandata/+/stream # <prefix>/+/stream, falls du den Prefix geändert hast
+    cache: 2h
+```
+
+evcc liest die Nachrichten auf diesem Topic und erkennt sein Auto an der FIN in
+jeder Nachricht, sodass ein Topic mehrere Autos bedient. Lässt du `broker` leer,
+verbindet sich evcc wieder selbst mit BMW.
+
+Zwei Dinge solltest du bei diesem Weg wissen:
+
+- **evcc meldet sich weiterhin bei BMW an**, mit der Client-ID, für seine
+  REST-Anfragen. Es fragt erneut, sobald für `cache` (standardmäßig 30 Minuten)
+  keine Stream-Nachricht kam, und jede Anfrage geht von denselben
+  [50 am Tag](DE-Feature-API-Quota) ab wie die von BavarianData. Ein parkendes
+  Auto sendet nichts, also stelle `cache` auf ein paar Stunden.
+- **Position weglassen** (standardmäßig an) verbirgt die Position auch vor evcc.
+
+Der erzeugte `custom`-Block braucht weder eine BMW-Anmeldung noch Anfragen,
+deshalb ist er der empfohlene Weg.
+
 ---
 
 ## Den ganzen Stream mit anderen Apps teilen
 
 <a id="sharing-the-whole-stream-with-other-apps"></a>
 
-BMW erlaubt **einen Stream pro Konto**, und BavarianData hält ihn. Ein
+BMW erlaubt [einen Stream pro Konto](#one-stream-per-account), und BavarianData hält ihn. Ein
 MagicMirror-Modul, ein Garmin-Widget oder ein Skript, das BMWs eigenes Format liest,
 bräuchte einen eigenen Stream und würde ihn an Home Assistant verlieren oder ihm
 wegnehmen. Den Stream zu teilen umgeht das: Jeder Wert, den BMW für das Auto streamt,
@@ -366,6 +455,10 @@ nur *Status der Ladesteckverbindung*. Führe
 [Gestreamte Daten auswählen](DE-Getting-Started-4-Choose-Data) mit den
 entsprechenden Datengruppen erneut aus. Meldet das Auto dann immer noch keinen davon,
 erfindet die Brücke keinen.
+
+**Home Assistant und evcc verlieren ständig das Auto.** Etwas anderes hält den
+Stream des Kontos, meist evccs eigenes `cardata`-Fahrzeug ohne `broker:`. Siehe
+[ein Stream pro Konto](#one-stream-per-account).
 
 **Der Ladezustand wirkt veraltet.** Vergleiche das Topic `updated` mit jetzt. Ist
 BMWs eigene Messung Stunden alt, liegt es am Stream, nicht an der Brücke — das Auto

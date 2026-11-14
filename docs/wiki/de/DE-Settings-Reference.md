@@ -216,7 +216,7 @@ Template-Sensor nicht angeboten, gib ihm `device_class: power` (und eine
 <a id="evcc--wallbox-bridge"></a>
 
 Bildschirm: **Konfigurieren → Live-Daten teilen → MQTT-Brücke (evcc & mehr)**. Konzepte, Topic-Tabelle und
-Fehlerbehebung stehen unter [evcc- & Wallbox-Brücke](DE-Feature-evcc-and-Wallbox-Bridge).
+Fehlerbehebung stehen unter [MQTT-Brücke (evcc & mehr)](DE-Feature-evcc-and-Wallbox-Bridge).
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-evcc-bridge.png?v=2026-11-03" alt="MQTT-Brücke (evcc & mehr) mit einem Auto: dieses Auto für evcc veröffentlichen, seinen ganzen Stream teilen, Position weglassen, Topic-Prefix und mit Retain veröffentlichen" width="460" />
@@ -239,6 +239,11 @@ oder ein Node-RED-Flow einen Ladezustand lesen kann, der kein
 — die Brücke veröffentlicht über sie, daher sind hier weder Host noch Passwort eines
 Brokers einzutragen. Schaltest du evcc ein, erscheint ein zweiter Bildschirm mit der
 evcc-Konfiguration zum Einfügen; nur den Stream zu teilen speichert sofort.
+
+Sie ist auch die Antwort, wenn eine andere App die Daten des Autos haben will: BMW
+erlaubt [einen Stream pro Konto](DE-Feature-evcc-and-Wallbox-Bridge#one-stream-per-account),
+also sollten evccs eigenes BMW-Fahrzeug, ein MagicMirror oder ein Skript sie hier
+lesen, statt sich mit BMW zu verbinden und Home Assistant den Stream wegzunehmen.
 
 | Option | Werte | Bedeutung |
 | --- | --- | --- |
