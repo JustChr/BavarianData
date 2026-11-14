@@ -1,15 +1,56 @@
-# evcc & wallbox bridge
+# MQTT bridge (evcc & more)
 
 > 🇩🇪 [Deutsch](DE-Feature-evcc-and-Wallbox-Bridge)
 
-Give your charge controller the car's **live state of charge**, straight off
-BMW's stream — and let your wallbox's own meter tell the
-[charging history](Feature-Charging-History-and-Cost) exactly what each charge
-drew from the grid.
+BMW gives each account **one live stream**, and only one program can hold it.
+The bridge lets BavarianData hold it and hand the car's data, over your own MQTT
+broker, to everything else that wants it: evcc, openWB, Node-RED, a MagicMirror,
+a script. None of them needs a BMW login of its own, and none of it costs
+[API quota](Feature-API-Quota).
 
-Two directions, configured in two different places, and useful independently.
-The same screen can also [share the car's whole stream](#sharing-the-whole-stream-with-other-apps)
-with any other app on your broker.
+It works in both directions:
+
+- **Out:** the car's [state of charge for evcc](#outbound-the-cars-state-of-charge-for-evcc),
+  and the car's [whole stream](#sharing-the-whole-stream-with-other-apps) for any
+  other app.
+- **In:** your [wallbox's own meter](#inbound-your-wallboxs-meter-for-the-charging-history)
+  tells the [charging history](Feature-Charging-History-and-Cost) exactly what
+  each charge drew from the grid.
+
+---
+
+## One stream per account
+
+<a id="one-stream-per-account"></a>
+
+BMW CarData allows **one stream connection per account** at a time. When a second
+program connects with the same account, BMW drops the first, the first
+reconnects and drops the second, and so on. Both lose data, and neither tells you
+why. What you see:
+
+- values in Home Assistant stop updating for minutes or hours, then catch up;
+- the connection sensor keeps switching between connected and disconnected;
+- evcc's state of charge freezes or goes missing in the middle of a charge.
+
+The usual suspects are **evcc's own BMW CarData vehicle** (`template: cardata`
+with no `broker:`), a second CarData integration in Home Assistant, an ioBroker
+or openHAB adapter, a MagicMirror module, a Garmin widget or a stream collector.
+Each of them opens its own stream on your account.
+
+**The fix is to give the stream to one program and share it.** BavarianData
+holds it, and the bridge puts the car's data on the MQTT broker Home Assistant
+already uses. The other programs read it from there:
+
+| You also use | Do this |
+| --- | --- |
+| **evcc** | Tick **Publish this car for evcc** and paste the block it generates ([setting it up](#setting-it-up)). evcc then needs no BMW login and spends no requests. This is the recommended way. |
+| **evcc's own BMW CarData vehicle** (`template: cardata`) | Point it at the shared stream rather than at BMW: see [evcc's own CarData vehicle](#evccs-own-cardata-vehicle). |
+| **openWB**, **Node-RED**, a script | Read the evcc topics (`soc`, `status`, `state`…) or the [shared stream's](#sharing-the-whole-stream-with-other-apps) per-field topics. |
+| A tool that reads **BMW's own messages** (MagicMirror, Garmin, Grafana, a collector) | Tick **Share this car's whole stream** and set the tool's topic to `<prefix>/+/stream`. A tool with a fixed topic can't be pointed at it. |
+| A **second CarData integration** in Home Assistant | Not possible on the same account. Pick one. |
+
+The 50 daily [API requests](Feature-API-Quota) are counted per account too, so a
+second program that still asks BMW directly spends from the same 50.
 
 ---
 
@@ -17,15 +58,15 @@ with any other app on your broker.
 
 ### Why this is worth doing
 
-evcc, openWB and similar controllers can talk to BMW themselves. They do it by
-polling BMW's customer API on a timer, which is rate-limited and, for a lot of
-people, unreliable — it's the single most common complaint in their issue
-trackers.
+evcc and openWB can ask BMW for the car's state themselves. Either they poll
+BMW's API on a timer, which is limited to 50 requests a day per account, or they
+open the account's [one stream](#one-stream-per-account), which takes it away
+from Home Assistant.
 
-BavarianData doesn't poll. The state of charge arrives over BMW's MQTT stream as
-the car reports it, and costs **none** of your
+BavarianData already holds the stream. The state of charge arrives as the car
+reports it and costs **none** of your
 [50 daily API requests](Feature-API-Quota). Handing that to evcc gives it a
-better state of charge than it can get on its own, for free.
+live state of charge without a second connection to BMW.
 
 That's what this bridge does: it republishes what we already know onto your own
 MQTT broker, in the layout evcc's `custom` vehicle expects.
@@ -131,16 +172,59 @@ Each vehicle gets its own topic subtree keyed on its VIN, and the generated
 configuration lists every car the entry knows about under a single `vehicles:`
 key.
 
+### evcc's own CarData vehicle
+
+<a id="evccs-own-cardata-vehicle"></a>
+
+evcc has its own BMW/MINI vehicle, `template: cardata`. Left as it comes, it
+opens the account's stream itself, and evcc and Home Assistant take turns
+dropping each other. If you prefer it to the generated `custom` block, give it
+the stream BavarianData shares instead:
+
+1. In the bridge, tick **Share this car's whole stream**.
+2. In evcc's vehicle, set `broker` (and `user`/`password` if your broker needs
+   them) to the broker Home Assistant publishes to, and `topic` to the shared
+   stream:
+
+```yaml
+vehicles:
+  - name: bmw
+    type: template
+    template: cardata
+    vin: WBA...                  # your VIN
+    clientid: ...                # your CarData client ID
+    capacity: 81                 # kWh
+    broker: 192.168.1.10:1883    # the broker Home Assistant's MQTT integration uses
+    topic: bavariandata/+/stream # <prefix>/+/stream if you changed the prefix
+    cache: 2h
+```
+
+evcc reads the messages on that topic and picks out its car by the VIN inside
+each one, so one topic serves several cars. Leave `broker` empty and evcc
+connects to BMW itself again.
+
+Two things to know about this way:
+
+- **evcc still signs in to BMW** with the client ID, for its REST requests. It
+  asks again whenever no stream message has arrived for `cache` (30 minutes by
+  default), and every request comes out of the same
+  [50 a day](Feature-API-Quota) as BavarianData's. A parked car sends nothing,
+  so set `cache` to a few hours.
+- **Leave out the position** (on by default) also hides the position from evcc.
+
+The generated `custom` block needs neither a BMW login nor any requests, which
+is why it's the recommended way.
+
 ---
 
 ## Sharing the whole stream, with other apps
 
-BMW allows **one stream per account**, and BavarianData holds it. A MagicMirror
-module, a Garmin widget or a script written against BMW's own format would
-need a stream of its own, and would lose it to Home Assistant or take it away.
-Sharing the stream is the way round that: every value BMW streams for the car
-goes on the same broker the evcc topics use, as it arrives. It costs no
-[API requests](Feature-API-Quota).
+BMW allows [one stream per account](#one-stream-per-account), and BavarianData
+holds it. A MagicMirror module, a Garmin widget or a script written against
+BMW's own format would need a stream of its own, and would lose it to Home
+Assistant or take it away. Sharing the stream is the way round that: every value
+BMW streams for the car goes on the same broker the evcc topics use, as it
+arrives. It costs no [API requests](Feature-API-Quota).
 
 **Configure → Share live data → MQTT bridge (evcc & more)** → tick **Share this car's whole
 stream**. It's off by default and set per car, like the evcc switch, and the two
@@ -347,6 +431,10 @@ Connector state* — an i5, for example, reports only *Charging Port plug state*
 Re-run [Choose data to stream](Getting-Started-4-Choose-Data) with the
 **Charging Port** and **Charging EV** clusters selected. If the car still reports
 none of them, the bridge won't invent one.
+
+**Home Assistant and evcc keep losing the car.** Something else holds the
+account's stream, usually evcc's own `cardata` vehicle with no `broker:`. See
+[one stream per account](#one-stream-per-account).
 
 **The state of charge looks stale.** Compare the `updated` topic with now. If
 BMW's own reading is hours old, that's the stream, not the bridge — the car

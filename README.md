@@ -53,11 +53,14 @@ good-looking dashboard one card away — the card registers itself, you just
 place it.
 
 It can also hand that live charge level **to your charge controller**: the
-[evcc / wallbox bridge](https://github.com/JustChr/BavarianData/wiki/Feature-evcc-and-Wallbox-Bridge)
+[MQTT bridge](https://github.com/JustChr/BavarianData/wiki/Feature-evcc-and-Wallbox-Bridge)
 publishes the car's state of charge over MQTT, so evcc or openWB can charge on a
 figure that arrives as the car reports it instead of polling a rate-limited
 vendor API — and it reads your wallbox's own meter back, to record what each
-charge really drew from the grid. The same figure goes
+charge really drew from the grid. BMW allows only **one stream per account**, so
+evcc's own BMW vehicle, a MagicMirror or any other CarData app would take it
+away from Home Assistant; the bridge can share the car's whole stream with them
+instead. The same figure goes
 [to ABRP](https://github.com/JustChr/BavarianData/wiki/Feature-ABRP) if you
 like, so A Better Routeplanner plans from your real battery.
 

@@ -296,7 +296,7 @@ delivered. Two ways to reconcile:
   reading that can't be right — a meter that reset, or one reporting far less
   than the pack absorbed or nearly twice it — is refused rather than believed, and
   the session keeps its battery-side figure. Details and the failure cases:
-  [evcc & wallbox bridge](Feature-evcc-and-Wallbox-Bridge#inbound-your-wallboxs-meter-for-the-charging-history).
+  [MQTT bridge (evcc & more)](Feature-evcc-and-Wallbox-Bridge#inbound-your-wallboxs-meter-for-the-charging-history).
 - **Loss percentage** — otherwise gross the battery figure up by your charging
   losses (`charging_loss_percent`). It stays at **0 %** by default, because an
   invented correction would look like a measurement. With a wallbox meter bound

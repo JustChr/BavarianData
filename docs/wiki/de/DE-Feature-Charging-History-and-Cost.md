@@ -334,7 +334,7 @@ Netz geliefert hat. Zwei Wege, das auszugleichen:
   oder einer, der weit weniger als der Akku aufnahm oder fast das Doppelte meldet —,
   wird abgelehnt statt geglaubt, und der Ladevorgang behält seinen batterieseitigen
   Wert. Details und Fehlerfälle:
-  [evcc- & Wallbox-Brücke](DE-Feature-evcc-and-Wallbox-Bridge#inbound-your-wallboxs-meter-for-the-charging-history).
+  [MQTT-Brücke (evcc & mehr)](DE-Feature-evcc-and-Wallbox-Bridge#inbound-your-wallboxs-meter-for-the-charging-history).
 - **Ladeverluste in Prozent** — sonst den Batteriewert um deine Ladeverluste
   hochrechnen (**Ladeverluste (%)**). Standard ist **0 %**, weil eine erfundene
   Korrektur wie eine Messung aussähe. Mit verknüpftem Wallbox-Zähler brauchst du

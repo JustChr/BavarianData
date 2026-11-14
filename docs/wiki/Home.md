@@ -58,7 +58,7 @@ you add the card to a dashboard yourself. It has several views:
 - [Events & automation blueprints](Feature-Automations) — device triggers, charging events and ready-made automations
 - [Ask Assist & AI about your car](Feature-Assist-and-AI) — voice and chat questions, and MCP for desktop AI apps
 - [Energy dashboard & long-term statistics](Feature-Energy-and-Statistics) — the car's charging in Home Assistant's Energy dashboard
-- [evcc & wallbox bridge](Feature-evcc-and-Wallbox-Bridge) — hand your state of charge to a charge controller, at no API cost
+- [MQTT bridge (evcc & more)](Feature-evcc-and-Wallbox-Bridge) — hand your state of charge to evcc, and the live stream to any other app (BMW allows one stream per account)
 - [ABRP live data](Feature-ABRP) — your real battery level in A Better Routeplanner, with a free ABRP account
 - [Export (CSV / HTML report)](Feature-Export)
 

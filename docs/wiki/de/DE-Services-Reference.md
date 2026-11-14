@@ -224,7 +224,7 @@ lokale Zustände und kostet daher kein BMW-API-Kontingent.
   Auto wirklich meldet. Fehlt `status` in dieser Liste, meldet das Auto keinen
   Steckerstatus — siehe die Fehlerbehebung auf der Seite zur Brücke.
 
-Siehe [evcc- & Wallbox-Brücke](DE-Feature-evcc-and-Wallbox-Bridge).
+Siehe [MQTT-Brücke (evcc & mehr)](DE-Feature-evcc-and-Wallbox-Bridge).
 
 ### `set_trip_class`
 

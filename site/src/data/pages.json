@@ -169,11 +169,11 @@
     "slug": "evcc-and-wallbox-bridge",
     "en": {
       "title": "BMW state of charge for evcc and openWB via MQTT",
-      "description": "Hand your BMW's live state of charge to evcc, openWB or any wallbox controller over MQTT, at no API cost, and read the wallbox meter back into the charging history."
+      "description": "Hand your BMW's live state of charge to evcc, openWB or any wallbox controller over MQTT, and share the one CarData stream BMW allows per account with other apps."
     },
     "de": {
       "title": "BMW-Ladezustand für evcc und openWB über MQTT",
-      "description": "Den Live-Ladezustand deines BMW über MQTT an evcc, openWB oder jede Wallbox-Steuerung geben, ohne API-Kosten, und den Wallbox-Zähler in den Ladeverlauf zurücklesen."
+      "description": "Den Live-Ladezustand deines BMW über MQTT an evcc, openWB oder jede Wallbox-Steuerung geben und den einen CarData-Stream, den BMW pro Konto erlaubt, mit anderen Apps teilen."
     }
   },
   "Feature-ABRP": {
