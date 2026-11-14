@@ -93,14 +93,57 @@ def test_without_a_token_nothing_is_requested():
 
 
 def test_a_missing_container_is_created_and_remembered():
-    manager, session = _manager([FakeResponse(201, {"containerId": "new-1"})])
+    manager, session = _manager(
+        [FakeResponse(200, {"containers": []}), FakeResponse(201, {"containerId": "new-1"})]
+    )
     assert _run(manager.async_ensure_hv_container()) == "new-1"
     assert manager.container_id == "new-1"
-    assert _methods(session) == ["POST"]
+    assert _methods(session) == ["GET", "POST"]
+
+
+def test_a_new_entry_clears_the_containers_an_earlier_entry_left_behind():
+    """Removing an entry never deleted its container, so each re-add leaked one.
+
+    BMW refuses an account's eleventh or so (``CU-124``), so they are deleted
+    before the new one is created: that also makes room on a full account.
+    """
+
+    manager, session = _manager(
+        [
+            FakeResponse(
+                200,
+                {
+                    "containers": [
+                        {"containerId": "left-1", "name": NAME, "state": "ACTIVE"},
+                        {"containerId": "left-2", "purpose": PURPOSE, "state": "ACTIVE"},
+                        {"containerId": "gone", "name": NAME, "state": "DELETED"},
+                        {"containerId": "theirs", "name": "ioBroker", "purpose": "x"},
+                    ]
+                },
+            ),
+            FakeResponse(204, None),
+            FakeResponse(204, None),
+            FakeResponse(201, {"containerId": "new-1"}),
+        ]
+    )
+    assert _run(manager.async_ensure_hv_container()) == "new-1"
+    assert _methods(session) == ["GET", "DELETE", "DELETE", "POST"]
+    deleted = [
+        call["url"].rsplit("/", 1)[-1] for call in session.calls if call["method"] == "DELETE"
+    ]
+    assert deleted == ["left-1", "left-2"], "a deleted or foreign container is left alone"
+
+
+def test_a_failed_listing_still_creates_the_container():
+    manager, session = _manager(
+        [FakeResponse(500, "boom"), FakeResponse(201, {"containerId": "n"})]
+    )
+    assert _run(manager.async_ensure_hv_container()) == "n"
+    assert _methods(session) == ["GET", "POST"]
 
 
 def test_a_creation_response_without_an_id_is_an_error():
-    manager, _ = _manager([FakeResponse(201, {"nothing": "useful"})])
+    manager, _ = _manager([FakeResponse(200, []), FakeResponse(201, {"nothing": "useful"})])
     with pytest.raises(CardataContainerError):
         _run(manager.async_ensure_hv_container())
 
@@ -231,7 +274,7 @@ def test_a_container_matches_on_purpose_name_or_descriptor_signature():
 
 
 def test_an_http_error_carries_its_status():
-    manager, _ = _manager([FakeResponse(403, "forbidden")])
+    manager, _ = _manager([FakeResponse(200, []), FakeResponse(403, "forbidden")])
     with pytest.raises(CardataContainerError) as excinfo:
         _run(manager.async_ensure_hv_container())
     assert excinfo.value.status == 403
@@ -239,8 +282,8 @@ def test_an_http_error_carries_its_status():
 
 
 def test_the_request_is_authorised_and_versioned():
-    manager, session = _manager([FakeResponse(201, {"containerId": "n"})])
+    manager, session = _manager([FakeResponse(200, []), FakeResponse(201, {"containerId": "n"})])
     _run(manager.async_ensure_hv_container())
-    headers = session.calls[0]["headers"]
+    headers = session.calls[-1]["headers"]
     assert headers["Authorization"] == f"Bearer {TOKEN}"
     assert headers["x-version"] == const.API_VERSION

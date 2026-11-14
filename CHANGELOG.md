@@ -9,6 +9,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Adding the integration again no longer leaves a BMW container behind.**
+  Removing BavarianData never deleted the container it reads your car's data
+  through, so each remove and re-add left one more on your BMW account. BMW
+  refuses new containers at about ten, and then fetching fails. Setting up now
+  deletes BavarianData's leftover containers first, which also tidies accounts
+  that already collected some.
+
 ## [0.9.31-beta.1] - 2026-11-13
 
 ### Added

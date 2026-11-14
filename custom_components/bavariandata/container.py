@@ -132,7 +132,17 @@ class CardataContainerManager:
         self._container_id = container_id
 
     async def async_ensure_hv_container(self) -> str:
-        """Ensure the container exists."""
+        """Ensure the container exists.
+
+        An entry without a container is new, or was removed and added again.
+        Removing an entry never deleted its container, so before creating one
+        this clears the integration's containers an earlier entry left behind:
+        each re-add used to leave one more against BMW's limit of about ten
+        (``CU-124``). BMW's listing names no container's fields, so telling a
+        reusable one apart would cost a request of its own; a fresh one costs
+        the same. Deleting first is safe here, as this entry has none to lose,
+        and frees room if the account is already full.
+        """
 
         async with self._lock:
             if self._container_id:
@@ -143,6 +153,16 @@ class CardataContainerManager:
                         self._container_id,
                     )
                 return self._container_id
+
+            try:
+                containers = await self._list_containers()
+            except CardataContainerError as err:
+                # Not worth failing the setup over; the leftovers just stay.
+                _LOGGER.warning(
+                    "[%s] Could not list containers before creating one: %s", self._entry_id, err
+                )
+                containers = []
+            await self._delete_own(containers, keep=None)
 
             created_id = await self._create_container()
             self._container_id = created_id
@@ -170,34 +190,41 @@ class CardataContainerManager:
                 new_id,
             )
 
-            deleted_ids: List[str] = []
-            for container in containers:
-                container_id = container.get("containerId")
-                if not isinstance(container_id, str) or container_id == new_id:
-                    continue
-                if not self._matches_hv_container(container):
-                    continue
-                try:
-                    await self._delete_container(container_id)
-                except CardataContainerError as err:
-                    _LOGGER.warning(
-                        "[%s] Failed to delete container %s: %s",
-                        self._entry_id,
-                        container_id,
-                        err,
-                    )
-                    continue
-                deleted_ids.append(container_id)
-
-            if deleted_ids and debug_enabled():
-                _LOGGER.debug(
-                    "[%s] Deleted %s stale container(s): %s",
-                    self._entry_id,
-                    len(deleted_ids),
-                    ", ".join(deleted_ids),
-                )
-
+            await self._delete_own(containers, keep=new_id)
             return new_id
+
+    async def _delete_own(self, containers: List[Dict[str, Any]], *, keep: Optional[str]) -> None:
+        """Delete the integration's containers in ``containers``, except ``keep``.
+
+        One that cannot be deleted is logged and skipped; the rest still go.
+        """
+
+        deleted_ids: List[str] = []
+        for container in containers:
+            container_id = container.get("containerId")
+            if not isinstance(container_id, str) or container_id == keep:
+                continue
+            if container.get("state") == "DELETED" or not self._matches_hv_container(container):
+                continue
+            try:
+                await self._delete_container(container_id)
+            except CardataContainerError as err:
+                _LOGGER.warning(
+                    "[%s] Failed to delete container %s: %s",
+                    self._entry_id,
+                    container_id,
+                    err,
+                )
+                continue
+            deleted_ids.append(container_id)
+
+        if deleted_ids:
+            _LOGGER.info(
+                "[%s] Deleted %s stale %s container(s)",
+                self._entry_id,
+                len(deleted_ids),
+                self.kind.key,
+            )
 
     async def _create_container(self) -> str:
         payload = {
