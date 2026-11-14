@@ -204,7 +204,12 @@ class CardataContainerManager:
             container_id = container.get("containerId")
             if not isinstance(container_id, str) or container_id == keep:
                 continue
-            if container.get("state") == "DELETED" or not self._matches_hv_container(container):
+            # BMW lists a container for a while after accepting its deletion,
+            # and deleting it again still costs a request; only an active one
+            # (or one listed without a state) is worth it.
+            if container.get("state") not in (None, "ACTIVE"):
+                continue
+            if not self._matches_hv_container(container):
                 continue
             try:
                 await self._delete_container(container_id)
