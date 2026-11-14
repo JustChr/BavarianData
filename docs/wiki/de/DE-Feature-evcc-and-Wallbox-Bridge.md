@@ -212,17 +212,27 @@ evcc liest die Nachrichten auf diesem Topic und erkennt sein Auto an der FIN in
 jeder Nachricht, sodass ein Topic mehrere Autos bedient. Lässt du `broker` leer,
 verbindet sich evcc wieder selbst mit BMW.
 
-Zwei Dinge solltest du bei diesem Weg wissen:
+Das solltest du bei diesem Weg wissen:
 
-- **evcc meldet sich weiterhin bei BMW an**, mit der Client-ID, für seine
-  REST-Anfragen. Es fragt erneut, sobald für `cache` (standardmäßig 30 Minuten)
-  keine Stream-Nachricht kam, und jede Anfrage geht von denselben
-  [50 am Tag](DE-Feature-API-Quota) ab wie die von BavarianData. Ein parkendes
-  Auto sendet nichts, also stelle `cache` auf ein paar Stunden.
+- **Die BMW-Anmeldung in evcc ist freiwillig.** evcc will eine `clientid` in
+  seiner Konfiguration, liest den geteilten Stream aber ohne Anmeldung und fragt
+  BMW dann gar nicht. Meldest du dich an, fragt evcc zusätzlich BMWs API, sobald
+  für `cache` (standardmäßig 30 Minuten) keine Stream-Nachricht kam, und jede
+  Anfrage geht von denselben [50 am Tag](DE-Feature-API-Quota) ab wie die von
+  BavarianData. Ein parkendes Auto sendet nichts, also stelle `cache` auf ein
+  paar Stunden.
+- **Nach einem Neustart weiß evcc nichts, bis das Auto wieder sendet.** Es liest
+  nur die Nachrichten, wie sie eintreffen, nicht die Feld-Topics mit Retain, und
+  ein parkendes Auto kann stundenlang schweigen.
 - **Position weglassen** (standardmäßig an) verbirgt die Position auch vor evcc.
 
-Der erzeugte `custom`-Block braucht weder eine BMW-Anmeldung noch Anfragen,
-deshalb ist er der empfohlene Weg.
+Der erzeugte `custom`-Block hat keinen dieser Haken: Er braucht keine
+BMW-Anmeldung, und seine Werte sind retained und werden alle fünf Minuten neu
+gesendet, sodass evcc sie beim Start sofort findet. Deshalb ist er der empfohlene
+Weg.
+
+Getestet mit evcc 0.319.0: Mit der Konfiguration oben und ohne BMW-Anmeldung las
+evcc Ladezustand und Ladeziel aus dem geteilten Stream.
 
 ---
 

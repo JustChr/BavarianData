@@ -203,17 +203,25 @@ evcc reads the messages on that topic and picks out its car by the VIN inside
 each one, so one topic serves several cars. Leave `broker` empty and evcc
 connects to BMW itself again.
 
-Two things to know about this way:
+Things to know about this way:
 
-- **evcc still signs in to BMW** with the client ID, for its REST requests. It
-  asks again whenever no stream message has arrived for `cache` (30 minutes by
-  default), and every request comes out of the same
-  [50 a day](Feature-API-Quota) as BavarianData's. A parked car sends nothing,
-  so set `cache` to a few hours.
+- **Signing in to BMW in evcc is optional.** evcc wants a `clientid` in its
+  configuration, but it reads the shared stream without a sign-in and then asks
+  BMW for nothing. If you do sign in, evcc also asks BMW's API whenever no
+  stream message has arrived for `cache` (30 minutes by default), and every
+  request comes out of the same [50 a day](Feature-API-Quota) as
+  BavarianData's. A parked car sends nothing, so set `cache` to a few hours.
+- **After evcc restarts, it knows nothing until the car sends again.** It reads
+  only the messages as they arrive, not the retained per-field topics, and a
+  parked car can stay silent for hours.
 - **Leave out the position** (on by default) also hides the position from evcc.
 
-The generated `custom` block needs neither a BMW login nor any requests, which
-is why it's the recommended way.
+The generated `custom` block has none of these catches: it needs no BMW
+sign-in, and its values are retained and re-sent every five minutes, so evcc
+finds them the moment it starts. That's why it's the recommended way.
+
+Tested with evcc 0.319.0: with the configuration above and no BMW sign-in, evcc
+read the state of charge and the charge target from the shared stream.
 
 ---
 
