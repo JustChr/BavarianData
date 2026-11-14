@@ -225,6 +225,46 @@ def test_a_container_already_gone_is_not_an_error():
     assert _run(manager.async_reset_hv_container()) == "new-1"
 
 
+def test_a_container_already_set_for_deletion_is_done_not_failed():
+    """BMW answers a second DELETE with 208 ``CU-122`` (seen live 2026-11-14)."""
+
+    manager, session = _manager(
+        [
+            FakeResponse(200, [{"containerId": "old-1", "purpose": PURPOSE}]),
+            FakeResponse(201, {"containerId": "new-1"}),
+            FakeResponse(
+                208,
+                {"exveErrorId": "CU-122", "exveErrorMsg": "Container already set for deletion"},
+            ),
+        ]
+    )
+    assert _run(manager.async_reset_hv_container()) == "new-1"
+    outcomes = manager._rest.outcomes.as_dict()
+    assert outcomes["failed"] == 0 and outcomes["last_failure"] is None
+
+
+def test_only_an_active_container_is_deleted():
+    manager, session = _manager(
+        [
+            FakeResponse(
+                200,
+                [
+                    {"containerId": "a", "name": NAME, "state": "ACTIVE"},
+                    {"containerId": "b", "name": NAME},
+                    {"containerId": "c", "name": NAME, "state": "DELETED"},
+                    {"containerId": "d", "name": NAME, "state": "PENDING_DELETION"},
+                ],
+            ),
+            FakeResponse(201, {"containerId": "new-1"}),
+            FakeResponse(204, None),
+            FakeResponse(204, None),
+        ]
+    )
+    _run(manager.async_reset_hv_container())
+    deleted = [c["url"].rsplit("/", 1)[-1] for c in session.calls if c["method"] == "DELETE"]
+    assert deleted == ["a", "b"]
+
+
 def test_resetting_without_a_token_keeps_the_container():
     manager, session = _manager(
         [], container_id="existing", token_error=device_flow.CardataAuthError("no token")

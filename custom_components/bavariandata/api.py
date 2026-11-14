@@ -142,6 +142,11 @@ async def async_request_json(
         ) as response:
             if response.status == 204:
                 return {}
+            if response.status == 208 and method == "DELETE":
+                # "Already reported": BMW took this deletion earlier
+                # (``CU-122``, "Container already set for deletion"). Done,
+                # not a failure.
+                return {}
             text = await response.text()
             if response.status in (200, 201):
                 if not text:
