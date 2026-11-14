@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.31-beta.3] - 2026-11-14
+
 ### Fixed
 - **Resetting the container no longer reports failures for containers BMW is
   already deleting.** BMW keeps listing a container for a while after it has
