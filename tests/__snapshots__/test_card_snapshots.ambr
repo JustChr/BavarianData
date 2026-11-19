@@ -4790,15 +4790,15 @@
   <div class="tr__legend">
   <button class="tr__leg" data-trip-filter="business" aria-pressed="false">
   <i class="tr__dot tr__seg--business">
-  </i>Business <b>120 km</b>
+  </i>Business <b>120 km</b> <span class="tr__pct">25%</span>
   </button>
   <button class="tr__leg" data-trip-filter="commute" aria-pressed="false">
   <i class="tr__dot tr__seg--commute">
-  </i>Commute <b>300 km</b>
+  </i>Commute <b>300 km</b> <span class="tr__pct">62%</span>
   </button>
   <button class="tr__leg" data-trip-filter="private" aria-pressed="false">
   <i class="tr__dot tr__seg--private">
-  </i>Private <b>62 km</b>
+  </i>Private <b>62 km</b> <span class="tr__pct">13%</span>
   </button>
   </div>
   </div>
@@ -4937,15 +4937,15 @@
   <div class="tr__legend">
   <button class="tr__leg" data-trip-filter="business" aria-pressed="false">
   <i class="tr__dot tr__seg--business">
-  </i>Business <b>75 mi</b>
+  </i>Business <b>75 mi</b> <span class="tr__pct">25%</span>
   </button>
   <button class="tr__leg" data-trip-filter="commute" aria-pressed="false">
   <i class="tr__dot tr__seg--commute">
-  </i>Commute <b>186 mi</b>
+  </i>Commute <b>186 mi</b> <span class="tr__pct">62%</span>
   </button>
   <button class="tr__leg" data-trip-filter="private" aria-pressed="false">
   <i class="tr__dot tr__seg--private">
-  </i>Private <b>39 mi</b>
+  </i>Private <b>39 mi</b> <span class="tr__pct">13%</span>
   </button>
   </div>
   </div>

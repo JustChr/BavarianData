@@ -24,7 +24,8 @@ Headers are always machine-readable English. Opens cleanly in Excel and Numbers.
 
 ## HTML report
 
-A self-contained HTML page: month totals, the charging table and the trip
+A self-contained HTML page: month totals (business, commute and private each
+with its share of the month's distance), the charging table and the trip
 journal. Print it (**Ctrl/⌘+P → Save as PDF**) for a tidy A4 document. The
 report language follows Home Assistant's own language, or set it explicitly.
 

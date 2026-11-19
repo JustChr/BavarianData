@@ -20,6 +20,10 @@ from .trips import Trip
 MIN_TRIP_KM = 0.5
 MIN_TRIP_S = 120
 
+# The fastest average a drive could have covered BMW's segment distance at: a
+# figure the trip's own duration can't explain isn't this trip's (#342).
+SEGMENT_MAX_KMH = 250.0
+
 # Straight-line step below which a new GPS fix is treated as a parked car's
 # jitter rather than movement: a stationary fix wanders a few tens of metres,
 # so anything under ~50 m must not open (or keep alive) a trip.
@@ -211,7 +215,10 @@ class TripBuilder:
         self._track_stride *= 2
 
     def _distance_km(
-        self, mileage_end: Optional[float], travelled_km: Optional[float]
+        self,
+        mileage_end: Optional[float],
+        travelled_km: Optional[float],
+        at: Optional[datetime] = None,
     ) -> Optional[float]:
         """Odometer delta, then BMW's segment distance, then the GPS track.
 
@@ -225,11 +232,46 @@ class TripBuilder:
             span = mileage_end - self.mileage_start
             if span > 0:
                 return round(span, 1)
-        if travelled_km is not None and travelled_km > 0:
-            return round(travelled_km, 1)
+        segment = self._segment_km(travelled_km, mileage_end, at)
+        if segment is not None:
+            return round(segment, 1)
         if self.gps_km > 0:
             return round(self.gps_km, 1)
         return None
+
+    def _segment_km(
+        self,
+        travelled_km: Optional[float],
+        mileage_end: Optional[float],
+        at: Optional[datetime],
+    ) -> Optional[float]:
+        """BMW's ``trip.segment.end.travelledDistance`` as this trip's distance, if it is one.
+
+        BMW documents the field as the mileage *after* the last drive, an
+        odometer reading, though its short English name says "last trip
+        distance"; no car we have data from sends it (#342). So it is read
+        either way: at or above the odometer the trip began on, it is a reading
+        and the trip gets the difference (finer than the whole-km odometer on a
+        short hop). Level with the odometer now but with no start to subtract,
+        it says nothing. Anything else counts only if the drive lasted long
+        enough to cover it.
+        """
+
+        if travelled_km is None or travelled_km <= 0:
+            return None
+        km = travelled_km
+        if self.mileage_start is not None and km >= self.mileage_start:
+            km -= self.mileage_start
+        elif mileage_end is not None and km >= mileage_end - 1:
+            return None
+        if km <= 0:
+            return None
+        if (
+            at is not None
+            and km > SEGMENT_MAX_KMH * max(0.0, (at - self.start).total_seconds()) / 3600
+        ):
+            return None
+        return km
 
     def progress_km(self, mileage_now: Optional[float] = None) -> Optional[float]:
         """Provisional distance for a drive still under way.
@@ -303,7 +345,7 @@ class TripBuilder:
             end=at,
             start_place=self.start_place,
             end_place=end_place,
-            distance_km=self._distance_km(mileage_end, travelled_km),
+            distance_km=self._distance_km(mileage_end, travelled_km, at),
             soc_start=self.soc_start,
             soc_end=soc_end,
             energy_kwh=None if energy_kwh is None else round(energy_kwh, 3),

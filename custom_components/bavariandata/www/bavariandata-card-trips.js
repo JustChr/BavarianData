@@ -288,6 +288,14 @@ export default (Base, { TRIP_CLASS_COLORS, _lang }) => class TripsPart extends B
         ([, v, cls]) => `<span class="tr__seg ${cls}" style="width:${(v / total) * 100}%"></span>`
       )
       .join("");
+    // Each type's share of the month's distance, from the summary (#341). A
+    // sliver that rounds to 0 % still says it is there.
+    const share = (key) => {
+      const pct = split[key + "_percent"];
+      if (pct == null) return "";
+      const text = pct > 0 && pct < 0.5 ? "<1%" : `${this._dec(pct, 0)}%`;
+      return ` <span class="tr__pct">${text}</span>`;
+    };
     // Each type in the legend filters the list to its trips; again shows all.
     const filter = this._trpFilter || null;
     const legend = segs
@@ -296,7 +304,7 @@ export default (Base, { TRIP_CLASS_COLORS, _lang }) => class TripsPart extends B
         ([key, v, cls]) =>
           `<button class="tr__leg${filter === key ? " is-active" : ""}" data-trip-filter="${key}" aria-pressed="${
             filter === key
-          }"><i class="tr__dot ${cls}"></i>${this._t("tr_" + key)} <b>${km(v)}</b></button>`
+          }"><i class="tr__dot ${cls}"></i>${this._t("tr_" + key)} <b>${km(v)}</b>${share(key)}</button>`
       )
       .join("");
     const splitBlock = barSegs

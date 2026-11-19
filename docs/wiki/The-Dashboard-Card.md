@@ -455,7 +455,8 @@ on) a small map of the route, drawn as a clean line with a start and end marker;
 nothing leaves your browser to draw it.
 
 Above the list a **month in review** sums the distance (with a vs-last-month
-delta), the business/private/commute split, the average on trips, energy
+delta), the business/private/commute split with each type's share of the
+month's distance (e.g. *Private 600 km 60%*), the average on trips, energy
 recuperated, a driving-style score and your top destinations, and, once a tariff
 is set, an estimated driving cost. Tap a type in the split to list only those
 trips; tap it again for all.

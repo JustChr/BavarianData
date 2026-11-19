@@ -275,7 +275,7 @@
     "vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveElectric": "Trip Electric share",
     "vehicle.trip.segment.end.drivetrain.batteryManagement.hvSoc": "Trip Battery charge level at end of trip",
     "vehicle.trip.segment.end.time": "Trip Last trip time",
-    "vehicle.trip.segment.end.travelledDistance": "Trip Last trip distance",
+    "vehicle.trip.segment.end.travelledDistance": "Trip Mileage after last drive",
     "vehicle.vehicle.antiTheftAlarmSystem.alarm.activationTime": "Alarm activation time",
     "vehicle.vehicle.antiTheftAlarmSystem.alarm.armStatus": "Alarm arming state",
     "vehicle.vehicle.antiTheftAlarmSystem.alarm.isOn": "Alarm active",

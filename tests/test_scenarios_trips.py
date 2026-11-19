@@ -496,6 +496,52 @@ def test_a_stale_segment_distance_is_not_this_trips(h):
     assert trip.distance_km is not None and trip.distance_km < 2
 
 
+def test_a_segment_odometer_reading_is_not_a_trip_distance(h):
+    """#342: BMW documents the segment field as the mileage *after* the drive.
+
+    A short hop leaves the whole-km odometer where it was, so the trip falls
+    back to the segment field -- which, read as an odometer, is how far the
+    car had travelled in its life, not on this drive.
+    """
+
+    h.send(1, odometer=100)
+    here = _drive(h, 5, 2, step=0.003)  # ~0.8 km, the odometer doesn't tick
+    h.send(9.5, extra={SEGMENT_DISTANCE: 100.8})  # fresh, and an odometer reading
+    h.fix(10, *here)  # parked
+    h.advance_to(30)
+
+    (trip,) = h.trips()
+    assert trip.distance_km == 0.8
+
+
+def test_a_segment_odometer_without_an_odometer_is_ignored(h):
+    """#342: on a car that streams no odometer the reading has no start to subtract.
+
+    Taken as a distance it would log 40,000 km for a few minutes' drive; the
+    GPS track is the honest figure.
+    """
+
+    here = _drive(h, 5, 4)
+    h.send(13.5, extra={SEGMENT_DISTANCE: 40000.0})
+    h.fix(14, *here)  # parked
+    h.advance_to(40)
+
+    (trip,) = h.trips()
+    assert trip.distance_km is not None and trip.distance_km < 10  # the GPS track's 5.3
+
+
+def test_a_plausible_segment_distance_still_counts(h):
+    """Should BMW mean a per-drive distance after all, a sensible one is kept."""
+
+    here = _drive(h, 5, 2, step=0.003)  # no odometer streamed at all
+    h.send(9.5, extra={SEGMENT_DISTANCE: 3.2})
+    h.fix(10, *here)  # parked
+    h.advance_to(30)
+
+    (trip,) = h.trips()
+    assert trip.distance_km == 3.2
+
+
 class _Geocoder:
     """Names every place outside a zone by one street address."""
 
