@@ -9,21 +9,64 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.31] - 2026-11-19
+
+Promotes 0.9.31-beta.1 to beta.3. Diagnostics now show whether fetching works, and the trips view gives each trip type its share of the month. Plus fixes for charged energy on a late batch, BMW containers left behind by a re-add, the outside temperature after a restart, and a trip distance that could take the whole mileage.
+
 ### Added
+- **Diagnostics show whether fetching works.** The download now says how BMW
+  answered REST requests since the last restart: how many worked, how many
+  failed, and the last failure's request, HTTP status and BMW's `CU-` code
+  (never its path, which holds the VIN). Until now a refused fetch was only a
+  log line, so a car whose stream ran while BMW refused every fetch looked fine
+  in the file ([#296](https://github.com/JustChr/BavarianData/issues/296)).
+  [Troubleshooting](https://github.com/JustChr/BavarianData/wiki/Troubleshooting-and-FAQ#download-diagnostics)
+- **`CU-403` from Ukraine or Russia.** BMW blocks its API for requests from
+  there, whatever country the account belongs to; the stream still works. The
+  troubleshooting page now says so. Thanks @strybushnyi for getting BMW's answer
+  ([#296](https://github.com/JustChr/BavarianData/issues/296)).
 - **Each trip type's share of the month.** The trips view and the month
-  report now show business, commute and private with their share of the
-  month's distance next to the kilometres, e.g. *Private 600 km 60%*. Thanks
-  @naitsimp (#341).
+  report show business, commute and private with their share of the month's
+  distance next to the kilometres, e.g. *Private 600 km 60%*. Thanks
+  @naitsimp ([#341](https://github.com/JustChr/BavarianData/discussions/341)).
+
+### Changed
+- **One entity has BMW's own English name.** `vehicle.trip.segment.end.travelledDistance`
+  was called *Trip Last trip distance*; it is now *Trip Mileage after last
+  drive*, which is what BMW documents it as. Its `unique_id` and
+  `translation_key` are unchanged, and so is the entity ID of an existing
+  install. For integrations that find entities by their English name.
 
 ### Fixed
-- **A trip can no longer take the car's whole mileage as its distance.** When
-  the odometer doesn't move on a short hop, a trip falls back to BMW's
-  "segment end" distance field. BMW documents that field as the odometer
-  reading after the drive, not the drive's length, so a car that sends it
-  could have logged a few minutes' drive as tens of thousands of kilometres.
-  A reading is now turned into the distance since the trip began, and a value
-  the drive was too short to cover is ignored. The field's English name is
-  now BMW's own, *Mileage after last drive*. Thanks @Rob801801 (#342).
+- **Charged energy can't run past the battery any more.** When a car's batch
+  arrived late, the session opened on Home Assistant's clock and threw away
+  its own state of charge, because that reading carried BMW's earlier time.
+  Without it nothing held the total back: one power reading counted on through
+  fifteen silent hours and filed 36 kWh for a 10.9 kWh pack, in the session,
+  the total and the month. A reading is now checked against BMW's time on the
+  status that opened the charge, and a session that has no reading of its own
+  can never count more than fills the battery from where it started. Thanks
+  @dvasiloiu for the precise report
+  ([#332](https://github.com/JustChr/BavarianData/issues/332)).
+- **Adding the integration again doesn't leave a BMW container behind.**
+  Removing BavarianData never deleted the container it reads your car's data
+  through, so each remove and re-add left one more on your BMW account. BMW
+  refuses new containers at about ten, and then fetching fails. Setting up now
+  deletes BavarianData's leftover containers first, which also tidies accounts
+  that already collected some. A container BMW is already deleting is left
+  alone.
+- **Real Range keeps the day's outside temperature through a restart.** With
+  weather along trips on, the temperature where the car is parked went missing
+  for about three minutes after every restart, until it was looked up again.
+  It is now kept with the history, so it stays and is not asked for twice.
+- **A trip can't take the car's whole mileage as its distance.** When the
+  odometer doesn't move on a short hop, a trip falls back to BMW's "segment
+  end" distance field. BMW documents that field as the odometer reading after
+  the drive, not the drive's length, so a car that sends it could have logged
+  a few minutes' drive as tens of thousands of kilometres. A reading is now
+  turned into the distance since the trip began, and a value the drive was too
+  short to cover is ignored. Thanks @Rob801801
+  ([#342](https://github.com/JustChr/BavarianData/issues/342)).
 
 ## [0.9.31-beta.3] - 2026-11-14
 
