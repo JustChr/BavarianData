@@ -343,6 +343,45 @@ def test_a_restart_adds_what_the_meter_counted_while_ha_was_down(order, snapshot
         assert h.render() == snapshot
 
 
+@pytest.mark.parametrize("order", ORDERS)
+def test_an_old_reading_sent_again_after_a_restart_keeps_the_meters_count(order):
+    """The i5, 19 Nov: after a restart BMW sent the last SoC again, still
+    stamped an hour back. The estimate took it as the SoC *now* and dropped
+    from 43.5 to 41 %, losing everything the wallbox had counted since."""
+
+    with CoordinatorHarness(wallbox_meter=METER) as h:
+        _seed(h)
+        _charge(h)
+        h.meter(70, 1007.4)
+        h.advance_to(70.5)
+        h.restart(downtime_s=60, order=order)
+        h.advance_to(73)
+        before = h.estimate()
+        assert before == pytest.approx(38 + 7.4 * PER_KWH, abs=0.01)
+
+        h.send(74, stamped=10, soc=38, status="CHARGINGACTIVE", power=3480, step="sent again")
+        h.advance_to(75)
+        assert h.estimate() == pytest.approx(before, abs=0.01)
+
+
+def test_an_old_reading_sent_again_mid_charge_keeps_the_meters_count(h):
+    """The same resend with no restart: a reading the estimate has already
+    moved past says nothing new about the SoC."""
+
+    _charge(h)
+    h.meter(70, 1007.4)
+    h.advance_to(71)
+    before = h.estimate()
+
+    h.send(72, stamped=10, soc=38, status="CHARGINGACTIVE", power=3480, step="sent again")
+    h.advance_to(73)
+    assert h.estimate() == pytest.approx(before, abs=0.01)
+
+    # A newer reading still wins, as it always has.
+    h.send(80, soc=48, status="CHARGINGACTIVE")
+    assert h.estimate() == 48
+
+
 def test_a_restored_charge_the_meter_keeps_counting_is_not_filed(h):
     """#197, the i3s on 25 Oct: a sparse car said nothing for the restored
     charge's whole grace, so it was filed as ``restart`` at its last sample

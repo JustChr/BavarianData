@@ -82,6 +82,9 @@ class SocTracking:
     # reading, which would otherwise rewind the estimate to the last SoC BMW
     # happened to send (see ``update_actual_soc``).
     restored_estimate_at: Optional[datetime] = None
+    # BMW's timestamp on the SoC reading last taken, ``None`` when it had none;
+    # a reading stamped no later is that one sent again (``update_actual_soc``).
+    last_reading_stamp: Optional[datetime] = None
     # The bound wallbox meter, while it drives the estimate (``follow_meter``).
     # ``meter_kwh`` is the reading the current estimate already accounts for,
     # ``meter_at`` when it was last accepted, ``meter_model`` what turns its
@@ -117,6 +120,20 @@ class SocTracking:
             # sensor still shows what BMW sent; the estimate and every session
             # boundary read from here, so it must not become their anchor.
             return
+        if (
+            timestamp is not None
+            and self.last_reading_stamp is not None
+            and timestamp <= self.last_reading_stamp
+        ):
+            # Not newer than the reading already taken: BMW sends its last
+            # values again after a reconnect, still stamped when they were
+            # measured. Taken again, an hour-old SoC would wipe out everything
+            # the meter or the power counted since (the i5, 19 Nov 2026). Only
+            # BMW's stamps are compared; Home Assistant's clock stands in for a
+            # missing one and can't be ordered against them.
+            return
+        self.last_reading_stamp = timestamp
+        ts = timestamp or datetime.now(timezone.utc)
         # Remember the last reading taken while the car was *not* charging. A
         # session that opens well above it caught only part of a charge already
         # under way (see ``sessions._is_late_start``); it is never used to
@@ -124,7 +141,6 @@ class SocTracking:
         if not self.charging_active:
             self.soc_before_charge = percent
         self.last_soc_percent = percent
-        ts = timestamp or datetime.now(timezone.utc)
         self.last_update = ts
         if self.max_energy_kwh:
             self.energy_kwh = self.max_energy_kwh * percent / 100.0
