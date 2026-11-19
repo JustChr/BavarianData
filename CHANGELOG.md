@@ -9,6 +9,10 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.32] - 2026-11-19
+
+One fix: with a wallbox meter linked, the state-of-charge estimate no longer falls back mid-charge after a restart or a reconnect.
+
 ### Fixed
 - **The state-of-charge estimate keeps what the wallbox counted when BMW
   repeats an old reading.** After a reconnect or a restart, BMW sends the
