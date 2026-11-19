@@ -25,7 +25,8 @@ charge level matters.
   maintainer's i5, that predicted an 11 kW charge from 8 to 80 % to within 0.8
   points. [The details](Feature-evcc-and-Wallbox-Bridge#it-also-drives-the-state-of-charge-estimate).
 - **Every real reading wins.** When BMW sends a new percentage, the estimate
-  takes it over, so it can never drift for long.
+  takes it over, so it can never drift for long. A reading BMW sends again
+  after a reconnect, still with its old time, is not new and changes nothing.
 
 ## Where you see it
 

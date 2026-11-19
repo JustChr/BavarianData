@@ -27,7 +27,9 @@ wo der Ladestand zählt.
   genau voraus.
   [Die Details](DE-Feature-evcc-and-Wallbox-Bridge#it-also-drives-the-state-of-charge-estimate).
 - **Jede echte Meldung gewinnt.** Sendet BMW einen neuen Prozentwert, übernimmt
-  die Schätzung ihn, sie kann also nie lange abdriften.
+  die Schätzung ihn, sie kann also nie lange abdriften. Eine Meldung, die BMW
+  nach einem Neuverbinden mit ihrer alten Zeit noch einmal schickt, ist nicht
+  neu und ändert nichts.
 
 ## Wo du sie siehst
 

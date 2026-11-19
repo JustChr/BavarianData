@@ -9,6 +9,16 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **The state-of-charge estimate keeps what the wallbox counted when BMW
+  repeats an old reading.** After a reconnect or a restart, BMW sends the
+  car's last values again, still stamped with the time they were measured.
+  The estimate took that hour-old percentage as the charge *now* and fell
+  back to it, losing everything the wallbox meter (or the charging power)
+  had counted since: on the maintainer's i5, from 43.5 back to 41 % mid-charge.
+  A reading no newer than the one the estimate already stands on is now
+  ignored; every genuinely new one still replaces it.
+
 ## [0.9.31] - 2026-11-19
 
 Promotes 0.9.31-beta.1 to beta.3. Diagnostics now show whether fetching works, and the trips view gives each trip type its share of the month. Plus fixes for charged energy on a late batch, BMW containers left behind by a re-add, the outside temperature after a restart, and a trip distance that could take the whole mileage.
