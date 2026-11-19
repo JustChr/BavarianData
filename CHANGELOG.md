@@ -9,6 +9,22 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **Each trip type's share of the month.** The trips view and the month
+  report now show business, commute and private with their share of the
+  month's distance next to the kilometres, e.g. *Private 600 km 60%*. Thanks
+  @naitsimp (#341).
+
+### Fixed
+- **A trip can no longer take the car's whole mileage as its distance.** When
+  the odometer doesn't move on a short hop, a trip falls back to BMW's
+  "segment end" distance field. BMW documents that field as the odometer
+  reading after the drive, not the drive's length, so a car that sends it
+  could have logged a few minutes' drive as tens of thousands of kilometres.
+  A reading is now turned into the distance since the trip began, and a value
+  the drive was too short to cover is ignored. The field's English name is
+  now BMW's own, *Mileage after last drive*. Thanks @Rob801801 (#342).
+
 ## [0.9.31-beta.3] - 2026-11-14
 
 ### Fixed

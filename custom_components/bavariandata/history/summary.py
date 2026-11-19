@@ -500,6 +500,7 @@ def driving_summary(
         "business_percent": _pct(by_class[CLASS_BUSINESS]),
         "private_percent": _pct(by_class[CLASS_PRIVATE]),
         "commute_percent": _pct(by_class[CLASS_COMMUTE]),
+        "unclassified_percent": _pct(unclassified_km),
     }
 
     # Consumption: use each trip's own energy/distance so best/worst are self

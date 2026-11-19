@@ -2152,7 +2152,7 @@
         "name": "Trip Last trip time"
       },
       "vehicle_trip_segment_end_travelleddistance": {
-        "name": "Trip Last trip distance"
+        "name": "Trip Mileage after last drive"
       },
       "vehicle_vehicle_antitheftalarmsystem_alarm_activationtime": {
         "name": "Alarm activation time"
@@ -3178,7 +3178,7 @@
         "name": "Trip Last trip time"
       },
       "vehicle_trip_segment_end_travelleddistance": {
-        "name": "Trip Last trip distance"
+        "name": "Trip Mileage after last drive"
       },
       "vehicle_vehicle_antitheftalarmsystem_alarm_activationtime": {
         "name": "Alarm activation time"

@@ -766,7 +766,14 @@ TRIPS = {
         "avg_consumption_kwh_per_100km": 17.2,
         "recuperation_kwh_per_100km": 3.1,
         "energy_balance": {"kwh_per_100km": 19.4, "source": "grid"},
-        "split": {"business_km": 120.0, "commute_km": 300.0, "private_km": 62.0},
+        "split": {
+            "business_km": 120.0,
+            "commute_km": 300.0,
+            "private_km": 62.0,
+            "business_percent": 24.9,
+            "commute_percent": 62.2,
+            "private_percent": 12.9,
+        },
     },
     "trips": [
         {

@@ -27,7 +27,8 @@ sauber in Excel und Numbers.
 
 ## HTML-Bericht
 
-Eine eigenständige HTML-Seite: Monatssummen, die Ladetabelle und das
+Eine eigenständige HTML-Seite: Monatssummen (geschäftlich, Pendeln und privat
+jeweils mit ihrem Anteil an der Monatsstrecke), die Ladetabelle und das
 Fahrtenbuch. Drucke sie (**Strg/⌘+P → Als PDF speichern**) für ein ordentliches
 A4-Dokument. Die Sprache des Berichts folgt der Sprache von Home Assistant, oder
 du legst sie ausdrücklich fest.

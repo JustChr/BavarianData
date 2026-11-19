@@ -1002,13 +1002,17 @@ def month_report_html(
                     f"kWh/{per}",
                 )
             )
+        # Each type with its share of the month's distance (#341), the figure a
+        # company-car logbook asks for.
         for key, label in (
-            ("business_km", s["business"]),
-            ("commute_km", s["commute"]),
-            ("private_km", s["private"]),
+            ("business", s["business"]),
+            ("commute", s["commute"]),
+            ("private", s["private"]),
         ):
-            if split.get(key):
-                tiles.append(_tile(label, dist(split[key])))
+            if split.get(f"{key}_km"):
+                pct = split.get(f"{key}_percent")
+                note = "" if pct is None else ("<1 %" if pct < 0.5 else f"{num(pct, 0)} %")
+                tiles.append(_tile(label, dist(split[f"{key}_km"]), note))
         parts.append(f'<div class="tiles">{"".join(tiles)}</div>')
 
         head = "".join(

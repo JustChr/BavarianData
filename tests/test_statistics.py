@@ -276,6 +276,27 @@ def test_report_shows_miles_when_the_account_counts_in_them():
     assert trip.distance_km == 40.0
 
 
+def test_report_gives_each_trip_type_its_share():
+    # #341: the logbook question is "what share was business", not just the km.
+    driving = {
+        "total_km": 1000.0,
+        "split": {
+            "business_km": 396.0,
+            "private_km": 600.0,
+            "business_percent": 39.6,
+            "private_percent": 60.0,
+            "commute_km": 4.0,
+            "commute_percent": 0.4,
+        },
+    }
+    html = export.month_report_html(
+        month="2026-07", vehicle="i5", sessions=[], trips=[_trip()], driving=driving
+    )
+    assert "<small>60 %</small>" in html  # private
+    assert "<small>40 %</small>" in html  # business, 39.6 rounded
+    assert "<small>&lt;1 %</small>" in html  # a sliver still shows
+
+
 def test_report_never_claims_tax_compliance():
     for lang, needle in (("en", "not a tax-compliant"), ("de", "kein")):
         html = export.month_report_html(

@@ -7781,7 +7781,7 @@
       "section": "electric",
       "section_label": "Electric vehicle",
       "category": "Trip",
-      "title_en": "Trip Last trip distance",
+      "title_en": "Trip Mileage after last drive",
       "name_en": "Last trip distance",
       "element_en": "Mileage after last drive",
       "name_de": "Kilometerstand der letzten Fahrt",

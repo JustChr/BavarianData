@@ -488,7 +488,8 @@ wurden — eine kleine Karte der Route sehen (als saubere Linie mit Start- und
 Zielmarkierung; zum Zeichnen verlässt nichts deinen Browser).
 
 Über der Liste fasst eine **Monatsübersicht** die Strecke (mit Differenz zum
-Vormonat), die Aufteilung geschäftlich/privat/Pendeln, den Durchschnitt der
+Vormonat), die Aufteilung geschäftlich/privat/Pendeln mit dem Anteil jeder Art an
+der Monatsstrecke (etwa *Privat 600 km 60%*), den Durchschnitt der
 Fahrten, die rekuperierte Energie, eine Fahrstil-Bewertung und die häufigsten
 Ziele zusammen — und, sobald ein Tarif gesetzt ist, geschätzte Fahrtkosten.
 Tippe eine Art in der Aufteilung an, um nur diese Fahrten zu listen; nochmal

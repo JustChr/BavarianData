@@ -368,6 +368,24 @@ def test_builder_falls_back_to_bmw_distance():
     assert trip.distance_km == 12.0
 
 
+def test_builder_reads_bmw_segment_odometer_either_way():
+    """#342: BMW documents the segment field as the mileage after the drive."""
+
+    end = START + timedelta(minutes=5)
+    # A reading past the start: the trip gets the difference.
+    builder = TripBuilder("WBY1", START, mileage_start=1000.0)
+    assert builder.close(end, mileage_end=1000.0, travelled_km=1000.7).distance_km == 0.7
+    # A reading level with the start: no distance to give.
+    builder = TripBuilder("WBY1", START, mileage_start=1000.0)
+    assert builder.close(end, mileage_end=1000.0, travelled_km=1000.0).distance_km is None
+    # Level with the odometer now, but no start reading to subtract.
+    builder = TripBuilder("WBY1", START)
+    assert builder.close(end, mileage_end=1000.0, travelled_km=1000.4).distance_km is None
+    # More than five minutes could cover.
+    builder = TripBuilder("WBY1", START)
+    assert builder.close(end, travelled_km=40.0).distance_km is None
+
+
 def test_silence_implies_stop_reads_the_gap_as_a_whole():
     stop = lambda gap_s, step_km: trip_builder.silence_implies_stop(  # noqa: E731
         gap_s, step_km, min_gap_s=300
@@ -582,6 +600,7 @@ def test_driving_summary_split_and_totals():
     assert result["split"]["private_km"] == 20.0
     assert result["split"]["unclassified_km"] == 5.0
     assert result["split"]["commute_percent"] == round(40 / 65 * 100, 1)
+    assert result["split"]["unclassified_percent"] == round(5 / 65 * 100, 1)
 
 
 def test_driving_summary_consumption_best_worst():
