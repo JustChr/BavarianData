@@ -483,8 +483,8 @@ class CoordinatorHarness:
             self.coordinator.apply_tyre_diagnosis(vin, payload)
         self._observe("tyres")
 
-    def connection(self, status: str) -> None:
-        self._run(self.coordinator.async_handle_connection_event(status))
+    def connection(self, status: str, *, reason: Optional[str] = None) -> None:
+        self._run(self.coordinator.async_handle_connection_event(status, reason=reason))
         self._observe(f"stream {status}")
 
     # -- restart -----------------------------------------------------------

@@ -7,8 +7,8 @@ stream stayed disconnected for nine hours -- until Home Assistant restarted --
 although DNS was back within two.
 
 Recovery has to keep trying, but BMW allows one stream per account (the client
-id is the GCID): a second client makes the broker kick the first, and the two
-then push each other off indefinitely. So every test that lets connects overlap
+id is the GCID): while one client holds it, BMW refuses another with rc=5, and
+two clients of ours would lock each other out in turns. So every test that lets connects overlap
 also counts the clients that are alive at the same time.
 
 The stream module imports Home Assistant only for type names, so the test stubs
@@ -403,10 +403,19 @@ class _Broker:
     """
 
     def __init__(
-        self, manager, valid_tokens: set[str], *, stall_refused_teardown: bool = False
+        self,
+        manager,
+        valid_tokens: set[str],
+        *,
+        stall_refused_teardown: bool = False,
+        held_for: int = 0,
     ) -> None:
         self._manager = manager
         self._valid_tokens = valid_tokens
+        # Another client holds the account's stream for this many attempts:
+        # every token is refused with rc=5 then, a valid one too (measured live
+        # on 2026-11-20 -- BMW keeps the stream for the client that has it).
+        self._held_for = held_for
         self._stall_refused_teardown = stall_refused_teardown
         self.registry = _Registry()
         self.attempts = 0
@@ -417,7 +426,7 @@ class _Broker:
         manager = self._manager
         client = _ConnectedClient(self.registry, manager)
         manager._client = client
-        accepted = manager._password in self._valid_tokens
+        accepted = manager._password in self._valid_tokens and self.attempts > self._held_for
         if not accepted and self._stall_refused_teardown:
             # Hold the refused client's network thread inside its teardown until
             # the event loop has put the next client in place -- what a thread
@@ -461,9 +470,13 @@ class _Broker:
         threading.Thread(target=network_loop, daemon=True).start()
 
 
-def _manager_with_broker(*, valid_tokens: set[str], stall_refused_teardown: bool = False):
+def _manager_with_broker(
+    *, valid_tokens: set[str], stall_refused_teardown: bool = False, held_for: int = 0
+):
     manager, _network = _manager_behind(failures=0)
-    broker = _Broker(manager, valid_tokens, stall_refused_teardown=stall_refused_teardown)
+    broker = _Broker(
+        manager, valid_tokens, stall_refused_teardown=stall_refused_teardown, held_for=held_for
+    )
     manager._start_client = broker.start_client
     return manager, broker
 
@@ -545,6 +558,67 @@ def test_a_refused_login_stops_connecting_until_the_token_is_renewed(instant_bac
     assert attempts_while_waiting == 1
     assert connected
     assert attempts == 2
+
+
+def _renewing_on_refusal(manager):
+    async def refresh_tokens(reason: str) -> None:
+        if reason == "unauthorized":
+            await manager.async_update_credentials(id_token="renewed-id-token")
+
+    return refresh_tokens
+
+
+def test_a_stream_another_client_holds_is_tried_again_every_few_minutes(simulated_clock):
+    """A renewed token refused too: the stream is held elsewhere, not the login.
+
+    Before, the stream then waited for the next token renewal -- about 45
+    minutes -- however soon the other client let go. Now it tries again every
+    ``HELD_RETRY_S`` with the token it has, and still never runs two clients.
+    """
+
+    async def scenario():
+        # The first, expired token; the renewed one twice while held; then free.
+        manager, broker = _manager_with_broker(valid_tokens={"renewed-id-token"}, held_for=3)
+        statuses: list[tuple[str, object]] = []
+
+        async def status(state: str, reason=None) -> None:
+            statuses.append((state, reason))
+
+        manager.set_status_callback(status)
+        manager._error_callback = _renewing_on_refusal(manager)
+        await manager.async_start()
+        connected = await _eventually(lambda: broker.accepted >= 1)
+        await _REAL_SLEEP(0.2)  # room for a second client to show up
+        await manager.async_shutdown()
+        return connected, broker, statuses
+
+    connected, broker, statuses = asyncio.run(scenario())
+
+    assert connected
+    assert (broker.attempts, broker.registry.max_live) == (4, 1)
+    # It waited HELD_RETRY_S before trying the held stream again. (The instant
+    # clock lets the outage retry's timer overlap that wait, so how often it
+    # shows depends on scheduling; that it shows at all is the point.)
+    assert _STREAM.HELD_RETRY_S in simulated_clock.sleeps
+    reasons = [reason for state, reason in statuses if state == "unauthorized"]
+    assert _STREAM.REFUSED_RENEWED in reasons
+
+
+def test_a_shutdown_while_the_stream_is_held_elsewhere_connects_nothing(instant_backoff):
+    async def scenario():
+        manager, broker = _manager_with_broker(valid_tokens={"renewed-id-token"}, held_for=100)
+        manager._error_callback = _renewing_on_refusal(manager)
+        await manager.async_start()
+        await _eventually(lambda: manager._held_retry_task is not None)
+        await manager.async_shutdown()
+        attempts = broker.attempts
+        await _REAL_SLEEP(0.2)
+        return attempts, broker.attempts, broker.registry.live
+
+    attempts_at_shutdown, attempts_after, live = asyncio.run(scenario())
+
+    assert attempts_after == attempts_at_shutdown
+    assert live == 0
 
 
 def test_a_late_disconnect_of_a_replaced_client_leaves_the_new_one_alone(instant_backoff):

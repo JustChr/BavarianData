@@ -3281,6 +3281,10 @@
       "title": "Flux BMW CarData non autorisé ({account})",
       "description": "BMW refuse la connexion du flux comme non autorisée (MQTT rc=5) depuis plus de {minutes} minutes et elle ne s'est pas rétablie d'elle-même. Cela signifie généralement que les jetons doivent être renouvelés, ou qu'un autre client CarData occupe l'unique flux du compte. Essayez Configurer → Renouveler les jetons maintenant, puis Autoriser à nouveau auprès de BMW si l'échec persiste, et déconnectez tout autre client CarData."
     },
+    "stream_held_elsewhere": {
+      "title": "Un autre programme occupe le flux BMW ({account})",
+      "description": "BMW refuse la connexion au flux depuis plus de {minutes} minutes alors que la connexion au compte fonctionne : un jeton tout juste renouvelé a lui aussi été refusé. BMW n'autorise qu'un flux par compte et le laisse au programme qui s'est connecté en premier. Un autre programme l'occupe, par exemple le véhicule BMW CarData propre à evcc, une deuxième intégration CarData ou un adaptateur ioBroker ou openHAB. Arrêtez la connexion BMW de ce programme, ou laissez BavarianData tenir le flux et le partager sous Configurer → Partager les données en direct. BavarianData réessaie à quelques minutes d'intervalle et reprend le flux dès qu'il est libre."
+    },
     "vehicle_left_account": {
       "title": "{vehicle} ne figure plus sur votre compte BMW",
       "description": "BMW CarData ne liste plus {vehicle} comme voiture de {account} : plus rien de nouveau n'arrivera pour elle. Si vous l'avez vendue ou cédée, supprimez son appareil dans Home Assistant. Cela supprime aussi son historique de recharge et de trajets, ses images et ses statistiques. Si elle est toujours à vous, vérifiez dans l'application MyBMW que vous en êtes l'utilisateur principal."

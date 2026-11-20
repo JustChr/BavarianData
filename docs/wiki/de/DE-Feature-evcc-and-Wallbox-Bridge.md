@@ -23,14 +23,23 @@ Sie arbeitet in beide Richtungen:
 
 <a id="one-stream-per-account"></a>
 
-BMW CarData erlaubt **eine Stream-Verbindung pro Konto** zur selben Zeit. Verbindet
-sich ein zweites Programm mit demselben Konto, wirft BMW das erste hinaus, das
-erste verbindet sich neu und wirft das zweite hinaus, und so weiter. Beide
-verlieren Daten, und keines sagt dir, warum. Was du siehst:
+BMW CarData erlaubt **eine Stream-Verbindung pro Konto** zur selben Zeit. Das
+Programm, das sie hat, behält sie, und BMW weist jedes andere mit *not authorized*
+(MQTT rc=5) ab, derselben Antwort wie bei einer falschen Anmeldung. Der Stream
+wechselt nur, wenn sein Inhaber ihn loslässt, und das tut jedes Programm
+mindestens einmal pro Stunde, um seine Anmeldung zu erneuern. Zwei Programme
+wechseln sich also ab: Wer sich zuerst neu verbindet, bekommt den Stream, und das
+andere bleibt bis zur nächsten Lücke ausgesperrt. Beide verpassen Daten, und
+keines sagt dir, warum. Was du siehst:
 
 - Werte in Home Assistant bleiben für Minuten oder Stunden stehen und holen dann auf;
-- der Verbindungssensor wechselt ständig zwischen verbunden und getrennt;
+- der Verbindungssensor zeigt den Stream lange als nicht verbunden;
 - evccs Ladezustand friert ein oder fehlt mitten in einer Ladung.
+
+BavarianData erkennt den Fall: Lehnt BMW den Stream ab, obwohl eine frisch
+erneuerte Anmeldung funktioniert, versucht es die Integration alle paar Minuten
+erneut, und nach einer halben Stunde erscheint unter **Einstellungen → Reparaturen**
+der Hinweis **„Ein anderes Programm hält den BMW-Stream“**.
 
 Die üblichen Verdächtigen sind **evccs eigenes BMW-CarData-Fahrzeug**
 (`template: cardata` ohne `broker:`), eine zweite CarData-Integration in Home
@@ -63,8 +72,8 @@ zweites Programm, das BMW weiterhin direkt fragt, verbraucht von denselben 50.
 
 evcc und openWB können BMW selbst nach dem Zustand des Autos fragen. Entweder
 fragen sie BMWs API zyklisch ab, begrenzt auf 50 Anfragen am Tag pro Konto, oder
-sie öffnen den [einen Stream](#one-stream-per-account) des Kontos und nehmen ihn
-damit Home Assistant weg.
+sie öffnen den [einen Stream](#one-stream-per-account) des Kontos, den Home
+Assistant dann nicht bekommt, solange sie ihn halten.
 
 BavarianData hält den Stream bereits. Der Ladezustand kommt, sobald das Auto ihn
 meldet, und kostet **keine** deiner
@@ -186,8 +195,8 @@ Schlüssel `vehicles:` auf.
 <a id="evccs-own-cardata-vehicle"></a>
 
 evcc hat ein eigenes BMW/MINI-Fahrzeug, `template: cardata`. So wie es kommt,
-öffnet es den Stream des Kontos selbst, und evcc und Home Assistant werfen sich
-abwechselnd hinaus. Ziehst du es dem erzeugten `custom`-Block vor, gib ihm den
+öffnet es den Stream des Kontos selbst, und evcc und Home Assistant sperren sich
+abwechselnd aus. Ziehst du es dem erzeugten `custom`-Block vor, gib ihm den
 Stream, den BavarianData teilt:
 
 1. Hake in der Brücke **Ganzen Stream dieses Autos teilen** an.
@@ -242,8 +251,8 @@ evcc Ladezustand und Ladeziel aus dem geteilten Stream.
 
 BMW erlaubt [einen Stream pro Konto](#one-stream-per-account), und BavarianData hält ihn. Ein
 MagicMirror-Modul, ein Garmin-Widget oder ein Skript, das BMWs eigenes Format liest,
-bräuchte einen eigenen Stream und würde ihn an Home Assistant verlieren oder ihm
-wegnehmen. Den Stream zu teilen umgeht das: Jeder Wert, den BMW für das Auto streamt,
+bräuchte einen eigenen Stream, und nur eines von beiden kann ihn zur selben Zeit
+haben. Den Stream zu teilen umgeht das: Jeder Wert, den BMW für das Auto streamt,
 landet beim Eintreffen auf demselben Broker wie die evcc-Topics. Das kostet keine
 [API-Anfragen](DE-Feature-API-Quota).
 

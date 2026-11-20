@@ -244,7 +244,7 @@ One config entry covers a whole CarData account, **including every car on it** �
 there is no need for a second entry per car, and setup refuses one, even when you generated a second Client ID in the BMW portal.
 
 BMW allows only **one stream connection per account**, so two entries for the
-same account would disconnect each other in a loop, and both would count against
+same account would lock each other out in turns, and both would count against
 the same 50-request daily quota while claiming 50 each. To move the existing entry
 to a new Client ID of the same account, use **Reconfigure** on the integration:
 it keeps the cars and their history. Two
@@ -274,7 +274,12 @@ If the stream is rejected as **unauthorized** (`MQTT rc=5`, logged as
 `Not authorized`) and stays that way, a repair issue titled **"BMW CarData stream
 not authorized"** appears under **Settings → Repairs**. The integration retries and
 re-authorizes on its own first; the repair only appears once that hasn't
-recovered it for a while. Two usual causes:
+recovered it for a while.
+
+If a freshly renewed token is refused too, the login isn't the problem, and the
+repair is titled **"Another program holds the BMW stream"** instead: see
+[one stream per account](#only-one-stream-per-account). Otherwise there are two
+usual causes:
 
 1. **Stale tokens.** Run **Configure → Connection → Refresh tokens now**. If it keeps
    failing, **Configure → Connection → Re-authorize with BMW** (the refresh token expires
@@ -289,10 +294,18 @@ recovered it for a while. Two usual causes:
 
 <a id="only-one-stream-per-account"></a>
 
-BMW allows a **single concurrent streaming client** per account (GCID). When a
-second program connects, BMW drops the first, and the two keep taking the stream
-from each other: values stop for minutes or hours, the connection sensor flips
-between connected and disconnected, and evcc loses the state of charge.
+BMW allows a **single concurrent streaming client** per account (GCID). The one
+that has the stream keeps it, and BMW refuses every other with *not authorized*
+(MQTT rc=5), the answer a wrong login gets too. The stream changes hands only when
+its holder lets go, at least once an hour to renew its login, so two programs take
+turns locking each other out: values stop for minutes or hours, the connection
+sensor shows the stream as not connected for long stretches, and evcc loses the
+state of charge.
+
+When a freshly renewed login is refused as well, BavarianData knows another
+program holds the stream. It tries again every few minutes and picks the stream
+up as soon as it is free; if that takes more than half an hour, the repair
+**"Another program holds the BMW stream"** appears under **Settings → Repairs**.
 
 The most common second client is **evcc's own BMW CarData vehicle**; others are
 a second CarData integration, an ioBroker or openHAB adapter, a MagicMirror

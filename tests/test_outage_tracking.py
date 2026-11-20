@@ -107,3 +107,18 @@ def test_a_stream_that_never_delivered_counts_from_its_start():
 
     assert _due(health, hours * 60, started=0) == (False, True)
     assert _due(health, hours * 60, started=None) == (False, False)
+
+
+def test_a_renewed_token_refused_too_marks_the_stream_held_until_it_connects():
+    health = stream_health.StreamHealth()
+    health.note("unauthorized", "MQTT rc=5", _at(0))
+    assert not health.held_elsewhere
+
+    health.note("unauthorized", stream_health.REFUSED_RENEWED, _at(1))
+    health.note("disconnected", "Unspecified error", _at(1))
+    assert health.held_elsewhere
+    # Still one rc=5 outage, counted from the first refusal.
+    assert health.unauthorized_since == _at(0)
+
+    health.note("connected", None, _at(20))
+    assert not health.held_elsewhere

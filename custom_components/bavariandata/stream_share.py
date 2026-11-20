@@ -2,8 +2,8 @@
 
 BMW allows one stream per account, and BavarianData holds it -- so a
 MagicMirror module, a Garmin widget or a bridge someone wrote against BMW's own
-format would otherwise need a stream of their own and lose it to us (or take it
-from us). Sharing republishes what BMW sends onto the broker Home Assistant is
+format would otherwise need a stream of their own, and only one client can
+have it: BMW refuses every other with rc=5 while one holds it. Sharing republishes what BMW sends onto the broker Home Assistant is
 already connected to, in two shapes:
 
 - ``<prefix>/<vin>/stream``: each message as BMW sent it, never retained. A

@@ -386,8 +386,8 @@ class CardataConfigFlow(StreamActivatorFlow, config_entries.ConfigFlow, domain=D
         # mint a second API client in the BMW portal for the *same* account --
         # typically believing an entry is per car -- and that passes the Client
         # ID check while colliding on everything that actually matters: BMW
-        # allows one MQTT connection per GCID (the two would evict each other
-        # forever), the entities of both entries share VIN-based unique ids, and
+        # allows one MQTT connection per GCID (the two would lock each other
+        # out in turns), the entities of both entries share VIN-based unique ids, and
         # the 50-request daily quota is counted per account, not per client.
         # The GCID is only known here, once the tokens are in hand.
         if not self._reauth_entry and (gcid := entry_data.get("gcid")):
