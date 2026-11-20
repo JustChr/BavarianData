@@ -30,6 +30,7 @@ from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
 from .debug import debug_enabled
+from .stream_health import REFUSED_RENEWED
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -50,6 +51,12 @@ class StatusCallback(Protocol):
 # password") -> 134 and 5 ("not authorized") -> 135. A clean disconnect is 0.
 _RC_BAD_CREDENTIALS = 134
 _RC_NOT_AUTHORIZED = 135
+# How long to wait before trying again once a renewed token was refused as well.
+# The login works then: BMW keeps the account's one stream for the client that
+# holds it and refuses every other with rc=5 (measured 2026-11-20). Without this
+# the stream would wait for the next token renewal, about 45 minutes, after the
+# other client let go.
+HELD_RETRY_S = 300.0
 
 
 def _log_future_exception(future: concurrent.futures.Future[Any]) -> None:
@@ -98,6 +105,8 @@ class CardataStreamManager:
         self._reauth_notified = False
         self._unauthorized_retry_in_progress = False
         self._awaiting_new_credentials = False
+        # The retry while another client holds the stream (``HELD_RETRY_S``).
+        self._held_retry_task: Optional[asyncio.Task[Any]] = None
         self._status_callback: Optional[StatusCallback] = None
         # Retry delays: equal jitter on a ceiling that doubles per failed attempt
         # from _min_reconnect_interval up to _max_backoff. The attempt count only
@@ -148,6 +157,7 @@ class CardataStreamManager:
         """Stop for good when the entry unloads: no retry may connect afterwards."""
 
         self._closed = True
+        self._cancel_held_retry()
         await self.async_stop()
 
     async def _async_connect_if_idle(self) -> None:
@@ -482,15 +492,55 @@ class CardataStreamManager:
         self._unauthorized_retry_in_progress = True
         try:
             self._awaiting_new_credentials = True
+            reason = "MQTT rc=5"
             if not self._reauth_notified:
                 self._reauth_notified = True
                 await self._notify_error("unauthorized")
             else:
+                # Refused again with the token renewed after the first refusal
+                # (or signed in anew): the login works, so another client holds
+                # the account's one stream. Try again now and then rather than
+                # only with the next token, which may be 45 minutes away.
                 await self.async_stop()
+                self._schedule_held_retry()
+                reason = REFUSED_RENEWED
             if self._status_callback:
-                await self._status_callback("unauthorized", reason="MQTT rc=5")
+                await self._status_callback("unauthorized", reason=reason)
         finally:
             self._unauthorized_retry_in_progress = False
+
+    def _schedule_held_retry(self) -> None:
+        """Try the stream again in ``HELD_RETRY_S``, unless something else settles it.
+
+        Not tied to ``_stop_generation`` like the outage retries: paho follows
+        the refused CONNACK with a disconnect, whose reconnect stops the stream
+        once more. What settles it instead is checked when it is due -- a new
+        token (which connects at once and clears the wait), a connect, a
+        shutdown -- and a newer refusal replaces it.
+        """
+
+        self._cancel_held_retry()
+        self._held_retry_task = self._config_entry.async_create_background_task(
+            self.hass, self._async_held_retry(), f"{DOMAIN}_mqtt_held_retry"
+        )
+
+    def _cancel_held_retry(self) -> None:
+        if self._held_retry_task and not self._held_retry_task.done():
+            self._held_retry_task.cancel()
+        self._held_retry_task = None
+
+    async def _async_held_retry(self) -> None:
+        await asyncio.sleep(HELD_RETRY_S)
+        async with self._connect_lock:
+            if self._closed or self._client is not None or not self._awaiting_new_credentials:
+                return
+            if debug_enabled():
+                _LOGGER.debug("Trying the BMW stream again; another client may still hold it")
+            self._awaiting_new_credentials = False
+            try:
+                await self._async_start_locked()
+            except Exception as err:
+                self._connect_failed(err)
 
     async def _notify_error(self, reason: str) -> None:
         await self.async_stop()

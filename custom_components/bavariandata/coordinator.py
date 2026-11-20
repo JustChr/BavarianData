@@ -214,7 +214,8 @@ class CardataCoordinator:
     # Latched repair state so the watchdog only calls the issue registry on a
     # transition rather than every tick.
     _no_data_issue_active: bool = field(default=False, init=False)
-    _unauthorized_issue_active: bool = field(default=False, init=False)
+    # The rc=5 repair standing now, by its translation key; None when none does.
+    _unauthorized_issue: Optional[str] = field(default=None, init=False)
     # Every car's own state (``car_state.py``), by VIN. Written through
     # :meth:`_car`, read through :meth:`_peek`.
     _cars: Dict[str, Vehicle] = field(default_factory=dict, init=False)
@@ -1441,25 +1442,41 @@ class CardataCoordinator:
         return getattr(entry, "title", None) or "BavarianData"
 
     def _set_unauthorized_issue(self, active: bool) -> None:
+        """Raise, reword or clear the rc=5 repair.
+
+        A renewed token refused as well means the login works and another
+        client holds the account's one stream (``StreamHealth.held_elsewhere``):
+        the repair then says so, instead of asking for new tokens that would not
+        help. The same issue id either way, so one replaces the other.
+        """
+
         issue_id = f"stream_unauthorized_{self.entry_id}"
-        if active == self._unauthorized_issue_active:
+        key: Optional[str] = None
+        if active:
+            key = "stream_held_elsewhere" if self.health.held_elsewhere else "stream_unauthorized"
+        if key == self._unauthorized_issue:
             return
-        self._unauthorized_issue_active = active
-        if not active:
+        self._unauthorized_issue = key
+        if key is None:
             ir.async_delete_issue(self.hass, DOMAIN, issue_id)
             return
+        anchor = (
+            "only-one-stream-per-account"
+            if key == "stream_held_elsewhere"
+            else "stream-authorization-failing"
+        )
         ir.async_create_issue(
             self.hass,
             DOMAIN,
             issue_id,
             is_fixable=False,
             severity=ir.IssueSeverity.ERROR,
-            translation_key="stream_unauthorized",
+            translation_key=key,
             translation_placeholders={
                 "minutes": str(UNAUTHORIZED_REPAIR_AFTER_S // 60),
                 "account": self._account_name(),
             },
-            learn_more_url=f"{WIKI_TROUBLESHOOTING}#stream-authorization-failing",
+            learn_more_url=f"{WIKI_TROUBLESHOOTING}#{anchor}",
         )
 
     def _set_no_data_issue(self, active: bool) -> None:

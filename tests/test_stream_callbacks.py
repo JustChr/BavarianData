@@ -275,16 +275,21 @@ def test_a_refused_login_stops_the_stream_and_asks_for_new_credentials(no_waitin
         await _eventually(lambda: statuses)
         first = (list(errors), list(statuses), manager._awaiting_new_credentials)
 
-        # Refused again while the reauth is open: stopped, not reported twice.
+        # Refused again, with the token renewed after the first refusal: stopped,
+        # not handed to the reauth twice, and reported as a stream another
+        # client holds -- the login works.
         statuses.clear()
         await manager._handle_unauthorized()
-        return first, errors, statuses, client
+        held = manager._held_retry_task is not None
+        await manager.async_shutdown()
+        return first, errors, statuses, client, held
 
-    first, errors, statuses, client = asyncio.run(scenario())
+    first, errors, statuses, client, held = asyncio.run(scenario())
 
     assert first == (["unauthorized"], [("unauthorized", "MQTT rc=5")], True)
     assert errors == ["unauthorized"]
-    assert statuses == [("unauthorized", "MQTT rc=5")]
+    assert statuses == [("unauthorized", _STREAM.REFUSED_RENEWED)]
+    assert held
     assert client.stopped == 1
 
 

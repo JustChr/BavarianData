@@ -9,6 +9,22 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **A stream another program holds is picked up within minutes, and the repair
+  says what is going on.** BMW keeps an account's one stream for the program
+  that has it and refuses every other with *not authorized* (rc=5), the same
+  answer a wrong login gets (measured on the maintainer's account with a
+  second client). When another program, such as evcc's own CarData vehicle,
+  got in during Home Assistant's reconnect, BavarianData waited for its next
+  token renewal, about 45 minutes, before trying again, and after half an hour
+  showed a repair that suggested renewing tokens, which can't help. Now a
+  refusal that a freshly renewed token gets as well counts as the stream being
+  held elsewhere: BavarianData tries again every 5 minutes, and the repair is
+  **Another program holds the BMW stream**, pointing to the MQTT bridge.
+- The wiki's *One stream per account* sections said a second program kicks the
+  first off. It doesn't: the holder keeps the stream, and the two take turns
+  only when one of them reconnects.
+
 ## [0.9.32] - 2026-11-19
 
 One fix: with a wallbox meter linked, the state-of-charge estimate no longer falls back mid-charge after a restart or a reconnect.

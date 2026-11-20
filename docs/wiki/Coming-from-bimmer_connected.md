@@ -99,6 +99,6 @@ account-wide — [step 1](Getting-Started-1-BMW-Portal-Setup) has the details.
 
 **Can I run it next to another CarData integration?** BMW allows **one stream
 per account** at a time, so two stream clients on the same account take turns
-dropping each other. Two integrations: pick one. evcc, a MagicMirror or a script
+locking each other out. Two integrations: pick one. evcc, a MagicMirror or a script
 can share BavarianData's stream over the
 [MQTT bridge](Feature-evcc-and-Wallbox-Bridge#one-stream-per-account) instead.

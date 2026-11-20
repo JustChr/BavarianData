@@ -113,7 +113,7 @@ für das ganze Konto — Details in [Schritt 1](DE-Getting-Started-1-BMW-Portal-
 
 **Kann ich es neben einer anderen CarData-Integration betreiben?** BMW erlaubt
 **einen Stream pro Konto** gleichzeitig; zwei Stream-Clients am selben Konto
-werfen sich also abwechselnd hinaus. Bei zwei Integrationen: Entscheide dich für
+sperren sich also abwechselnd aus. Bei zwei Integrationen: Entscheide dich für
 eine. evcc, ein MagicMirror oder ein Skript können stattdessen den Stream von
 BavarianData über die
 [MQTT-Brücke](DE-Feature-evcc-and-Wallbox-Bridge#one-stream-per-account) mitnutzen.

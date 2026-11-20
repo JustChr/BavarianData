@@ -9,6 +9,12 @@ are raised, both decided here:
 * **no data** -- not one message for ``NO_DATA_REPAIR_AFTER_S``, measured from
   the last message or, on a stream that never delivered one, from its start.
 
+An rc=5 that a renewed token gets as well is not a login problem: BMW keeps
+the account's one stream for whichever client holds it and turns every other
+away with the same rc=5 (measured 2026-11-20). The stream reports that case
+with :data:`REFUSED_RENEWED`, and the repair then says another program holds
+the stream instead of asking for new tokens.
+
 The rc=5 repair wins: while it stands, "no data" would only restate the same
 outage more vaguely. :class:`StreamHealth` also keeps what the diagnostics
 download shows -- the status, the last disconnect reason and a short history
@@ -40,6 +46,9 @@ UNAUTHORIZED_REPAIR_AFTER_S = 30 * 60
 # Bounded ring buffer of connection transitions (status + rc/reason), surfaced in
 # the diagnostics download so a reconnect storm is visible after the fact.
 CONNECTION_HISTORY_LEN = 30
+# The reason the stream gives when a renewed token is refused as well: the login
+# works, so another client holds the account's one stream.
+REFUSED_RENEWED = "MQTT rc=5 with a renewed token"
 
 
 @dataclass
@@ -57,6 +66,9 @@ class StreamHealth:
     # First time the stream went "unauthorized" without recovering since.
     # Cleared on the next successful connect.
     unauthorized_since: Optional[datetime] = None
+    # A renewed token was refused too since then: another client holds the
+    # stream. Cleared, like ``unauthorized_since``, on the next connect.
+    held_elsewhere: bool = False
 
     def note(self, status: str, reason: Optional[str], now: datetime) -> Optional[float]:
         """Record one connection event; the outage's length when it just ended.
@@ -85,8 +97,11 @@ class StreamHealth:
         if status == "unauthorized":
             if self.unauthorized_since is None:
                 self.unauthorized_since = now
+            if reason == REFUSED_RENEWED:
+                self.held_elsewhere = True
         elif status == "connected":
             self.unauthorized_since = None
+            self.held_elsewhere = False
         return outage_s
 
     def repairs_due(

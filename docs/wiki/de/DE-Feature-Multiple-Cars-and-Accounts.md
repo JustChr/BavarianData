@@ -28,7 +28,7 @@ Also:
   anderer Eintrag dasselbe Konto nutzt — auch dann, wenn du dafür im Portal eine
   zweite Client-ID erzeugt hast. Das ist keine selbst erfundene Einschränkung:
   BMW erlaubt **eine Stream-Verbindung pro Konto**, zwei Einträge würden sich
-  also gegenseitig endlos trennen, und das Kontingent von 50 Anfragen zählt pro
+  also abwechselnd aussperren, und das Kontingent von 50 Anfragen zählt pro
   Konto, nicht pro Client-ID.
 
 Ein Fahrzeug kann nur in einem Konto sein, daher wird keine FIN je von zwei

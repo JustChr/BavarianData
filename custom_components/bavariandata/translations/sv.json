@@ -3281,6 +3281,10 @@
       "title": "BMW CarData-strömmen är inte auktoriserad ({account})",
       "description": "BMW har avvisat strömanslutningen som obehörig (MQTT rc=5) i över {minutes} minuter och den har inte återhämtat sig av sig själv. Det betyder oftast att token behöver förnyas, eller att en annan CarData-klient håller kontots enda ström. Prova Konfigurera → Förnya token nu, sedan Auktorisera igen hos BMW om det fortsätter att misslyckas, och koppla från alla andra CarData-klienter."
     },
+    "stream_held_elsewhere": {
+      "title": "Ett annat program håller BMW-strömmen ({account})",
+      "description": "BMW har nekat strömanslutningen i över {minutes} minuter, fast inloggningen fungerar: även en nyss förnyad token nekades. BMW tillåter en ström per konto och låter programmet som anslöt först behålla den. Något annat håller den nu, till exempel evccs eget BMW CarData-fordon, en andra CarData-integration eller en ioBroker- eller openHAB-adapter. Stoppa det programmets BMW-anslutning, eller låt BavarianData hålla strömmen och dela den under Konfigurera → Dela livedata. BavarianData försöker igen med några minuters mellanrum och tar över strömmen så snart den är ledig."
+    },
     "vehicle_left_account": {
       "title": "{vehicle} finns inte längre på ditt BMW-konto",
       "description": "BMW CarData listar inte längre {vehicle} som en bil på {account}, så inget nytt kommer in för den. Har du sålt eller lämnat ifrån dig den, ta bort dess enhet i Home Assistant. Det tar också bort dess laddnings- och resehistorik, bilder och statistik. Är den fortfarande din, kontrollera i MyBMW-appen att du är dess huvudanvändare."

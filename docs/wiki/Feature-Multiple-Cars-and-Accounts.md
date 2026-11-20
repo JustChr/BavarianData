@@ -24,7 +24,7 @@ So:
   with *"This BMW account is already set up"* if another entry already has the
   same account, even when you generated a second Client ID for it in the portal.
   It is not a limitation we invented: BMW allows **one stream connection per
-  account**, so two entries would disconnect each other in a loop, and the
+  account**, so two entries would lock each other out in turns, and the
   50-request quota is counted per account, not per Client ID.
 
 A car can only be in one account, so no VIN is ever served by two entries.
