@@ -57,6 +57,10 @@ _RC_NOT_AUTHORIZED = 135
 # the stream would wait for the next token renewal, about 45 minutes, after the
 # other client let go.
 HELD_RETRY_S = 300.0
+# BMW refuses a reconnect within this long of a disconnect with rc=5 on purpose
+# (BMW support, 2026-11-02); such a refusal is retried, not taken as a login
+# problem.
+TRANSIENT_REFUSAL_S = 10.0
 
 
 def _log_future_exception(future: concurrent.futures.Future[Any]) -> None:
@@ -353,7 +357,7 @@ class CardataStreamManager:
             if (
                 reason_code.value == _RC_NOT_AUTHORIZED
                 and self._last_disconnect is not None
-                and now - self._last_disconnect < 10
+                and now - self._last_disconnect < TRANSIENT_REFUSAL_S
             ):
                 if debug_enabled():
                     _LOGGER.debug(
@@ -445,7 +449,7 @@ class CardataStreamManager:
             if (
                 reason_code.value == _RC_NOT_AUTHORIZED
                 and self._last_disconnect is not None
-                and now - self._last_disconnect < 10
+                and now - self._last_disconnect < TRANSIENT_REFUSAL_S
             ):
                 if debug_enabled():
                     _LOGGER.debug("Ignoring transient MQTT rc=5; scheduling retry instead")
