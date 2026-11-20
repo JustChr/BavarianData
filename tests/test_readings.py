@@ -16,6 +16,7 @@ from .conftest import load_module
 
 readings = load_module("readings")
 car_state = load_module("car_state")
+fuel = load_module("history.fuel")
 
 
 @pytest.mark.parametrize(
@@ -60,3 +61,19 @@ def test_a_reading_carries_its_parsed_time():
 )
 def test_as_float_is_pythons_float_or_none(value, expected):
     assert readings.as_float(value) == expected
+
+
+def test_a_fuel_log_stored_without_a_timezone_keeps_logging():
+    """A hand-edited or very old store: ``t`` without an offset.
+
+    It used to come back as a naive datetime, and comparing it with the new
+    reading's aware time raised ``TypeError`` -- the fuel log stopped for good.
+    """
+
+    log = {"last": {"t": "2026-09-01T08:00:00", "litres": 40.0, "percent": None, "km": 1000.0}}
+
+    assert fuel.note_reading(log, datetime(2026, 9, 1, 9, 0, tzinfo=UTC), litres=39.0, km=1010.0)
+    assert (
+        fuel.note_reading(log, datetime(2026, 9, 1, 7, 0, tzinfo=UTC), litres=38.0, km=1020.0)
+        is None
+    )

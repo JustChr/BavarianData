@@ -147,19 +147,6 @@ def _reader(values):
     return lambda descriptor: values.get(descriptor)
 
 
-def test_a_stored_reading_without_a_timezone_is_read_as_utc():
-    """A hand-edited or very old store: ``t`` without an offset.
-
-    It used to come back as a naive datetime, and comparing it with the new
-    reading's aware time raised ``TypeError`` -- the fuel log stopped for good.
-    """
-
-    log = {"last": {"t": "2026-09-01T08:00:00", "litres": 40.0, "percent": None, "km": 1000.0}}
-
-    assert fuel.note_reading(log, START + timedelta(hours=1), litres=39.0, km=1010.0)
-    assert fuel.note_reading(log, START - timedelta(hours=1), litres=38.0, km=1020.0) is None
-
-
 def test_lifetime_fuel_figure():
     figures = obfcm.lifetime(
         _reader({obfcm.FUEL_OVERALL: 1_450.0, obfcm.DISTANCE_OVERALL: 20_000.0})

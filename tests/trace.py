@@ -194,6 +194,11 @@ def _plain(value: Any) -> Any:
 def _default(value: Any) -> Any:
     """What ``json`` can't encode itself, one level deep: it walks the rest."""
 
+    if isinstance(value, datetime | date | timedelta):
+        # Before the ``__dict__`` branch: the harness's clocked ``datetime`` is a
+        # subclass, so its instances carry an (empty) ``__dict__`` and were all
+        # traced as one opaque ``{"__type__": "_Clocked"}`` -- invisible to the gate.
+        return _plain(value)
     if isinstance(value, set | frozenset):
         return sorted((_plain(v) for v in value), key=repr)
     if dataclasses.is_dataclass(value) and not isinstance(value, type):
