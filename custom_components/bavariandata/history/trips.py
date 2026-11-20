@@ -25,7 +25,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any
 
-from .models import _iso, _parse  # shared ISO (de)serialisation helpers
+from ..readings import parse_time
+from .models import _iso  # shared ISO serialisation helper
 
 # The three buckets a trip can fall into. ``None`` means "not classified yet".
 CLASS_BUSINESS = "business"
@@ -215,7 +216,7 @@ class Trip:
         """Rebuild a record, or return ``None`` if it can't be placed on a timeline."""
 
         vin = data.get("vin")
-        start = _parse(data.get("start"))
+        start = parse_time(data.get("start"))
         if not vin or start is None:
             return None
         classification = data.get("classification")
@@ -224,7 +225,7 @@ class Trip:
         return cls(
             vin=vin,
             start=start,
-            end=_parse(data.get("end")),
+            end=parse_time(data.get("end")),
             start_place=data.get("start_place"),
             end_place=data.get("end_place"),
             distance_km=data.get("distance_km"),

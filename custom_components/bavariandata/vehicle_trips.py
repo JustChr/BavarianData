@@ -26,7 +26,6 @@ from typing import TYPE_CHECKING, Any, Protocol
 from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.event import async_call_later
-from homeassistant.util import dt as dt_util
 
 from .car_signals import (
     DESC_GPS_FIX,
@@ -347,9 +346,7 @@ class VehicleTrips:
         stamps = []
         for descriptor in (DESC_GPS_LAT, DESC_GPS_LON):
             state = self._host.get_state(vin, descriptor)
-            if state is None or not state.timestamp:
-                continue
-            parsed = dt_util.parse_datetime(state.timestamp)
+            parsed = state.at if state is not None else None
             if parsed is not None:
                 stamps.append(parsed)
         return max(stamps) if stamps else None
@@ -1340,9 +1337,9 @@ class VehicleTrips:
 
         def _num(descriptor: str) -> float | None:
             state = self._host.get_state(vin, descriptor)
-            if state is None or state.value is None or not state.timestamp:
+            if state is None or state.value is None:
                 return None
-            stamped = dt_util.parse_datetime(state.timestamp)
+            stamped = state.at
             if stamped is None or stamped < since - timedelta(seconds=60):
                 return None
             try:

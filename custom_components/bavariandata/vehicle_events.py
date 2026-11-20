@@ -24,6 +24,7 @@ from datetime import datetime
 from typing import Any, Protocol
 from collections.abc import Iterable, Mapping
 
+from .readings import parse_time
 from .car_profile import REST
 from .car_state import Vehicle
 from .const import (
@@ -79,18 +80,6 @@ class EventHost(Protocol):
     def _current_zone(self, vin: str) -> tuple[str, str] | None: ...
     def _zone_at(self, latitude: float, longitude: float) -> tuple[str, str] | None: ...
     def _fire(self, event_type: str, payload: dict[str, Any]) -> None: ...
-
-
-def _parse(value: Any) -> datetime | None:
-    """A BMW timestamp, or None when it isn't one with a timezone."""
-
-    if not isinstance(value, str) or not value:
-        return None
-    try:
-        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except ValueError:
-        return None
-    return parsed if parsed.tzinfo is not None else None
 
 
 class VehicleEvents:
@@ -195,7 +184,7 @@ class VehicleEvents:
                     continue
                 before = self._edges.move(vin, descriptor, reading)
                 stamp = (data.get(descriptor) or {}).get("timestamp")
-                if before is reading or not fresh(_parse(stamp), now):
+                if before is reading or not fresh(parse_time(stamp), now):
                     continue
                 if not reading and before is None:
                     # An end with no start we knew of is nothing to announce.

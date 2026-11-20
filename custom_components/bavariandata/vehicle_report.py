@@ -40,6 +40,8 @@ from datetime import datetime
 from typing import Any
 from collections.abc import Mapping
 
+from .readings import parse_time
+
 # How long a new odometer reading must hold before it is announced. Long enough
 # that a car streaming live (1 km steps, GPS every few seconds) is past its
 # drive; a stop of this length mid-drive -- a long jam -- gives a second event,
@@ -67,16 +69,6 @@ class ReportDecision:
     baseline: Mapping[str, Any] | None = None
 
 
-def _parse(value: Any) -> datetime | None:
-    if not isinstance(value, str) or not value:
-        return None
-    try:
-        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except ValueError:
-        return None
-    return parsed if parsed.tzinfo is not None else None
-
-
 def _km(record: Mapping[str, Any] | None) -> float | None:
     if record is None:
         return None
@@ -102,10 +94,10 @@ def plausible_step(
     if base_km is None or odometer_km <= base_km:
         return False
     elapsed: list[float] = []
-    reading_at, base_at = _parse(timestamp), _parse(base.get("timestamp"))
+    reading_at, base_at = parse_time(timestamp), parse_time(base.get("timestamp"))
     if reading_at is not None and base_at is not None:
         elapsed.append((reading_at - base_at).total_seconds())
-    if (recorded_at := _parse(base.get("recorded_at"))) is not None:
+    if (recorded_at := parse_time(base.get("recorded_at"))) is not None:
         elapsed.append((now - recorded_at).total_seconds())
     if not elapsed:
         return True
@@ -206,7 +198,7 @@ def add_start_mark(record: Mapping[str, Any] | None, at: datetime) -> dict[str, 
 
     marks = {at.isoformat(): at}
     for mark in (record or {}).get("starts") or ():
-        if isinstance(mark, str) and (parsed := _parse(mark)) is not None:
+        if isinstance(mark, str) and (parsed := parse_time(mark)) is not None:
             marks[mark] = parsed
     ordered = sorted(marks, key=marks.__getitem__)
     return {**(record or {}), "starts": ordered[-MAX_MARKS:]}
@@ -225,7 +217,9 @@ def take_start_mark(
     is kept; every other one is spent.
     """
 
-    parsed = [(p, m) for m in marks or () if isinstance(m, str) and (p := _parse(m)) is not None]
+    parsed = [
+        (p, m) for m in marks or () if isinstance(m, str) and (p := parse_time(m)) is not None
+    ]
     earliest = end_at.timestamp() - MARK_MAX_AGE_S
     floor = max(earliest, previous_at.timestamp()) if previous_at is not None else earliest
     inside = [p for p, _m in parsed if floor < p.timestamp() <= end_at.timestamp()]
@@ -238,7 +232,7 @@ def report_time(record: Mapping[str, Any] | None) -> datetime | None:
 
     if record is None:
         return None
-    return _parse(record.get("timestamp")) or _parse(record.get("recorded_at"))
+    return parse_time(record.get("timestamp")) or parse_time(record.get("recorded_at"))
 
 
 def fuel_stats(start_l: Any, end_l: Any) -> dict[str, float]:

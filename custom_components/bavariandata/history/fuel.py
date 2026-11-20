@@ -30,6 +30,8 @@ from datetime import datetime, timedelta
 from typing import Any
 from collections.abc import Mapping, MutableMapping
 
+from ..readings import parse_time
+
 # A rise this large between two readings is a refuel. Far beyond the ±1 L the
 # float wanders by, and below any refuel worth the stop.
 REFUEL_MIN_LITRES = 5.0
@@ -65,15 +67,6 @@ FuelLog = MutableMapping[str, Any]
 
 CHANGED_READING = "reading"
 CHANGED_REFUEL = "refuel"
-
-
-def _parse(stamp: Any) -> datetime | None:
-    if not isinstance(stamp, str):
-        return None
-    try:
-        return datetime.fromisoformat(stamp)
-    except ValueError:
-        return None
 
 
 # Litres stamped this much before the fill level are not following the tank.
@@ -121,7 +114,7 @@ def note_reading(
     if litres is None and percent is None:
         return None
     last = log.get("last") if isinstance(log.get("last"), dict) else None
-    last_at = _parse(last.get("t")) if last else None
+    last_at = parse_time(last.get("t")) if last else None
     if last_at is not None and when <= last_at:
         return None
 
@@ -181,7 +174,7 @@ def _settles(refuels: list[dict[str, Any]], reading: dict[str, Any], when: datet
     if not refuels:
         return False
     newest = refuels[-1]
-    at = _parse(newest.get("t"))
+    at = parse_time(newest.get("t"))
     if at is None or when - at > SETTLE:
         return False
     km, refuel_km = _num(reading["km"]), _num(newest.get("km"))
@@ -268,7 +261,7 @@ def report(log: Mapping[str, Any], now: datetime) -> dict[str, Any]:
         )
 
     cutoff = now - timedelta(days=AVERAGE_DAYS)
-    recent = [w for w in closed if (_parse(w["to"]) or now) >= cutoff]
+    recent = [w for w in closed if (parse_time(w["to"]) or now) >= cutoff]
     average = None
     if recent:
         km = sum(w["km"] for w in recent)

@@ -24,6 +24,7 @@ from datetime import datetime, timedelta, UTC
 from typing import Any
 from collections.abc import Callable
 
+from ..readings import as_float
 from .models import ChargingSession
 from .pricing import entered_cost, is_entered
 from .sessions import house_supplies_this_session
@@ -60,17 +61,8 @@ def _epoch_to_dt(value: Any) -> datetime | None:
         return None
 
 
-def _as_float(value: Any) -> float | None:
-    if value is None:
-        return None
-    try:
-        return float(value)
-    except TypeError, ValueError:
-        return None
-
-
 def _mileage_km(value: Any, units: Any) -> float | None:
-    km = _as_float(value)
+    km = as_float(value)
     if km is None:
         return None
     unit = str(units or "").strip().upper()
@@ -110,8 +102,8 @@ def _location(
 
     if not isinstance(raw, dict):
         return None
-    lat = _as_float(raw.get("mapMatchedLatitude"))
-    lon = _as_float(raw.get("mapMatchedLongitude"))
+    lat = as_float(raw.get("mapMatchedLatitude"))
+    lon = as_float(raw.get("mapMatchedLongitude"))
     point = (lat, lon) if lat is not None and lon is not None else None
     has_point = point is not None
     zone = zone_fn(*point) if (zone_fn and point) else None
@@ -185,7 +177,7 @@ def _power_curve(blocks: Any, start_epoch: int) -> tuple[list[list[float]], floa
     for block in blocks:
         if not isinstance(block, dict):
             continue
-        kw = _as_float(block.get("averagePowerGridKw"))
+        kw = as_float(block.get("averagePowerGridKw"))
         if kw is None:
             continue
         peak = kw if peak is None else max(peak, kw)
@@ -232,7 +224,7 @@ def session_from_cardata(
     if start is None or end is None or end < start:
         return None
 
-    grid_kwh = _as_float(raw.get("energyConsumedFromPowerGridKwh"))
+    grid_kwh = as_float(raw.get("energyConsumedFromPowerGridKwh"))
     curve, peak = _power_curve(raw.get("chargingBlocks"), int(start_epoch))
     location = _location(raw.get("chargingLocation"), zone_fn, keep_coordinates=keep_coordinates)
     provider = _provider(raw.get("publicChargingPoint"))
@@ -245,8 +237,8 @@ def session_from_cardata(
         vin=vin,
         start=start,
         end=end,
-        soc_start=_as_float(raw.get("displayedStartSoc")),
-        soc_end=_as_float(raw.get("displayedSoc")),
+        soc_start=as_float(raw.get("displayedStartSoc")),
+        soc_end=as_float(raw.get("displayedSoc")),
         grid_kwh=grid_kwh,
         grid_source=None if grid_kwh is None else "bmw",
         peak_power_kw=peak,

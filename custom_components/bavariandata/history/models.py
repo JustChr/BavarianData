@@ -15,6 +15,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, UTC
 from typing import Any, cast
 
+from ..readings import parse_time
+
 # Bumped whenever a record's on-disk shape changes incompatibly. ``store.py``
 # refuses to load data written by a newer schema than it understands.
 # v2 added the ``trips`` section alongside ``sessions`` (roadmap Phase 3).
@@ -23,20 +25,6 @@ SCHEMA_VERSION = 2
 
 def _iso(value: datetime | None) -> str | None:
     return None if value is None else value.astimezone(UTC).isoformat()
-
-
-def _parse(value: str | None) -> datetime | None:
-    if not value:
-        return None
-    try:
-        parsed = datetime.fromisoformat(value)
-    except ValueError:
-        return None
-    # Treat a naive stored timestamp as UTC rather than dropping the record;
-    # older writes (or a hand-edited store) shouldn't lose a whole session.
-    if parsed.tzinfo is None:
-        return parsed.replace(tzinfo=UTC)
-    return parsed
 
 
 @dataclass
@@ -200,13 +188,13 @@ class ChargingSession:
         """
 
         vin = data.get("vin")
-        start = _parse(data.get("start"))
+        start = parse_time(data.get("start"))
         if not vin or start is None:
             return None
         return cls(
             vin=vin,
             start=start,
-            end=_parse(data.get("end")),
+            end=parse_time(data.get("end")),
             soc_start=data.get("soc_start"),
             soc_end=data.get("soc_end"),
             target_soc=data.get("target_soc"),

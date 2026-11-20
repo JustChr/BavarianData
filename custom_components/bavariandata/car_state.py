@@ -28,6 +28,8 @@ import asyncio
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
+
+from .readings import parse_time
 from collections.abc import Callable
 
 from .history.energy_mix import MixAccumulator
@@ -72,6 +74,12 @@ class DescriptorState:
     # Came back from before a restart (an entity's last state), not from BMW in
     # this run. ``timestamp`` is still the time the car measured it.
     restored: bool = False
+
+    @property
+    def at(self) -> datetime | None:
+        """When the car measured it (``timestamp`` read by ``readings.parse_time``)."""
+
+        return parse_time(self.timestamp)
 
 
 @dataclass

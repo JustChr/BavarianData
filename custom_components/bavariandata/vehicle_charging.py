@@ -27,8 +27,8 @@ from typing import TYPE_CHECKING, Any, Protocol
 from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.event import async_call_later
-from homeassistant.util import dt as dt_util
 
+from .readings import parse_time
 from .car_signals import (
     CHARGE_CLOSE_DEBOUNCE_S,
     CHARGE_END_REASON_DESCRIPTORS,
@@ -102,9 +102,7 @@ def _snapshot_float(value: Any) -> float | None:
 def _snapshot_time(value: Any) -> datetime | None:
     """A timestamp out of a stored snapshot, or ``None`` if it is unusable."""
 
-    if not isinstance(value, str):
-        return None
-    return dt_util.parse_datetime(value)
+    return parse_time(value)
 
 
 def _charge_complete(soc: float | None, target: float | None) -> bool:
