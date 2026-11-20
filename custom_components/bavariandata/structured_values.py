@@ -39,7 +39,8 @@ the coordinator apply them.
 from __future__ import annotations
 
 import json
-from typing import Any, Mapping, Optional, Tuple, Union
+from typing import Any
+from collections.abc import Mapping
 
 ITEMS_ATTRIBUTE = "items"
 RESOLVED_ATTRIBUTE = "resolved"
@@ -53,10 +54,10 @@ EMPTY_WHEN_NULL: frozenset[str] = frozenset({CHECK_CONTROL})
 # How many resolved messages the attribute keeps, newest first.
 RESOLVED_LIMIT = 10
 
-Structure = Union[list[Any], dict[str, Any]]
+Structure = list[Any] | dict[str, Any]
 
 
-def structured_state(value: Any) -> Tuple[Any, Optional[Structure]]:
+def structured_state(value: Any) -> tuple[Any, Structure | None]:
     """Return ``(state, items)`` for a descriptor value.
 
     A list is shown as its length and exposed whole. A mapping has no count
@@ -88,7 +89,7 @@ def _decoded(value: Any) -> Any:
     return parsed if isinstance(parsed, (list, dict)) else value
 
 
-def restored_items(attributes: Optional[Mapping[str, Any]]) -> Optional[Structure]:
+def restored_items(attributes: Mapping[str, Any] | None) -> Structure | None:
     """The structure saved in a previous run's ``items`` attribute, if any."""
 
     if not attributes:
@@ -120,11 +121,11 @@ class MessageHistory:
     """
 
     def __init__(self) -> None:
-        self._shown: Optional[list[dict[str, Any]]] = None
-        self._shown_at: Optional[str] = None
+        self._shown: list[dict[str, Any]] | None = None
+        self._shown_at: str | None = None
         self.resolved: list[dict[str, Any]] = []
 
-    def restore(self, attributes: Optional[Mapping[str, Any]]) -> None:
+    def restore(self, attributes: Mapping[str, Any] | None) -> None:
         """Pick up where the previous run stopped: its list and its history."""
 
         if not attributes:
@@ -134,7 +135,7 @@ class MessageHistory:
             self._shown_at = attributes.get("timestamp")
         self.resolved = _messages(attributes.get(RESOLVED_ATTRIBUTE))[:RESOLVED_LIMIT]
 
-    def update(self, items: Any, reported_at: Optional[str], now: str) -> None:
+    def update(self, items: Any, reported_at: str | None, now: str) -> None:
         """Record the list now shown; ``items`` that are not a list are ignored."""
 
         if not isinstance(items, list):

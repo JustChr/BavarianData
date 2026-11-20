@@ -14,7 +14,7 @@ Assistant imports so they can be unit-tested.
 
 from __future__ import annotations
 
-from typing import Iterable, List, Optional
+from collections.abc import Iterable
 
 # Give the stream a head start: BMW often republishes the charging status soon
 # after a reconnect, which settles a restored charge for free. Well inside the
@@ -42,11 +42,11 @@ OUTAGE_CATCH_UP_AFTER_S = 5 * 60
 STARTUP_REFRESH_RESERVE = 10
 
 
-def _unique(values: Iterable[str]) -> List[str]:
+def _unique(values: Iterable[str]) -> list[str]:
     return list(dict.fromkeys(values))
 
 
-def last_fetch_at(*stamps: object) -> Optional[float]:
+def last_fetch_at(*stamps: object) -> float | None:
     """When BMW was last asked, from every stamp a fetch path leaves behind.
 
     The daily refresh and the services stamp ``last_telematic_poll``; a
@@ -68,10 +68,10 @@ def startup_refresh_vins(
     enabled: bool,
     vins: Iterable[str],
     unconfirmed: Iterable[str],
-    last_fetch_at: Optional[float],
+    last_fetch_at: float | None,
     now: float,
-    remaining: Optional[int],
-) -> List[str]:
+    remaining: int | None,
+) -> list[str]:
     """The cars to fetch after a start, most urgent first.
 
     Every car, unless BMW was asked within the last hour; even then, a car whose
@@ -95,7 +95,7 @@ def startup_refresh_vins(
     return chosen
 
 
-def outage_needs_catch_up(down_seconds: Optional[float]) -> bool:
+def outage_needs_catch_up(down_seconds: float | None) -> bool:
     """Whether a reconnect followed an outage long enough to have missed data."""
 
     return down_seconds is not None and down_seconds >= OUTAGE_CATCH_UP_AFTER_S

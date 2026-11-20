@@ -9,7 +9,8 @@ are a contract: the dashboard card and users' automations read them.
 
 from __future__ import annotations
 
-from typing import Any, Mapping, Optional
+from typing import Any
+from collections.abc import Mapping
 
 from .history.health import MIN_SAMPLES
 
@@ -71,7 +72,7 @@ def quota_attributes(quota: Any, prefix: str = "api_quota_") -> dict[str, Any]:
 
 def connection_attributes(
     debug_info: Mapping[str, Any],
-    last_disconnect_reason: Optional[str],
+    last_disconnect_reason: str | None,
     quota: Any,
     display_units: Mapping[str, Any],
     login_refused: bool = False,
@@ -131,7 +132,7 @@ def session_cost_attributes(session: Any) -> dict[str, Any]:
     return attrs
 
 
-def session_progress_attributes(soc_start: Optional[float], cost: Any, mix: Any) -> dict[str, Any]:
+def session_progress_attributes(soc_start: float | None, cost: Any, mix: Any) -> dict[str, Any]:
     """The charge in progress so far, beside its energy: what the card shows live.
 
     ``cost`` is the session's running ``CostAccumulator`` and ``mix`` its
@@ -188,7 +189,7 @@ def battery_health_state(health: Any) -> Any:
     return health.usable_kwh
 
 
-def battery_health_attributes(health: Any, trend: Optional[list[Any]]) -> dict[str, Any]:
+def battery_health_attributes(health: Any, trend: list[Any] | None) -> dict[str, Any]:
     attrs: dict[str, Any] = {
         "samples": health.samples,
         "samples_needed": MIN_SAMPLES,
@@ -241,7 +242,7 @@ def real_range_attributes(profile: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
-def outside_attributes(reading: Optional[Mapping[str, Any]]) -> dict[str, Any]:
+def outside_attributes(reading: Mapping[str, Any] | None) -> dict[str, Any]:
     """The day's outside temperature at the car, for the card's chart by
     temperature; nothing at all until there is one (route weather off)."""
 

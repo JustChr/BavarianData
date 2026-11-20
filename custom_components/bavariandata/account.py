@@ -6,7 +6,7 @@ import asyncio
 import inspect
 import logging
 import time
-from typing import Any, Dict, Optional
+from typing import Any
 
 import aiohttp
 from homeassistant.components import persistent_notification
@@ -121,7 +121,7 @@ class _ReauthHost:
         self.tokens = runtime.tokens
         self.refresh_wake = runtime.refresh_wake
 
-    async def start_reauth(self) -> Optional[str]:
+    async def start_reauth(self) -> str | None:
         result = await self._hass.config_entries.flow.async_init(
             DOMAIN,
             context={"source": SOURCE_REAUTH, "entry_id": self.entry_id},
@@ -234,7 +234,7 @@ class EntryHost:
         return self._entry.options
 
     @property
-    def quota_remaining(self) -> Optional[int]:
+    def quota_remaining(self) -> int | None:
         return self._quota.remaining if self._quota else None
 
     def update_data(self, **values: Any) -> None:
@@ -260,7 +260,7 @@ def _account(hass: HomeAssistant, entry: CardataConfigEntry) -> AccountRest:
     return AccountRest(EntryHost(hass, entry))
 
 
-def _loaded(hass: HomeAssistant, entry_id: str) -> Optional[CardataConfigEntry]:
+def _loaded(hass: HomeAssistant, entry_id: str) -> CardataConfigEntry | None:
     """The entry, if it exists and is set up."""
 
     entry = hass.config_entries.async_get_entry(entry_id)
@@ -333,7 +333,7 @@ async def async_perform_telematic_fetch(
     entry: CardataConfigEntry,
     runtime: CardataRuntimeData,
     *,
-    vin_override: Optional[str] = None,
+    vin_override: str | None = None,
     strict: bool = False,
 ) -> bool:
     """:meth:`AccountRest.refresh`; ``strict`` raises what it could not fetch."""
@@ -428,6 +428,6 @@ def async_store_vehicle_metadata(
     hass: HomeAssistant,
     entry: CardataConfigEntry,
     vin: str,
-    payload: Dict[str, Any],
+    payload: dict[str, Any],
 ) -> None:
     _account(hass, entry).store_vehicle_metadata(vin, payload)

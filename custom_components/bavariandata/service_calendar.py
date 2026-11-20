@@ -27,7 +27,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date, timedelta
-from typing import Any, Iterable, Optional
+from typing import Any
+from collections.abc import Iterable
 
 from .structured_values import structured_state
 
@@ -297,7 +298,7 @@ _THOUSANDS: dict[str, str] = {
 }
 
 
-def _lang(language: Optional[str]) -> str:
+def _lang(language: str | None) -> str:
     code = (language or "en")[:2].lower()
     return code if code in STRINGS else "en"
 
@@ -317,7 +318,7 @@ class ServiceEvent:
         return self.start + timedelta(days=1)
 
 
-def _due_month(value: Any) -> Optional[date]:
+def _due_month(value: Any) -> date | None:
     """The 1st of BMW's due month (``"2027-10"``, or a full date), else ``None``."""
 
     if not isinstance(value, str):
@@ -329,7 +330,7 @@ def _due_month(value: Any) -> Optional[date]:
         return None
 
 
-def _distance_km(value: Any) -> Optional[float]:
+def _distance_km(value: Any) -> float | None:
     """The distance left in km, from BMW's ``unitOfLengthRemaining`` (``"-"`` = none)."""
 
     if isinstance(value, bool):
@@ -341,7 +342,7 @@ def _distance_km(value: Any) -> Optional[float]:
     return km if km >= 0 else None
 
 
-def _text(value: Any) -> Optional[str]:
+def _text(value: Any) -> str | None:
     """BMW's text, or ``None`` for its ``"-"`` / empty placeholders."""
 
     if not isinstance(value, str):
@@ -350,7 +351,7 @@ def _text(value: Any) -> Optional[str]:
     return text if text and text != "-" else None
 
 
-def format_distance(km: float, language: Optional[str], *, miles: bool = False) -> str:
+def format_distance(km: float, language: str | None, *, miles: bool = False) -> str:
     """``12,000 km`` (or miles), grouped the way the language groups thousands."""
 
     value = km / KM_PER_MILE if miles else km
@@ -358,7 +359,7 @@ def format_distance(km: float, language: Optional[str], *, miles: bool = False) 
     return f"{grouped} {'mi' if miles else 'km'}"
 
 
-def format_month(day: date, language: Optional[str]) -> str:
+def format_month(day: date, language: str | None) -> str:
     lang = _lang(language)
     pattern = _MONTH_YEAR.get(lang, "{month} {year}")
     return pattern.format(month=MONTHS[lang][day.month - 1], year=day.year)
@@ -369,8 +370,8 @@ def service_events(
     *,
     vin: str,
     today: date,
-    km_per_day: Optional[float] = None,
-    language: Optional[str] = None,
+    km_per_day: float | None = None,
+    language: str | None = None,
     miles: bool = False,
 ) -> list[ServiceEvent]:
     """Turn BMW's service items into events, soonest first.
@@ -430,7 +431,7 @@ def service_events(
     return events
 
 
-def next_event(events: Iterable[ServiceEvent], today: date) -> Optional[ServiceEvent]:
+def next_event(events: Iterable[ServiceEvent], today: date) -> ServiceEvent | None:
     """The event happening today or the next one after it, as HA's state shows."""
 
     upcoming = [event for event in events if event.end > today]
@@ -438,12 +439,12 @@ def next_event(events: Iterable[ServiceEvent], today: date) -> Optional[ServiceE
 
 
 def lease_end_event(
-    allowance: Optional[dict[str, Any]],
+    allowance: dict[str, Any] | None,
     *,
     vin: str,
-    language: Optional[str] = None,
+    language: str | None = None,
     miles: bool = False,
-) -> Optional[ServiceEvent]:
+) -> ServiceEvent | None:
     """The hand-back day of a lease, from ``mileage.allowance_status``; else ``None``."""
 
     if not allowance or allowance.get("kind") != "lease":

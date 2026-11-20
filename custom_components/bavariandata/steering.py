@@ -18,14 +18,14 @@ Home Assistant-free so the matching is unit-tested.
 
 from __future__ import annotations
 
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 __all__ = ["steering_side"]
 
 _SIDES: dict[str, Literal["left", "right"]] = {"LL": "left", "RL": "right"}
 
 
-def steering_side(value: Any) -> Optional[Literal["left", "right"]]:
+def steering_side(value: Any) -> Literal["left", "right"] | None:
     """``"left"`` or ``"right"`` for basic data's ``steering``, else ``None``."""
 
     return _SIDES.get(value) if isinstance(value, str) else None

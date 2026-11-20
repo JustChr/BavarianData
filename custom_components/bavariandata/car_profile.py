@@ -20,7 +20,7 @@ from __future__ import annotations
 from collections import deque
 from datetime import datetime
 from statistics import median
-from typing import Any, Deque, Dict, Optional
+from typing import Any
 
 STREAM = "stream"
 REST = "rest"
@@ -50,7 +50,7 @@ MOSTLY_HEARTBEAT_SHARE = 0.8
 MIN_BURST_SIZE = 5
 
 
-def _median(samples: Any) -> Optional[float]:
+def _median(samples: Any) -> float | None:
     return round(median(samples), 1) if samples else None
 
 
@@ -65,20 +65,20 @@ class CarProfile:
         self._heartbeat = 0
         self._duplicate = 0
         # descriptor -> [stream arrivals, heartbeats among them]
-        self._repeats: Dict[str, list[int]] = {}
-        self._placeholders: Dict[str, int] = {}
-        self._stale: Dict[str, int] = {}
-        self._lags: Deque[float] = deque(maxlen=MAX_SAMPLES)
-        self._awake_gaps: Deque[float] = deque(maxlen=MAX_SAMPLES)
+        self._repeats: dict[str, list[int]] = {}
+        self._placeholders: dict[str, int] = {}
+        self._stale: dict[str, int] = {}
+        self._lags: deque[float] = deque(maxlen=MAX_SAMPLES)
+        self._awake_gaps: deque[float] = deque(maxlen=MAX_SAMPLES)
         self._sleeps = 0
-        self._last_stream_batch: Optional[datetime] = None
-        self._sizes: Deque[int] = deque(maxlen=MAX_SAMPLES)
+        self._last_stream_batch: datetime | None = None
+        self._sizes: deque[int] = deque(maxlen=MAX_SAMPLES)
         self._bursts = 0
         self._single_stamp_bursts = 0
-        self._last_odometer: Optional[float] = None
+        self._last_odometer: float | None = None
         self._moving_fixes = 0
-        self._step_km: Deque[float] = deque(maxlen=MAX_SAMPLES)
-        self._step_fixes: Deque[int] = deque(maxlen=MAX_SAMPLES)
+        self._step_km: deque[float] = deque(maxlen=MAX_SAMPLES)
+        self._step_fixes: deque[int] = deque(maxlen=MAX_SAMPLES)
         self._batch_size = 0
         self._batch_stamps: set[str] = set()
 
@@ -86,8 +86,8 @@ class CarProfile:
         self,
         descriptor: str,
         value: Any,
-        timestamp: Optional[str],
-        parsed_ts: Optional[datetime],
+        timestamp: str | None,
+        parsed_ts: datetime | None,
         previous: Any,
         now: datetime,
         source: str,
@@ -167,7 +167,7 @@ class CarProfile:
             self._moving_fixes = 0
         self._last_odometer = km
 
-    def soc_source(self, now: datetime) -> Optional[str]:
+    def soc_source(self, now: datetime) -> str | None:
         """``stream``, ``rest_only``, or None while it can't be told yet."""
 
         if self._soc[STREAM]:
@@ -177,7 +177,7 @@ class CarProfile:
             return "rest_only"
         return None
 
-    def drive_reporting(self) -> Optional[str]:
+    def drive_reporting(self) -> str | None:
         """``live``, ``end_of_trip``, or None while it can't be told yet."""
 
         if len(self._step_km) < MIN_STEPS_FOR_DRIVE_VERDICT:

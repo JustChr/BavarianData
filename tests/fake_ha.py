@@ -32,14 +32,13 @@ import os
 import sys
 import types
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from typing import Any, Callable, Optional
+from datetime import datetime, timedelta, UTC
+from typing import Any
+from collections.abc import Callable
 
 import pytest
 
 from .conftest import load_module
-
-UTC = timezone.utc
 
 
 class Clock:
@@ -109,7 +108,7 @@ class FakeHass:
             return self.entity_states[entity_id]
         return next((st for st in self._all_states("zone") if st.entity_id == entity_id), None)
 
-    def _all_states(self, domain: Optional[str] = None) -> list[Any]:
+    def _all_states(self, domain: str | None = None) -> list[Any]:
         if domain != "zone":
             return []
         return [
@@ -126,7 +125,7 @@ class FakeHass:
             for zone in self.zones
         ]
 
-    def _fire(self, event_type: str, data: Optional[dict] = None, **_kw) -> None:
+    def _fire(self, event_type: str, data: dict | None = None, **_kw) -> None:
         self.events.append((event_type, dict(data or {})))
 
     def async_create_task(self, coro, *_a, **_kw):
@@ -242,7 +241,7 @@ class _Store:
         self._hass.storage_writes += 1
 
 
-def _parse_datetime(value: str) -> Optional[datetime]:
+def _parse_datetime(value: str) -> datetime | None:
     try:
         parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
     except TypeError, ValueError:

@@ -12,8 +12,9 @@ a translated ``ServiceValidationError``.
 
 from __future__ import annotations
 
-from datetime import date, datetime, time as dt_time, timezone, tzinfo
-from typing import Any, Callable, Iterable, Mapping, Optional, cast
+from datetime import date, datetime, time as dt_time, tzinfo, UTC
+from typing import Any, cast
+from collections.abc import Callable, Iterable, Mapping
 
 from .descriptors import descriptors_for_sections
 from .evcc import ALL_TOPICS, evcc_yaml
@@ -23,7 +24,7 @@ from .refusal import Refusal
 from .stream_activation import DEFAULT_STREAM_ATTRIBUTES
 
 
-def as_limit(value: Any) -> Optional[int]:
+def as_limit(value: Any) -> int | None:
     """Coerce a service-call ``limit`` to an int (the number selector yields a
     float, which would break list slicing). Empty/garbage means no limit."""
 
@@ -38,10 +39,10 @@ def as_limit(value: Any) -> Optional[int]:
 def cardata_timestamp(value: datetime) -> str:
     """An aware datetime as the ISO 8601 UTC string BMW's REST API expects."""
 
-    return value.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return value.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def as_cardata_timestamp(value: Any, parsed: Optional[datetime], local_tz: Any) -> Optional[str]:
+def as_cardata_timestamp(value: Any, parsed: datetime | None, local_tz: Any) -> str | None:
     """Normalise a service-call date/time into BMW's ISO 8601 UTC format.
 
     ``parsed`` is ``value`` read as a datetime (``None`` if it is not one).
@@ -76,11 +77,11 @@ def day_bound(parsed: datetime | date, *, end_of_day: bool, local_tz: tzinfo) ->
             parsed, dt_time.max if end_of_day else dt_time.min, tzinfo=local_tz
         )
     if parsed.tzinfo is None:
-        return parsed.replace(tzinfo=timezone.utc)
-    return parsed.astimezone(timezone.utc)
+        return parsed.replace(tzinfo=UTC)
+    return parsed.astimezone(UTC)
 
 
-def bare_date(raw: str) -> Optional[date]:
+def bare_date(raw: str) -> date | None:
     """``raw`` as a date if it names a day and nothing more, else ``None``.
 
     Asked first, because Home Assistant's ``parse_datetime`` reads
@@ -96,11 +97,11 @@ def bare_date(raw: str) -> Optional[date]:
 
 def read_bound(
     raw: str,
-    parse_datetime: Callable[[str], Optional[datetime]],
+    parse_datetime: Callable[[str], datetime | None],
     *,
     end_of_day: bool,
     local_tz: tzinfo,
-) -> Optional[datetime]:
+) -> datetime | None:
     """A typed ``from``/``to`` as a UTC instant (``day_bound``), ``None`` if unreadable."""
 
     parsed: datetime | date | None = bare_date(raw) or parse_datetime(raw)
@@ -109,7 +110,7 @@ def read_bound(
     return day_bound(parsed, end_of_day=end_of_day, local_tz=local_tz)
 
 
-def month_arg(raw: Optional[str], today: date) -> tuple[int, int]:
+def month_arg(raw: str | None, today: date) -> tuple[int, int]:
     """Parse a 'YYYY-MM' argument, defaulting to ``today``'s (local) month.
 
     Local, not UTC: a month is what the user's calendar says it is.
@@ -130,20 +131,20 @@ def previous_month(year: int, month: int) -> tuple[int, int]:
     return (year - 1, 12) if month == 1 else (year, month - 1)
 
 
-def trip_vin(trip_id: str, vins: Iterable[str]) -> Optional[str]:
+def trip_vin(trip_id: str, vins: Iterable[str]) -> str | None:
     """The car a trip id names: it starts with its car's VIN."""
 
     return next((vin for vin in vins if trip_id.startswith(f"{vin}-")), None)
 
 
-def backfill_cost(pricing: Any) -> Callable[[Optional[float]], Optional[dict[str, Any]]]:
+def backfill_cost(pricing: Any) -> Callable[[float | None], dict[str, Any] | None]:
     """The cost an imported BMW session gets.
 
     Only for a fixed tariff: a dynamic tariff's historical prices can't be
     reconstructed after the fact.
     """
 
-    def cost(grid_kwh: Optional[float]) -> Optional[dict[str, Any]]:
+    def cost(grid_kwh: float | None) -> dict[str, Any] | None:
         if grid_kwh and pricing.mode == MODE_FIXED:
             return fixed_cost(grid_kwh, pricing.fixed_price, pricing.currency)
         return None
@@ -151,7 +152,7 @@ def backfill_cost(pricing: Any) -> Callable[[Optional[float]], Optional[dict[str
     return cost
 
 
-def window_holds(start: Optional[datetime], end: Optional[datetime], now: datetime) -> bool:
+def window_holds(start: datetime | None, end: datetime | None, now: datetime) -> bool:
     """Whether a ``from``/``to`` window contains *now*.
 
     A drive still under way belongs to whatever window contains now: asking for
@@ -163,7 +164,7 @@ def window_holds(start: Optional[datetime], end: Optional[datetime], now: dateti
     return (start is None or start <= now) and (end is None or now <= end)
 
 
-def export_stem(vin: Optional[str], label: str) -> str:
+def export_stem(vin: str | None, label: str) -> str:
     """A file name the user can find again after ten monthly exports."""
 
     return f"bavariandata-{(vin or 'vehicle').lower()}-{label}"
@@ -210,8 +211,8 @@ def evcc_config(
     config: Any,
     live: tuple[str, ...],
     mqtt_available: bool,
-    title: Optional[str],
-    capacity_kwh: Optional[float],
+    title: str | None,
+    capacity_kwh: float | None,
 ) -> dict[str, Any]:
     """The evcc ``custom`` vehicle block for a car, and the topics behind it.
 
@@ -240,7 +241,7 @@ def evcc_config(
 
 
 def activation_attributes(
-    data: Mapping[str, Any], stored_sections: Optional[Iterable[str]]
+    data: Mapping[str, Any], stored_sections: Iterable[str] | None
 ) -> list[str]:
     """What the portal is asked to stream.
 

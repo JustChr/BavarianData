@@ -12,8 +12,8 @@ owns one instance per VIN and decides what to feed it.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Any, Optional, Protocol
+from datetime import datetime, UTC
+from typing import Any, Protocol
 
 from .history.meter_reading import HOLD, RESET, judge
 
@@ -55,20 +55,20 @@ def is_charging_status(status: Any) -> bool:
 
 @dataclass
 class SocTracking:
-    energy_kwh: Optional[float] = None
-    max_energy_kwh: Optional[float] = None
-    last_update: Optional[datetime] = None
-    last_power_w: Optional[float] = None
-    last_power_time: Optional[datetime] = None
+    energy_kwh: float | None = None
+    max_energy_kwh: float | None = None
+    last_update: datetime | None = None
+    last_power_w: float | None = None
+    last_power_time: datetime | None = None
     charging_active: bool = False
-    last_soc_percent: Optional[float] = None
-    rate_per_hour: Optional[float] = None
-    estimated_percent: Optional[float] = None
-    last_estimate_time: Optional[datetime] = None
-    target_soc_percent: Optional[float] = None
+    last_soc_percent: float | None = None
+    rate_per_hour: float | None = None
+    estimated_percent: float | None = None
+    last_estimate_time: datetime | None = None
+    target_soc_percent: float | None = None
     # Last SoC seen while not charging -- the reference a new session is checked
     # against to tell whether it caught the whole charge.
-    soc_before_charge: Optional[float] = None
+    soc_before_charge: float | None = None
     # The charge was running when we last stopped, and the stream has not spoken
     # since. Keeps the *estimate* climbing across a restart -- BMW can stay silent
     # for hours mid-charge -- without claiming a live charge anywhere else:
@@ -77,34 +77,34 @@ class SocTracking:
     restored_charging: bool = False
     # Earliest moment the restored charge can have added anything, so an
     # extrapolation anchored on an older reading never reaches back past it.
-    charging_since: Optional[datetime] = None
+    charging_since: datetime | None = None
     # When a restored estimate was last true. It outranks an older restored
     # reading, which would otherwise rewind the estimate to the last SoC BMW
     # happened to send (see ``update_actual_soc``).
-    restored_estimate_at: Optional[datetime] = None
+    restored_estimate_at: datetime | None = None
     # BMW's timestamp on the SoC reading last taken, ``None`` when it had none;
     # a reading stamped no later is that one sent again (``update_actual_soc``).
-    last_reading_stamp: Optional[datetime] = None
+    last_reading_stamp: datetime | None = None
     # The bound wallbox meter, while it drives the estimate (``follow_meter``).
     # ``meter_kwh`` is the reading the current estimate already accounts for,
     # ``meter_at`` when it was last accepted, ``meter_model`` what turns its
     # kWh into points (``history.meter_rate.MeterRate``) -- ``None`` whenever
     # the stream's power drives instead.
-    meter_kwh: Optional[float] = None
-    meter_at: Optional[datetime] = None
+    meter_kwh: float | None = None
+    meter_at: datetime | None = None
     # A reading below ``meter_kwh`` not yet known to be a glitch or a reset
     # (``history.meter_reading``), and when it was first seen.
-    meter_dip: Optional[float] = None
-    meter_dip_at: Optional[datetime] = None
-    meter_model: Optional[MeterModel] = None
+    meter_dip: float | None = None
+    meter_dip_at: datetime | None = None
+    meter_model: MeterModel | None = None
     # The charging rate as the meter measures it (``_note_meter_rate``);
     # ``None`` until enough time is covered, and the stream's rate is shown
     # meanwhile.
-    meter_rate_per_hour: Optional[float] = None
+    meter_rate_per_hour: float | None = None
     meter_window_points: float = 0.0
     meter_window_hours: float = 0.0
 
-    def update_max_energy(self, value: Optional[float]) -> None:
+    def update_max_energy(self, value: float | None) -> None:
         if value is None:
             return
         self.max_energy_kwh = value
@@ -113,7 +113,7 @@ class SocTracking:
         self._recalculate_rate()
 
     def update_actual_soc(
-        self, percent: float, timestamp: Optional[datetime], *, restored: bool = False
+        self, percent: float, timestamp: datetime | None, *, restored: bool = False
     ) -> None:
         if not 0.0 <= percent <= 100.0:
             # Not a state of charge: a sentinel or a corrupt value. The raw
@@ -133,7 +133,7 @@ class SocTracking:
             # missing one and can't be ordered against them.
             return
         self.last_reading_stamp = timestamp
-        ts = timestamp or datetime.now(timezone.utc)
+        ts = timestamp or datetime.now(UTC)
         # Remember the last reading taken while the car was *not* charging. A
         # session that opens well above it caught only part of a charge already
         # under way (see ``sessions._is_late_start``); it is never used to
@@ -160,7 +160,7 @@ class SocTracking:
         self.meter_dip_at = None
 
     def adopt_estimate(
-        self, percent: float, at: datetime, *, meter_kwh: Optional[float] = None
+        self, percent: float, at: datetime, *, meter_kwh: float | None = None
     ) -> bool:
         """Take a restored estimate as the anchor, unless a reading is newer.
 
@@ -183,7 +183,7 @@ class SocTracking:
         return True
 
     def follow_meter(
-        self, meter_kwh: Optional[float], model: Optional[MeterModel], now: datetime
+        self, meter_kwh: float | None, model: MeterModel | None, now: datetime
     ) -> None:
         """Drive the estimate from the wallbox meter, or hand it back to the stream.
 
@@ -265,7 +265,7 @@ class SocTracking:
             self.meter_rate_per_hour = 0.0
             self._reset_meter_window(now)
 
-    def _reset_meter_window(self, now: Optional[datetime]) -> None:
+    def _reset_meter_window(self, now: datetime | None) -> None:
         self.meter_window_points = 0.0
         self.meter_window_hours = 0.0
         if now is None:
@@ -289,10 +289,10 @@ class SocTracking:
         self.meter_window_points = 0.0
         self.meter_window_hours = 0.0
 
-    def update_power(self, power_w: Optional[float], timestamp: Optional[datetime]) -> None:
+    def update_power(self, power_w: float | None, timestamp: datetime | None) -> None:
         if power_w is None:
             return
-        target_time = timestamp or datetime.now(timezone.utc)
+        target_time = timestamp or datetime.now(UTC)
         # Advance the running estimate to the moment this power sample was taken
         # so the previous charging rate is accounted for before we swap in the
         # new value.
@@ -301,7 +301,7 @@ class SocTracking:
         self.last_power_time = target_time
         self._recalculate_rate()
 
-    def update_status(self, status: Optional[str]) -> None:
+    def update_status(self, status: str | None) -> None:
         if status is None:
             return
         self.charging_active = is_charging_status(status)
@@ -310,7 +310,7 @@ class SocTracking:
         self.charging_since = None
         self._recalculate_rate()
 
-    def restore_status(self, status: Optional[str], since: Optional[datetime]) -> None:
+    def restore_status(self, status: str | None, since: datetime | None) -> None:
         """Take a charging status restored across a restart.
 
         Only the estimate believes it (``restored_charging``); ``charging_active``
@@ -324,9 +324,7 @@ class SocTracking:
         self.charging_since = since if self.restored_charging else None
         self._recalculate_rate()
 
-    def update_target_soc(
-        self, percent: Optional[float], timestamp: Optional[datetime] = None
-    ) -> None:
+    def update_target_soc(self, percent: float | None, timestamp: datetime | None = None) -> None:
         if percent is None:
             self.target_soc_percent = None
             return
@@ -338,9 +336,9 @@ class SocTracking:
             and self.estimated_percent > percent
         ):
             self.estimated_percent = percent
-            self.last_estimate_time = timestamp or datetime.now(timezone.utc)
+            self.last_estimate_time = timestamp or datetime.now(UTC)
 
-    def estimate(self, now: datetime) -> Optional[float]:
+    def estimate(self, now: datetime) -> float | None:
         if self.estimated_percent is None:
             base = self.last_soc_percent
             if base is None:
@@ -383,7 +381,7 @@ class SocTracking:
         self.last_estimate_time = now
         return self.estimated_percent
 
-    def current_rate_per_hour(self) -> Optional[float]:
+    def current_rate_per_hour(self) -> float | None:
         if not self._extrapolating():
             return None
         if self.meter_model is not None and self.meter_rate_per_hour is not None:
@@ -391,7 +389,7 @@ class SocTracking:
             return self.meter_rate_per_hour
         return self.rate_per_hour
 
-    def minutes_to_target(self) -> Optional[float]:
+    def minutes_to_target(self) -> float | None:
         """Minutes until the estimate reaches the charge target, or ``None``.
 
         Only while the wallbox meter drives the estimate, so only at home: the

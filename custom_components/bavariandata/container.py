@@ -6,7 +6,8 @@ import asyncio
 import logging
 import hashlib
 from dataclasses import dataclass
-from typing import Any, Dict, Iterable, List, Optional, cast
+from typing import Any, cast
+from collections.abc import Iterable
 
 from .api import CardataApiError, async_request_json
 from .const import (
@@ -25,7 +26,7 @@ class CardataContainerError(Exception):
     """Raised when BMW CarData container management fails."""
 
     def __init__(
-        self, message: str, *, status: Optional[int] = None, error_id: Optional[str] = None
+        self, message: str, *, status: int | None = None, error_id: str | None = None
     ) -> None:
         super().__init__(message)
         self.status = status
@@ -95,19 +96,19 @@ class CardataContainerManager:
         *,
         rest: RestGateway,
         entry_id: str,
-        initial_container_id: Optional[str] = None,
+        initial_container_id: str | None = None,
         kind: ContainerKind = FULL,
     ) -> None:
         self._rest = rest
         self._entry_id = entry_id
         self.kind = kind
-        self._container_id: Optional[str] = initial_container_id
+        self._container_id: str | None = initial_container_id
         self._lock = asyncio.Lock()
         self._desired_descriptors = kind.descriptors
         self._descriptor_signature = self.compute_signature(kind.descriptors)
 
     @property
-    def container_id(self) -> Optional[str]:
+    def container_id(self) -> str | None:
         """Return the currently known container identifier."""
 
         return self._container_id
@@ -126,7 +127,7 @@ class CardataContainerManager:
         joined = "|".join(normalized)
         return hashlib.sha1(joined.encode("utf-8")).hexdigest()
 
-    def sync_from_entry(self, container_id: Optional[str]) -> None:
+    def sync_from_entry(self, container_id: str | None) -> None:
         """Synchronize the known container id with stored config data."""
 
         self._container_id = container_id
@@ -193,13 +194,13 @@ class CardataContainerManager:
             await self._delete_own(containers, keep=new_id)
             return new_id
 
-    async def _delete_own(self, containers: List[Dict[str, Any]], *, keep: Optional[str]) -> None:
+    async def _delete_own(self, containers: list[dict[str, Any]], *, keep: str | None) -> None:
         """Delete the integration's containers in ``containers``, except ``keep``.
 
         One that cannot be deleted is logged and skipped; the rest still go.
         """
 
-        deleted_ids: List[str] = []
+        deleted_ids: list[str] = []
         for container in containers:
             container_id = container.get("containerId")
             if not isinstance(container_id, str) or container_id == keep:
@@ -243,7 +244,7 @@ class CardataContainerManager:
             raise CardataContainerError("Container creation response missing containerId")
         return cast(str, container_id)
 
-    async def _list_containers(self) -> List[Dict[str, Any]]:
+    async def _list_containers(self) -> list[dict[str, Any]]:
         response = await self._request("GET", "/customers/containers")
         if isinstance(response, list):
             containers = [item for item in response if isinstance(item, dict)]
@@ -257,7 +258,7 @@ class CardataContainerManager:
             containers = []
         return containers
 
-    def _matches_hv_container(self, container: Dict[str, Any]) -> bool:
+    def _matches_hv_container(self, container: dict[str, Any]) -> bool:
         if not isinstance(container, dict):
             return False
         purpose = container.get("purpose")
@@ -295,7 +296,7 @@ class CardataContainerManager:
         method: str,
         path: str,
         *,
-        json_body: Optional[Dict[str, Any]] = None,
+        json_body: dict[str, Any] | None = None,
     ) -> Any:
         async def send(session: Any, access_token: str) -> Any:
             if debug_enabled():

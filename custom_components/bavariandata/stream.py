@@ -10,7 +10,8 @@ import random
 import ssl
 import threading
 import time
-from typing import Any, Awaitable, Callable, Coroutine, Optional, Protocol
+from typing import Any, Protocol
+from collections.abc import Awaitable, Callable, Coroutine
 
 # ``paho-mqtt`` stays declared in ``manifest.json`` even though Home Assistant
 # also ships it for its own ``mqtt`` integration. The official container image
@@ -41,9 +42,7 @@ MessageCallback = Callable[[dict[str, Any]], Coroutine[Any, Any, None]]
 class StatusCallback(Protocol):
     """``coordinator.async_handle_connection_event``: a status and, for a drop, why."""
 
-    def __call__(
-        self, status: str, *, reason: Optional[str] = None
-    ) -> Coroutine[Any, Any, None]: ...
+    def __call__(self, status: str, *, reason: str | None = None) -> Coroutine[Any, Any, None]: ...
 
 
 # BMW's MQTTv3 CONNACK/DISCONNECT numeric codes are surfaced by paho 2.x's
@@ -93,7 +92,7 @@ class CardataStreamManager:
         port: int,
         keepalive: int,
         config_entry: ConfigEntry,
-        error_callback: Optional[Callable[[str], Awaitable[None]]] = None,
+        error_callback: Callable[[str], Awaitable[None]] | None = None,
     ) -> None:
         self.hass = hass
         self._config_entry = config_entry
@@ -103,15 +102,15 @@ class CardataStreamManager:
         self._host = host
         self._port = port
         self._keepalive = keepalive
-        self._client: Optional[mqtt.Client] = None
-        self._message_callback: Optional[MessageCallback] = None
+        self._client: mqtt.Client | None = None
+        self._message_callback: MessageCallback | None = None
         self._error_callback = error_callback
         self._reauth_notified = False
         self._unauthorized_retry_in_progress = False
         self._awaiting_new_credentials = False
         # The retry while another client holds the stream (``HELD_RETRY_S``).
-        self._held_retry_task: Optional[asyncio.Task[Any]] = None
-        self._status_callback: Optional[StatusCallback] = None
+        self._held_retry_task: asyncio.Task[Any] | None = None
+        self._status_callback: StatusCallback | None = None
         # Retry delays: equal jitter on a ceiling that doubles per failed attempt
         # from _min_reconnect_interval up to _max_backoff. The attempt count only
         # starts over once a connection has stayed up for _stable_after seconds.
@@ -121,10 +120,10 @@ class CardataStreamManager:
         self._connect_failures = 0
         self._max_backoff = 120.0
         self._stable_after = 60.0
-        self._connected_at: Optional[float] = None
-        self._last_disconnect: Optional[float] = None
-        self._disconnect_future: Optional[asyncio.Future[None]] = None
-        self._retry_task: Optional[asyncio.Task[Any]] = None
+        self._connected_at: float | None = None
+        self._last_disconnect: float | None = None
+        self._disconnect_future: asyncio.Future[None] | None = None
+        self._retry_task: asyncio.Task[Any] | None = None
         # Bumped by every stop. A retry scheduled before a stop must not outlive
         # it, or a reload would end up with two streams for one account.
         self._stop_generation = 0
@@ -182,7 +181,7 @@ class CardataStreamManager:
             await self._async_start_locked()
 
     async def _async_stop_locked(self) -> None:
-        disconnect_future: Optional[asyncio.Future[None]] = None
+        disconnect_future: asyncio.Future[None] | None = None
         client = self._client
         self._client = None
         if client is not None:
@@ -200,7 +199,7 @@ class CardataStreamManager:
             if disconnect_future is not None:
                 try:
                     await asyncio.wait_for(disconnect_future, timeout=5)
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     if debug_enabled():
                         _LOGGER.debug("Timeout waiting for BMW MQTT disconnect acknowledgement")
                 finally:
@@ -215,7 +214,7 @@ class CardataStreamManager:
         self._cancel_retry()
 
     @property
-    def client(self) -> Optional[mqtt.Client]:
+    def client(self) -> mqtt.Client | None:
         return self._client
 
     def set_message_callback(self, callback: MessageCallback) -> None:
@@ -224,7 +223,7 @@ class CardataStreamManager:
     def set_status_callback(self, callback: StatusCallback) -> None:
         self._status_callback = callback
 
-    def _run_coro(self, coro: Coroutine[Any, Any, Any]) -> "concurrent.futures.Future[Any]":
+    def _run_coro(self, coro: Coroutine[Any, Any, Any]) -> concurrent.futures.Future[Any]:
         """Schedule a coroutine from the MQTT thread and log any exception.
 
         paho's callbacks run on its own network thread, so everything that
@@ -320,7 +319,7 @@ class CardataStreamManager:
         userdata: Any,
         flags: mqtt.ConnectFlags,
         reason_code: ReasonCode,
-        properties: Optional[Properties] = None,
+        properties: Properties | None = None,
     ) -> None:
         if reason_code == 0:
             topic = userdata.get("topic")
@@ -396,7 +395,7 @@ class CardataStreamManager:
         userdata: Any,
         mid: int,
         reason_code_list: list[ReasonCode],
-        properties: Optional[Properties] = None,
+        properties: Properties | None = None,
     ) -> None:
         if debug_enabled():
             _LOGGER.debug("BMW MQTT subscribed mid=%s qos=%s", mid, reason_code_list)
@@ -420,7 +419,7 @@ class CardataStreamManager:
         userdata: Any,
         disconnect_flags: mqtt.DisconnectFlags,
         reason_code: ReasonCode,
-        properties: Optional[Properties] = None,
+        properties: Properties | None = None,
     ) -> None:
         reason = str(reason_code)
         is_clean = reason_code == 0
@@ -464,7 +463,7 @@ class CardataStreamManager:
             if self._status_callback:
                 self._run_coro(self._status_callback("disconnected", reason=reason))
 
-    async def _async_reconnect(self, client: Optional[mqtt.Client]) -> None:
+    async def _async_reconnect(self, client: mqtt.Client | None) -> None:
         """Recover from ``client`` losing its connection."""
 
         async with self._connect_lock:
@@ -558,8 +557,8 @@ class CardataStreamManager:
     async def async_update_credentials(
         self,
         *,
-        gcid: Optional[str] = None,
-        id_token: Optional[str] = None,
+        gcid: str | None = None,
+        id_token: str | None = None,
     ) -> None:
         if not gcid and not id_token:
             return
@@ -596,7 +595,7 @@ class CardataStreamManager:
             except Exception as err:
                 self._connect_failed(err)
 
-    async def async_update_token(self, id_token: Optional[str]) -> None:
+    async def async_update_token(self, id_token: str | None) -> None:
         await self.async_update_credentials(id_token=id_token)
 
     def _cancel_retry(self) -> None:
@@ -646,7 +645,7 @@ class CardataStreamManager:
             if self._disconnect_future is not None and not self._disconnect_future.done():
                 try:
                     await asyncio.wait_for(self._disconnect_future, timeout=10)
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     if debug_enabled():
                         _LOGGER.debug(
                             "Timed out waiting for previous BMW MQTT disconnect before retry"

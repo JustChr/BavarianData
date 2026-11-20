@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import csv
 import io
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, UTC
 
 from .conftest import load_module
 
@@ -26,11 +26,11 @@ Trip = trips_mod.Trip
 place = trips_mod.place
 
 # 10:30 UTC on a Monday: deliberately mid-hour, so a spread has to split.
-START = datetime(2026, 7, 6, 10, 30, tzinfo=timezone.utc)
+START = datetime(2026, 7, 6, 10, 30, tzinfo=UTC)
 
 
 def _hour(h: int, day: int = 6) -> datetime:
-    return datetime(2026, 7, day, h, 0, tzinfo=timezone.utc)
+    return datetime(2026, 7, day, h, 0, tzinfo=UTC)
 
 
 def _session(**overrides) -> ChargingSession:

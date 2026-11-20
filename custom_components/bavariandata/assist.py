@@ -17,7 +17,8 @@ unit-tested directly (``tests/test_assist.py``).
 from __future__ import annotations
 
 import re
-from typing import Any, Iterable, Mapping, Optional, Sequence
+from typing import Any
+from collections.abc import Iterable, Mapping, Sequence
 
 __all__ = [
     "KM_PER_MILE",
@@ -75,7 +76,7 @@ def scrub(value: Any) -> Any:
     return value
 
 
-def _mile_key(key: str) -> tuple[str, Optional[float]]:
+def _mile_key(key: str) -> tuple[str, float | None]:
     """The miles name of a distance key, and the factor its value takes.
 
     ``kwh_per_100km`` and ``cost_per_100km`` grow (more per longer unit);
@@ -130,7 +131,7 @@ _ROWS = {"row1": "front", "row2": "rear", "row3": "third-row"}
 _SIDES = {"driver": "driver", "passenger": "passenger"}
 
 
-def _flag(value: Any) -> Optional[bool]:
+def _flag(value: Any) -> bool | None:
     if isinstance(value, bool):
         return value
     text = str(value).strip().lower()
@@ -156,7 +157,7 @@ def _place(descriptor: str) -> str:
     )
 
 
-def _open_item(descriptor: str, value: Any) -> Optional[str]:
+def _open_item(descriptor: str, value: Any) -> str | None:
     """What is open or unlocked according to one reading, or ``None``."""
 
     if descriptor.endswith(".isLocked"):
@@ -210,7 +211,7 @@ def open_items(readings: Mapping[str, Any]) -> list[str]:
 # --- Answers ---------------------------------------------------------------
 
 
-def _number(value: Any, digits: int = 0) -> Optional[float]:
+def _number(value: Any, digits: int = 0) -> float | None:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return None
     return round(float(value), digits) if digits else round(float(value))
@@ -220,10 +221,10 @@ def ranges(
     *,
     hybrid: bool,
     combustion: bool,
-    electric_km: Optional[float],
-    car_electric_km: Optional[float],
-    car_total_km: Optional[float],
-) -> tuple[Optional[float], Optional[float]]:
+    electric_km: float | None,
+    car_electric_km: float | None,
+    car_total_km: float | None,
+) -> tuple[float | None, float | None]:
     """The electric range and the fuel range left, each ``None`` when unknown.
 
     ``electric_km`` is the range the tools quote for the battery (measured
@@ -246,7 +247,7 @@ def ranges(
     return electric, total - battery
 
 
-def _plain(value: Optional[float]) -> Optional[float]:
+def _plain(value: float | None) -> float | None:
     """A reading that can be a range: a number, not below zero."""
 
     if isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0:
@@ -257,22 +258,22 @@ def _plain(value: Optional[float]) -> Optional[float]:
 def status_answer(
     *,
     name: str,
-    soc: Optional[float],
-    charging: Optional[bool],
-    plugged: Optional[bool],
-    target_soc: Optional[float],
-    charge_power_kw: Optional[float],
-    minutes_to_target: Optional[int],
-    range_km: Optional[float],
-    bmw_range_km: Optional[float],
-    odometer_km: Optional[float],
-    zone: Optional[str],
+    soc: float | None,
+    charging: bool | None,
+    plugged: bool | None,
+    target_soc: float | None,
+    charge_power_kw: float | None,
+    minutes_to_target: int | None,
+    range_km: float | None,
+    bmw_range_km: float | None,
+    odometer_km: float | None,
+    zone: str | None,
     has_position: bool,
     trip_in_progress: bool,
     open_now: Sequence[str],
-    soc_updated: Optional[str],
-    fuel_range_km: Optional[float] = None,
-    fuel_percent: Optional[float] = None,
+    soc_updated: str | None,
+    fuel_range_km: float | None = None,
+    fuel_percent: float | None = None,
 ) -> dict[str, Any]:
     """The car as it is now. ``None`` fields are dropped: unknown, not zero.
 
@@ -282,7 +283,7 @@ def status_answer(
     """
 
     if zone:
-        location: Optional[str] = zone
+        location: str | None = zone
     elif has_position:
         location = "not in any zone"
     else:
@@ -307,8 +308,8 @@ def status_answer(
 
 
 def _range_fields(
-    electric_km: Optional[float], car_electric_km: Optional[float], fuel_km: Optional[float]
-) -> dict[str, Optional[float]]:
+    electric_km: float | None, car_electric_km: float | None, fuel_km: float | None
+) -> dict[str, float | None]:
     if fuel_km is None:
         return {"range_km": _number(electric_km), "range_shown_by_car_km": _number(car_electric_km)}
     return {
@@ -323,10 +324,10 @@ def range_check(
     distance_km: float,
     *,
     round_trip: bool,
-    range_km: Optional[float],
-    full_range_km: Optional[float],
-    soc: Optional[float],
-    fuel_range_km: Optional[float] = None,
+    range_km: float | None,
+    full_range_km: float | None,
+    soc: float | None,
+    fuel_range_km: float | None = None,
 ) -> dict[str, Any]:
     """Whether a drive fits the range left, with a reserve.
 
@@ -371,7 +372,7 @@ def _verdict(left: float, reserve: float) -> str:
 
 
 def _range_check_with_fuel(
-    needed: float, electric_km: Optional[float], fuel_km: float
+    needed: float, electric_km: float | None, fuel_km: float
 ) -> dict[str, Any]:
     total = (electric_km or 0.0) + fuel_km
     left = total - needed

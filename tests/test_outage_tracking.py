@@ -9,12 +9,12 @@ its first drop. ``stream_health.py`` decides all of it, and the two repairs.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, UTC
 
 from .conftest import load_module
 
 stream_health = load_module("stream_health")
-T0 = datetime(2026, 9, 26, 12, 0, tzinfo=timezone.utc)
+T0 = datetime(2026, 9, 26, 12, 0, tzinfo=UTC)
 
 
 def _at(minute: float) -> datetime:

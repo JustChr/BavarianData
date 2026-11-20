@@ -14,8 +14,9 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any, Mapping, Optional, Protocol, cast
+from datetime import datetime, UTC
+from typing import TYPE_CHECKING, Any, Protocol, cast
+from collections.abc import Mapping
 
 from .api import (
     CardataApiError,
@@ -74,7 +75,7 @@ class AccountHost(Protocol):
         """The entry's options."""
 
     @property
-    def quota_remaining(self) -> Optional[int]:
+    def quota_remaining(self) -> int | None:
         """Requests left today (BMW's day, reset at 00:00 UTC), if known."""
 
     def update_data(self, **values: Any) -> None:
@@ -90,7 +91,7 @@ class AccountHost(Protocol):
         """Tell the diagnostics sensors that BMW was asked."""
 
 
-def seconds_until_poll(last_poll: Optional[float], now: float) -> float:
+def seconds_until_poll(last_poll: float | None, now: float) -> float:
     """How long until the daily refresh is due; zero or less means now."""
 
     return TELEMATIC_POLL_INTERVAL - (now - (last_poll or 0.0))
@@ -139,7 +140,7 @@ class AccountRest:
 
     # -- containers -----------------------------------------------------------
 
-    async def container_id(self, kind: ContainerKind = FULL) -> Optional[str]:
+    async def container_id(self, kind: ContainerKind = FULL) -> str | None:
         """The entry's container of ``kind``, created -- or replaced -- first if need be.
 
         Replaced when the integration now wants a different descriptor set than
@@ -255,10 +256,10 @@ class AccountRest:
 
         host = self._host
         coordinator = host.coordinator
-        container_ids: dict[str, Optional[str]] = {}
+        container_ids: dict[str, str | None] = {}
         failures: list[str] = []
 
-        async def container_id(kind: ContainerKind) -> Optional[str]:
+        async def container_id(kind: ContainerKind) -> str | None:
             if kind.key not in container_ids:
                 container_ids[kind.key] = await self.container_id(kind)
             return container_ids[kind.key]
@@ -313,7 +314,7 @@ class AccountRest:
                 break
 
         if attempted:
-            coordinator.last_telematic_api_at = datetime.now(timezone.utc)
+            coordinator.last_telematic_api_at = datetime.now(UTC)
             host.diagnostics_changed()
         if strict and failures:
             raise FetchFailed("fetch_incomplete", service=label, error="; ".join(failures))
@@ -396,7 +397,7 @@ class AccountRest:
             refreshed = True
         return refreshed
 
-    async def refresh(self, *, vin: Optional[str] = None, strict: bool = False) -> bool:
+    async def refresh(self, *, vin: str | None = None, strict: bool = False) -> bool:
         """Fetch the containers of one car, or of every car of the account.
 
         One account can hold several cars and the container endpoint is per VIN,

@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import timedelta
-from typing import Any, Optional
+from typing import Any
 
 import voluptuous as vol
 
@@ -161,7 +161,7 @@ class _CarTool(llm.Tool):
         return dict(response or {})
 
 
-def _range(car: _Car) -> tuple[Optional[float], Optional[float]]:
+def _range(car: _Car) -> tuple[float | None, float | None]:
     """The range left and a full battery's range, measured first, then BMW's."""
 
     coordinator = car.runtime.coordinator
@@ -173,9 +173,7 @@ def _range(car: _Car) -> tuple[Optional[float], Optional[float]]:
     return (now if now is not None else coordinator.bmw_range_km(car.vin)), full
 
 
-def _split_range(
-    car: _Car, electric_km: Optional[float]
-) -> tuple[Optional[float], Optional[float]]:
+def _split_range(car: _Car, electric_km: float | None) -> tuple[float | None, float | None]:
     """The electric and the fuel range left (``assist.ranges``)."""
 
     coordinator = car.runtime.coordinator

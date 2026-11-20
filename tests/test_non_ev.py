@@ -9,7 +9,7 @@ fixtures below use its descriptors.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, UTC
 from types import SimpleNamespace
 
 from .conftest import load_module
@@ -34,7 +34,7 @@ M2_SEEN = {FUEL, EV_TARGET, DOOR}
 I5_SEEN = {HV_SOC, EV_TARGET, DOOR}
 PHEV_SEEN = {HV_SOC, FUEL_LEVEL, DOOR}
 
-START = datetime(2026, 9, 1, 8, 0, tzinfo=timezone.utc)
+START = datetime(2026, 9, 1, 8, 0, tzinfo=UTC)
 PETROL_VIN = "WBSPETROL00000001"
 EV_VIN = "WBYELECTRIC000001"
 
@@ -161,9 +161,9 @@ def test_basic_data_names_the_drivetrain():
 
 
 def test_a_conv_car_has_no_battery_clusters_to_miss():
-    from datetime import datetime, timedelta, timezone
+    from datetime import datetime, timedelta
 
-    now = datetime(2026, 10, 18, tzinfo=timezone.utc)
+    now = datetime(2026, 10, 18, tzinfo=UTC)
     report = coverage.analyze_coverage(
         vin=PETROL_VIN,
         expected_by_section={"electric": [HV_SOC], "status": [DOOR]},

@@ -26,8 +26,9 @@ few HA helpers the other engines do, so it runs under ``tests/fake_ha.py``.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta, timezone
-from typing import TYPE_CHECKING, Any, Callable, Optional, Protocol, Sequence
+from datetime import datetime, timedelta, UTC
+from typing import TYPE_CHECKING, Any, Protocol
+from collections.abc import Callable, Sequence
 
 from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import async_dispatcher_send
@@ -57,7 +58,7 @@ RETRY_S = 900
 # A trip is left to its own lookup this long before the backfill takes it.
 BACKFILL_AFTER = timedelta(minutes=30)
 # Open-Meteo's archive of past forecasts reaches back to 2022; older trips stay empty.
-BACKFILL_OLDEST = datetime(2022, 1, 1, tzinfo=timezone.utc)
+BACKFILL_OLDEST = datetime(2022, 1, 1, tzinfo=UTC)
 # Trips one backfill pass asks for, and the pause before the next pass.
 BACKFILL_BATCH = 10
 BACKFILL_PAUSE_S = 120
@@ -71,8 +72,8 @@ class WeatherHost(Protocol):
     """What the weather lookup reads and does, from the coordinator."""
 
     hass: HomeAssistant
-    history: Optional[HistoryStore]
-    route_weather: Optional[RouteWeather]
+    history: HistoryStore | None
+    route_weather: RouteWeather | None
 
     @property
     def signal_trips(self) -> str: ...
@@ -83,8 +84,8 @@ class WeatherHost(Protocol):
     def _car(self, vin: str) -> Vehicle: ...
     def _peek(self, vin: str) -> Vehicle: ...
     def _vins_where(self, test: Callable[[Vehicle], Any]) -> list[str]: ...
-    def _zone_location(self, name: str) -> Optional[tuple[float, float]]: ...
-    def _home_location(self) -> Optional[tuple[float, float]]: ...
+    def _zone_location(self, name: str) -> tuple[float, float] | None: ...
+    def _home_location(self) -> tuple[float, float] | None: ...
 
 
 class TripWeather:
@@ -92,8 +93,8 @@ class TripWeather:
 
     def __init__(self, host: WeatherHost) -> None:
         self._host = host
-        self._backfill_timer: Optional[Any] = None
-        self._day_timer: Optional[Any] = None
+        self._backfill_timer: Any | None = None
+        self._day_timer: Any | None = None
 
     @property
     def enabled(self) -> bool:
@@ -110,8 +111,8 @@ class TripWeather:
         if sampler is not None:
             sampler.add(latitude, longitude, at)
 
-    def take_waypoints(self, vin: str) -> Optional[WaypointSampler]:
-        sampler: Optional[WaypointSampler] = self._host._peek(vin).trip.take("waypoints")
+    def take_waypoints(self, vin: str) -> WaypointSampler | None:
+        sampler: WaypointSampler | None = self._host._peek(vin).trip.take("waypoints")
         return sampler
 
     # --- after the close ------------------------------------------------------
@@ -120,8 +121,8 @@ class TripWeather:
         self,
         vin: str,
         trip: Trip,
-        sampler: Optional[WaypointSampler],
-        end: Optional[tuple[float, float]],
+        sampler: WaypointSampler | None,
+        end: tuple[float, float] | None,
     ) -> None:
         """Look the weather up for a trip just stored, from its own waypoints."""
 
@@ -149,7 +150,7 @@ class TripWeather:
         client = self._host.route_weather
         if client is None or not client.enabled:
             return False
-        weather = await client.lookup(points, start, source=source, now=datetime.now(timezone.utc))
+        weather = await client.lookup(points, start, source=source, now=datetime.now(UTC))
         if weather is None:
             if retry:
                 held = list(points)
@@ -237,7 +238,7 @@ class TripWeather:
 
         if not self.enabled:
             return 0
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         waiting = self._waiting(now)
         done = asked = 0
         for trip in waiting:
@@ -281,7 +282,7 @@ class TripWeather:
         client = self._host.route_weather
         if client is None or not client.enabled:
             return 0
-        today = dt_util.as_local(datetime.now(timezone.utc)).date()
+        today = dt_util.as_local(datetime.now(UTC)).date()
         done = 0
         for vin in self._host._vins_where(lambda car: True):
             car = self._host._peek(vin)

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
-from typing import Any, Literal, Optional, overload
+from typing import Any, Literal, overload
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
@@ -32,7 +32,7 @@ from .runtime import CardataRuntimeData
 _LOGGER = logging.getLogger(__name__)
 
 
-def as_cardata_timestamp(value: Any, *, end_of_day: bool = False) -> Optional[str]:
+def as_cardata_timestamp(value: Any, *, end_of_day: bool = False) -> str | None:
     """A service-call date/time in BMW's format (``service_answers``)."""
 
     parsed = value if isinstance(value, datetime) else None
@@ -60,7 +60,7 @@ def invalid(err: Refusal) -> ServiceValidationError:
     return as_ha_error(err, ServiceValidationError, DOMAIN)
 
 
-def service_bound(call: Any, key: str, *, end_of_day: bool = False) -> Optional[datetime]:
+def service_bound(call: Any, key: str, *, end_of_day: bool = False) -> datetime | None:
     """A ``from``/``to`` argument as an instant, or ``None`` if absent.
 
     A bare date names a whole day, so which end of it we mean depends on
@@ -81,7 +81,7 @@ def service_bound(call: Any, key: str, *, end_of_day: bool = False) -> Optional[
     return bound
 
 
-def month_bounds(raw: Optional[str]) -> tuple[int, int]:
+def month_bounds(raw: str | None) -> tuple[int, int]:
     """A 'YYYY-MM' argument, defaulting to the current local month."""
 
     try:
@@ -96,7 +96,7 @@ class ServiceContext:
     def __init__(self, hass: HomeAssistant) -> None:
         self.hass = hass
 
-    def entry_id_for_vin(self, vin: Optional[str]) -> Optional[str]:
+    def entry_id_for_vin(self, vin: str | None) -> str | None:
         """The config entry that owns ``vin``, via its device.
 
         The device registry is the authority here rather than the
@@ -118,7 +118,7 @@ class ServiceContext:
                     return entry.entry_id
         return None
 
-    def device_target(self, device_id: Any) -> tuple[Optional[str], Optional[str]]:
+    def device_target(self, device_id: Any) -> tuple[str | None, str | None]:
         """``(entry_id, vin)`` of a picked device.
 
         The VIN is ``None`` for an account's debug device, whose identifier is
@@ -137,9 +137,7 @@ class ServiceContext:
         vin = next((value for value in ours if value not in entries), None)
         return device_owner(device), vin
 
-    def resolve_target(
-        self, call: Any
-    ) -> tuple[str, ConfigEntry, CardataRuntimeData, Optional[str]]:
+    def resolve_target(self, call: Any) -> tuple[str, ConfigEntry, CardataRuntimeData, str | None]:
         """The account a call acts on, and the car it names, if it names one.
 
         Raises :class:`ServiceValidationError` naming what to pass instead, so
@@ -177,7 +175,7 @@ class ServiceContext:
         self,
         entry: ConfigEntry,
         runtime: CardataRuntimeData,
-        vin: Optional[str],
+        vin: str | None,
         *,
         required: Literal[True],
     ) -> str: ...
@@ -187,19 +185,19 @@ class ServiceContext:
         self,
         entry: ConfigEntry,
         runtime: CardataRuntimeData,
-        vin: Optional[str],
+        vin: str | None,
         *,
         required: bool,
-    ) -> Optional[str]: ...
+    ) -> str | None: ...
 
     def pick_vin(
         self,
         entry: ConfigEntry,
         runtime: CardataRuntimeData,
-        vin: Optional[str],
+        vin: str | None,
         *,
         required: bool,
-    ) -> Optional[str]:
+    ) -> str | None:
         try:
             return choose_vin(
                 vin, self.account_vins(entry, runtime), runtime.coordinator.names, required=required
@@ -215,11 +213,11 @@ class ServiceContext:
     @overload
     def target_car(
         self, call: Any, *, required: bool
-    ) -> tuple[str, ConfigEntry, CardataRuntimeData, Optional[str]]: ...
+    ) -> tuple[str, ConfigEntry, CardataRuntimeData, str | None]: ...
 
     def target_car(
         self, call: Any, *, required: bool = True
-    ) -> tuple[str, ConfigEntry, CardataRuntimeData, Optional[str]]:
+    ) -> tuple[str, ConfigEntry, CardataRuntimeData, str | None]:
         """:func:`_resolve_target`, with the car checked against the account.
 
         ``required`` services act on one car and refuse to guess between
@@ -232,16 +230,16 @@ class ServiceContext:
     @overload
     async def prepare_api_call(
         self, call: ServiceCall, label: str, *, require_vin: Literal[True]
-    ) -> tuple[ConfigEntry, "CardataRuntimeData", str, str]: ...
+    ) -> tuple[ConfigEntry, CardataRuntimeData, str, str]: ...
 
     @overload
     async def prepare_api_call(
         self, call: ServiceCall, label: str, *, require_vin: bool
-    ) -> tuple[ConfigEntry, "CardataRuntimeData", Optional[str], str]: ...
+    ) -> tuple[ConfigEntry, CardataRuntimeData, str | None, str]: ...
 
     async def prepare_api_call(
         self, call: ServiceCall, label: str, *, require_vin: bool
-    ) -> tuple[ConfigEntry, "CardataRuntimeData", Optional[str], str]:
+    ) -> tuple[ConfigEntry, CardataRuntimeData, str | None, str]:
         """Resolve target, take a token, claim quota and return call context.
 
         Shared by the read-only CarData API services. Returns

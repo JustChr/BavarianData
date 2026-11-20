@@ -23,8 +23,9 @@ import enum
 import json
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Mapping, Optional
+from datetime import datetime, UTC
+from typing import Any
+from collections.abc import Mapping
 
 import aiohttp
 
@@ -96,7 +97,7 @@ class AbrpConfig:
         return bool(self.api_key) and any(car.sends for car in self.cars.values())
 
     @classmethod
-    def from_options(cls, options: Mapping[str, Any]) -> "AbrpConfig":
+    def from_options(cls, options: Mapping[str, Any]) -> AbrpConfig:
         own = cars_with_own(options, ABRP_OPTIONS)
         return cls(
             api_key=api_key(options),
@@ -121,7 +122,7 @@ def api_key(options: Mapping[str, Any]) -> str:
     return _text(options.get(OPTION_ABRP_API_KEY)) or PROJECT_API_KEY.strip()
 
 
-def dc_charging(method: Any) -> Optional[bool]:
+def dc_charging(method: Any) -> bool | None:
     """Whether the car charges from a DC charger, from BMW's charging method."""
 
     if not isinstance(method, str):
@@ -139,11 +140,11 @@ class AbrpSnapshot:
     """One car as ABRP sees it. Every field but the VIN may be unknown."""
 
     bridge: BridgeSnapshot
-    parked: Optional[bool] = None
-    dc: Optional[bool] = None
-    latitude: Optional[float] = None
-    longitude: Optional[float] = None
-    altitude: Optional[float] = None
+    parked: bool | None = None
+    dc: bool | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    altitude: float | None = None
 
 
 def _value(coordinator: Any, vin: str, descriptor: str) -> Any:
@@ -151,7 +152,7 @@ def _value(coordinator: Any, vin: str, descriptor: str) -> Any:
     return None if state is None else state.value
 
 
-def _float(value: Any) -> Optional[float]:
+def _float(value: Any) -> float | None:
     if isinstance(value, bool) or value is None:
         return None
     try:
@@ -161,7 +162,7 @@ def _float(value: Any) -> Optional[float]:
     return None if number != number else number
 
 
-def _parked(coordinator: Any, vin: str) -> Optional[bool]:
+def _parked(coordinator: Any, vin: str) -> bool | None:
     """Whether the car stands still, from the most direct source it has.
 
     A car that streams motion says so itself. Otherwise the trip detector does,
@@ -196,12 +197,12 @@ def abrp_snapshot(coordinator: Any, vin: str) -> AbrpSnapshot:
     )
 
 
-def _rounded(value: Optional[float], digits: int) -> Optional[float]:
+def _rounded(value: float | None, digits: int) -> float | None:
     number = _float(value)
     return None if number is None else round(number, digits)
 
 
-def telemetry(snapshot: AbrpSnapshot, *, now: datetime, position: bool) -> Optional[dict[str, Any]]:
+def telemetry(snapshot: AbrpSnapshot, *, now: datetime, position: bool) -> dict[str, Any] | None:
     """The point ABRP gets, or ``None`` while the charge level is unknown.
 
     ``utc`` is the time of sending: ABRP orders points by it and drops a car it
@@ -215,7 +216,7 @@ def telemetry(snapshot: AbrpSnapshot, *, now: datetime, position: bool) -> Optio
     if bridge.soc is None:
         return None
     point: dict[str, Any] = {
-        "utc": int(now.astimezone(timezone.utc).timestamp()),
+        "utc": int(now.astimezone(UTC).timestamp()),
         "soc": _rounded(bridge.soc, 1),
     }
 
@@ -279,5 +280,5 @@ async def async_check(
 ) -> SendResult:
     """Whether ABRP takes this key and token, sending a time and nothing else."""
 
-    point = {"utc": int(now.astimezone(timezone.utc).timestamp())}
+    point = {"utc": int(now.astimezone(UTC).timestamp())}
     return await async_send(session, key=key, token=token, point=point)

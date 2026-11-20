@@ -9,14 +9,14 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 
 import pytest
 
 from .conftest import load_module
 
 trip_capture = load_module("trip_capture")
-NOW = datetime(2026, 10, 24, 8, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 10, 24, 8, 0, tzinfo=UTC)
 VIN = "WBATEST0000000001"
 
 

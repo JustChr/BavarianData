@@ -17,7 +17,7 @@ not recognise -- it returns what it could read.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # BMW's camelCase wheel keys -> our snake_case position slugs. The slugs match
 # the ``tire_axle``/``tire_side`` attribute values the streamed pressure sensors
@@ -32,13 +32,13 @@ WHEEL_POSITIONS: tuple[tuple[str, str], ...] = (
 _MILES_TO_KM = 1.609344
 
 
-def _obj(value: Any) -> Dict[str, Any]:
+def _obj(value: Any) -> dict[str, Any]:
     """Return ``value`` when it is a dict, else an empty one."""
 
     return value if isinstance(value, dict) else {}
 
 
-def _text(node: Any, *keys: str) -> Optional[str]:
+def _text(node: Any, *keys: str) -> str | None:
     """First non-empty string among ``keys`` of ``node``.
 
     BMW puts the datum under a field named after the concept (``season``,
@@ -55,7 +55,7 @@ def _text(node: Any, *keys: str) -> Optional[str]:
     return None
 
 
-def _status_color(node: Any) -> Optional[str]:
+def _status_color(node: Any) -> str | None:
     """The RED/YELLOW/GREEN/GREY traffic light, lower-cased.
 
     Lower-cased because it becomes an entity state: Home Assistant states are
@@ -66,7 +66,7 @@ def _status_color(node: Any) -> Optional[str]:
     return color.lower() if color else None
 
 
-def _due_mileage_km(wear: Any) -> Optional[float]:
+def _due_mileage_km(wear: Any) -> float | None:
     """``tyreWear.dueMileage`` normalized to kilometres.
 
     BMW reports the unit per field (``KILOMETER``/``MILE``) rather than per
@@ -83,12 +83,12 @@ def _due_mileage_km(wear: Any) -> Optional[float]:
     return round(km, 1)
 
 
-def _bool(node: Any, key: str) -> Optional[bool]:
+def _bool(node: Any, key: str) -> bool | None:
     value = _obj(node).get(key)
     return value if isinstance(value, bool) else None
 
 
-def parse_wheel(data: Any) -> Dict[str, Any]:
+def parse_wheel(data: Any) -> dict[str, Any]:
     """Flatten one ``TyreDataDto`` into plain scalars."""
 
     data = _obj(data)
@@ -114,7 +114,7 @@ def parse_wheel(data: Any) -> Dict[str, Any]:
     }
 
 
-def wheel_has_data(wheel: Dict[str, Any]) -> bool:
+def wheel_has_data(wheel: dict[str, Any]) -> bool:
     """Whether a parsed wheel says anything a user could act on.
 
     Not merely "some field is set": cars that have no tyre service record on
@@ -150,8 +150,8 @@ def has_tyre_data(diagnosis: Any) -> bool:
     )
 
 
-def _errors(payload: Dict[str, Any]) -> List[str]:
-    out: List[str] = []
+def _errors(payload: dict[str, Any]) -> list[str]:
+    out: list[str] = []
     for item in payload.get("errors") or []:
         if not isinstance(item, dict):
             continue
@@ -164,7 +164,7 @@ def _errors(payload: Dict[str, Any]) -> List[str]:
     return out
 
 
-def parse_tyre_diagnosis(payload: Any) -> Dict[str, Any]:
+def parse_tyre_diagnosis(payload: Any) -> dict[str, Any]:
     """Flatten a tyre-diagnosis response.
 
     Returns ``{"aggregated_status", "aggregated_label", "wheels", "errors"}``.
@@ -177,7 +177,7 @@ def parse_tyre_diagnosis(payload: Any) -> Dict[str, Any]:
     mounted = _obj(_obj(payload.get("passengerCar")).get("mountedTyres"))
     aggregated = mounted.get("aggregatedQualityStatus")
 
-    wheels: Dict[str, Dict[str, Any]] = {}
+    wheels: dict[str, dict[str, Any]] = {}
     for bmw_key, slug in WHEEL_POSITIONS:
         raw = mounted.get(bmw_key)
         if not isinstance(raw, dict) or not raw:
@@ -196,7 +196,7 @@ def parse_tyre_diagnosis(payload: Any) -> Dict[str, Any]:
     }
 
 
-def restore_diagnosis(record: Any) -> Optional[Dict[str, Any]]:
+def restore_diagnosis(record: Any) -> dict[str, Any] | None:
     """Rebuild one persisted record (see ``tyre_store``) into a diagnosis.
 
     ``record`` is ``{"fetched_at": iso, "diagnosis": {...}}`` as written to

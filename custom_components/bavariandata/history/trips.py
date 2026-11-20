@@ -23,7 +23,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 
 from .models import _iso, _parse  # shared ISO (de)serialisation helpers
 
@@ -58,7 +58,7 @@ SOURCE_USER = "user"
 MIN_CONSUMPTION_SOC_DELTA = 3.0
 
 
-def place(zone: Optional[str] = None, address: Optional[str] = None) -> dict[str, Any]:
+def place(zone: str | None = None, address: str | None = None) -> dict[str, Any]:
     """Build a place record from a zone name and/or an address string.
 
     ``label`` is what the card shows: the zone name if we have one, else the
@@ -84,16 +84,16 @@ class Trip:
 
     vin: str
     start: datetime
-    end: Optional[datetime] = None
+    end: datetime | None = None
     # {"zone": str|None, "address": str|None, "label": str} -- never lat/lon.
-    start_place: Optional[dict[str, Any]] = None
-    end_place: Optional[dict[str, Any]] = None
-    distance_km: Optional[float] = None
-    soc_start: Optional[float] = None
-    soc_end: Optional[float] = None
-    energy_kwh: Optional[float] = None
-    classification: Optional[str] = None
-    classification_source: Optional[str] = None
+    start_place: dict[str, Any] | None = None
+    end_place: dict[str, Any] | None = None
+    distance_km: float | None = None
+    soc_start: float | None = None
+    soc_end: float | None = None
+    energy_kwh: float | None = None
+    classification: str | None = None
+    classification_source: str | None = None
     stats: dict[str, Any] = field(default_factory=dict)
     # True when an endpoint's place had to be assumed (no GPS, no geocode).
     location_assumed: bool = False
@@ -115,11 +115,11 @@ class Trip:
     # Where ``track`` came from when it isn't the car's own fixes: ``"phone"``
     # for a car that reports only once parked, whose route was taken from a
     # phone that rode along (``phone_route.py``). ``None`` is the car's own.
-    track_source: Optional[str] = None
+    track_source: str | None = None
     # The weather along the drive (``route_weather.summarize``): a time-weighted
     # temperature, its range and the samples behind it -- never a coordinate.
     # ``None`` until looked up, and always when the user hasn't opted in.
-    weather: Optional[dict[str, Any]] = None
+    weather: dict[str, Any] | None = None
 
     @property
     def id(self) -> str:
@@ -128,19 +128,19 @@ class Trip:
         return f"{self.vin}-{_iso(self.start)}"
 
     @property
-    def duration_s(self) -> Optional[int]:
+    def duration_s(self) -> int | None:
         if self.end is None or self.duration_unknown:
             return None
         return max(0, int((self.end - self.start).total_seconds()))
 
     @property
-    def soc_delta(self) -> Optional[float]:
+    def soc_delta(self) -> float | None:
         if self.soc_start is None or self.soc_end is None:
             return None
         return round(self.soc_end - self.soc_start, 1)
 
     @property
-    def consumption_kwh_per_100km(self) -> Optional[float]:
+    def consumption_kwh_per_100km(self) -> float | None:
         """Energy used per 100 km, from the trip's own energy and distance.
 
         Kept as a property rather than a stored field so it can't disagree with
@@ -171,7 +171,7 @@ class Trip:
         return round(self.energy_kwh / self.distance_km * 100, 1)
 
     @property
-    def soc_drop(self) -> Optional[float]:
+    def soc_drop(self) -> float | None:
         """How far the SoC fell over the drive, or ``None`` if unknown.
 
         The positive counterpart to :attr:`soc_delta`: a drive spends charge, so
@@ -211,7 +211,7 @@ class Trip:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Optional["Trip"]:
+    def from_dict(cls, data: dict[str, Any]) -> Trip | None:
         """Rebuild a record, or return ``None`` if it can't be placed on a timeline."""
 
         vin = data.get("vin")
@@ -247,7 +247,7 @@ def prune_trips(
     trips: list[Trip],
     *,
     now: datetime,
-    retain_months: Optional[int],
+    retain_months: int | None,
     max_entries: int,
 ) -> list[Trip]:
     """Apply the retention policy, newest first.

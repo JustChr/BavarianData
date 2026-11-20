@@ -9,7 +9,7 @@ network path of ``history.geocoding`` are excluded: they touch HA / the wire.
 from __future__ import annotations
 
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, UTC
 
 from .conftest import load_module
 
@@ -23,7 +23,7 @@ Trip = trips.Trip
 place = trips.place
 TripBuilder = trip_builder.TripBuilder
 
-START = datetime(2026, 7, 6, 8, 0, tzinfo=timezone.utc)  # a Monday
+START = datetime(2026, 7, 6, 8, 0, tzinfo=UTC)  # a Monday
 
 
 def _trip(**overrides) -> Trip:
@@ -710,8 +710,8 @@ def test_driving_summary_omits_cost_without_tariff():
 
 
 def test_trips_in_month_uses_start():
-    inside = _trip(start=datetime(2026, 7, 31, 23, 0, tzinfo=timezone.utc))
-    outside = _trip(start=datetime(2026, 8, 1, 0, 30, tzinfo=timezone.utc))
+    inside = _trip(start=datetime(2026, 7, 31, 23, 0, tzinfo=UTC))
+    outside = _trip(start=datetime(2026, 8, 1, 0, 30, tzinfo=UTC))
     found = summary.trips_in_month([inside, outside], year=2026, month=7)
     assert found == [inside]
 

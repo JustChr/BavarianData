@@ -23,6 +23,7 @@ select = [
     "C4",   # flake8-comprehensions
     "PIE",  # flake8-pie: small correctness/idiom fixes
     "LOG",  # flake8-logging: logging misuse
+    "UP",   # pyupgrade: 3.14 syntax (X | None, dict[...], datetime.UTC, PEP 695 generics)
 ]
 
 [tool.ruff.lint.per-file-ignores]

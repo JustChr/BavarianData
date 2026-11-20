@@ -20,8 +20,8 @@ from __future__ import annotations
 
 import logging
 from contextlib import suppress
-from datetime import datetime, timedelta, timezone
-from typing import TYPE_CHECKING, Any, Dict, Optional, Protocol
+from datetime import datetime, timedelta, UTC
+from typing import TYPE_CHECKING, Any, Protocol
 
 from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import async_dispatcher_send
@@ -82,8 +82,8 @@ class TripHost(Protocol):
 
     hass: HomeAssistant
     entry_id: str
-    history: Optional[HistoryStore]
-    geocoder: Optional[ReverseGeocoder]
+    history: HistoryStore | None
+    geocoder: ReverseGeocoder | None
     trip_debug: bool
     trip_log: TripLog
     events: VehicleEvents
@@ -96,24 +96,24 @@ class TripHost(Protocol):
     def signal_trip_active(self) -> str: ...
 
     @property
-    def _cars(self) -> Dict[str, Vehicle]: ...
+    def _cars(self) -> dict[str, Vehicle]: ...
     def _car(self, vin: str) -> Vehicle: ...
     def _peek(self, vin: str) -> Vehicle: ...
     def _vins_where(self, test: Any) -> list[str]: ...
     def get_state(self, vin: str, descriptor: str) -> Any: ...
     def _raw_value(self, vin: str, descriptor: str) -> Any: ...
-    def _coordinate(self, vin: str, kind: str) -> Optional[float]: ...
-    def _current_soc(self, vin: str) -> Optional[float]: ...
-    def odometer_km(self, vin: str) -> Optional[float]: ...
-    def battery_capacity_kwh(self, vin: str) -> Optional[float]: ...
+    def _coordinate(self, vin: str, kind: str) -> float | None: ...
+    def _current_soc(self, vin: str) -> float | None: ...
+    def odometer_km(self, vin: str) -> float | None: ...
+    def battery_capacity_kwh(self, vin: str) -> float | None: ...
     def is_plug_in_hybrid(self, vin: str) -> bool: ...
     def trip_settings_for(self, vin: str) -> TripSettings: ...
-    def _zone_at(self, latitude: float, longitude: float) -> Optional[tuple[str, str]]: ...
-    def _zone_name(self, latitude: float, longitude: float) -> Optional[str]: ...
-    def _current_zone(self, vin: str) -> Optional[tuple[str, str]]: ...
-    def _home_zone_name(self) -> Optional[str]: ...
-    def _work_zone_name(self, vin: str) -> Optional[str]: ...
-    def _fire(self, event_type: str, payload: Dict[str, Any]) -> None: ...
+    def _zone_at(self, latitude: float, longitude: float) -> tuple[str, str] | None: ...
+    def _zone_name(self, latitude: float, longitude: float) -> str | None: ...
+    def _current_zone(self, vin: str) -> tuple[str, str] | None: ...
+    def _home_zone_name(self) -> str | None: ...
+    def _work_zone_name(self, vin: str) -> str | None: ...
+    def _fire(self, event_type: str, payload: dict[str, Any]) -> None: ...
 
 
 class VehicleTrips:
@@ -128,8 +128,8 @@ class VehicleTrips:
         self,
         vin: str,
         now: datetime,
-        motion: Optional[bool],
-        ignition: Optional[bool],
+        motion: bool | None,
+        ignition: bool | None,
         segment_fresh: bool,
     ) -> None:
         """React to this batch's motion / ignition / segment signals.
@@ -337,7 +337,7 @@ class VehicleTrips:
             self._host._car(vin).gps.last_fix_ts = fix_ts
         return True
 
-    def _gps_fix_timestamp(self, vin: str) -> Optional[datetime]:
+    def _gps_fix_timestamp(self, vin: str) -> datetime | None:
         """BMW's own time for the current fix, or None when unstamped.
 
         Both halves of a fix carry the same timestamp, so the newer of the two is
@@ -358,8 +358,8 @@ class VehicleTrips:
         self,
         vin: str,
         now: datetime,
-        fix_ts: Optional[datetime] = None,
-        parts: Optional[set[str]] = None,
+        fix_ts: datetime | None = None,
+        parts: set[str] | None = None,
     ) -> None:
         """Open, extend and close trips from the live GPS position stream.
 
@@ -522,7 +522,7 @@ class VehicleTrips:
         now: datetime,
         step_km: float,
         moving: bool,
-        gap_s: Optional[float],
+        gap_s: float | None,
     ) -> None:
         """Fold one fix into the open trip's capture stats (for [trip.post])."""
 
@@ -545,8 +545,8 @@ class VehicleTrips:
         longitude: float,
         step_km: float,
         moving: bool,
-        gap_s: Optional[float],
-        fix_ts: Optional[datetime],
+        gap_s: float | None,
+        fix_ts: datetime | None,
         open_trip: bool,
     ) -> None:
         """The per-fix substrate line: every fix, moving or not."""
@@ -606,8 +606,8 @@ class VehicleTrips:
         return (now - last).total_seconds() < TRIP_CLOSE_DEBOUNCE_S
 
     def _trip_start_seed(
-        self, vin: str, now: datetime, parked_until: Optional[datetime] = None
-    ) -> tuple[Optional[tuple[float, float]], datetime]:
+        self, vin: str, now: datetime, parked_until: datetime | None = None
+    ) -> tuple[tuple[float, float] | None, datetime]:
         """Where *and when* the trip actually began, not where we noticed it.
 
         Position prefers a recent driver-door-close spot (the driver got in
@@ -627,7 +627,7 @@ class VehicleTrips:
         """
 
         started_at = now
-        marked_pos: Optional[tuple[float, float]] = None
+        marked_pos: tuple[float, float] | None = None
         pending = self._host._peek(vin).trip.take("pending_start")
         if pending is not None:
             marked_at, pos = pending
@@ -647,7 +647,7 @@ class VehicleTrips:
             return (latitude, longitude), started_at
         return None, started_at
 
-    def _trip_start_readings(self, vin: str) -> tuple[Optional[float], Optional[float]]:
+    def _trip_start_readings(self, vin: str) -> tuple[float | None, float | None]:
         """The odometer and SoC a new trip starts from: the parked car's.
 
         The live readings are already the moving car's on a car that streams in
@@ -669,9 +669,7 @@ class VehicleTrips:
             soc = parked_soc
         return odometer, soc
 
-    async def _open_trip(
-        self, vin: str, now: datetime, *, parked_until: Optional[datetime]
-    ) -> None:
+    async def _open_trip(self, vin: str, now: datetime, *, parked_until: datetime | None) -> None:
         """Start a trip, dated when the drive began rather than when we noticed.
 
         ``parked_until`` is the wall-clock of the last fix that still showed the
@@ -968,7 +966,7 @@ class VehicleTrips:
         vin: str,
         trip: Trip,
         *,
-        start_zone: Optional[tuple[str, str]],
+        start_zone: tuple[str, str] | None,
         left_fired: bool,
         announce: bool,
     ) -> None:
@@ -1001,7 +999,7 @@ class VehicleTrips:
         )
         # Not a commute on its own: it may still be the last leg of one that a
         # stop on the way split in two (groceries between home and work).
-        chain: Optional[list[Any]] = None
+        chain: list[Any] | None = None
         if classification != CLASS_COMMUTE:
             chain = self._commute_chain(vin, trip, home=home_zone, work=work_zone)
             if chain is not None:
@@ -1035,7 +1033,7 @@ class VehicleTrips:
         self,
         vin: str,
         trip: Trip,
-        start_zone: Optional[tuple[str, str]],
+        start_zone: tuple[str, str] | None,
         left_fired: bool,
     ) -> None:
         """Fire "left" (if the fixes were too sparse to catch it), "arrived" and "ended"."""
@@ -1078,9 +1076,9 @@ class VehicleTrips:
         vin: str,
         trip: Any,
         *,
-        home: Optional[str],
-        work: Optional[str],
-    ) -> Optional[list[Any]]:
+        home: str | None,
+        work: str | None,
+    ) -> list[Any] | None:
         """Earlier legs that make this trip the end of a commute, or ``None``.
 
         Thin wrapper over :func:`history.classify.commute_chain`: it only reads
@@ -1190,7 +1188,7 @@ class VehicleTrips:
         def _fire(_now: datetime) -> None:
             self._host._peek(vin).trip.take("close_timer")
             self._host._peek(vin).trip.take("close_due")
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             if self._hold_close_on_silence(vin, now):
                 # Nothing says the car stopped -- only that the stream did. Keep
                 # the trip open and look again after another debounce.
@@ -1206,9 +1204,7 @@ class VehicleTrips:
             )
             self._host.hass.async_create_task(self._close_trip(vin, now, reason=reason))
 
-        self._host._car(vin).trip.close_due = datetime.now(timezone.utc) + timedelta(
-            seconds=delay_s
-        )
+        self._host._car(vin).trip.close_due = datetime.now(UTC) + timedelta(seconds=delay_s)
         self._host._car(vin).trip.close_timer = async_call_later(self._host.hass, delay_s, _fire)
         # Only the first arm (car goes stationary) is worth a line; the per-fix
         # reset while moving would otherwise log every fix (the countdown is
@@ -1262,16 +1258,14 @@ class VehicleTrips:
         for vin in self._host._vins_where(lambda car: car.trip.builder is not None):
             reason = "silent" if self._host._peek(vin).trip.held_since is not None else "unload"
             with suppress(Exception):
-                await self._close_trip(
-                    vin, datetime.now(timezone.utc), reason=reason, announce=False
-                )
+                await self._close_trip(vin, datetime.now(UTC), reason=reason, announce=False)
 
     async def resolve_place(
         self,
         vin: str,
-        latitude: Optional[float] = None,
-        longitude: Optional[float] = None,
-    ) -> Optional[dict[str, Any]]:
+        latitude: float | None = None,
+        longitude: float | None = None,
+    ) -> dict[str, Any] | None:
         """A trip endpoint as a named place -- never coordinates.
 
         Prefers the resolved HA zone (free, local, private). Only a point with no
@@ -1294,7 +1288,7 @@ class VehicleTrips:
             address = await self._host.geocoder.resolve(latitude, longitude)
         return place(address=address) if address else place()
 
-    def trip_soc_end(self, vin: str, started: datetime) -> Optional[float]:
+    def trip_soc_end(self, vin: str, started: datetime) -> float | None:
         """The SoC at the end of a drive; on a hybrid, only if read during it.
 
         Issue #25's X3 30e never streams its SoC (it arrives only with a REST
@@ -1312,8 +1306,8 @@ class VehicleTrips:
         return self._host._current_soc(vin)
 
     def trip_energy_kwh(
-        self, vin: str, soc_start: Optional[float], soc_end: Optional[float]
-    ) -> Optional[float]:
+        self, vin: str, soc_start: float | None, soc_end: float | None
+    ) -> float | None:
         """Energy used on a trip, from the SoC drop and the pack capacity.
 
         Battery-side by construction (SoC × capacity), which is what "energy the
@@ -1331,9 +1325,7 @@ class VehicleTrips:
             return None
         return round(drop / 100.0 * capacity, 3)
 
-    def _read_trip_segment(
-        self, vin: str, since: datetime
-    ) -> tuple[dict[str, Any], Optional[float]]:
+    def _read_trip_segment(self, vin: str, since: datetime) -> tuple[dict[str, Any], float | None]:
         """BMW's per-segment statistics and its own travelled distance.
 
         The statistics ride the trip record (served via ``get_trips``) rather
@@ -1346,7 +1338,7 @@ class VehicleTrips:
         drive's whole distance as its own.
         """
 
-        def _num(descriptor: str) -> Optional[float]:
+        def _num(descriptor: str) -> float | None:
             state = self._host.get_state(vin, descriptor)
             if state is None or state.value is None or not state.timestamp:
                 return None

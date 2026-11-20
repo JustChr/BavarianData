@@ -28,7 +28,7 @@ recoverable; a plausible-looking wrong number that then keeps decaying is not.
 
 from __future__ import annotations
 
-from typing import Any, Optional, Tuple
+from typing import Any
 
 from .units import normalize_unit
 
@@ -37,7 +37,7 @@ from .units import normalize_unit
 UNUSABLE_STATES = frozenset({"unknown", "unavailable", ""})
 
 
-def _canonical(unit: Optional[str]) -> Optional[str]:
+def _canonical(unit: str | None) -> str | None:
     """Canonical form of a unit string, or ``None`` when there is no unit."""
 
     canonical = normalize_unit(unit)
@@ -47,7 +47,7 @@ def _canonical(unit: Optional[str]) -> Optional[str]:
     return canonical or None
 
 
-def units_agree(stored_unit: Optional[str], native_unit: Optional[str]) -> bool:
+def units_agree(stored_unit: str | None, native_unit: str | None) -> bool:
     """Whether a state stored in ``stored_unit`` is already a native reading.
 
     Compared exactly (after canonicalisation) rather than case-insensitively:
@@ -71,9 +71,9 @@ def units_agree(stored_unit: Optional[str], native_unit: Optional[str]) -> bool:
 
 def restore_native(
     state: Any,
-    stored_unit: Optional[str],
-    native_unit: Optional[str],
-) -> Tuple[Any, Optional[str]]:
+    stored_unit: str | None,
+    native_unit: str | None,
+) -> tuple[Any, str | None]:
     """Return the ``(value, unit)`` to restore, given the unit it was saved in.
 
     ``(None, None)`` means the stored state cannot be trusted as a native

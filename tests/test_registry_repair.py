@@ -26,7 +26,7 @@ def row(entity_id: str, unique_id: str, disabled_by=None) -> SimpleNamespace:
     return SimpleNamespace(entity_id=entity_id, unique_id=unique_id, disabled_by=disabled_by)
 
 
-class Disabler(str, enum.Enum):
+class Disabler(enum.StrEnum):
     """Stand-in for Home Assistant's ``RegistryEntryDisabler`` (a StrEnum)."""
 
     INTEGRATION = "integration"

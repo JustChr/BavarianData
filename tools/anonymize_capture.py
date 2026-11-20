@@ -28,33 +28,33 @@ import argparse
 import json
 import pathlib
 import sys
-from datetime import datetime, timedelta, timezone
-from typing import Any, Optional
+from datetime import datetime, timedelta, UTC
+from typing import Any
 
 ORIGIN = (48.1, 16.3)
-EPOCH = datetime(2026, 1, 1, 8, 0, tzinfo=timezone.utc)
+EPOCH = datetime(2026, 1, 1, 8, 0, tzinfo=UTC)
 DROP_WORDS = ("address", "destination", "street", "city", "name", "poi", "contact")
 
 
-def _parse(value: Any) -> Optional[datetime]:
+def _parse(value: Any) -> datetime | None:
     if not isinstance(value, str):
         return None
     try:
         parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError:
         return None
-    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)
 
 
 def _fmt(when: datetime, like: str) -> str:
-    text = when.astimezone(timezone.utc).isoformat()
+    text = when.astimezone(UTC).isoformat()
     return text.replace("+00:00", "Z") if like.endswith("Z") else text
 
 
 class Anonymizer:
     def __init__(self) -> None:
         self.vins: dict[str, str] = {}
-        self.shift_time: Optional[timedelta] = None
+        self.shift_time: timedelta | None = None
         # One shift per axis, each learned from its own first value: BMW sends
         # latitude and longitude as separate batches.
         self.shift_axis: dict[str, float] = {}
@@ -115,7 +115,7 @@ def anonymize(lines: list[str]) -> list[str]:
     return out
 
 
-def main(argv: Optional[list[str]] = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("source", type=pathlib.Path)
     parser.add_argument("target", type=pathlib.Path)

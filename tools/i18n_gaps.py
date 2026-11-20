@@ -43,7 +43,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import Callable, Optional
+from collections.abc import Callable
 
 import yaml
 
@@ -80,7 +80,7 @@ Tables = dict[str, dict[str, str]]  # lang -> key -> text
 # --- reading a source at the working tree or at a git ref -------------------
 
 
-def _git(*args: str) -> Optional[str]:
+def _git(*args: str) -> str | None:
     try:
         out = subprocess.run(
             ["git", *args], cwd=REPO, capture_output=True, text=True, encoding="utf-8"
@@ -90,7 +90,7 @@ def _git(*args: str) -> Optional[str]:
     return out.stdout if out.returncode == 0 else None
 
 
-def _read(rel: str, ref: Optional[str]) -> Optional[str]:
+def _read(rel: str, ref: str | None) -> str | None:
     """A file's text in the working tree (``ref=None``) or at a git ref."""
 
     if ref is None:
@@ -108,7 +108,7 @@ def _leaves(node: object, path: str = "") -> dict[str, str]:
     return {path: node} if isinstance(node, str) else {}
 
 
-def ha_tables(ref: Optional[str]) -> Tables:
+def ha_tables(ref: str | None) -> Tables:
     """Flow text of every full language in ``translations/`` (no ``entity``)."""
 
     if ref is None:
@@ -129,7 +129,7 @@ def ha_tables(ref: Optional[str]) -> Tables:
     return tables
 
 
-def _card_strings_script(ref: Optional[str]) -> Optional[str]:
+def _card_strings_script(ref: str | None) -> str | None:
     """Every per-language strings module as one script declaring ``TRANSLATIONS``."""
 
     if ref is None:
@@ -151,7 +151,7 @@ def _card_strings_script(ref: Optional[str]) -> Optional[str]:
     return script
 
 
-def card_tables(ref: Optional[str]) -> Tables:
+def card_tables(ref: str | None) -> Tables:
     node = shutil.which("node")
     text = _card_strings_script(ref)
     if text is None:
@@ -177,19 +177,19 @@ def card_tables(ref: Optional[str]) -> Tables:
     return {lang: {k: str(v) for k, v in t.items()} for lang, t in raw.items() if "-" not in lang}
 
 
-def report_tables(ref: Optional[str]) -> Tables:
+def report_tables(ref: str | None) -> Tables:
     """``STRINGS`` from export.py, read with ``ast`` (the module is not importable alone)."""
 
     return _strings_table(EXPORT_REL, ref)
 
 
-def calendar_tables(ref: Optional[str]) -> Tables:
+def calendar_tables(ref: str | None) -> Tables:
     """``STRINGS`` from service_calendar.py, read the same way."""
 
     return _strings_table(CALENDAR_REL, ref)
 
 
-def _strings_table(rel: str, ref: Optional[str]) -> Tables:
+def _strings_table(rel: str, ref: str | None) -> Tables:
     text = _read(rel, ref)
     if text is None:
         return {}
@@ -202,7 +202,7 @@ def _strings_table(rel: str, ref: Optional[str]) -> Tables:
     return {}
 
 
-SOURCES: dict[str, tuple[str, Callable[[Optional[str]], Tables]]] = {
+SOURCES: dict[str, tuple[str, Callable[[str | None], Tables]]] = {
     "translations": (TRANS_REL + "/<lang>.json", ha_tables),
     "card": (CARD_REL, card_tables),
     "report": (EXPORT_REL, report_tables),
@@ -272,14 +272,14 @@ def selector_gaps(report: Tables) -> list[dict]:
     return gaps
 
 
-def default_since() -> Optional[str]:
+def default_since() -> str | None:
     """Where this branch left origin/main; on main itself, the last commit."""
 
     base = _git("merge-base", "HEAD", "origin/main")
     return base.strip() if base else ("HEAD" if _git("rev-parse", "HEAD") else None)
 
 
-def collect(since: Optional[str], stale: bool) -> list[dict]:
+def collect(since: str | None, stale: bool) -> list[dict]:
     gaps: list[dict] = []
     language_sets: dict[str, set[str]] = {}
     for source, (_path, read) in SOURCES.items():
@@ -310,7 +310,7 @@ def _short(text: str, width: int = 90) -> str:
     return text if len(text) <= width else text[: width - 1] + "…"
 
 
-def render(gaps: list[dict], since: Optional[str]) -> str:
+def render(gaps: list[dict], since: str | None) -> str:
     if not gaps:
         return "No translation gaps." + (f" (stale checked against {since})" if since else "")
     lines = [
@@ -331,7 +331,7 @@ def render(gaps: list[dict], since: Optional[str]) -> str:
     return "\n".join(lines)
 
 
-def main(argv: Optional[list[str]] = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--since", help="git ref the stale check compares against")
     parser.add_argument("--no-stale", action="store_true", help="skip the git-based stale check")

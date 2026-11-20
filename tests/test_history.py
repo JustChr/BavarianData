@@ -10,7 +10,7 @@ module that imports Home Assistant.
 from __future__ import annotations
 
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, UTC
 
 import pytest
 
@@ -25,7 +25,7 @@ health = load_module("history.health")
 ChargingSession = models.ChargingSession
 SessionBuilder = sessions.SessionBuilder
 
-START = datetime(2026, 7, 1, 18, 0, tzinfo=timezone.utc)
+START = datetime(2026, 7, 1, 18, 0, tzinfo=UTC)
 
 
 def _session(**overrides) -> ChargingSession:
@@ -276,7 +276,7 @@ def _costed(start: datetime, amount: float, **overrides) -> ChargingSession:
 def test_month_bucketing_uses_local_time_not_utc():
     # 23:30 UTC on 31 July is already 01:30 on 1 August in CEST, so the session
     # belongs to August from the user's point of view.
-    late = _costed(datetime(2026, 7, 31, 23, 30, tzinfo=timezone.utc), 5.0)
+    late = _costed(datetime(2026, 7, 31, 23, 30, tzinfo=UTC), 5.0)
 
     def as_cest(value):
         return value.astimezone(timezone(timedelta(hours=2)))
@@ -919,8 +919,8 @@ def test_a_watched_session_still_records_both_ends():
 def _stored(location, *, cost=None, mix=None) -> ChargingSession:
     return models.ChargingSession(
         vin="WBY1",
-        start=datetime(2026, 10, 9, 5, 46, tzinfo=timezone.utc),
-        end=datetime(2026, 10, 9, 8, 22, tzinfo=timezone.utc),
+        start=datetime(2026, 10, 9, 5, 46, tzinfo=UTC),
+        end=datetime(2026, 10, 9, 8, 22, tzinfo=UTC),
         energy_kwh=25.92,
         location=location,
         cost=cost,

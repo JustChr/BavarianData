@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import ast
 import pathlib
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, UTC
 
 from .conftest import load_module
 
@@ -78,21 +78,21 @@ def test_a_car_added_later_gets_its_own_grace_window() -> None:
     has sent nothing: it is the entry that has been monitored for six months,
     not the car."""
 
-    entry_clock = datetime(2026, 1, 1, tzinfo=timezone.utc)
-    arrived = datetime(2026, 7, 1, tzinfo=timezone.utc)
+    entry_clock = datetime(2026, 1, 1, tzinfo=UTC)
+    arrived = datetime(2026, 7, 1, tzinfo=UTC)
     assert coverage.monitoring_since(entry_clock, arrived) == arrived
 
 
 def test_a_car_present_all_along_keeps_the_entry_clock() -> None:
-    entry_clock = datetime(2026, 7, 1, tzinfo=timezone.utc)
+    entry_clock = datetime(2026, 7, 1, tzinfo=UTC)
     # A selection change restarts the entry clock; the car is older than that
     # and must be judged from the new selection, not from its first sighting.
-    arrived = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    arrived = datetime(2026, 1, 1, tzinfo=UTC)
     assert coverage.monitoring_since(entry_clock, arrived) == entry_clock
 
 
 def test_a_record_from_before_first_sightings_were_kept_still_works() -> None:
-    entry_clock = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    entry_clock = datetime(2026, 1, 1, tzinfo=UTC)
     assert coverage.monitoring_since(entry_clock, None) == entry_clock
     assert coverage.monitoring_since(None, None) is None
 
@@ -100,7 +100,7 @@ def test_a_record_from_before_first_sightings_were_kept_still_works() -> None:
 def test_the_new_cars_window_is_actually_honoured_by_the_report() -> None:
     """End to end over the analysis: same car, same silence, different clock."""
 
-    now = datetime(2026, 7, 2, tzinfo=timezone.utc)
+    now = datetime(2026, 7, 2, tzinfo=UTC)
     expected = {"electric": ["vehicle.a", "vehicle.b"]}
     labels = {"electric": "Electric"}
 
@@ -322,7 +322,7 @@ def test_two_cars_deleted_at_once_are_forgotten_one_after_the_other() -> None:
     assert "async with _FORGET_LOCKS.setdefault(entry_id, asyncio.Lock())" in body
     assert "_async_forget_vehicles_now(hass, entry_id, vins)" in body
     source = (_PKG / "vehicle_removal.py").read_text(encoding="utf-8")
-    assert "_FORGET_LOCKS: Dict[str, asyncio.Lock] = {}" in source  # not in hass.data
+    assert "_FORGET_LOCKS: dict[str, asyncio.Lock] = {}" in source  # not in hass.data
 
 
 def test_deleting_a_car_reaches_every_store_that_holds_it() -> None:

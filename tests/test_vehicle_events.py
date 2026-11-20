@@ -9,7 +9,7 @@ breaks mid-evaluation, a restored Check Control that isn't a list.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 
 from .conftest import load_module
 
@@ -18,7 +18,7 @@ triggers = load_module("vehicle_triggers")
 const = load_module("const")
 
 VIN = "WBA00000000000001"
-NOW = datetime(2026, 10, 24, 12, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 10, 24, 12, 0, tzinfo=UTC)
 ALARM = triggers.ALARM_DESCRIPTOR
 
 

@@ -10,7 +10,7 @@ that fit that moment. Runs the shipped card under Node, like
 from __future__ import annotations
 
 import re
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, UTC
 
 import pytest
 
@@ -34,13 +34,13 @@ def _session(**attrs) -> dict:
         "16.2",
         "kWh",
         device_class="energy",
-        last_reset=(datetime.now(timezone.utc) - timedelta(hours=2)).isoformat(),
+        last_reset=(datetime.now(UTC) - timedelta(hours=2)).isoformat(),
         **attrs,
     )
 
 
 def _trip(**attrs) -> dict:
-    started = (datetime.now(timezone.utc) - timedelta(minutes=18)).isoformat()
+    started = (datetime.now(UTC) - timedelta(minutes=18)).isoformat()
     return _sensor(
         "trip_in_progress",
         "on",
@@ -102,7 +102,7 @@ def test_an_open_door_on_the_road_is_not_the_headline():
 
 def test_a_charge_says_when_it_will_be_done_and_what_it_added():
     eta = _sensor("charge_eta", "90", "min", device_class="duration")
-    eta["last_updated"] = datetime.now(timezone.utc).isoformat()
+    eta["last_updated"] = datetime.now(UTC).isoformat()
     html = _ev(
         **{
             "sensor.i5_charging": CHARGING,
@@ -127,7 +127,7 @@ def test_a_charge_says_when_it_will_be_done_and_what_it_added():
 
 def test_without_a_tariff_or_solar_the_time_tile_takes_their_place():
     eta = _sensor("charge_eta", "90", "min", device_class="duration")
-    eta["last_updated"] = datetime.now(timezone.utc).isoformat()
+    eta["last_updated"] = datetime.now(UTC).isoformat()
     html = _ev(
         **{
             "sensor.i5_charging": CHARGING,

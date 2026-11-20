@@ -12,7 +12,8 @@ checks, and the units each car is shown in.
 from __future__ import annotations
 
 from datetime import date, timedelta
-from typing import Any, Iterable, Mapping, Optional
+from typing import Any
+from collections.abc import Iterable, Mapping
 
 from .abrp import SendResult
 from .const import OPTION_ABRP_API_KEY, OPTION_ABRP_TOKEN
@@ -164,7 +165,7 @@ def split_shared(
     return car, shared
 
 
-def abrp_error(*, enabled: bool, token: str, key: str) -> Optional[tuple[str, str]]:
+def abrp_error(*, enabled: bool, token: str, key: str) -> tuple[str, str] | None:
     """``(field, error)`` for an ABRP form that can't be checked yet, or ``None``.
 
     Only a car switched on needs a token and a key; switched off, whatever is
@@ -180,7 +181,7 @@ def abrp_error(*, enabled: bool, token: str, key: str) -> Optional[tuple[str, st
     return None
 
 
-def abrp_check_error(result: SendResult) -> Optional[tuple[str, str]]:
+def abrp_check_error(result: SendResult) -> tuple[str, str] | None:
     """``(field, error)`` for what ABRP answered the test send, or ``None``."""
 
     if result is SendResult.REJECTED:
@@ -190,7 +191,7 @@ def abrp_check_error(result: SendResult) -> Optional[tuple[str, str]]:
     return None
 
 
-def price_error(shared: Mapping[str, Any]) -> Optional[str]:
+def price_error(shared: Mapping[str, Any]) -> str | None:
     """The error a tariff missing its price gets, or ``None``."""
 
     mode = shared.get(OPTION_PRICE_MODE, MODE_NONE)
@@ -225,7 +226,7 @@ def evcc_vehicles(blocks: list[str]) -> str:
     return joined.strip()
 
 
-def units_line(cars: Iterable[tuple[str, str, Optional[str]]]) -> str:
+def units_line(cars: Iterable[tuple[str, str, str | None]]) -> str:
     """What each car is shown in right now: ``i5 eDrive40: mi · l/100 km``.
 
     ``cars`` holds ``(label, distance unit, fuel unit or None)``; the fuel unit
@@ -242,7 +243,7 @@ def units_line(cars: Iterable[tuple[str, str, Optional[str]]]) -> str:
 # --- mileage allowance ------------------------------------------------------
 
 
-def to_km(value: Any, miles: bool) -> Optional[float]:
+def to_km(value: Any, miles: bool) -> float | None:
     """A distance typed in the car's unit, in km (empty is none)."""
 
     if value is None or value == "":
@@ -251,7 +252,7 @@ def to_km(value: Any, miles: bool) -> Optional[float]:
     return round(number * KM_PER_MILE if miles else number, 1)
 
 
-def to_display(km: Optional[float], miles: bool) -> Optional[float]:
+def to_display(km: float | None, miles: bool) -> float | None:
     """A stored km distance, whole, in the car's unit."""
 
     if km is None:
@@ -259,7 +260,7 @@ def to_display(km: Optional[float], miles: bool) -> Optional[float]:
     return round(km / KM_PER_MILE if miles else km)
 
 
-def price_to_km(value: Any, miles: bool) -> Optional[float]:
+def price_to_km(value: Any, miles: bool) -> float | None:
     """A price typed in cents per distance in the car's unit, stored in the
     currency per km (empty or 0 is none).
 
@@ -273,7 +274,7 @@ def price_to_km(value: Any, miles: bool) -> Optional[float]:
     return round(number / KM_PER_MILE if miles else number, 6)
 
 
-def price_display(per_km: Optional[float], miles: bool) -> Optional[float]:
+def price_display(per_km: float | None, miles: bool) -> float | None:
     """A stored price per km, in cents per distance in the car's unit."""
 
     if per_km is None:

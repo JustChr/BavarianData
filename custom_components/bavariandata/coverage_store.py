@@ -18,8 +18,9 @@ the only coverage module that imports Home Assistant.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
-from typing import Any, Iterable, Mapping, Optional
+from datetime import datetime, UTC
+from typing import Any
+from collections.abc import Iterable, Mapping
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.storage import Store
@@ -46,14 +47,14 @@ STORE_VERSION = 1
 SAVE_DELAY_S = 60
 
 
-def _parse(value: Any) -> Optional[datetime]:
+def _parse(value: Any) -> datetime | None:
     if not isinstance(value, str):
         return None
     try:
         parsed = datetime.fromisoformat(value)
     except ValueError:
         return None
-    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)
 
 
 class CoverageStore:
@@ -79,7 +80,7 @@ class CoverageStore:
         # against it, a brand-new car is past its grace window the moment it
         # arrives and is told on day one that a cluster has sent nothing.
         self._first_seen: dict[str, str] = {}
-        self._started_at: Optional[datetime] = None
+        self._started_at: datetime | None = None
         self._loaded = False
 
     async def async_load(self) -> None:
@@ -117,7 +118,7 @@ class CoverageStore:
                 changed = True
 
         if self._started_at is None:
-            self._started_at = datetime.now(timezone.utc)
+            self._started_at = datetime.now(UTC)
             changed = True
 
         if changed:
@@ -130,7 +131,7 @@ class CoverageStore:
         if new_sections == self._sections:
             return
         self._sections = new_sections
-        self._started_at = datetime.now(timezone.utc)
+        self._started_at = datetime.now(UTC)
         self.async_schedule_save()
 
     @callback
@@ -144,7 +145,7 @@ class CoverageStore:
         if not vin:
             return
         seen = self._seen.setdefault(vin, {})
-        stamp = datetime.now(timezone.utc).isoformat()
+        stamp = datetime.now(UTC).isoformat()
         added = False
         if vin not in self._first_seen:
             # First contact with this car: its own grace window starts here.
@@ -157,7 +158,7 @@ class CoverageStore:
         if added:
             self.async_schedule_save()
 
-    def monitoring_since(self, vin: str) -> Optional[datetime]:
+    def monitoring_since(self, vin: str) -> datetime | None:
         """When this vehicle's grace window started (see ``coverage``)."""
 
         return monitoring_since(self._started_at, _parse(self._first_seen.get(vin)))
@@ -174,10 +175,10 @@ class CoverageStore:
 
     def reports(
         self,
-        live_descriptors: Optional[Mapping[str, Iterable[str]]] = None,
+        live_descriptors: Mapping[str, Iterable[str]] | None = None,
         *,
-        now: Optional[datetime] = None,
-        drive_trains: Optional[dict[str, Optional[str]]] = None,
+        now: datetime | None = None,
+        drive_trains: dict[str, str | None] | None = None,
     ) -> list[CoverageReport]:
         """Build a coverage report per known vehicle.
 
@@ -188,7 +189,7 @@ class CoverageStore:
         ``driveTrain`` per VIN, where loaded.
         """
 
-        now = now or datetime.now(timezone.utc)
+        now = now or datetime.now(UTC)
         live = {vin: set(items) for vin, items in (live_descriptors or {}).items()}
         expected = self._expected_by_section()
         labels = section_labels()

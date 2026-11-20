@@ -28,7 +28,7 @@ CHARGING = {
 
 
 def _text(html: str, cls: str) -> str:
-    m = re.search(r'class="%s[^"]*">(.*?)</span>' % re.escape(cls), html, re.S)
+    m = re.search(rf'class="{re.escape(cls)}[^"]*">(.*?)</span>', html, re.S)
     return m.group(1).strip() if m else ""
 
 

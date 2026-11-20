@@ -18,7 +18,7 @@ import json
 import logging
 import os
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
 from .debug import debug_enabled, mask_vin
 
@@ -73,7 +73,7 @@ TRIP_CAPTURE_MAX_BYTES = 25 * 1024 * 1024
 DESC_SEG_CAPTURE_PREFIX = "vehicle.trip.segment."
 
 
-def _parse(value: Any) -> Optional[datetime]:
+def _parse(value: Any) -> datetime | None:
     """A BMW timestamp, or None when it isn't one with a timezone."""
 
     if not isinstance(value, str) or not value:
@@ -113,7 +113,7 @@ class TripLog:
     def log_batch(
         self,
         vin: str,
-        data: Dict[str, Any],
+        data: dict[str, Any],
         now: datetime,
         *,
         open_trip: bool,
@@ -188,8 +188,8 @@ class TripLog:
 
     @staticmethod
     def record_line(
-        vin: str, data: Dict[str, Any], now: datetime, *, open_trip: bool
-    ) -> Optional[str]:
+        vin: str, data: dict[str, Any], now: datetime, *, open_trip: bool
+    ) -> str | None:
         """One batch as a line of the NDJSON capture file, or None if it won't encode."""
 
         record = {"at": now.isoformat(), "vin": vin, "open": open_trip, "data": data}

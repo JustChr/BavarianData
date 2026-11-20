@@ -26,7 +26,6 @@ so out loud instead of pretending.
 
 from __future__ import annotations
 
-import io
 import pathlib
 import re
 
@@ -48,7 +47,7 @@ def _de_page(name: str) -> str:
     return (_WIKI / "de" / f"DE-{name}").read_text(encoding="utf-8")
 
 
-with io.open(_PKG / "services.yaml", encoding="utf-8") as handle:
+with open(_PKG / "services.yaml", encoding="utf-8") as handle:
     SERVICES = sorted(yaml.safe_load(handle) or {})
 
 # The card's own list of addressable views, read from its constants so a new

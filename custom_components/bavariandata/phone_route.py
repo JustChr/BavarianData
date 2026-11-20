@@ -32,7 +32,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Optional
 
 from .history.trip_builder import GPS_MOVE_THRESHOLD_KM, haversine_km
 from .vehicle_report import MARK_MAX_AGE_S
@@ -70,7 +69,7 @@ class PhoneRoute:
         return turned_on
 
     def add(
-        self, at: datetime, latitude: float, longitude: float, accuracy_m: Optional[float]
+        self, at: datetime, latitude: float, longitude: float, accuracy_m: float | None
     ) -> bool:
         """Hold one phone position, if it can belong to a drive. True if held."""
 
@@ -96,9 +95,9 @@ class PhoneRoute:
 
     def take(
         self,
-        start: Optional[datetime],
+        start: datetime | None,
         end: datetime,
-        end_fix: Optional[tuple[float, float]],
+        end_fix: tuple[float, float] | None,
     ) -> list[tuple[datetime, float, float]]:
         """The drive's route from ``start`` to ``end``, or ``[]`` if it has none.
 

@@ -6,8 +6,9 @@ import asyncio
 import logging
 from contextlib import suppress
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any, Callable, Deque, Dict, Iterable, Optional
+from datetime import datetime, UTC
+from typing import TYPE_CHECKING, Any
+from collections.abc import Callable, Iterable
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import issue_registry as ir
@@ -78,6 +79,7 @@ from .tyre import parse_tyre_diagnosis
 from .mileage import mileage_report
 from .units import miles_to_km, normalize_unit, unit_choices
 from .vehicle_support import is_motorcycle, motorcycle_issue_id
+from collections import deque
 
 if TYPE_CHECKING:
     from .history.geocoding import ReverseGeocoder
@@ -87,14 +89,14 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-def _as_number(value: Any) -> Optional[float]:
+def _as_number(value: Any) -> float | None:
     try:
         return float(value)
     except TypeError, ValueError:
         return None
 
 
-def _state_time(state: Optional[DescriptorState]) -> Optional[datetime]:
+def _state_time(state: DescriptorState | None) -> datetime | None:
     """The car's own timestamp for a reading, or ``None``."""
 
     return dt_util.parse_datetime(state.timestamp) if state and state.timestamp else None
@@ -110,7 +112,7 @@ class _ChargeReading:
     value -- or ignored, as the SoC and the pack's size are.
     """
 
-    apply: Callable[[CardataCoordinator, str, SocTracking, Any, Optional[datetime]], None]
+    apply: Callable[[CardataCoordinator, str, SocTracking, Any, datetime | None], None]
     numeric: bool = True
     clears: bool = True
 
@@ -156,56 +158,56 @@ class _Batch:
     seen: list[str] = field(default_factory=list)
     # Trip signals, acted on after the loop so opening or closing a trip (which
     # may await a geocode) never re-enters mid-iteration.
-    motion: Optional[bool] = None
-    ignition: Optional[bool] = None
-    door: Optional[bool] = None
+    motion: bool | None = None
+    ignition: bool | None = None
+    door: bool | None = None
     segment_fresh: bool = False
     gps_parts: set[str] = field(default_factory=set)
-    gps_ts: Optional[datetime] = None
+    gps_ts: datetime | None = None
     # ``(was charging, new status)``: acted on once the whole batch is read.
     # (was charging, the new status, BMW's timestamp on it)
-    status_change: Optional[tuple[bool, str, Optional[datetime]]] = None
+    status_change: tuple[bool, str, datetime | None] | None = None
 
 
 @dataclass
 class CardataCoordinator:
     hass: HomeAssistant
     entry_id: str
-    data: Dict[str, Dict[str, DescriptorState]] = field(default_factory=dict)
-    names: Dict[str, str] = field(default_factory=dict)
-    device_metadata: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    data: dict[str, dict[str, DescriptorState]] = field(default_factory=dict)
+    names: dict[str, str] = field(default_factory=dict)
+    device_metadata: dict[str, dict[str, Any]] = field(default_factory=dict)
     # vin -> parsed smart-maintenance tyre diagnosis (see tyre.py). REST-only:
     # BMW cannot stream this, so it is refreshed on the daily poll and persisted
     # by ``tyre_store`` -- a restart must not blank the tyre card until the next
     # fetch comes due.
-    tyre_diagnosis: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    tyre_diagnosis: dict[str, dict[str, Any]] = field(default_factory=dict)
     # Called with the VIN the first time a vehicle is seen on the stream, so
     # ``__init__.py`` can fetch the basic data a car bought after setup would
     # otherwise never get: the bootstrap runs once per entry, and everything
     # that names a car (model, software version, the device name itself) comes
     # from that one REST call. Set by the setup path; never fires for a VIN the
     # bootstrap already seeded.
-    on_new_vehicle: Optional[Callable[[str], None]] = field(default=None, repr=False)
+    on_new_vehicle: Callable[[str], None] | None = field(default=None, repr=False)
     # Called with the outage's length in seconds when the stream connects again
     # after having been connected before, so ``__init__.py`` can fetch what the
     # cars reported while nobody was listening (see ``startup_refresh.py``).
-    on_reconnect_after_outage: Optional[Callable[[float], None]] = field(default=None, repr=False)
-    last_message_at: Optional[datetime] = None
-    last_telematic_api_at: Optional[datetime] = None
+    on_reconnect_after_outage: Callable[[float], None] | None = field(default=None, repr=False)
+    last_message_at: datetime | None = None
+    last_telematic_api_at: datetime | None = None
     diagnostic_interval: int = DIAGNOSTIC_LOG_INTERVAL
-    watchdog_task: Optional[asyncio.Task[None]] = field(default=None, init=False, repr=False)
+    watchdog_task: asyncio.Task[None] | None = field(default=None, init=False, repr=False)
     # Wall-clock the watchdog started, so "no data in 48h" has a baseline on a
     # stream that has never delivered a single message.
-    stream_started_at: Optional[datetime] = field(default=None, init=False)
+    stream_started_at: datetime | None = field(default=None, init=False)
     # When a message last arrived per VIN (the global ``last_message_at`` can't
     # tell a healthy car from a silent one when several are configured).
-    last_message_by_vin: Dict[str, datetime] = field(default_factory=dict, init=False)
+    last_message_by_vin: dict[str, datetime] = field(default_factory=dict, init=False)
     # Per-VIN, per-descriptor arrival tally for the diagnostics download. Live
     # counters only -- restored state doesn't count as an arrival.
-    descriptor_counts: Dict[str, Dict[str, int]] = field(default_factory=dict, init=False)
+    descriptor_counts: dict[str, dict[str, int]] = field(default_factory=dict, init=False)
     # Per-VIN reporting traits (``car_profile.py``) for the diagnostics
     # download; live counters too.
-    car_profiles: Dict[str, CarProfile] = field(default_factory=dict, init=False)
+    car_profiles: dict[str, CarProfile] = field(default_factory=dict, init=False)
     # The stream's status, outages and the repairs they decide (``stream_health``).
     health: StreamHealth = field(default_factory=StreamHealth, init=False)
     # BMW refuses the account's login until the user signs in again; the cars'
@@ -215,46 +217,46 @@ class CardataCoordinator:
     # transition rather than every tick.
     _no_data_issue_active: bool = field(default=False, init=False)
     # The rc=5 repair standing now, by its translation key; None when none does.
-    _unauthorized_issue: Optional[str] = field(default=None, init=False)
+    _unauthorized_issue: str | None = field(default=None, init=False)
     # Every car's own state (``car_state.py``), by VIN. Written through
     # :meth:`_car`, read through :meth:`_peek`.
-    _cars: Dict[str, Vehicle] = field(default_factory=dict, init=False)
+    _cars: dict[str, Vehicle] = field(default_factory=dict, init=False)
     # Charging-session recording. ``history`` is injected during setup; when it
     # is None (or pricing isn't configured) recording degrades quietly rather
     # than breaking the stream -- history is a bonus, not a prerequisite.
-    history: Optional[HistoryStore] = None
+    history: HistoryStore | None = None
     # Descriptor-coverage self-test ("Beyond the roadmap"). Records which selected
     # descriptors have actually streamed; optional, degrades quietly when absent.
-    coverage: Optional[Any] = None
+    coverage: Any | None = None
     # Persistence for the tyre diagnosis (see tyre_store.py); injected during
     # setup. Optional: without it the diagnosis is simply not remembered.
-    tyre_store: Optional[Any] = None
+    tyre_store: Any | None = None
     pricing: PricingConfig = field(default_factory=PricingConfig)
     # A car with its own wallbox meter or charging losses (see
     # ``vehicle_options.py``); every other car uses ``pricing``. Read through
     # ``pricing_for``. The tariff, currency and energy sources are the
     # house's, so they are the same in both.
-    vehicle_pricing: Dict[str, PricingConfig] = field(default_factory=dict)
+    vehicle_pricing: dict[str, PricingConfig] = field(default_factory=dict)
     # Trip recording (roadmap Phase 3). ``geocoder`` is injected/updated from
     # options; optional, degrades quietly.
-    geocoder: Optional[ReverseGeocoder] = None
+    geocoder: ReverseGeocoder | None = None
     # The weather along each trip (``route_weather``, opt-in); injected from
     # options like the geocoder, ``None`` in tests that don't ask for it.
-    route_weather: Optional[RouteWeather] = None
+    route_weather: RouteWeather | None = None
     # How each car's trips are detected, recorded and classified (work zone,
     # default type, commute stop tolerance, detection mode, route recording).
     # ``trip_settings`` is every car without settings of its own; a car in
     # ``vehicle_trip_settings`` uses those instead. Both come from options; see
     # ``trip_settings.py``. Read through ``trip_settings_for``.
     trip_settings: TripSettings = field(default_factory=TripSettings)
-    vehicle_trip_settings: Dict[str, TripSettings] = field(default_factory=dict)
+    vehicle_trip_settings: dict[str, TripSettings] = field(default_factory=dict)
     # Each car's mileage allowance as stored under Configure -> Mileage
     # allowance (``vehicle_options.mileage_values``), by VIN; a car without one
     # is absent. Read through ``mileage_report``.
-    mileage_allowances: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    mileage_allowances: dict[str, dict[str, Any]] = field(default_factory=dict)
     # The account's Units setting (Configure -> Units; ``units.unit_choices``):
     # display only, everything recorded stays metric.
-    display_units: Dict[str, str] = field(default_factory=lambda: unit_choices({}))
+    display_units: dict[str, str] = field(default_factory=lambda: unit_choices({}))
     # The trip detector's log and capture mode (``trip_capture``).
     trip_log: TripLog = field(default_factory=TripLog, init=False)
     # The device-trigger events: situations, edges, leaving a zone
@@ -287,7 +289,7 @@ class CardataCoordinator:
 
         self.charging.async_restore_open_sessions()
 
-    def cars_charging_on(self, meter: str, *, exclude: Optional[str] = None) -> list[str]:
+    def cars_charging_on(self, meter: str, *, exclude: str | None = None) -> list[str]:
         """This account's cars charging at home on ``meter`` right now.
 
         Asked by every account's coordinator, not just this one: a BMW and a
@@ -334,11 +336,11 @@ class CardataCoordinator:
         return self.health.status
 
     @property
-    def last_disconnect_reason(self) -> Optional[str]:
+    def last_disconnect_reason(self) -> str | None:
         return self.health.last_disconnect_reason
 
     @property
-    def connection_history(self) -> Deque[Dict[str, Any]]:
+    def connection_history(self) -> deque[dict[str, Any]]:
         return self.health.history
 
     def _car(self, vin: str) -> Vehicle:
@@ -397,10 +399,6 @@ class CardataCoordinator:
         return f"{DOMAIN}_{self.entry_id}_soc_estimate"
 
     @property
-    def signal_telematic_api(self) -> str:
-        return f"{DOMAIN}_{self.entry_id}_telematic_api"
-
-    @property
     def signal_energy(self) -> str:
         return f"{DOMAIN}_{self.entry_id}_energy"
 
@@ -437,7 +435,7 @@ class CardataCoordinator:
 
         return self._peek(vin).session.builder is not None
 
-    def charging_active(self, vin: str) -> Optional[bool]:
+    def charging_active(self, vin: str) -> bool | None:
         """Whether the SoC tracker counts ``vin`` as charging (``None``: never seen)."""
 
         tracking = self._peek(vin).charge.tracking
@@ -462,9 +460,7 @@ class CardataCoordinator:
 
         return self._vins_where(lambda car: car.trip.builder is not None)
 
-    def open_trip_progress(
-        self, vin: str, *, include_track: bool = False
-    ) -> Optional[Dict[str, Any]]:
+    def open_trip_progress(self, vin: str, *, include_track: bool = False) -> dict[str, Any] | None:
         """Live view of the drive under way on ``vin``, or ``None`` when parked.
 
         The only window into the open ``TripBuilder`` from outside the coordinator. A
@@ -513,7 +509,7 @@ class CardataCoordinator:
             progress["track"] = [list(point) for point in builder.track]
         return progress
 
-    def apply_tyre_diagnosis(self, vin: str, payload: Any) -> Dict[str, Any]:
+    def apply_tyre_diagnosis(self, vin: str, payload: Any) -> dict[str, Any]:
         """Store a parsed tyre diagnosis and wake the entities that show it.
 
         Returns the parsed result so the caller can log how much arrived. A
@@ -532,7 +528,7 @@ class CardataCoordinator:
         async_dispatcher_send(self.hass, f"{DOMAIN}_{self.entry_id}_new_tyre", vin)
         return parsed
 
-    def restore_tyre_diagnosis(self, stored: Dict[str, Dict[str, Any]]) -> None:
+    def restore_tyre_diagnosis(self, stored: dict[str, dict[str, Any]]) -> None:
         """Seed the diagnosis from the store at setup.
 
         Called before the platforms are set up, so the tyre entities find their
@@ -545,7 +541,7 @@ class CardataCoordinator:
             if vin and isinstance(diagnosis, dict) and vin not in self.tyre_diagnosis:
                 self.tyre_diagnosis[vin] = diagnosis
 
-    async def async_handle_message(self, payload: Dict[str, Any]) -> None:
+    async def async_handle_message(self, payload: dict[str, Any]) -> None:
         vin = payload.get("vin")
         data = payload.get("data") or {}
         if not vin or not isinstance(data, dict):
@@ -573,15 +569,15 @@ class CardataCoordinator:
             await self._async_capture_batch(vin, data, batch.now)
         async_dispatcher_send(self.hass, self.signal_diagnostics)
 
-    def _open_batch(self, vin: str, payload: Dict[str, Any], data: Dict[str, Any]) -> _Batch:
-        self.last_message_at = datetime.now(timezone.utc)
+    def _open_batch(self, vin: str, payload: dict[str, Any], data: dict[str, Any]) -> _Batch:
+        self.last_message_at = datetime.now(UTC)
         self.last_message_by_vin[vin] = self.last_message_at
 
         if debug_enabled():
             _LOGGER.debug("Processing message for VIN %s: %s", vin, list(data.keys()))
 
         tracking = self._car(vin).charge.tracker()
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         # REST callers tag their batches; the stream sends no ``source``.
         source = REST if payload.get("source") == REST else STREAM
         profile = self.car_profiles.get(vin)
@@ -590,8 +586,8 @@ class CardataCoordinator:
         return _Batch(vin, now, source, tracking, profile)
 
     def _parked_soc(
-        self, vin: str, data: Dict[str, Any], tracking: SocTracking
-    ) -> Optional[tuple[float, Optional[datetime]]]:
+        self, vin: str, data: dict[str, Any], tracking: SocTracking
+    ) -> tuple[float, datetime | None] | None:
         """The charge the car set off with, for a report trip.
 
         Read before this batch lands, because a burst carries the SoC it
@@ -608,9 +604,9 @@ class CardataCoordinator:
     def _read_descriptor(
         self,
         batch: _Batch,
-        vehicle_state: Dict[str, DescriptorState],
+        vehicle_state: dict[str, DescriptorState],
         descriptor: str,
-        descriptor_payload: Dict[str, Any],
+        descriptor_payload: dict[str, Any],
     ) -> None:
         """Store one descriptor's reading and note what it means for the batch."""
 
@@ -696,8 +692,8 @@ class CardataCoordinator:
     def _after_batch(
         self,
         batch: _Batch,
-        data: Dict[str, Any],
-        parked_soc: Optional[tuple[float, Optional[datetime]]],
+        data: dict[str, Any],
+        parked_soc: tuple[float, datetime | None] | None,
     ) -> None:
         """What the batch as a whole means: charging, reports, new entities, energy."""
 
@@ -736,7 +732,7 @@ class CardataCoordinator:
         if self.charging.integrate_energy(vin, now):
             async_dispatcher_send(self.hass, self.signal_energy, vin)
 
-    async def _async_trip_signals(self, batch: _Batch, data: Dict[str, Any]) -> None:
+    async def _async_trip_signals(self, batch: _Batch, data: dict[str, Any]) -> None:
         """The batch's trip signals, under the car's trip lock, then its situations.
 
         Serialised per VIN so concurrent messages can't double-open a trip while
@@ -769,7 +765,7 @@ class CardataCoordinator:
             # After the trip logic: a trip opening ends "parked unlocked".
             self.events.evaluate_situations(vin, now)
 
-    async def _async_capture_batch(self, vin: str, data: Dict[str, Any], now: datetime) -> None:
+    async def _async_capture_batch(self, vin: str, data: dict[str, Any], now: datetime) -> None:
         """Trip-capture diagnostics: the raw firehose and the NDJSON file.
 
         Outside the trip lock (they only read state), and only on the opt-in.
@@ -786,18 +782,18 @@ class CardataCoordinator:
                     line,
                 )
 
-    def get_lifetime_energy_kwh(self, vin: str) -> Optional[float]:
+    def get_lifetime_energy_kwh(self, vin: str) -> float | None:
         value = self._peek(vin).charge.energy_lifetime_wh
         return None if value is None else round(value / 1000.0, 3)
 
-    def get_session_energy_kwh(self, vin: str) -> Optional[float]:
+    def get_session_energy_kwh(self, vin: str) -> float | None:
         value = self._peek(vin).charge.energy_session_wh
         return None if value is None else round(value / 1000.0, 3)
 
-    def get_session_start(self, vin: str) -> Optional[datetime]:
+    def get_session_start(self, vin: str) -> datetime | None:
         return self._peek(vin).charge.energy_session_start
 
-    def session_progress(self, vin: str) -> Optional[dict[str, Any]]:
+    def session_progress(self, vin: str) -> dict[str, Any] | None:
         """What the charge in progress has cost and drawn so far, or ``None``.
 
         ``None`` whenever no session record is open -- between charges, and with
@@ -818,9 +814,7 @@ class CardataCoordinator:
         if charge.energy_lifetime_wh is None:
             charge.energy_lifetime_wh = kwh * 1000.0
 
-    def restore_session_energy(
-        self, vin: str, kwh: float, start: Optional[datetime] = None
-    ) -> None:
+    def restore_session_energy(self, vin: str, kwh: float, start: datetime | None = None) -> None:
         charge = self._car(vin).charge
         if kwh is not None:
             if charge.energy_session_wh is None:
@@ -867,7 +861,7 @@ class CardataCoordinator:
             self.battery_capacity_kwh(vin),
         )
 
-    def odometer_km(self, vin: str) -> Optional[float]:
+    def odometer_km(self, vin: str) -> float | None:
         """Cumulative odometer in km, for trip distance and distance-based costing.
 
         Reads whichever odometer descriptor the car actually streams (see
@@ -886,7 +880,7 @@ class CardataCoordinator:
                 continue
         return None
 
-    def _fuel_litres(self, vin: str) -> Optional[float]:
+    def _fuel_litres(self, vin: str) -> float | None:
         """The fuel in the tank, in litres, or ``None``.
 
         ``None`` too for litres that stopped following the fill level
@@ -929,10 +923,10 @@ class CardataCoordinator:
             km=self.odometer_km(vin),
         )
 
-    def fuel_report(self, vin: str) -> Dict[str, Any]:
+    def fuel_report(self, vin: str) -> dict[str, Any]:
         """The Fuel view: tank now, refuels, consumption, BMW's lifetime figures."""
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         report = self.history.fuel_report(vin, now) if self.history is not None else {}
         report = dict(report)
         report["tank"] = {
@@ -943,7 +937,7 @@ class CardataCoordinator:
         report["bmw_lifetime"] = self.obfcm_lifetime(vin)
         return report
 
-    def obfcm_lifetime(self, vin: str) -> Optional[Dict[str, Any]]:
+    def obfcm_lifetime(self, vin: str) -> dict[str, Any] | None:
         """BMW's lifetime consumption counters (``history/obfcm.py``)."""
 
         return obfcm_lifetime(
@@ -958,21 +952,21 @@ class CardataCoordinator:
         if self.history is not None and odometer_km is not None:
             self.history.async_note_odometer(vin, dt_util.as_local(now).date(), odometer_km)
 
-    def mileage_report(self, vin: str) -> Dict[str, Any]:
+    def mileage_report(self, vin: str) -> dict[str, Any]:
         """How far the car is driven, and where it stands against its allowance."""
 
         log = self.history.odometer_log(vin) if self.history is not None else {}
-        today = dt_util.as_local(datetime.now(timezone.utc)).date()
+        today = dt_util.as_local(datetime.now(UTC)).date()
         return mileage_report(log, today, self.mileage_allowances.get(vin), self.pricing.currency)
 
-    def km_per_day(self, vin: str) -> Optional[float]:
+    def km_per_day(self, vin: str) -> float | None:
         """The car's average km a day over the last 90 days, or ``None``."""
 
         if self.history is None:
             return None
-        return self.history.km_per_day(vin, dt_util.as_local(datetime.now(timezone.utc)).date())
+        return self.history.km_per_day(vin, dt_util.as_local(datetime.now(UTC)).date())
 
-    def _odometer_timestamp(self, vin: str) -> Optional[str]:
+    def _odometer_timestamp(self, vin: str) -> str | None:
         """The car's own timestamp on the odometer reading ``_odometer_km`` uses."""
 
         for descriptor in DESC_ODOMETER:
@@ -981,7 +975,7 @@ class CardataCoordinator:
                 return state.timestamp
         return None
 
-    def last_vehicle_report(self, vin: str) -> Optional[datetime]:
+    def last_vehicle_report(self, vin: str) -> datetime | None:
         """When the car last reported its odometer, by the car's clock.
 
         The odometer rather than the newest timestamp of anything: a parked car's
@@ -1008,12 +1002,12 @@ class CardataCoordinator:
 
         return self.trip_settings_for(vin).report_trips
 
-    def numeric(self, vin: str, descriptor: str) -> Optional[float]:
+    def numeric(self, vin: str, descriptor: str) -> float | None:
         """A descriptor's last value as a number, or ``None`` (for ``assist_api``)."""
 
         return self._numeric(vin, descriptor)
 
-    def _numeric(self, vin: str, descriptor: str) -> Optional[float]:
+    def _numeric(self, vin: str, descriptor: str) -> float | None:
         state = self.get_state(vin, descriptor)
         if state is None or isinstance(state.value, bool):
             return None
@@ -1022,7 +1016,7 @@ class CardataCoordinator:
         except TypeError, ValueError:
             return None
 
-    def _battery_kwh(self, vin: str, descriptor: str) -> Optional[float]:
+    def _battery_kwh(self, vin: str, descriptor: str) -> float | None:
         state = self.get_state(vin, descriptor)
         if state is None or state.value is None:
             return None
@@ -1034,12 +1028,12 @@ class CardataCoordinator:
         # zero capacity would poison both the vs-new ratio and the sanity check.
         return value if value > 0 else None
 
-    def battery_nominal_kwh(self, vin: str) -> Optional[float]:
+    def battery_nominal_kwh(self, vin: str) -> float | None:
         """As-new HV battery size in kWh, for the battery-health vs-new figure."""
 
         return self._battery_kwh(vin, "vehicle.drivetrain.batteryManagement.batterySizeMax")
 
-    def battery_capacity_kwh(self, vin: str) -> Optional[float]:
+    def battery_capacity_kwh(self, vin: str) -> float | None:
         """BMW's own current full-pack capacity in kWh, used to sanity-check ours.
 
         The SoC tracker already learns this from the ``maxEnergy`` stream (it
@@ -1052,7 +1046,7 @@ class CardataCoordinator:
             return tracking.max_energy_kwh
         return self._battery_kwh(vin, DESC_MAX_ENERGY)
 
-    def current_soc(self, vin: str) -> Optional[float]:
+    def current_soc(self, vin: str) -> float | None:
         """The best state of charge we have, live estimate first.
 
         Public because anything that scales the pack into something else --
@@ -1063,7 +1057,7 @@ class CardataCoordinator:
 
         return self._current_soc(vin)
 
-    def outside_temperature(self, vin: str) -> Optional[Dict[str, Any]]:
+    def outside_temperature(self, vin: str) -> dict[str, Any] | None:
         """Today's outside temperature where the car is parked, or ``None``.
 
         Asked once a local day while route weather is on (``trip_weather``):
@@ -1077,12 +1071,12 @@ class CardataCoordinator:
             # Right after a restart, until the day's first check adopts it:
             # the reading stored before the restart, if it is today's.
             stored = self.history.outside(vin)
-            today = dt_util.as_local(datetime.now(timezone.utc)).date().isoformat()
+            today = dt_util.as_local(datetime.now(UTC)).date().isoformat()
             if stored is not None and stored.get("date") == today:
                 return stored
         return dict(reading) if reading is not None else None
 
-    def bmw_range_km(self, vin: str) -> Optional[float]:
+    def bmw_range_km(self, vin: str) -> float | None:
         """BMW's own remaining *electric* range, as shown in the cluster.
 
         Deliberately only ``kombiRemainingElectricRange``: it is the number on
@@ -1103,7 +1097,7 @@ class CardataCoordinator:
             return None
         return value if value > 0 else None
 
-    def _plug_state(self, vin: str) -> Optional[bool]:
+    def _plug_state(self, vin: str) -> bool | None:
         """Whether a cable is in the car, or ``None`` if the car doesn't say.
 
         Only gathers the car's current values: which descriptors count, in what
@@ -1111,14 +1105,14 @@ class CardataCoordinator:
         where they are unit-tested. Entity-side code in this file is not.
         """
 
-        values: Dict[str, Any] = {}
+        values: dict[str, Any] = {}
         for descriptor in PLUG_DESCRIPTORS:
             state = self.get_state(vin, descriptor)
             if state is not None:
                 values[descriptor] = state.value
         return plug_state(values)
 
-    def _charging_state(self, vin: str) -> Optional[bool]:
+    def _charging_state(self, vin: str) -> bool | None:
         """Whether the car is charging, or ``None`` if it has never said.
 
         The distinction matters here in a way it does not elsewhere: everywhere
@@ -1156,7 +1150,7 @@ class CardataCoordinator:
         # place, else the current fix. See ``BridgeSnapshot.away``.
         builder = self._peek(vin).session.builder
         location = builder.location if builder is not None else self._charging_location(vin)
-        power_kw: Optional[float] = None
+        power_kw: float | None = None
         if charging is True:
             power_w = self._peek(vin).charge.charging_power_w
             power_kw = None if power_w is None else max(power_w, 0.0) / 1000.0
@@ -1175,7 +1169,7 @@ class CardataCoordinator:
             away=not house_supplies_this_session(location, self._home_zone_name()),
         )
 
-    def efficiency(self, vin: str, *, months: int = TREND_MONTHS) -> Dict[str, Any]:
+    def efficiency(self, vin: str, *, months: int = TREND_MONTHS) -> dict[str, Any]:
         """Measured consumption, the range it implies, and the seasonal trend.
 
         One code path for all three consumers -- the real-range entity, the
@@ -1214,7 +1208,7 @@ class CardataCoordinator:
         )
         return profile
 
-    def _charging_location(self, vin: str) -> Optional[Dict[str, Any]]:
+    def _charging_location(self, vin: str) -> dict[str, Any] | None:
         """Where the car is plugged in, as an HA zone name when we can tell.
 
         Knowing a session happened "at home" is what costing needs, so the zone
@@ -1229,13 +1223,13 @@ class CardataCoordinator:
         if latitude is None or longitude is None:
             return None
         zone = self._zone_name(latitude, longitude)
-        location: Dict[str, Any] = {"zone": zone} if zone else {"zone": None}
+        location: dict[str, Any] = {"zone": zone} if zone else {"zone": None}
         if self.history is not None and self.history.remember_locations:
             location["lat"] = round(latitude, 5)
             location["lon"] = round(longitude, 5)
         return location
 
-    def _coordinate(self, vin: str, kind: str) -> Optional[float]:
+    def _coordinate(self, vin: str, kind: str) -> float | None:
         for descriptor in (
             f"vehicle.cabin.infotainment.navigation.currentLocation.{kind}",
             f"vehicle.trip.segment.end.vehicleLocation.gpsPosition.{kind}",
@@ -1249,13 +1243,13 @@ class CardataCoordinator:
                 continue
         return None
 
-    def zone_at(self, latitude: float, longitude: float) -> Optional[str]:
+    def zone_at(self, latitude: float, longitude: float) -> str | None:
         """Public zone lookup, used when importing BMW's charging history so an
         imported session resolves to the same zone a live one would."""
 
         return self._zone_name(latitude, longitude)
 
-    def _zone_name(self, latitude: float, longitude: float) -> Optional[str]:
+    def _zone_name(self, latitude: float, longitude: float) -> str | None:
         """The place a charge or trip is filed under: Home wherever it is the house.
 
         Only places, not zone events: those keep the zone Home Assistant names
@@ -1271,7 +1265,7 @@ class CardataCoordinator:
                 return self._home_zone_name()
         return found[0]
 
-    def _zone_at(self, latitude: float, longitude: float) -> Optional[tuple[str, str]]:
+    def _zone_at(self, latitude: float, longitude: float) -> tuple[str, str] | None:
         """The zone a point lies in, as ``(name, entity_id)``, or ``None``."""
 
         from homeassistant.components import zone as zone_component
@@ -1284,7 +1278,7 @@ class CardataCoordinator:
             return None
         return (found.name or found.entity_id, found.entity_id)
 
-    def _current_zone(self, vin: str) -> Optional[tuple[str, str]]:
+    def _current_zone(self, vin: str) -> tuple[str, str] | None:
         latitude = self._coordinate(vin, "latitude")
         longitude = self._coordinate(vin, "longitude")
         if latitude is None or longitude is None:
@@ -1293,11 +1287,11 @@ class CardataCoordinator:
 
     # --- device triggers (vehicle_triggers.py) ------------------------------
 
-    def _live_values(self, vin: str, descriptors: Iterable[str]) -> Dict[str, Any]:
+    def _live_values(self, vin: str, descriptors: Iterable[str]) -> dict[str, Any]:
         """Current values of those ``descriptors`` the stream sent since startup."""
 
         live = self._peek(vin).live_descriptors
-        values: Dict[str, Any] = {}
+        values: dict[str, Any] = {}
         for descriptor in descriptors:
             if descriptor not in live:
                 continue
@@ -1316,7 +1310,7 @@ class CardataCoordinator:
         state = self.get_state(vin, descriptor)
         return None if state is None else state.value
 
-    def _current_soc(self, vin: str) -> Optional[float]:
+    def _current_soc(self, vin: str) -> float | None:
         tracking = self._peek(vin).charge.tracking
         if tracking is None:
             return None
@@ -1326,7 +1320,7 @@ class CardataCoordinator:
             return round(tracking.last_soc_percent, 1)
         return None
 
-    def _zone_location(self, name: str) -> Optional[tuple[float, float]]:
+    def _zone_location(self, name: str) -> tuple[float, float] | None:
         """Where the zone called ``name`` is, for a stored trip's weather."""
 
         for state in self.hass.states.async_all("zone"):
@@ -1336,29 +1330,29 @@ class CardataCoordinator:
                     return (float(lat), float(lon))
         return None
 
-    def _home_location(self) -> Optional[tuple[float, float]]:
+    def _home_location(self) -> tuple[float, float] | None:
         lat, lon = self.hass.config.latitude, self.hass.config.longitude
         if isinstance(lat, (int, float)) and isinstance(lon, (int, float)):
             return (float(lat), float(lon))
         return None
 
-    def _home_zone_name(self) -> Optional[str]:
+    def _home_zone_name(self) -> str | None:
         state = self.hass.states.get("zone.home")
         return state.name if state is not None else "Home"
 
-    def home_zone_name(self) -> Optional[str]:
+    def home_zone_name(self) -> str | None:
         """Public form, for the BMW history import's home-only tariff."""
 
         return self._home_zone_name()
 
-    def _work_zone_name(self, vin: str) -> Optional[str]:
+    def _work_zone_name(self, vin: str) -> str | None:
         entity_id = self.trip_settings_for(vin).work_zone_entity
         if not entity_id:
             return None
         state = self.hass.states.get(entity_id)
         return state.name if state is not None else None
 
-    def get_state(self, vin: str, descriptor: str) -> Optional[DescriptorState]:
+    def get_state(self, vin: str, descriptor: str) -> DescriptorState | None:
         return self.data.get(vin, {}).get(descriptor)
 
     def iter_descriptors(self, *, binary: bool) -> Iterable[tuple[str, str]]:
@@ -1379,7 +1373,7 @@ class CardataCoordinator:
             seen |= self.coverage.seen_descriptors(vin)
         return seen
 
-    def drive_train(self, vin: str) -> Optional[str]:
+    def drive_train(self, vin: str) -> str | None:
         """BMW's basic-data ``driveTrain`` for a car (``BEV``/``PHEV``/``CONV``)."""
 
         extra = (self.device_metadata.get(vin) or {}).get("extra_attributes") or {}
@@ -1394,16 +1388,16 @@ class CardataCoordinator:
         return is_plug_in_hybrid(self.seen_descriptors(vin), self.drive_train(vin))
 
     async def async_handle_connection_event(
-        self, status: str, *, reason: Optional[str] = None
+        self, status: str, *, reason: str | None = None
     ) -> None:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         outage_s = self.health.note(status, reason, now)
         if outage_s is not None and self.on_reconnect_after_outage is not None:
             self.on_reconnect_after_outage(outage_s)
         self._log_diagnostics()
         self._evaluate_stream_repairs(now)
 
-    def _evaluate_stream_repairs(self, now: Optional[datetime] = None) -> None:
+    def _evaluate_stream_repairs(self, now: datetime | None = None) -> None:
         """Raise or clear the stream-health repair issues (``stream_health``).
 
         Idempotent and latched: the underlying registry calls are only made on a
@@ -1413,14 +1407,14 @@ class CardataCoordinator:
         """
 
         unauthorized, no_data = self.health.repairs_due(
-            now or datetime.now(timezone.utc),
+            now or datetime.now(UTC),
             last_message_at=self.last_message_at,
             started_at=self.stream_started_at,
         )
         self._set_unauthorized_issue(unauthorized)
         self._set_no_data_issue(no_data)
 
-    def _fire(self, event_type: str, payload: Dict[str, Any]) -> None:
+    def _fire(self, event_type: str, payload: dict[str, Any]) -> None:
         """Fire one of the integration's events, with the car's name on it.
 
         ``vehicle`` is what a notification says ("i5 eDrive40: charging
@@ -1451,7 +1445,7 @@ class CardataCoordinator:
         """
 
         issue_id = f"stream_unauthorized_{self.entry_id}"
-        key: Optional[str] = None
+        key: str | None = None
         if active:
             key = "stream_held_elsewhere" if self.health.held_elsewhere else "stream_unauthorized"
         if key == self._unauthorized_issue:
@@ -1530,7 +1524,7 @@ class CardataCoordinator:
     async def async_start_watchdog(self) -> None:
         if self.watchdog_task:
             return
-        self.stream_started_at = datetime.now(timezone.utc)
+        self.stream_started_at = datetime.now(UTC)
         # Tie the heartbeat to the config entry so it is cancelled on unload and
         # its exceptions surface, instead of being an orphaned bare loop task.
         entry = self.hass.config_entries.async_get_entry(self.entry_id)
@@ -1573,7 +1567,7 @@ class CardataCoordinator:
                 self.last_disconnect_reason,
                 self.last_message_at,
             )
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         updated_vins: list[str] = []
         for vin, tracking in self._tracked_cars():
             if self.charging.apply_soc_estimate(vin, tracking, now, notify=False):
@@ -1593,23 +1587,23 @@ class CardataCoordinator:
                 self.trips.settle_late_reading(vin, moved=False)
         async_dispatcher_send(self.hass, self.signal_diagnostics)
 
-    def get_soc_rate(self, vin: str) -> Optional[float]:
+    def get_soc_rate(self, vin: str) -> float | None:
         return self._peek(vin).charge.soc_rate
 
-    def get_soc_estimate(self, vin: str) -> Optional[float]:
+    def get_soc_estimate(self, vin: str) -> float | None:
         return self._peek(vin).charge.soc_estimate
 
-    def get_charge_eta(self, vin: str) -> Optional[int]:
+    def get_charge_eta(self, vin: str) -> int | None:
         return self._peek(vin).charge.charge_eta
 
-    def learned_meter_rate(self, vin: str) -> Optional[MeterRate]:
+    def learned_meter_rate(self, vin: str) -> MeterRate | None:
         """What wallbox kWh do to this car's SoC, from its home charges in the ledger."""
 
         if self.history is None or not self.pricing_for(vin).grid_energy_entity:
             return None
         return meter_rate(self.history.sessions(vin), self._home_zone_name())
 
-    def soc_estimate_attributes(self, vin: str) -> Dict[str, Any]:
+    def soc_estimate_attributes(self, vin: str) -> dict[str, Any]:
         """What drives the estimate, for the entity's attributes.
 
         Empty without a bound wallbox meter: the stream is then the only source
@@ -1623,7 +1617,7 @@ class CardataCoordinator:
         tracking = self._peek(vin).charge.tracking
         learned = self.learned_meter_rate(vin)
         driving = tracking is not None and tracking.meter_model is not None
-        attrs: Dict[str, Any] = {
+        attrs: dict[str, Any] = {
             "estimate_source": "meter" if driving else "stream",
             "meter_sessions": 0 if learned is None else learned.samples,
             "meter_percent_per_kwh": None if learned is None else learned.percent_per_kwh,
@@ -1638,8 +1632,8 @@ class CardataCoordinator:
         vin: str,
         descriptor: str,
         value: Any,
-        unit: Optional[str],
-        timestamp: Optional[str],
+        unit: str | None,
+        timestamp: str | None,
     ) -> None:
         parsed_ts = dt_util.parse_datetime(timestamp) if timestamp else None
         unit = normalize_unit(unit)
@@ -1684,7 +1678,7 @@ class CardataCoordinator:
             # The odometer comes back through the entity restore, not the
             # stream: log it on the day the car reported it, or the mileage
             # figures stop short of the car's reading until it next drives.
-            self._note_odometer_day(vin, parsed_ts or datetime.now(timezone.utc))
+            self._note_odometer_day(vin, parsed_ts or datetime.now(UTC))
         tracking = self._car(vin).charge.tracker()
 
         updated = False
@@ -1768,13 +1762,13 @@ class CardataCoordinator:
         self,
         vin: str,
         *,
-        estimate: Optional[float] = None,
-        rate: Optional[float] = None,
-        timestamp: Optional[datetime] = None,
-        meter_kwh: Optional[float] = None,
+        estimate: float | None = None,
+        rate: float | None = None,
+        timestamp: datetime | None = None,
+        meter_kwh: float | None = None,
     ) -> None:
         tracking = self._car(vin).charge.tracker()
-        reference_time = timestamp or datetime.now(timezone.utc)
+        reference_time = timestamp or datetime.now(UTC)
         # Entities restore in no fixed order, so a restored estimate competes
         # with the restored SoC reading on age, not on who came first.
         if estimate is not None and (timestamp is not None or tracking.estimated_percent is None):
@@ -1804,7 +1798,7 @@ class CardataCoordinator:
                 self._car(vin).charge.soc_rate = None
 
     @staticmethod
-    def _build_device_metadata(vin: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def _build_device_metadata(vin: str, payload: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(payload, dict):
             return {}
         model_name = (
@@ -1812,7 +1806,7 @@ class CardataCoordinator:
         )
         brand = payload.get("brand") or "BMW"
         raw_payload = dict(payload)
-        display_attrs: Dict[str, Any] = {
+        display_attrs: dict[str, Any] = {
             "vin": raw_payload.get("vin") or vin,
             "model_name": model_name,
             "model_key": raw_payload.get("modelKey"),
@@ -1839,7 +1833,7 @@ class CardataCoordinator:
             "construction_date": raw_payload.get("constructionDate"),
             "special_equipment_codes": raw_payload.get("fullSAList") or raw_payload.get("saList"),
         }
-        metadata: Dict[str, Any] = {
+        metadata: dict[str, Any] = {
             "name": str(model_name),
             "manufacturer": str(brand),
             "serial_number": str(raw_payload.get("vin") or vin),
@@ -1861,7 +1855,7 @@ class CardataCoordinator:
             metadata["hw_version"] = str(raw_payload["bodyType"])
         return metadata
 
-    def apply_basic_data(self, vin: str, payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def apply_basic_data(self, vin: str, payload: dict[str, Any]) -> dict[str, Any] | None:
         metadata = self._build_device_metadata(vin, payload)
         if not metadata:
             return None

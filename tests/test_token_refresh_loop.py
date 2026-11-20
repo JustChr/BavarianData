@@ -53,7 +53,7 @@ def _dns_outage() -> Exception:
 
 
 def _timeout() -> Exception:
-    return asyncio.TimeoutError()
+    return TimeoutError()
 
 
 def _non_json_response() -> Exception:

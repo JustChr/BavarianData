@@ -30,8 +30,9 @@ from __future__ import annotations
 import logging
 import math
 from dataclasses import dataclass, field
-from datetime import date, datetime, timedelta, timezone
-from typing import Any, Optional, Sequence
+from datetime import date, datetime, timedelta, UTC
+from typing import Any
+from collections.abc import Sequence
 
 import aiohttp
 
@@ -54,7 +55,6 @@ MAX_POINTS = 60
 VARIABLES = ("temperature_2m", "precipitation", "wind_speed_10m", "wind_direction_10m")
 # The day's reading where the car is parked: its lowest and highest temperature.
 DAY_VARIABLES = ("temperature_2m_min", "temperature_2m_max")
-QUARTER = timedelta(minutes=15)
 
 # Where a trip's waypoints came from: its drive (``route``), its stored track
 # (``track``), only its two ends (``ends``), or the home location (``home``).
@@ -69,7 +69,7 @@ class WeatherPoint:
     lat: float
     lon: float
     # Direction of travel towards this point in degrees (0 = north), if known.
-    heading: Optional[float] = None
+    heading: float | None = None
 
 
 def _km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -94,9 +94,9 @@ class WaypointSampler:
 
     points: list[WeatherPoint] = field(default_factory=list)
     # The last fix kept, unrounded, so a heading is measured on real positions.
-    _last: Optional[tuple[datetime, float, float]] = None
+    _last: tuple[datetime, float, float] | None = None
     # The newest fix seen, kept or not, so the drive's end can be added.
-    _newest: Optional[tuple[datetime, float, float]] = None
+    _newest: tuple[datetime, float, float] | None = None
 
     def add(self, lat: float, lon: float, at: datetime) -> None:
         self._newest = (at, lat, lon)
@@ -107,9 +107,7 @@ class WaypointSampler:
                 return
         self._keep(at, lat, lon)
 
-    def finish(
-        self, lat: Optional[float], lon: Optional[float], at: datetime
-    ) -> list[WeatherPoint]:
+    def finish(self, lat: float | None, lon: float | None, at: datetime) -> list[WeatherPoint]:
         """The waypoints with the drive's end added: where it stopped, or the last fix."""
 
         if lat is not None and lon is not None:
@@ -144,7 +142,7 @@ class WaypointSampler:
 
 
 def points_from_track(
-    track: Sequence[Sequence[float]], start: datetime, end: Optional[datetime]
+    track: Sequence[Sequence[float]], start: datetime, end: datetime | None
 ) -> list[WeatherPoint]:
     """Waypoints along a stored route, for a trip that ended before the lookup.
 
@@ -167,10 +165,10 @@ def points_from_track(
 
 
 def points_from_ends(
-    start_point: Optional[tuple[float, float]],
-    end_point: Optional[tuple[float, float]],
+    start_point: tuple[float, float] | None,
+    end_point: tuple[float, float] | None,
     start: datetime,
-    end: Optional[datetime],
+    end: datetime | None,
 ) -> list[WeatherPoint]:
     """Waypoints at a trip's two ends only, where those are known."""
 
@@ -204,7 +202,7 @@ def thin(points: Sequence[WeatherPoint], limit: int = MAX_POINTS) -> list[Weathe
 
 
 def _quarter(at: datetime) -> datetime:
-    at = at.astimezone(timezone.utc).replace(second=0, microsecond=0)
+    at = at.astimezone(UTC).replace(second=0, microsecond=0)
     return at - timedelta(minutes=at.minute % 15)
 
 
@@ -246,7 +244,7 @@ def build_day_request(lat: float, lon: float, day: date) -> tuple[str, dict[str,
     }
 
 
-def parse_day(payload: Any, day: date) -> Optional[dict[str, Any]]:
+def parse_day(payload: Any, day: date) -> dict[str, Any] | None:
     """The day's reading, or ``None`` when Open-Meteo has no temperature for it.
 
     ``temp_c`` is the midpoint of the day's low and high: what the card marks
@@ -272,7 +270,7 @@ def parse_day(payload: Any, day: date) -> Optional[dict[str, Any]]:
     }
 
 
-def _number(values: Any, index: int) -> Optional[float]:
+def _number(values: Any, index: int) -> float | None:
     if not isinstance(values, list) or index >= len(values):
         return None
     value = values[index]
@@ -373,7 +371,7 @@ class RouteWeather:
         *,
         source: str,
         now: datetime,
-    ) -> Optional[dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """The trip's weather record, or ``None`` when there was no answer."""
 
         if not self.enabled or not points:
@@ -391,7 +389,7 @@ class RouteWeather:
             return None
         return summarize(parse_samples(payload, points, start), source)
 
-    async def day(self, lat: float, lon: float, day: date) -> Optional[dict[str, Any]]:
+    async def day(self, lat: float, lon: float, day: date) -> dict[str, Any] | None:
         """``day``'s low, high and midpoint at one place, or ``None``."""
 
         if not self.enabled:

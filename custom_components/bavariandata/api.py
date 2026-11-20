@@ -11,7 +11,7 @@ from __future__ import annotations
 import json
 import logging
 import re
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import aiohttp
 
@@ -33,15 +33,15 @@ class CardataApiError(Exception):
         self,
         message: str,
         *,
-        status: Optional[int] = None,
-        error_id: Optional[str] = None,
+        status: int | None = None,
+        error_id: str | None = None,
     ) -> None:
         super().__init__(message)
         self.status = status
         self.error_id = error_id
 
 
-def _auth_headers(access_token: str, *, accept: str = "application/json") -> Dict[str, str]:
+def _auth_headers(access_token: str, *, accept: str = "application/json") -> dict[str, str]:
     return {
         "Authorization": f"Bearer {access_token}",
         "x-version": API_VERSION,
@@ -49,7 +49,7 @@ def _auth_headers(access_token: str, *, accept: str = "application/json") -> Dic
     }
 
 
-def _extract_error_id(payload: Any) -> Optional[str]:
+def _extract_error_id(payload: Any) -> str | None:
     """Pull a BMW ``CU-xxx`` error id out of an error body if present.
 
     Read from any key: BMW documents the field only as "ErrorID", and the
@@ -69,14 +69,14 @@ _VIN_RE = re.compile(r"\b[A-HJ-NPR-Z0-9]{17}\b")
 _HTML_TITLE_RE = re.compile(r"<title>\s*(?:\d{3}\s+)?(.*?)\s*</title>", re.IGNORECASE | re.DOTALL)
 
 
-def _html_reason(page: str) -> Optional[str]:
+def _html_reason(page: str) -> str | None:
     """The reason an HTML error page names in its title (a proxy's ``502 Bad Gateway``)."""
 
     match = _HTML_TITLE_RE.search(page)
     return match.group(1) if match else None
 
 
-def _error_detail(payload: Any) -> Optional[str]:
+def _error_detail(payload: Any) -> str | None:
     """BMW's own reason from an error body, short and without a VIN."""
 
     detail: Any = None
@@ -99,7 +99,7 @@ def _shown(path: str) -> str:
     return _VIN_RE.sub("<VIN>", path)
 
 
-def _api_error(status: int, method: str, path: str, text: str) -> "CardataApiError":
+def _api_error(status: int, method: str, path: str, text: str) -> CardataApiError:
     try:
         payload: Any = json.loads(text) if text else None
     except json.JSONDecodeError:
@@ -119,8 +119,8 @@ async def async_request_json(
     path: str,
     access_token: str,
     *,
-    params: Optional[Dict[str, Any]] = None,
-    json_body: Optional[Dict[str, Any]] = None,
+    params: dict[str, Any] | None = None,
+    json_body: dict[str, Any] | None = None,
 ) -> Any:
     """Perform an authenticated CarData request and return parsed JSON.
 
@@ -172,7 +172,7 @@ async def async_request_bytes(
     method: str,
     path: str,
     access_token: str,
-) -> Tuple[bytes, Optional[str]]:
+) -> tuple[bytes, str | None]:
     """Perform an authenticated request expecting a binary body (e.g. images)."""
 
     headers = _auth_headers(access_token, accept="*/*")
@@ -201,18 +201,18 @@ async def _async_collect_paginated(
     path: str,
     access_token: str,
     *,
-    base_params: Optional[Dict[str, Any]] = None,
-    token_fields: Tuple[str, ...] = ("next_token", "nextToken"),
-) -> Dict[str, Any]:
+    base_params: dict[str, Any] | None = None,
+    token_fields: tuple[str, ...] = ("next_token", "nextToken"),
+) -> dict[str, Any]:
     """Follow ``nextToken`` pagination, accumulating the ``data`` array.
 
     Returns a dict ``{"data": [...all items...], "pages": <n>}``.
     """
 
-    items: List[Any] = []
-    params: Dict[str, Any] = dict(base_params or {})
+    items: list[Any] = []
+    params: dict[str, Any] = dict(base_params or {})
     pages = 0
-    next_token: Optional[str] = None
+    next_token: str | None = None
     while pages < MAX_PAGES:
         if next_token:
             params["nextToken"] = next_token
@@ -271,12 +271,12 @@ async def async_get_charging_history(
     access_token: str,
     vin: str,
     *,
-    from_date: Optional[str] = None,
-    to_date: Optional[str] = None,
-) -> Dict[str, Any]:
+    from_date: str | None = None,
+    to_date: str | None = None,
+) -> dict[str, Any]:
     """GET /customers/vehicles/{vin}/chargingHistory (paginated)."""
 
-    params: Dict[str, Any] = {}
+    params: dict[str, Any] = {}
     if from_date:
         params["from"] = from_date
     if to_date:
@@ -304,7 +304,7 @@ async def async_get_tyre_diagnosis(
 
 async def async_get_location_based_charging_settings(
     session: aiohttp.ClientSession, access_token: str, vin: str
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """GET /customers/vehicles/{vin}/locationBasedChargingSettings (paginated)."""
 
     return await _async_collect_paginated(
@@ -316,7 +316,7 @@ async def async_get_location_based_charging_settings(
 
 async def async_get_vehicle_image(
     session: aiohttp.ClientSession, access_token: str, vin: str
-) -> Tuple[bytes, Optional[str]]:
+) -> tuple[bytes, str | None]:
     """GET /customers/vehicles/{vin}/image -> (bytes, content_type)."""
 
     return await async_request_bytes(

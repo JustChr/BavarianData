@@ -18,8 +18,8 @@ The stored shape is ``{"vehicles": {vin: {"fetched_at": iso, "diagnosis": {...}}
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from datetime import datetime, UTC
+from typing import Any
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.storage import Store
@@ -41,10 +41,10 @@ class TyreStore:
     def __init__(self, hass: HomeAssistant, entry_id: str) -> None:
         self.hass = hass
         self._store: Store[dict[str, Any]] = Store(hass, STORE_VERSION, f"{DOMAIN}_{entry_id}_tyre")
-        self._vehicles: Dict[str, Dict[str, Any]] = {}
+        self._vehicles: dict[str, dict[str, Any]] = {}
         self._loaded = False
 
-    async def async_load(self) -> Dict[str, Dict[str, Any]]:
+    async def async_load(self) -> dict[str, dict[str, Any]]:
         """Read the store once at setup.
 
         Never raises -- a missing or corrupt tyre store must not stop the stream
@@ -65,7 +65,7 @@ class TyreStore:
         if not isinstance(raw, dict):
             return {}
 
-        restored: Dict[str, Dict[str, Any]] = {}
+        restored: dict[str, dict[str, Any]] = {}
         for vin, record in raw.items():
             # Validation lives in tyre.py so it stays unit-testable without a
             # Home Assistant harness (tests/test_tyre.py).
@@ -80,25 +80,25 @@ class TyreStore:
         return restored
 
     @callback
-    def async_record(self, vin: str, diagnosis: Dict[str, Any]) -> str:
+    def async_record(self, vin: str, diagnosis: dict[str, Any]) -> str:
         """Store ``diagnosis`` for ``vin`` and return the fetch timestamp.
 
         Saved with a short debounce rather than immediately: a multi-vehicle
         refresh records once per VIN in the same pass.
         """
 
-        fetched_at = datetime.now(timezone.utc).isoformat()
+        fetched_at = datetime.now(UTC).isoformat()
         self._vehicles[vin] = {"fetched_at": fetched_at, "diagnosis": diagnosis}
         self._store.async_delay_save(self._data_to_save, SAVE_DELAY_S)
         return fetched_at
 
-    def fetched_at(self, vin: str) -> Optional[str]:
+    def fetched_at(self, vin: str) -> str | None:
         record = self._vehicles.get(vin) or {}
         stamp = record.get("fetched_at")
         return stamp if isinstance(stamp, str) else None
 
     @callback
-    def _data_to_save(self) -> Dict[str, Any]:
+    def _data_to_save(self) -> dict[str, Any]:
         return {"vehicles": {vin: dict(record) for vin, record in self._vehicles.items()}}
 
     def forget_vehicle(self, vin: str) -> None:

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 from datetime import date, datetime
-from typing import Callable, Dict, Optional
+from collections.abc import Callable
 
 from homeassistant.components.calendar import CalendarEntity, CalendarEvent
 from homeassistant.config_entries import ConfigEntry
@@ -42,7 +42,7 @@ async def async_setup_entry(
         return
 
     coordinator: CardataCoordinator = runtime_data.coordinator
-    calendars: Dict[str, CardataServiceCalendar] = {}
+    calendars: dict[str, CardataServiceCalendar] = {}
 
     def ensure_calendar(vin: str) -> None:
         if vin in calendars:
@@ -86,8 +86,8 @@ class CardataServiceCalendar(CardataEntity, CalendarEntity):
         super().__init__(coordinator, vin, "service_calendar")
         self._attr_unique_id = f"{vin}{UNIQUE_SUFFIX}"
         self._attr_entity_registry_enabled_default = False
-        self._unsubscribe: Optional[Callable[[], None]] = None
-        self._unsubscribe_mileage: Optional[Callable[[], None]] = None
+        self._unsubscribe: Callable[[], None] | None = None
+        self._unsubscribe_mileage: Callable[[], None] | None = None
 
     def _events(self) -> list[ServiceEvent]:
         language = self.hass.config.language
@@ -117,7 +117,7 @@ class CardataServiceCalendar(CardataEntity, CalendarEntity):
         return sorted(events, key=lambda event: (event.start, event.summary))
 
     @property
-    def event(self) -> Optional[CalendarEvent]:
+    def event(self) -> CalendarEvent | None:
         upcoming = next_event(self._events(), dt_util.now().date())
         return _event(upcoming) if upcoming is not None else None
 

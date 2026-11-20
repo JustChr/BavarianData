@@ -20,7 +20,8 @@ import csv
 import io
 from datetime import datetime
 from html import escape
-from typing import Any, Callable, Iterable, Optional
+from typing import Any
+from collections.abc import Callable, Iterable
 
 from ..units import KM_PER_MILE
 from .models import ChargingSession
@@ -546,7 +547,7 @@ STRINGS: dict[str, dict[str, str]] = {
 }
 
 
-def _strings(lang: Optional[str]) -> dict[str, str]:
+def _strings(lang: str | None) -> dict[str, str]:
     return STRINGS.get((lang or "en")[:2].lower(), STRINGS["en"])
 
 
@@ -554,18 +555,18 @@ def _identity(value: datetime) -> datetime:
     return value
 
 
-def _fmt_dt(value: Optional[datetime], localize: Localizer, *, time_only: bool = False) -> str:
+def _fmt_dt(value: datetime | None, localize: Localizer, *, time_only: bool = False) -> str:
     if value is None:
         return ""
     local = localize(value)
     return local.strftime("%H:%M" if time_only else "%Y-%m-%d %H:%M")
 
 
-def _minutes(seconds: Optional[int]) -> str:
+def _minutes(seconds: int | None) -> str:
     return "" if seconds is None else str(round(seconds / 60))
 
 
-def _num(value: Optional[float], digits: int = 2) -> str:
+def _num(value: float | None, digits: int = 2) -> str:
     """A plain machine-readable number: dot decimals, no thousands separator.
 
     German spreadsheets will want commas, but a CSV that survives a round trip
@@ -577,7 +578,7 @@ def _num(value: Optional[float], digits: int = 2) -> str:
     return f"{float(value):.{digits}f}".rstrip("0").rstrip(".") or "0"
 
 
-def _shown(value: Optional[float], lang: Optional[str], digits: int = 1) -> str:
+def _shown(value: float | None, lang: str | None, digits: int = 1) -> str:
     """A number for a person to read: fixed decimals, the language's separator.
 
     The month report is read, not parsed, and ``297.752 kWh`` reads as almost
@@ -809,7 +810,7 @@ def _tile(key: str, value: str, note: str = "") -> str:
     )
 
 
-def _money(amount: Optional[float], currency: Optional[str], lang: Optional[str] = "en") -> str:
+def _money(amount: float | None, currency: str | None, lang: str | None = "en") -> str:
     if amount is None:
         return "—"
     return f"{_shown(amount, lang, 2)} {currency or ''}".strip()
@@ -821,11 +822,11 @@ def month_report_html(
     vehicle: str,
     sessions: Iterable[ChargingSession],
     trips: Iterable[Trip],
-    charging_summary: Optional[dict[str, Any]] = None,
-    driving: Optional[dict[str, Any]] = None,
-    lang: Optional[str] = "en",
+    charging_summary: dict[str, Any] | None = None,
+    driving: dict[str, Any] | None = None,
+    lang: str | None = "en",
     localize: Localizer = _identity,
-    now: Optional[datetime] = None,
+    now: datetime | None = None,
     distance_unit: str = "km",
 ) -> str:
     """A self-contained month report, styled for the browser's print-to-PDF.
@@ -843,23 +844,23 @@ def month_report_html(
     driving = driving or {}
     currency = charging_summary.get("currency")
 
-    def num(value: Optional[float], digits: int = 1) -> str:
+    def num(value: float | None, digits: int = 1) -> str:
         return _shown(value, lang, digits)
 
-    def money(amount: Optional[float]) -> str:
+    def money(amount: float | None) -> str:
         return _money(amount, currency, lang)
 
     miles = distance_unit == "mi"
     per = "100 mi" if miles else "100 km"
 
-    def dist(km: Optional[float]) -> str:
+    def dist(km: float | None) -> str:
         """A distance with its unit, or the bare dash."""
 
         if km is None:
             return "—"
         return f"{num(km / KM_PER_MILE if miles else km)} {'mi' if miles else 'km'}"
 
-    def per_dist(value: Optional[float]) -> Optional[float]:
+    def per_dist(value: float | None) -> float | None:
         """A per-100 km figure as per 100 of the unit shown (more per longer unit)."""
 
         return None if value is None else value * KM_PER_MILE if miles else value

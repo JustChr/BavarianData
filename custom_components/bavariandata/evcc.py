@@ -26,8 +26,9 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Mapping, Optional
+from datetime import datetime, UTC
+from typing import Any
+from collections.abc import Mapping
 
 from .const import (
     DEFAULT_BRIDGE_PREFIX,
@@ -91,7 +92,7 @@ DEFAULT_PREFIX = DEFAULT_BRIDGE_PREFIX
 _FORBIDDEN_PREFIX_CHARS = ("#", "+", "\x00")
 
 
-def normalize_prefix(value: Optional[str]) -> str:
+def normalize_prefix(value: str | None) -> str:
     """A usable topic prefix, falling back to the default rather than failing.
 
     Accepts what a user is likely to type (``bavariandata/``, ``/evcc/bmw``)
@@ -110,7 +111,7 @@ def normalize_prefix(value: Optional[str]) -> str:
     return cleaned
 
 
-def evcc_status(*, charging: Optional[bool], plugged: Optional[bool]) -> Optional[str]:
+def evcc_status(*, charging: bool | None, plugged: bool | None) -> str | None:
     """Map what the car reports onto evcc's A/B/C, or ``None`` if unknowable.
 
     Charging outranks the plug: a car that is actively charging is connected
@@ -154,7 +155,7 @@ PLUG_DESCRIPTORS = (
 )
 
 
-def plug_state(values: Mapping[str, Any]) -> Optional[bool]:
+def plug_state(values: Mapping[str, Any]) -> bool | None:
     """Whether a cable is in the car, from whichever source the car streams.
 
     ``values`` maps descriptor -> current value. The first source with a real
@@ -169,7 +170,7 @@ def plug_state(values: Mapping[str, Any]) -> Optional[bool]:
     return None if source is None else _plug_answer(values[source])
 
 
-def plug_source(values: Mapping[str, Any]) -> Optional[str]:
+def plug_source(values: Mapping[str, Any]) -> str | None:
     """The descriptor whose value :func:`plug_state` answers by, or ``None``."""
 
     for descriptor in PLUG_DESCRIPTORS:
@@ -178,7 +179,7 @@ def plug_source(values: Mapping[str, Any]) -> Optional[str]:
     return None
 
 
-def _plug_answer(value: Any) -> Optional[bool]:
+def _plug_answer(value: Any) -> bool | None:
     if isinstance(value, bool):
         return value
     if isinstance(value, str):
@@ -200,19 +201,19 @@ class BridgeSnapshot:
     """
 
     vin: str
-    soc: Optional[float] = None
-    charging: Optional[bool] = None
-    plugged: Optional[bool] = None
-    range_km: Optional[float] = None
-    odometer_km: Optional[float] = None
-    limit_soc: Optional[float] = None
-    charge_power_kw: Optional[float] = None
-    updated: Optional[datetime] = None
+    soc: float | None = None
+    charging: bool | None = None
+    plugged: bool | None = None
+    range_km: float | None = None
+    odometer_km: float | None = None
+    limit_soc: float | None = None
+    charge_power_kw: float | None = None
+    updated: datetime | None = None
     # Known to be somewhere other than home (see ``evcc_status_payload``).
     away: bool = False
 
     @property
-    def status(self) -> Optional[str]:
+    def status(self) -> str | None:
         return evcc_status(charging=self.charging, plugged=self.plugged)
 
     @property
@@ -232,7 +233,7 @@ class BridgeSnapshot:
 EVCC_NOT_AVAILABLE = "ErrNotAvailable"
 
 
-def evcc_status_payload(snapshot: BridgeSnapshot) -> Optional[str]:
+def evcc_status_payload(snapshot: BridgeSnapshot) -> str | None:
     """The ``status`` topic's payload: the car's status, unless it is elsewhere.
 
     evcc reads a vehicle's status for one thing only: when a car plugs into a
@@ -251,7 +252,7 @@ def evcc_status_payload(snapshot: BridgeSnapshot) -> Optional[str]:
     return status
 
 
-def _number(value: Optional[float], digits: int) -> Optional[str]:
+def _number(value: float | None, digits: int) -> str | None:
     """A payload for a number, or ``None`` if it isn't one.
 
     Rounded and rendered without a trailing ``.0`` for whole values, because
@@ -281,7 +282,7 @@ def bridge_payloads(snapshot: BridgeSnapshot) -> dict[str, str]:
 
     payloads: dict[str, str] = {}
 
-    def _put(topic: str, payload: Optional[str]) -> None:
+    def _put(topic: str, payload: str | None) -> None:
         if payload is not None:
             payloads[topic] = payload
 
@@ -298,7 +299,7 @@ def bridge_payloads(snapshot: BridgeSnapshot) -> dict[str, str]:
 
     updated = snapshot.updated
     if updated is not None:
-        as_utc = updated.astimezone(timezone.utc)
+        as_utc = updated.astimezone(UTC)
         _put(TOPIC_UPDATED, as_utc.isoformat())
     else:
         as_utc = None
@@ -364,9 +365,9 @@ def evcc_yaml(
     *,
     prefix: str,
     vin: str,
-    title: Optional[str] = None,
-    capacity_kwh: Optional[float] = None,
-    topics: Optional[tuple[str, ...]] = None,
+    title: str | None = None,
+    capacity_kwh: float | None = None,
+    topics: tuple[str, ...] | None = None,
 ) -> str:
     """The evcc ``custom`` vehicle block that reads this car off the broker.
 
@@ -457,7 +458,7 @@ class BridgeConfig:
         return self.stream or any(self.stream_vehicles.values())
 
     @classmethod
-    def from_options(cls, options: dict[str, Any]) -> "BridgeConfig":
+    def from_options(cls, options: dict[str, Any]) -> BridgeConfig:
         own = cars_with_own(options, BRIDGE_OPTIONS)
         return cls(
             enabled=bool(options.get(OPTION_BRIDGE_ENABLED)),

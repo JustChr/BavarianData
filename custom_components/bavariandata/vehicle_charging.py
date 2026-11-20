@@ -21,8 +21,8 @@ from __future__ import annotations
 import logging
 import re
 from contextlib import suppress
-from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any, Dict, Optional, Protocol
+from datetime import datetime, UTC
+from typing import TYPE_CHECKING, Any, Protocol
 
 from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import async_dispatcher_send
@@ -85,7 +85,7 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger("custom_components.bavariandata.coordinator")
 
 
-def _snapshot_float(value: Any) -> Optional[float]:
+def _snapshot_float(value: Any) -> float | None:
     """A number out of a stored snapshot, or ``None`` if it is not one.
 
     Snapshots are JSON written by an older build of this integration, so every
@@ -99,7 +99,7 @@ def _snapshot_float(value: Any) -> Optional[float]:
         return None
 
 
-def _snapshot_time(value: Any) -> Optional[datetime]:
+def _snapshot_time(value: Any) -> datetime | None:
     """A timestamp out of a stored snapshot, or ``None`` if it is unusable."""
 
     if not isinstance(value, str):
@@ -107,7 +107,7 @@ def _snapshot_time(value: Any) -> Optional[datetime]:
     return dt_util.parse_datetime(value)
 
 
-def _charge_complete(soc: Optional[float], target: Optional[float]) -> bool:
+def _charge_complete(soc: float | None, target: float | None) -> bool:
     """Whether a charge that stopped reached its target (within the 1 % BMW rounds to)."""
 
     return target is not None and soc is not None and soc >= target - 1.0
@@ -118,9 +118,9 @@ class ChargingHost(Protocol):
 
     hass: HomeAssistant
     entry_id: str
-    history: Optional[HistoryStore]
+    history: HistoryStore | None
     pricing: PricingConfig
-    data: Dict[str, Dict[str, DescriptorState]]
+    data: dict[str, dict[str, DescriptorState]]
 
     @property
     def signal_energy(self) -> str: ...
@@ -132,22 +132,22 @@ class ChargingHost(Protocol):
     def signal_update(self) -> str: ...
 
     @property
-    def _cars(self) -> Dict[str, Vehicle]: ...
+    def _cars(self) -> dict[str, Vehicle]: ...
     def _car(self, vin: str) -> Vehicle: ...
     def _peek(self, vin: str) -> Vehicle: ...
     def _vins_where(self, test: Any) -> list[str]: ...
     def _tracked_cars(self) -> list[tuple[str, SocTracking]]: ...
-    def _live_values(self, vin: str, descriptors: Any) -> Dict[str, Any]: ...
-    def _plug_state(self, vin: str) -> Optional[bool]: ...
-    def _charging_location(self, vin: str) -> Optional[Dict[str, Any]]: ...
-    def _home_zone_name(self) -> Optional[str]: ...
+    def _live_values(self, vin: str, descriptors: Any) -> dict[str, Any]: ...
+    def _plug_state(self, vin: str) -> bool | None: ...
+    def _charging_location(self, vin: str) -> dict[str, Any] | None: ...
+    def _home_zone_name(self) -> str | None: ...
     def pricing_for(self, vin: str) -> PricingConfig: ...
-    def battery_capacity_kwh(self, vin: str) -> Optional[float]: ...
-    def odometer_km(self, vin: str) -> Optional[float]: ...
-    def get_session_energy_kwh(self, vin: str) -> Optional[float]: ...
-    def learned_meter_rate(self, vin: str) -> Optional[MeterRate]: ...
+    def battery_capacity_kwh(self, vin: str) -> float | None: ...
+    def odometer_km(self, vin: str) -> float | None: ...
+    def get_session_energy_kwh(self, vin: str) -> float | None: ...
+    def learned_meter_rate(self, vin: str) -> MeterRate | None: ...
     def _log_battery_health(self, vin: str) -> None: ...
-    def _fire(self, event_type: str, payload: Dict[str, Any]) -> None: ...
+    def _fire(self, event_type: str, payload: dict[str, Any]) -> None: ...
 
 
 class VehicleCharging:
@@ -156,32 +156,24 @@ class VehicleCharging:
     def __init__(self, host: ChargingHost) -> None:
         self._host = host
 
-    def set_direct_power(
-        self, vin: str, power_w: Optional[float], timestamp: Optional[datetime]
-    ) -> None:
+    def set_direct_power(self, vin: str, power_w: float | None, timestamp: datetime | None) -> None:
         self._host._car(vin).charge.direct_power_w = None if power_w is None else max(power_w, 0.0)
         self._apply_effective_power(vin, timestamp)
 
-    def set_ac_voltage(
-        self, vin: str, voltage_v: Optional[float], timestamp: Optional[datetime]
-    ) -> None:
+    def set_ac_voltage(self, vin: str, voltage_v: float | None, timestamp: datetime | None) -> None:
         self._host._car(vin).charge.ac_voltage_v = (
             None if voltage_v is None else max(voltage_v, 0.0)
         )
         self._apply_effective_power(vin, timestamp)
 
-    def set_ac_current(
-        self, vin: str, current_a: Optional[float], timestamp: Optional[datetime]
-    ) -> None:
+    def set_ac_current(self, vin: str, current_a: float | None, timestamp: datetime | None) -> None:
         self._host._car(vin).charge.ac_current_a = (
             None if current_a is None else max(current_a, 0.0)
         )
         self._apply_effective_power(vin, timestamp)
 
-    def set_ac_phase(
-        self, vin: str, phase_value: Optional[Any], timestamp: Optional[datetime]
-    ) -> None:
-        phase_count: Optional[int] = None
+    def set_ac_phase(self, vin: str, phase_value: Any | None, timestamp: datetime | None) -> None:
+        phase_count: int | None = None
         if phase_value is None:
             phase_count = None
         elif isinstance(phase_value, (int, float)):
@@ -201,20 +193,20 @@ class VehicleCharging:
         self._host._car(vin).charge.ac_phase_count = phase_count
         self._apply_effective_power(vin, timestamp)
 
-    def _derive_ac_power(self, vin: str) -> Optional[float]:
+    def _derive_ac_power(self, vin: str) -> float | None:
         charge = self._host._peek(vin).charge
         voltage, current, phases = charge.ac_voltage_v, charge.ac_current_a, charge.ac_phase_count
         if voltage is None or current is None or phases is None:
             return None
         return max(voltage * current * phases, 0.0)
 
-    def _compute_effective_power(self, vin: str) -> Optional[float]:
+    def _compute_effective_power(self, vin: str) -> float | None:
         direct = self._host._peek(vin).charge.direct_power_w
         if direct is not None:
             return direct
         return self._derive_ac_power(vin)
 
-    def _apply_effective_power(self, vin: str, timestamp: Optional[datetime]) -> None:
+    def _apply_effective_power(self, vin: str, timestamp: datetime | None) -> None:
         charge = self._host._car(vin).charge
         tracking = charge.tracker()
         effective_power = self._compute_effective_power(vin)
@@ -352,7 +344,7 @@ class VehicleCharging:
             ceiling = None if room_kwh is None else room_kwh * 1000.0
         return raw_wh if ceiling is None else min(raw_wh, ceiling)
 
-    def _session_soc_percent(self, vin: str) -> Optional[float]:
+    def _session_soc_percent(self, vin: str) -> float | None:
         """The reported SoC, but only if it was read during this session.
 
         A car that doesn't stream ``batteryManagement.header`` holds the same
@@ -372,7 +364,7 @@ class VehicleCharging:
             return None
         return tracking.last_soc_percent
 
-    def _session_energy_ceiling_wh(self, vin: str) -> Optional[float]:
+    def _session_energy_ceiling_wh(self, vin: str) -> float | None:
         """The live inputs for :func:`energy_ceiling_kwh`, as Wh -- or the meter's.
 
         The ceiling rises as SoC does, so a charge that keeps going keeps room
@@ -393,7 +385,7 @@ class VehicleCharging:
         ceiling_kwh = energy_ceiling_kwh(soc_start, soc_now, capacity)
         return None if ceiling_kwh is None else ceiling_kwh * 1000.0
 
-    def _session_meter_bound_kwh(self, vin: str) -> Optional[float]:
+    def _session_meter_bound_kwh(self, vin: str) -> float | None:
         """The bound wallbox meter's count, where it bounds this session.
 
         See :func:`meter_energy_bound_kwh` for when it does.
@@ -486,7 +478,7 @@ class VehicleCharging:
         if builder is not None:
             builder.note_grid_meter(meter_now)
 
-    def _grid_meter_step(self, vin: str, meter_now: Optional[float]) -> Optional[float]:
+    def _grid_meter_step(self, vin: str, meter_now: float | None) -> float | None:
         """How far the wallbox meter has advanced since the last billed step.
 
         ``None`` when there is nothing measured to bill -- no meter bound, or
@@ -530,7 +522,7 @@ class VehicleCharging:
         tracking: SocTracking,
         status: str,
         *,
-        status_at: Optional[datetime] = None,
+        status_at: datetime | None = None,
     ) -> None:
         """Fire a HA bus event when a charging session begins or ends.
 
@@ -583,7 +575,7 @@ class VehicleCharging:
             if tracking.estimated_percent is not None
             else tracking.last_soc_percent
         )
-        payload: Dict[str, Any] = {
+        payload: dict[str, Any] = {
             "vin": vin,
             "entry_id": self._host.entry_id,
             "status": status,
@@ -608,7 +600,7 @@ class VehicleCharging:
                 return
             # New session: zero the session accumulator and stamp its start so
             # the session-energy sensor reports a fresh last_reset.
-            started_at = datetime.now(timezone.utc)
+            started_at = datetime.now(UTC)
             charge = self._host._car(vin).charge
             charge.energy_session_wh = 0.0
             charge.energy_session_raw_wh = 0.0
@@ -632,7 +624,7 @@ class VehicleCharging:
             # charge is closed and announced now. (Not on the target alone: a
             # running estimate passes it before a blip as easily as after.)
             self._cancel_charge_close_timer(vin)
-            self._host._car(vin).session.stopped = (datetime.now(timezone.utc), status)
+            self._host._car(vin).session.stopped = (datetime.now(UTC), status)
             self._finalize_charge_close(vin)
             return
         # Stopped short of the target. Debounce the close so a momentary
@@ -651,7 +643,7 @@ class VehicleCharging:
         """
 
         self._cancel_charge_close_timer(vin)
-        self._host._car(vin).session.stopped = (datetime.now(timezone.utc), status)
+        self._host._car(vin).session.stopped = (datetime.now(UTC), status)
         self._schedule_charge_close(vin, CHARGE_CLOSE_DEBOUNCE_S)
 
     def _schedule_charge_close(self, vin: str, delay_s: float) -> None:
@@ -667,7 +659,7 @@ class VehicleCharging:
                 and self._plug_state_live(vin) is True
                 and not self._reached_target(vin)
             ):
-                waited = (datetime.now(timezone.utc) - stopped[0]).total_seconds()
+                waited = (datetime.now(UTC) - stopped[0]).total_seconds()
                 if waited < CHARGE_PLUGGED_HOLD_S:
                     self._announce_pause(vin, stopped[1])
                     self._schedule_charge_close(vin, CHARGE_PLUGGED_HOLD_S - waited)
@@ -732,12 +724,12 @@ class VehicleCharging:
         stopped = self._host._peek(vin).session.stopped
         if stopped is None:
             return
-        if (datetime.now(timezone.utc) - stopped[0]).total_seconds() < CHARGE_CLOSE_DEBOUNCE_S:
+        if (datetime.now(UTC) - stopped[0]).total_seconds() < CHARGE_CLOSE_DEBOUNCE_S:
             return
         self._cancel_charge_close_timer(vin)
         self._finalize_charge_close(vin)
 
-    def _plug_state_live(self, vin: str) -> Optional[bool]:
+    def _plug_state_live(self, vin: str) -> bool | None:
         return plug_state(self._host._live_values(vin, PLUG_DESCRIPTORS))
 
     def _cancel_charge_close_timer(self, vin: str) -> bool:
@@ -749,7 +741,7 @@ class VehicleCharging:
         cancel()
         return True
 
-    def _finalize_charge_close(self, vin: str, status: Optional[str] = None) -> None:
+    def _finalize_charge_close(self, vin: str, status: str | None = None) -> None:
         """Actually close the debounced session and fire the stop events.
 
         The record ends when the charge stopped, not when the wait for a resume
@@ -768,7 +760,7 @@ class VehicleCharging:
             if tracking.estimated_percent is not None
             else tracking.last_soc_percent
         )
-        payload: Dict[str, Any] = {
+        payload: dict[str, Any] = {
             "vin": vin,
             "entry_id": self._host.entry_id,
             "status": status,
@@ -797,7 +789,7 @@ class VehicleCharging:
                 EVENT_CHARGING_INTERRUPTED, {**payload, "reason": self._charge_end_reason(vin)}
             )
 
-    def _charge_end_reason(self, vin: str) -> Optional[str]:
+    def _charge_end_reason(self, vin: str) -> str | None:
         """BMW's own word for why the charge ended, when the car sent one live."""
 
         for value in self._host._live_values(vin, CHARGE_END_REASON_DESCRIPTORS).values():
@@ -866,7 +858,7 @@ class VehicleCharging:
             # which is exactly the staleness test that decides whether it may be
             # resumed at all.
             return
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         if not force:
             last_saved = self._host._peek(vin).session.saved_at
             if (
@@ -922,7 +914,7 @@ class VehicleCharging:
 
         if self._host.history is None:
             return
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         for vin, snapshot in self._host.history.open_sessions().items():
             builder = SessionBuilder.from_dict(snapshot)
             if builder is None:
@@ -1164,15 +1156,15 @@ class VehicleCharging:
             )
 
     def _close_session_record(
-        self, vin: str, status: Optional[str], *, at: Optional[datetime] = None
-    ) -> Optional[ChargingSession]:
+        self, vin: str, status: str | None, *, at: datetime | None = None
+    ) -> ChargingSession | None:
         # One last look at the wallbox meter, billed and noted before the settle it
         # may bound. The final energy deltas and the close can be minutes apart on
         # a charge that tapers, and those are kilowatt-hours the meter did count.
         if self._host._peek(vin).session.builder is not None:
             self._book_increment(vin, 0.0)
         self._settle_session_energy(vin)
-        builder: Optional[SessionBuilder] = self._host._peek(vin).session.take("builder")
+        builder: SessionBuilder | None = self._host._peek(vin).session.take("builder")
         accumulator = self._host._peek(vin).session.take("cost")
         mix = self._host._peek(vin).session.take("mix")
         # Whatever is still held, the pack's SoC never accounted for.
@@ -1190,7 +1182,7 @@ class VehicleCharging:
 
         energy_kwh = self._host.get_session_energy_kwh(vin)
         session = builder.close(
-            at or datetime.now(timezone.utc),
+            at or datetime.now(UTC),
             soc_end=self._session_soc_percent(vin),
             energy_kwh=energy_kwh,
             cost=resolve_cost(accumulated=accumulator.as_cost() if accumulator else None),
@@ -1234,7 +1226,7 @@ class VehicleCharging:
         vehicle_state = self._host.data.get(vin)
         if not vehicle_state:
             return
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         for descriptor in CHARGE_PROGRESS_DESCRIPTORS:
             state = vehicle_state.get(descriptor)
             if state is None or state.value in (0, 0.0):
@@ -1275,7 +1267,7 @@ class VehicleCharging:
         for vin in self._host._vins_where(lambda car: car.session.restored_timer is not None):
             self._cancel_restored_open_timer(vin)
 
-    def _current_price(self) -> Optional[float]:
+    def _current_price(self) -> float | None:
         """The price per kWh in force right now, or ``None`` if unknowable.
 
         Read live rather than at the end of the session: with a dynamic tariff
@@ -1298,7 +1290,7 @@ class VehicleCharging:
         except TypeError, ValueError:
             return None
 
-    def _power_state_w(self, entity_id: Optional[str]) -> Optional[float]:
+    def _power_state_w(self, entity_id: str | None) -> float | None:
         """A power entity's value in watts, or ``None`` if it can't be read.
 
         Converts from kilowatts where the entity says so. A sensor with no unit
@@ -1324,9 +1316,7 @@ class VehicleCharging:
             return value * 1_000_000.0
         return value
 
-    def _session_grid_meter_kwh(
-        self, vin: str, builder: Optional[SessionBuilder]
-    ) -> Optional[float]:
+    def _session_grid_meter_kwh(self, vin: str, builder: SessionBuilder | None) -> float | None:
         """``vin``'s wallbox meter as a charge may see it -- ``None`` away from home.
 
         Every read of the meter on behalf of a session goes through here, so the
@@ -1349,7 +1339,7 @@ class VehicleCharging:
             return None
         return self._grid_meter_kwh(vin)
 
-    def cars_charging_on(self, meter: str, *, exclude: Optional[str] = None) -> list[str]:
+    def cars_charging_on(self, meter: str, *, exclude: str | None = None) -> list[str]:
         """This account's cars charging at home on ``meter`` right now.
 
         Asked by every account's coordinator, not just this one: a BMW and a
@@ -1403,7 +1393,7 @@ class VehicleCharging:
                 found.append(other)
         return found
 
-    def _grid_meter_kwh(self, vin: str) -> Optional[float]:
+    def _grid_meter_kwh(self, vin: str) -> float | None:
         """The cumulative total of ``vin``'s wallbox energy meter, in kWh.
 
         The wallbox is the only thing in this integration that can *measure*
@@ -1436,7 +1426,7 @@ class VehicleCharging:
             return value * 1000.0
         return value
 
-    def _supply_shares(self) -> Optional[dict[str, float]]:
+    def _supply_shares(self) -> dict[str, float] | None:
         """The site's supply mix right now, or ``None`` if it can't be known.
 
         Read live for the same reason the price is: a charge that starts in
@@ -1461,7 +1451,7 @@ class VehicleCharging:
     def _bill_split(
         self,
         accumulator: CostAccumulator,
-        billable_kwh: Optional[float],
+        billable_kwh: float | None,
         split: dict[str, float],
     ) -> None:
         """Bill one energy increment, each source at what that source costs.
@@ -1537,7 +1527,7 @@ class VehicleCharging:
             async_dispatcher_send(self._host.hass, self._host.signal_soc_estimate, vin)
         return updated
 
-    def _charge_eta_minutes(self, vin: str, tracking: SocTracking) -> Optional[int]:
+    def _charge_eta_minutes(self, vin: str, tracking: SocTracking) -> int | None:
         """Minutes to the charge target, for the ``charge_eta`` sensor.
 
         Nothing without a bound wallbox meter: the figure is the meter's, and
@@ -1555,7 +1545,7 @@ class VehicleCharging:
         minutes = tracking.minutes_to_target()
         return None if minutes is None else round(minutes)
 
-    def _meter_rate_if_driving(self, vin: str) -> Optional[MeterRate]:
+    def _meter_rate_if_driving(self, vin: str) -> MeterRate | None:
         """The learned rate, if the wallbox meter may drive this car's estimate now.
 
         Every condition is one the meter itself cannot check, because nothing

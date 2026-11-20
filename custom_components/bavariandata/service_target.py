@@ -14,7 +14,8 @@ decisions are unit-tested directly (``tests/test_service_target.py``).
 
 from __future__ import annotations
 
-from typing import Any, Mapping, Optional, Sequence, cast
+from typing import Any, cast
+from collections.abc import Mapping, Sequence
 
 from .debug import mask_vin
 from .refusal import Refusal
@@ -26,7 +27,7 @@ class TargetError(Refusal):
     """The call cannot be placed; the message says what to pass instead."""
 
 
-def device_owner(device: Any) -> Optional[str]:
+def device_owner(device: Any) -> str | None:
     """The config entry a device registry entry belongs to, on every supported HA.
 
     Since 2026.10 a device has one owner, ``config_entry_id``, and reading
@@ -44,7 +45,7 @@ def device_owner(device: Any) -> Optional[str]:
     return next(iter(getattr(device, "config_entries", None) or ()), None)
 
 
-def requested_vin(vin: Any, device_vin: Optional[str]) -> Optional[str]:
+def requested_vin(vin: Any, device_vin: str | None) -> str | None:
     """The car a call names, from its ``vin`` and its ``device_id``.
 
     Either is enough; both are fine when they agree. ``device_vin`` is the VIN
@@ -63,10 +64,10 @@ def requested_vin(vin: Any, device_vin: Optional[str]) -> Optional[str]:
 def choose_account(
     titles: Mapping[str, str],
     *,
-    entry_id: Optional[str] = None,
-    device_entry: Optional[str] = None,
-    vin: Optional[str] = None,
-    vin_entry: Optional[str] = None,
+    entry_id: str | None = None,
+    device_entry: str | None = None,
+    vin: str | None = None,
+    vin_entry: str | None = None,
 ) -> str:
     """The id of the loaded account a call acts on.
 
@@ -97,12 +98,12 @@ def choose_account(
 
 
 def choose_vin(
-    requested: Optional[str],
+    requested: str | None,
     account_vins: Sequence[str],
-    names: Optional[Mapping[str, str]] = None,
+    names: Mapping[str, str] | None = None,
     *,
     required: bool = True,
-) -> Optional[str]:
+) -> str | None:
     """The car of the account a call acts on.
 
     A named car has to be one of the account's: the VIN goes into request

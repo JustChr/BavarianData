@@ -20,8 +20,9 @@ insert a duplicate.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
-from typing import Any, Callable, Optional
+from datetime import datetime, timedelta, UTC
+from typing import Any
+from collections.abc import Callable
 
 from .models import ChargingSession
 from .pricing import entered_cost, is_entered
@@ -47,19 +48,19 @@ FRAGMENT_PAD_S = 5 * 60
 # stored the same stale value at both ends ("38 -> 38 %").
 MIN_CONTRADICTING_SOC_RISE = 2.0
 
-CostFn = Callable[[Optional[float]], Optional[dict[str, Any]]]
+CostFn = Callable[[float | None], dict[str, Any] | None]
 # (latitude, longitude) -> resolved Home Assistant zone name, or None.
-ZoneFn = Callable[[float, float], Optional[str]]
+ZoneFn = Callable[[float, float], str | None]
 
 
-def _epoch_to_dt(value: Any) -> Optional[datetime]:
+def _epoch_to_dt(value: Any) -> datetime | None:
     try:
-        return datetime.fromtimestamp(int(value), tz=timezone.utc)
+        return datetime.fromtimestamp(int(value), tz=UTC)
     except TypeError, ValueError, OverflowError, OSError:
         return None
 
 
-def _as_float(value: Any) -> Optional[float]:
+def _as_float(value: Any) -> float | None:
     if value is None:
         return None
     try:
@@ -68,7 +69,7 @@ def _as_float(value: Any) -> Optional[float]:
         return None
 
 
-def _mileage_km(value: Any, units: Any) -> Optional[float]:
+def _mileage_km(value: Any, units: Any) -> float | None:
     km = _as_float(value)
     if km is None:
         return None
@@ -78,7 +79,7 @@ def _mileage_km(value: Any, units: Any) -> Optional[float]:
     return round(km, 1)
 
 
-def _address_label(raw: dict[str, Any]) -> Optional[str]:
+def _address_label(raw: dict[str, Any]) -> str | None:
     """BMW's own human-readable address for the charge, or ``None``.
 
     BMW has already reverse-geocoded the location for us (``formattedAddress`` is
@@ -94,8 +95,8 @@ def _address_label(raw: dict[str, Any]) -> Optional[str]:
 
 
 def _location(
-    raw: Any, zone_fn: Optional[ZoneFn], *, keep_coordinates: bool = False
-) -> Optional[dict[str, Any]]:
+    raw: Any, zone_fn: ZoneFn | None, *, keep_coordinates: bool = False
+) -> dict[str, Any] | None:
     """Resolve BMW's charge location to an HA zone, else BMW's address string.
 
     Mirrors the trip path (see ``geocoding.py``): a matching HA zone (Home/Work/
@@ -130,7 +131,7 @@ def _location(
     return location
 
 
-def _provider(raw: Any) -> Optional[str]:
+def _provider(raw: Any) -> str | None:
     """The charge point operator, when BMW's candidate matches agree on one.
 
     BMW lists *potential* matches for a public charge. Several candidates from
@@ -170,7 +171,7 @@ def _location_rank(location: Any) -> int:
     return 0
 
 
-def _power_curve(blocks: Any, start_epoch: int) -> tuple[list[list[float]], Optional[float]]:
+def _power_curve(blocks: Any, start_epoch: int) -> tuple[list[list[float]], float | None]:
     """[[seconds_since_start, kw], ...] downsampled, plus the peak kW.
 
     The peak is taken across every block before downsampling, so thinning the
@@ -180,7 +181,7 @@ def _power_curve(blocks: Any, start_epoch: int) -> tuple[list[list[float]], Opti
     if not isinstance(blocks, list):
         return [], None
     points: list[list[float]] = []
-    peak: Optional[float] = None
+    peak: float | None = None
     for block in blocks:
         if not isinstance(block, dict):
             continue
@@ -208,11 +209,11 @@ def session_from_cardata(
     vin: str,
     raw: Any,
     *,
-    cost_fn: Optional[CostFn] = None,
-    zone_fn: Optional[ZoneFn] = None,
-    home_zone: Optional[str] = None,
+    cost_fn: CostFn | None = None,
+    zone_fn: ZoneFn | None = None,
+    home_zone: str | None = None,
     keep_coordinates: bool = False,
-) -> Optional[ChargingSession]:
+) -> ChargingSession | None:
     """One BMW history entry -> a ChargingSession, or ``None`` if unusable.
 
     A session that has not ended yet (no ``endTime``, no grid energy -- the

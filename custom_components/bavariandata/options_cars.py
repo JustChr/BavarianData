@@ -12,7 +12,8 @@ and checks are HA-free in ``flow_answers.py``.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Awaitable, Callable, Dict, Mapping, Optional
+from typing import TYPE_CHECKING, Any
+from collections.abc import Awaitable, Callable, Mapping
 
 import voluptuous as vol
 
@@ -157,12 +158,12 @@ class PerCarScreens(_FlowBase):
     if TYPE_CHECKING:
         # What ``CardataOptionsFlowHandler`` provides.
         _config_entry: ConfigEntry
-        _picked_vin: Optional[str]
-        _trips_pending: tuple[Dict[str, Any], Dict[str, Any]]
-        _bridge_options: Optional[Dict[str, Any]]
-        _upholstery_choices: tuple[Optional[str], list[tuple[str, str]]]
+        _picked_vin: str | None
+        _trips_pending: tuple[dict[str, Any], dict[str, Any]]
+        _bridge_options: dict[str, Any] | None
+        _upholstery_choices: tuple[str | None, list[tuple[str, str]]]
 
-        def _get_runtime(self) -> Optional[CardataRuntimeData]: ...
+        def _get_runtime(self) -> CardataRuntimeData | None: ...
 
     # --- which car ----------------------------------------------------------
 
@@ -197,14 +198,14 @@ class PerCarScreens(_FlowBase):
             return vehicles, True, vin
         return vehicles, False, vehicles[0][0] if vehicles else None
 
-    def _vehicle_label(self, vehicles: list[tuple[str, str]], vin: Optional[str]) -> str:
+    def _vehicle_label(self, vehicles: list[tuple[str, str]], vin: str | None) -> str:
         return dict(vehicles).get(vin or "") or self._config_entry.title
 
     async def _vehicle_picker(
         self,
         *,
         step_id: str,
-        user_input: Optional[Dict[str, Any]],
+        user_input: dict[str, Any] | None,
         then: Callable[[], Awaitable[ConfigFlowResult]],
     ) -> ConfigFlowResult:
         """Which car's settings a screen edits (only shown with two or more cars)."""
@@ -231,14 +232,14 @@ class PerCarScreens(_FlowBase):
         return self.async_show_form(step_id=step_id, data_schema=schema, last_step=False)
 
     async def async_step_trips_vehicle(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         return await self._vehicle_picker(
             step_id="trips_vehicle", user_input=user_input, then=self.async_step_action_trips
         )
 
     async def async_step_charging_vehicle(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         return await self._vehicle_picker(
             step_id="charging_vehicle",
@@ -247,28 +248,28 @@ class PerCarScreens(_FlowBase):
         )
 
     async def async_step_bridge_vehicle(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         return await self._vehicle_picker(
             step_id="bridge_vehicle", user_input=user_input, then=self.async_step_action_evcc_bridge
         )
 
     async def async_step_abrp_vehicle(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         return await self._vehicle_picker(
             step_id="abrp_vehicle", user_input=user_input, then=self.async_step_action_abrp
         )
 
     async def async_step_mileage_vehicle(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         return await self._vehicle_picker(
             step_id="mileage_vehicle", user_input=user_input, then=self.async_step_action_mileage
         )
 
     async def async_step_upholstery_vehicle(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         return await self._vehicle_picker(
             step_id="upholstery_vehicle",
@@ -279,7 +280,7 @@ class PerCarScreens(_FlowBase):
     # --- charging costs -----------------------------------------------------
 
     async def async_step_action_charging_costs(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Configure how charging energy is turned into money.
 
@@ -377,7 +378,7 @@ class PerCarScreens(_FlowBase):
         else:
             schema = vol.Schema({**price_fields, **car_fields, **history_fields})
 
-        def _form(errors: Optional[Dict[str, str]] = None) -> ConfigFlowResult:
+        def _form(errors: dict[str, str] | None = None) -> ConfigFlowResult:
             return self.async_show_form(
                 step_id="action_charging_costs",
                 data_schema=schema,
@@ -427,7 +428,7 @@ class PerCarScreens(_FlowBase):
     # --- evcc bridge --------------------------------------------------------
 
     async def async_step_action_evcc_bridge(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Publish the car's live state for a charge controller to read.
 
@@ -490,7 +491,7 @@ class PerCarScreens(_FlowBase):
         else:
             schema = vol.Schema({**car_fields, **shared_fields})
 
-        def _form(errors: Optional[Dict[str, str]] = None) -> ConfigFlowResult:
+        def _form(errors: dict[str, str] | None = None) -> ConfigFlowResult:
             return self.async_show_form(
                 step_id="action_evcc_bridge",
                 data_schema=schema,
@@ -554,7 +555,7 @@ class PerCarScreens(_FlowBase):
         return await self.async_step_evcc_snippet()
 
     async def async_step_evcc_snippet(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Hand over the paste-ready evcc config, then save.
 
@@ -572,7 +573,7 @@ class PerCarScreens(_FlowBase):
             )
         return self.async_create_entry(title="", data=options)
 
-    def _evcc_snippet(self, options: Dict[str, Any]) -> str:
+    def _evcc_snippet(self, options: dict[str, Any]) -> str:
         """Every known car as one evcc ``vehicles:`` block.
 
         Only topics that are actually being published are referenced -- a
@@ -604,7 +605,7 @@ class PerCarScreens(_FlowBase):
     # --- ABRP ---------------------------------------------------------------
 
     async def async_step_action_abrp(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Send the car's live state to ABRP (``abrp.py``).
 
@@ -660,7 +661,7 @@ class PerCarScreens(_FlowBase):
         else:
             schema = vol.Schema({**car_fields, **shared_fields})
 
-        def _form(errors: Optional[Dict[str, str]] = None) -> ConfigFlowResult:
+        def _form(errors: dict[str, str] | None = None) -> ConfigFlowResult:
             return self.async_show_form(
                 step_id="action_abrp",
                 data_schema=schema,
@@ -710,7 +711,7 @@ class PerCarScreens(_FlowBase):
     # --- the configurator picture's upholstery -------------------------------
 
     async def async_step_action_upholstery(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """What the car's seats are covered in, for its configurator picture.
 
@@ -744,9 +745,7 @@ class PerCarScreens(_FlowBase):
                 reason="upholstery_none", description_placeholders={"vehicle": label}
             )
 
-        def _form(
-            picked: Optional[str], errors: Optional[Dict[str, str]] = None
-        ) -> ConfigFlowResult:
+        def _form(picked: str | None, errors: dict[str, str] | None = None) -> ConfigFlowResult:
             schema = vol.Schema(
                 {
                     vol.Required(
@@ -805,7 +804,7 @@ class PerCarScreens(_FlowBase):
     # --- trips --------------------------------------------------------------
 
     async def async_step_action_trips(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Configure trip classification, detection and address resolution.
 
@@ -929,7 +928,7 @@ class PerCarScreens(_FlowBase):
         return self._save_trips(submitted, shared)
 
     async def async_step_trips_phone(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Where the route of a car on end-of-trip reports comes from.
 
@@ -979,7 +978,7 @@ class PerCarScreens(_FlowBase):
             description_placeholders={"vehicle": self._vehicle_label(vehicles, vin)},
         )
 
-    def _save_trips(self, submitted: Dict[str, Any], shared: Mapping[str, Any]) -> ConfigFlowResult:
+    def _save_trips(self, submitted: dict[str, Any], shared: Mapping[str, Any]) -> ConfigFlowResult:
         _vehicles, per_vehicle, vin = self._vehicle_context()
         options = dict(self._config_entry.options)
         options = store_values(options, submitted, TRIP_OPTIONS, vin=vin, per_vehicle=per_vehicle)
@@ -1048,7 +1047,7 @@ class PerCarScreens(_FlowBase):
         )
 
     async def async_step_action_mileage(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Which kind of mileage allowance the car has, if any."""
 
@@ -1069,7 +1068,7 @@ class PerCarScreens(_FlowBase):
             }
         )
         placeholders = {"vehicle": self._vehicle_label(vehicles, vin)}
-        errors: Dict[str, str] = {}
+        errors: dict[str, str] = {}
         if user_input is not None:
             chosen = user_input.get(MILEAGE_KIND)
             if vin is None:
@@ -1089,7 +1088,7 @@ class PerCarScreens(_FlowBase):
             last_step=False,
         )
 
-    def _save_mileage(self, vin: str, values: Dict[str, Any]) -> ConfigFlowResult:
+    def _save_mileage(self, vin: str, values: dict[str, Any]) -> ConfigFlowResult:
         options = store_mileage(dict(self._config_entry.options), vin, values)
         runtime = self._get_runtime()
         if runtime is not None:
@@ -1136,21 +1135,21 @@ class PerCarScreens(_FlowBase):
         return section(vol.Schema(fields), {"collapsed": collapsed})
 
     async def async_step_mileage_lease(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """A lease or financing: start, end, allowance a year, odometer at handover."""
 
         return await self._mileage_form(user_input, step_id="mileage_lease", kind=KIND_LEASE)
 
     async def async_step_mileage_yearly(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """A yearly limit: the day it renews, the allowance, the odometer that day."""
 
         return await self._mileage_form(user_input, step_id="mileage_yearly", kind=KIND_YEARLY)
 
     async def _mileage_form(
-        self, user_input: Optional[Dict[str, Any]], *, step_id: str, kind: str
+        self, user_input: dict[str, Any] | None, *, step_id: str, kind: str
     ) -> ConfigFlowResult:
         vehicles, _per_vehicle, vin = self._vehicle_context()
         assert isinstance(vin, str)  # the kind step refuses an account without a car
@@ -1168,7 +1167,7 @@ class PerCarScreens(_FlowBase):
             # a running entry: without one there are no cars to pick.
             runtime = self._get_runtime()
             start_km = None if runtime is None else runtime.coordinator.odometer_km(vin)
-        fields: Dict[Any, Any] = {
+        fields: dict[Any, Any] = {
             vol.Required(
                 MILEAGE_START, description={"suggested_value": values.get(MILEAGE_START)}
             ): selector.DateSelector(),
@@ -1195,7 +1194,7 @@ class PerCarScreens(_FlowBase):
             )
         placeholders = {"vehicle": self._vehicle_label(vehicles, vin)}
 
-        errors: Dict[str, str] = {}
+        errors: dict[str, str] = {}
         if user_input is not None:
             stored, errors = mileage_to_store(kind, values, dt_util.now().date())
             if not errors:

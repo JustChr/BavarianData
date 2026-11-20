@@ -66,13 +66,13 @@ import json
 import logging
 import re
 from dataclasses import dataclass, field, replace
-from typing import Any, Awaitable, Callable, Mapping, Optional, Sequence, TypeVar, cast
+from typing import Any, cast
+from collections.abc import Awaitable, Callable, Mapping, Sequence
 from urllib.parse import urlencode
 
 import aiohttp
 
 _LOGGER = logging.getLogger(__name__)
-_T = TypeVar("_T")
 
 DEFAULT_TIMEOUT = aiohttp.ClientTimeout(total=30)
 
@@ -199,22 +199,22 @@ class Render:
     frame_height: int
     frames: int
     still: bytes
-    paint: Optional[str]
+    paint: str | None
     brand: str
-    lights: Optional[bytes] = None
-    night: Optional[bytes] = None
-    interior: Optional[bytes] = None
-    top: Optional[bytes] = None
+    lights: bytes | None = None
+    night: bytes | None = None
+    interior: bytes | None = None
+    top: bytes | None = None
     equipment: tuple[dict[str, Any], ...] = field(default_factory=tuple)
-    equipment_language: Optional[str] = None
+    equipment_language: str | None = None
     # The option pictures' sheet, and the code of each tile in sheet order.
-    options: Optional[bytes] = None
+    options: bytes | None = None
     option_codes: tuple[str, ...] = ()
     # The spin's crop box, so the lights-on and night spins line up with it.
-    crop: Optional[tuple[int, int, int, int]] = None
+    crop: tuple[int, int, int, int] | None = None
 
 
-def spec_from_basic_data(raw: Mapping[str, Any], upholstery: Optional[str] = None) -> CarSpec:
+def spec_from_basic_data(raw: Mapping[str, Any], upholstery: str | None = None) -> CarSpec:
     """Build the configurator request from a car's raw basic data.
 
     ``upholstery`` is the code the user picked for the car (basic data has
@@ -250,7 +250,7 @@ def spec_from_basic_data(raw: Mapping[str, Any], upholstery: Optional[str] = Non
     return CarSpec(site, brands, model, tuple(dict.fromkeys(options)), "".join(date.groups()))
 
 
-def settings_path(page_html: str) -> Optional[str]:
+def settings_path(page_html: str) -> str | None:
     """The settings file a configurator page names, e.g. ``settings.bb566ca8.json``."""
 
     match = _SETTINGS_RE.search(page_html)
@@ -272,7 +272,7 @@ def cosy_settings(settings: Mapping[str, Any]) -> dict[str, Any]:
         raise ConfiguratorError("unavailable", f"settings file changed: {err}") from err
 
 
-def names_settings(settings: Mapping[str, Any]) -> Optional[dict[str, Any]]:
+def names_settings(settings: Mapping[str, Any]) -> dict[str, Any] | None:
     """The option-name service's address and key, or None if the file lacks it."""
 
     try:
@@ -345,7 +345,7 @@ def _save(image: Any, *, alpha: bool = True) -> tuple[bytes, str]:
 def build_sprite(
     frames: Sequence[bytes],
     columns: int = SPRITE_COLUMNS,
-    crop: Optional[tuple[int, int, int, int]] = None,
+    crop: tuple[int, int, int, int] | None = None,
 ) -> Render:
     """Scale the frames to ``FRAME_SIZE`` and lay them out in one grid image.
 
@@ -585,7 +585,7 @@ def upholstery_choices(names: Any) -> list[tuple[str, str]]:
     return sorted(found, key=lambda choice: (choice[1].casefold(), choice[0]))
 
 
-def paint_color(side_view: Any) -> Optional[str]:
+def paint_color(side_view: Any) -> str | None:
     """The car's paint as ``#rrggbb``, sampled from a side-profile frame.
 
     Takes the opaque pixels of the door band (the middle of the car's outline,
@@ -664,7 +664,7 @@ async def _get(session: aiohttp.ClientSession, url: str, **kwargs: Any) -> tuple
     try:
         async with session.get(url, timeout=DEFAULT_TIMEOUT, **kwargs) as resp:
             return resp.status, await resp.read()
-    except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+    except (TimeoutError, aiohttp.ClientError) as err:
         raise ConfiguratorError("unavailable", f"{type(err).__name__}") from err
 
 
@@ -693,9 +693,9 @@ async def async_fetch_equipment(
     session: aiohttp.ClientSession,
     spec: CarSpec,
     names: Mapping[str, Any],
-    country: Optional[str],
+    country: str | None,
     languages: Sequence[str] = (),
-) -> tuple[list[dict[str, Any]], Optional[str]]:
+) -> tuple[list[dict[str, Any]], str | None]:
     """Name the car's options in the first language its market answers in.
 
     Returns ``([], None)`` when no market knows the model (see ``_first_named``).
@@ -710,7 +710,7 @@ async def async_fetch_upholstery(
     session: aiohttp.ClientSession,
     spec: CarSpec,
     names: Mapping[str, Any],
-    country: Optional[str],
+    country: str | None,
     languages: Sequence[str] = (),
 ) -> list[tuple[str, str]]:
     """The upholstery the car's model comes in, named by the first market that knows it."""
@@ -748,14 +748,14 @@ async def async_upholstery(
         return []
 
 
-async def _first_named(
+async def _first_named[T](
     session: aiohttp.ClientSession,
     spec: CarSpec,
     names: Mapping[str, Any],
-    country: Optional[str],
+    country: str | None,
     languages: Sequence[str],
-    pick: Callable[[Any], list[_T]],
-) -> tuple[list[_T], Optional[str]]:
+    pick: Callable[[Any], list[T]],
+) -> tuple[list[T], str | None]:
     """The first non-empty ``pick`` from an option-name answer, and its language.
 
     Tries the car's market (from basic data) with the caller's languages first
@@ -793,11 +793,11 @@ async def _first_named(
 async def async_render(
     session: aiohttp.ClientSession,
     raw_basic_data: Mapping[str, Any],
-    settings: Optional[Mapping[str, Any]] = None,
-    run_sync: Optional[Callable[..., Awaitable[Any]]] = None,
+    settings: Mapping[str, Any] | None = None,
+    run_sync: Callable[..., Awaitable[Any]] | None = None,
     languages: Sequence[str] = (),
     extras: bool = True,
-    upholstery: Optional[str] = None,
+    upholstery: str | None = None,
 ) -> Render:
     """Fetch everything for one car: spins, interior, top view, equipment, option pictures.
 
@@ -825,7 +825,7 @@ async def async_render(
         except (OSError, ValueError) as err:  # an image Pillow cannot read
             raise ConfiguratorError("no_render", f"unreadable image: {err}") from err
 
-    async def image(url: str) -> Optional[bytes]:
+    async def image(url: str) -> bytes | None:
         async with semaphore:
             status, body = await _get(session, url)
         return body if status == 200 else None
@@ -843,7 +843,7 @@ async def async_render(
 
     async def links(
         endpoint: str, collection: str, brand: str, *extra: tuple[str, str]
-    ) -> Optional[Any]:
+    ) -> Any | None:
         url = (
             f"{cosy['base_url']}/image-urls/{endpoint}/mandators/{cosy['mandator']}"
             f"/collections/{collection}/brands/{brand}/models/{spec.model}?{query(*extra)}"
@@ -869,7 +869,7 @@ async def async_render(
         *extra: tuple[str, str],
         background: str = "TRANSPARENT",
         screen: bool = False,
-    ) -> Optional[list[bytes]]:
+    ) -> list[bytes] | None:
         answer = await links("dynamic-images", _SPIN, brand, ("background", background), *extra)
         urls = frame_urls(answer) if answer else []
         # The placeholder brand returns links that all 404: one probe decides it.
@@ -932,7 +932,7 @@ async def _optional_extras(
     spec: CarSpec,
     brand: str,
     links: Callable[..., Awaitable[Any]],
-    image: Callable[[str], Awaitable[Optional[bytes]]],
+    image: Callable[[str], Awaitable[bytes | None]],
     run: Callable[..., Awaitable[Any]],
 ) -> dict[str, Any]:
     """The interior panorama and the top view, when BMW has them for this car."""
@@ -970,7 +970,7 @@ async def _option_pictures(
     spec: CarSpec,
     brand: str,
     country: Any,
-    image: Callable[[str], Awaitable[Optional[bytes]]],
+    image: Callable[[str], Awaitable[bytes | None]],
     run: Callable[..., Awaitable[Any]],
 ) -> dict[str, Any]:
     """A small picture of each option BMW has one for, laid out in one sheet."""
@@ -990,7 +990,7 @@ async def _option_pictures(
         f"/collections/{_OPTIONS}/brands/{brand}/models/{spec.model}/options?{query}"
     )
 
-    async def first_real(code: str, links: Sequence[str]) -> Optional[tuple[str, bytes]]:
+    async def first_real(code: str, links: Sequence[str]) -> tuple[str, bytes] | None:
         for link in links:
             try:
                 data = await image(link)

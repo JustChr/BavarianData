@@ -27,7 +27,8 @@ coordinator feeds it.
 from __future__ import annotations
 
 from datetime import datetime, timedelta
-from typing import Any, Mapping, MutableMapping, Optional
+from typing import Any
+from collections.abc import Mapping, MutableMapping
 
 # A rise this large between two readings is a refuel. Far beyond the ±1 L the
 # float wanders by, and below any refuel worth the stop.
@@ -66,7 +67,7 @@ CHANGED_READING = "reading"
 CHANGED_REFUEL = "refuel"
 
 
-def _parse(stamp: Any) -> Optional[datetime]:
+def _parse(stamp: Any) -> datetime | None:
     if not isinstance(stamp, str):
         return None
     try:
@@ -83,7 +84,7 @@ def _parse(stamp: Any) -> Optional[datetime]:
 LITRES_STALE = timedelta(days=1)
 
 
-def litres_current(litres_at: Optional[datetime], percent_at: Optional[datetime]) -> bool:
+def litres_current(litres_at: datetime | None, percent_at: datetime | None) -> bool:
     """Whether a litres reading still describes the tank the level does."""
 
     if litres_at is None or percent_at is None:
@@ -91,7 +92,7 @@ def litres_current(litres_at: Optional[datetime], percent_at: Optional[datetime]
     return percent_at - litres_at <= LITRES_STALE
 
 
-def _num(value: Any) -> Optional[float]:
+def _num(value: Any) -> float | None:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return None
     return float(value)
@@ -101,10 +102,10 @@ def note_reading(
     log: FuelLog,
     when: datetime,
     *,
-    litres: Optional[float] = None,
-    percent: Optional[float] = None,
-    km: Optional[float] = None,
-) -> Optional[str]:
+    litres: float | None = None,
+    percent: float | None = None,
+    km: float | None = None,
+) -> str | None:
     """Feed one tank reading; what changed, or ``None`` when it was ignored.
 
     ``when`` is the car's own timestamp for the reading, ``km`` the odometer
@@ -167,7 +168,7 @@ def note_reading(
     return changed
 
 
-def _rise(before: Any, after: Optional[float]) -> Optional[float]:
+def _rise(before: Any, after: float | None) -> float | None:
     start = _num(before)
     if start is None or after is None:
         return None
@@ -213,7 +214,7 @@ def windows(log: Mapping[str, Any]) -> list[dict[str, Any]]:
 
 def _window(
     start: Mapping[str, Any], litres_now: Any, km_now: Any, until: Any
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     after, before = _num(start.get("after_l")), _num(litres_now)
     km_from, km_to = _num(start.get("km")), _num(km_now)
     if after is None or before is None or km_from is None or km_to is None:

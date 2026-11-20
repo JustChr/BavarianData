@@ -15,7 +15,7 @@ import sys
 import types
 
 import pytest
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 _PKG = "custom_components.bavariandata"
 _BASE = pathlib.Path(__file__).resolve().parents[1] / "custom_components" / "bavariandata"
@@ -69,12 +69,12 @@ def load_module(name: str):
 
 
 class FakeResponse:
-    def __init__(self, status: int, body: Any, headers: Optional[Dict[str, str]] = None):
+    def __init__(self, status: int, body: Any, headers: dict[str, str] | None = None):
         self.status = status
         self._body = body
         self.headers = headers or {}
 
-    async def __aenter__(self) -> "FakeResponse":
+    async def __aenter__(self) -> FakeResponse:
         return self
 
     async def __aexit__(self, *exc) -> bool:
@@ -94,7 +94,7 @@ class FakeResponse:
             return self._body
         return (await self.text()).encode("utf-8")
 
-    async def json(self, content_type: Optional[str] = None) -> Any:
+    async def json(self, content_type: str | None = None) -> Any:
         """Mirror aiohttp's ``json()``; ``content_type`` is accepted and ignored."""
 
         if isinstance(self._body, (dict, list)):
@@ -105,9 +105,9 @@ class FakeResponse:
 class FakeSession:
     """Records requests and replays a queue of FakeResponse objects."""
 
-    def __init__(self, responses: List[FakeResponse]):
+    def __init__(self, responses: list[FakeResponse]):
         self._responses = list(responses)
-        self.calls: List[Dict[str, Any]] = []
+        self.calls: list[dict[str, Any]] = []
 
     def request(self, method, url, **kwargs):
         self.calls.append({"method": method, "url": url, **kwargs})

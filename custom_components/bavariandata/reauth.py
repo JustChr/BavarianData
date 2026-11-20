@@ -18,7 +18,8 @@ import asyncio
 import logging
 import time
 from contextlib import suppress
-from typing import TYPE_CHECKING, Any, Awaitable, Callable, Mapping, Optional, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
+from collections.abc import Awaitable, Callable, Mapping
 
 from .const import DEFAULT_REFRESH_INTERVAL, TOKEN_REFRESH_RETRY_DELAY, TOKEN_REFRESH_RETRY_MAX
 from .device_flow import refresh_rejected
@@ -39,7 +40,7 @@ class ReauthHost(Protocol):
     tokens: TokenKeeper
     refresh_wake: asyncio.Event
 
-    async def start_reauth(self) -> Optional[str]:
+    async def start_reauth(self) -> str | None:
         """Start Home Assistant's reauth flow for the entry; its flow id."""
 
     async def abort_flow(self, flow_id: str) -> None:
@@ -61,9 +62,9 @@ class ReauthGate:
     def __init__(self, clock: Callable[[], float] = time.time) -> None:
         self._clock = clock
         self.refused = False
-        self.on_refused: Optional[Callable[[bool], None]] = None
+        self.on_refused: Callable[[bool], None] | None = None
         self.in_progress = False
-        self.flow_id: Optional[str] = None
+        self.flow_id: str | None = None
         self.last_reauth_attempt = 0.0
         self.last_refresh_attempt = 0.0
         # A refresh after "unauthorized" already failed: the next one starts

@@ -23,7 +23,8 @@ two separate drives. See its docstring for the exact shape of a chain.
 
 from __future__ import annotations
 
-from typing import Any, Optional, Sequence
+from typing import Any
+from collections.abc import Sequence
 
 from .trips import (
     CLASS_BUSINESS,
@@ -49,14 +50,14 @@ DEFAULT_CLASS_CHOICES = (CLASS_PRIVATE, CLASS_BUSINESS, CLASS_UNCLASSIFIED)
 COMMUTE_CHAIN_MAX_LEGS = 5
 
 
-def _zone_of(place: Optional[dict[str, Any]]) -> Optional[str]:
+def _zone_of(place: dict[str, Any] | None) -> str | None:
     if not place:
         return None
     zone = place.get("zone")
     return zone.casefold() if isinstance(zone, str) and zone else None
 
 
-def _terminals(home: Optional[str], work: Optional[str]) -> Optional[set[str]]:
+def _terminals(home: str | None, work: str | None) -> set[str] | None:
     """The two commute endpoints, folded for comparison.
 
     ``None`` when commute detection can't run at all: either zone unset, or both
@@ -72,11 +73,11 @@ def _terminals(home: Optional[str], work: Optional[str]) -> Optional[set[str]]:
 
 
 def is_commute(
-    start_place: Optional[dict[str, Any]],
-    end_place: Optional[dict[str, Any]],
+    start_place: dict[str, Any] | None,
+    end_place: dict[str, Any] | None,
     *,
-    home: Optional[str],
-    work: Optional[str],
+    home: str | None,
+    work: str | None,
 ) -> bool:
     """True when a single drive connects the home zone and the work zone."""
 
@@ -87,13 +88,13 @@ def is_commute(
 
 
 def classify_trip(
-    start_place: Optional[dict[str, Any]],
-    end_place: Optional[dict[str, Any]],
+    start_place: dict[str, Any] | None,
+    end_place: dict[str, Any] | None,
     *,
-    home: Optional[str],
-    work: Optional[str],
-    default_class: Optional[str] = CLASS_PRIVATE,
-) -> Optional[str]:
+    home: str | None,
+    work: str | None,
+    default_class: str | None = CLASS_PRIVATE,
+) -> str | None:
     """Best-effort class for a trip between two places.
 
     ``home`` and ``work`` are zone names (``home`` is normally HA's ``zone.home``;
@@ -114,7 +115,7 @@ def classify_trip(
     return default_class if default_class in CLASSIFICATIONS else None
 
 
-def trip_class_setting(value: Optional[str]) -> Optional[str]:
+def trip_class_setting(value: str | None) -> str | None:
     """The stored default-type option as a classification.
 
     ``None`` for ``unclassified``, for an unset option, and for anything
@@ -129,11 +130,11 @@ def commute_chain(
     trip: Trip,
     previous: Sequence[Trip],
     *,
-    home: Optional[str],
-    work: Optional[str],
+    home: str | None,
+    work: str | None,
     gap_s: float,
     max_legs: int = COMMUTE_CHAIN_MAX_LEGS,
-) -> Optional[list[Trip]]:
+) -> list[Trip] | None:
     """The earlier legs that make ``trip`` the end of a commute, or ``None``.
 
     A commute survives a stop on the way: buying groceries between home and work
@@ -178,7 +179,7 @@ def commute_chain(
 
     chain: list[Trip] = []
     cursor = trip
-    origin: Optional[str] = None
+    origin: str | None = None
     for leg in sorted(previous, key=lambda item: item.start, reverse=True):
         if leg.id == trip.id or leg.end is None or leg.start >= cursor.start:
             continue

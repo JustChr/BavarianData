@@ -22,7 +22,8 @@ figure. Home Assistant-free, like the rest of ``history/``.
 from __future__ import annotations
 
 import math
-from typing import Any, Iterable, Optional
+from typing import Any
+from collections.abc import Iterable
 
 from .trips import Trip
 
@@ -40,7 +41,7 @@ STATUS_NO_WEATHER = "no_weather"
 STATUS_PLUG_IN_HYBRID = "plug_in_hybrid"
 
 
-def _band_floor(temp_c: float) -> Optional[int]:
+def _band_floor(temp_c: float) -> int | None:
     """The lower edge of a trip's band; ``None`` for the open band below 0 °C."""
 
     if temp_c < LOWEST_EDGE_C:
@@ -48,7 +49,7 @@ def _band_floor(temp_c: float) -> Optional[int]:
     return min(HIGHEST_EDGE_C, int(math.floor(temp_c / BAND_C)) * BAND_C)
 
 
-def _rate(kwh: float, km: float) -> Optional[float]:
+def _rate(kwh: float, km: float) -> float | None:
     return round(kwh / km * 100, 1) if km > 0 else None
 
 
@@ -74,7 +75,7 @@ def consumption_by_temperature(trips: Iterable[Trip], *, hybrid: bool = False) -
             continue  # never, while the figure exists; for the type checker
         rows.append((float(temp), trip.energy_kwh, trip.distance_km))
 
-    edges: list[Optional[int]] = [None, *range(LOWEST_EDGE_C, HIGHEST_EDGE_C + 1, BAND_C)]
+    edges: list[int | None] = [None, *range(LOWEST_EDGE_C, HIGHEST_EDGE_C + 1, BAND_C)]
     bands = []
     for low in edges:
         inside = [(kwh, km) for temp, kwh, km in rows if _band_floor(temp) == low]

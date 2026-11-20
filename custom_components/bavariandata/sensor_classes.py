@@ -17,17 +17,18 @@ rules below are therefore stated one field at a time.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Mapping, Optional
+from typing import Any
+from collections.abc import Mapping
 
 
 @dataclass(frozen=True)
 class SensorClasses:
     """The metadata strings a sensor entity is given, before HA enum mapping."""
 
-    device_class: Optional[str] = None
-    state_class: Optional[str] = None
+    device_class: str | None = None
+    state_class: str | None = None
     # A unit here is pinned: BMW's runtime unit string must not override it.
-    unit: Optional[str] = None
+    unit: str | None = None
     # Non-empty only for an enum sensor.
     options: tuple[str, ...] = ()
 
@@ -57,7 +58,7 @@ class SensorClasses:
         )
 
 
-def sensor_classes(meta: Optional[Mapping[str, Any]]) -> SensorClasses:
+def sensor_classes(meta: Mapping[str, Any] | None) -> SensorClasses:
     """Return the classes and pinned unit for a descriptor's metadata.
 
     - A device class wins over enum options (no descriptor has both today).

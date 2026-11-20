@@ -27,7 +27,8 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Callable, Optional
+from typing import Any
+from collections.abc import Callable
 
 from .history.energy_mix import MixAccumulator
 from .history.held_energy import HeldEnergy
@@ -66,8 +67,8 @@ class _ReadOnlyWhenEmpty:
 @dataclass
 class DescriptorState:
     value: Any
-    unit: Optional[str]
-    timestamp: Optional[str]
+    unit: str | None
+    timestamp: str | None
     # Came back from before a restart (an entity's last state), not from BMW in
     # this run. ``timestamp`` is still the time the car measured it.
     restored: bool = False
@@ -77,37 +78,37 @@ class DescriptorState:
 class ChargeState(_ReadOnlyWhenEmpty):
     """The battery and what flows into it, whether or not history is on."""
 
-    tracking: Optional[SocTracking] = None
-    soc_rate: Optional[float] = None
-    soc_estimate: Optional[float] = None
+    tracking: SocTracking | None = None
+    soc_rate: float | None = None
+    soc_estimate: float | None = None
     # What drives the estimate right now, "meter" or "stream" -- kept so a
     # switch alone, with the figure unchanged, still updates the entity.
-    soc_source: Optional[str] = None
+    soc_source: str | None = None
     # Whole minutes until a home charge reaches its target (``charge_eta``).
-    charge_eta: Optional[int] = None
-    charging_power_w: Optional[float] = None
-    direct_power_w: Optional[float] = None
-    ac_voltage_v: Optional[float] = None
-    ac_current_a: Optional[float] = None
-    ac_phase_count: Optional[int] = None
+    charge_eta: int | None = None
+    charging_power_w: float | None = None
+    direct_power_w: float | None = None
+    ac_voltage_v: float | None = None
+    ac_current_a: float | None = None
+    ac_phase_count: int | None = None
     # Energy delivered, integrated from effective charging power over time.
     # ``lifetime`` is monotonic (feeds the HA Energy dashboard); ``session``
     # resets when a new charging session starts.
-    energy_lifetime_wh: Optional[float] = None
-    energy_session_wh: Optional[float] = None
-    energy_session_start: Optional[datetime] = None
+    energy_lifetime_wh: float | None = None
+    energy_session_wh: float | None = None
+    energy_session_start: datetime | None = None
     # How far back a SoC reading may date and still belong to this session, on
     # BMW's clock: the opening status's own timestamp where it predates our
     # ``energy_session_start``. A batch that arrives late carries readings
     # stamped before we saw it, and they are this session's all the same (#332).
-    energy_session_soc_since: Optional[datetime] = None
+    energy_session_soc_since: datetime | None = None
     # SoC at the moment the current session opened, for the energy ceiling.
-    energy_session_soc: Optional[float] = None
+    energy_session_soc: float | None = None
     # Unbounded integral behind ``energy_session_wh``. Kept so the exposed total
     # can rise again the moment a fresh SoC reading grants the room, instead of
     # the charge being written off while the reading was pending.
-    energy_session_raw_wh: Optional[float] = None
-    energy_last_time: Optional[datetime] = None
+    energy_session_raw_wh: float | None = None
+    energy_last_time: datetime | None = None
 
     def tracker(self) -> SocTracking:
         """The SoC tracker, made on first use."""
@@ -121,43 +122,43 @@ class ChargeState(_ReadOnlyWhenEmpty):
 class SessionState(_ReadOnlyWhenEmpty):
     """The charging session being recorded (``history`` on) and its close."""
 
-    builder: Optional[SessionBuilder] = None
-    cost: Optional[CostAccumulator] = None
+    builder: SessionBuilder | None = None
+    cost: CostAccumulator | None = None
     # Running source mix (PV / house battery / grid). Separate from the cost
     # accumulator because the two can be configured independently: a solar
     # share is worth having with no tariff set, and a tariff with no PV.
-    mix: Optional[MixAccumulator] = None
+    mix: MixAccumulator | None = None
     # What the SoC ceiling is holding back, with the mix and price each
     # increment arrived at (see ``history/held_energy.py``).
-    held: Optional[HeldEnergy] = None
+    held: HeldEnergy | None = None
     # Set while a charge restored from the store at startup waits for the
     # stream's word either way: when the snapshot was taken.
-    restored_at: Optional[datetime] = None
+    restored_at: datetime | None = None
     # Closes a restored session the stream never confirmed; without it an
     # outage that spanned the end of a charge would leave the record open.
-    restored_timer: Optional[Cancel] = None
+    restored_timer: Cancel | None = None
     # The stop a restored session is waiting out (the flap debounce) before it
     # is closed, so a repeat of the same stop does not put the close off.
-    restored_stop: Optional[str] = None
+    restored_stop: str | None = None
     # When the in-progress charge was last written to the store. Refreshed on
     # a cadence: a charge runs for hours and each write rewrites the document.
-    saved_at: Optional[datetime] = None
+    saved_at: datetime | None = None
     # SoC a resumed session was last seen at before the restart. Set only
     # between the resume and the first SoC reading that can measure what the
     # gap cost (see ``_apply_gap_credit``).
-    gap_credit_soc: Optional[float] = None
+    gap_credit_soc: float | None = None
     # Where the bound wallbox meter stood when this session's cost was last
     # billed: a cursor, so no kilowatt-hour is billed twice.
-    grid_meter_billed: Optional[float] = None
+    grid_meter_billed: float | None = None
     # A reading below that cursor not yet known to be a glitch or a reset
     # (``history.meter_reading``): billed as nothing until the next one decides.
-    grid_meter_dip: Optional[float] = None
+    grid_meter_dip: float | None = None
     # The close debounce: a pending timer means charging just stopped and we
     # wait to see whether it resumes (a flap) before committing the close.
-    close_timer: Optional[Cancel] = None
+    close_timer: Cancel | None = None
     # When, and on which status, the charge behind a pending close stopped:
     # the record ends there, and the plugged-in hold counts from it.
-    stopped: Optional[tuple[datetime, str]] = None
+    stopped: tuple[datetime, str] | None = None
     # The pending close was announced as a pause: its resume is announced too.
     paused: bool = False
 
@@ -167,9 +168,9 @@ class ClosedTrip:
     """The trip stored last, with the readings it was closed on."""
 
     trip: Any
-    mileage_start: Optional[float]
-    odometer: Optional[float]
-    soc: Optional[float]
+    mileage_start: float | None
+    odometer: float | None
+    soc: float | None
     closed_at: datetime
 
 
@@ -177,48 +178,48 @@ class ClosedTrip:
 class TripState(_ReadOnlyWhenEmpty):
     """The drive being recorded, and the evidence its open and close rest on."""
 
-    builder: Optional[TripBuilder] = None
+    builder: TripBuilder | None = None
     # The drive's weather waypoints (``trip_weather``), only while the user has
     # route weather on. In memory only: dropped once looked up.
-    waypoints: Optional[WaypointSampler] = None
+    waypoints: WaypointSampler | None = None
     # The stationary-close debounce's cancel callback.
-    close_timer: Optional[Cancel] = None
+    close_timer: Cancel | None = None
     # When an unevidenced close was first held off. Set only while a trip is
     # held open through stream silence; bounded by ``TRIP_SILENT_HOLD_MAX_S``.
-    held_since: Optional[datetime] = None
+    held_since: datetime | None = None
     # The last *positive* evidence the car is standing still: a fix showing
     # no movement, or an explicit ``isMoving: false``. Newer than the last
     # movement means "the car stopped"; older (or none) while the debounce
     # expires means "the stream stopped" -- see ``_hold_close_on_silence``.
-    last_stop_evidence: Optional[datetime] = None
+    last_stop_evidence: datetime | None = None
     # Driver-door state. ``None`` on cars that don't stream the door, where
     # detection falls back to GPS alone.
-    driver_door_open: Optional[bool] = None
+    driver_door_open: bool | None = None
     # When the driver door opened during a trip too soon after the last
     # movement to count as an arrival on the spot -- the i5 sends it within a
     # second of the final fix. Kept until the car moves on.
-    door_arrival: Optional[datetime] = None
+    door_arrival: datetime | None = None
     # The odometer and SoC as of the last fix that showed the car parked, for
     # the next trip's start. A car that streams in snapshots (an i4) sends both
     # ahead of the fix that first shows it moving, already moved on.
-    parked_reading: Optional[tuple[Optional[float], Optional[float]]] = None
+    parked_reading: tuple[float | None, float | None] | None = None
     # The trip stored last, while a reading that lands after its close may
     # still be its own (see ``_settle_late_reading``), and when one came in.
-    closed: Optional[ClosedTrip] = None
-    late_reading_at: Optional[datetime] = None
-    pending_start: Optional[tuple[datetime, Optional[tuple[float, float]]]] = None
+    closed: ClosedTrip | None = None
+    late_reading_at: datetime | None = None
+    pending_start: tuple[datetime, tuple[float, float] | None] | None = None
     # The zone the trip started in (name and entity id, for "left a zone"),
     # and whether this trip already left it.
-    start_zone: Optional[tuple[str, str]] = None
+    start_zone: tuple[str, str] | None = None
     zone_left_fired: bool = False
     # Trip-capture bookkeeping (``trip_debug`` only): when the close timer is
     # due, for the countdown on each fix line, and the open trip's stats.
-    close_due: Optional[datetime] = None
-    capture: Optional[dict[str, Any]] = None
+    close_due: datetime | None = None
+    capture: dict[str, Any] | None = None
     # Serialises trip detection. Each MQTT message is its own task, so two
     # fixes can interleave at the geocode ``await`` in ``_open_trip`` and both
     # pass the "no open trip" check; the lock makes check-then-open atomic.
-    lock: Optional[asyncio.Lock] = None
+    lock: asyncio.Lock | None = None
 
 
 @dataclass
@@ -227,40 +228,40 @@ class GpsState(_ReadOnlyWhenEmpty):
 
     # Movement detection from the position stream: the i5 streams no
     # motion/ignition, and its ``trip.segment`` batches come mid-drive.
-    tracker: Optional[GpsTracker] = None
+    tracker: GpsTracker | None = None
     # The last fix classified as movement. A segment batch must not close a
     # trip the track still shows to be under way.
-    last_move: Optional[datetime] = None
+    last_move: datetime | None = None
     # The last settled position (every complete fix, moving or not): where a
     # new trip's track starts, rather than at the first movement fix.
-    last_position: Optional[tuple[float, float]] = None
+    last_position: tuple[float, float] | None = None
     # Pairing of the two-message fix (lat and lon arrive separately): which
     # halves arrived since the last complete fix, since when (the stale escape
     # hatch), and BMW's timestamp of the last fix processed, which drops BMW's
     # duplicate redelivery of the same position.
-    pending_parts: Optional[set[str]] = None
-    pending_since: Optional[datetime] = None
-    last_fix_ts: Optional[datetime] = None
+    pending_parts: set[str] | None = None
+    pending_since: datetime | None = None
+    last_fix_ts: datetime | None = None
     # Wall-clock of the last fix, for the inter-fix gap (``trip_debug``).
-    last_fix_at: Optional[datetime] = None
+    last_fix_at: datetime | None = None
 
 
 @dataclass
 class ReportState(_ReadOnlyWhenEmpty):
     """The vehicle-report debounce (``vehicle_report.py``) and the phone's route."""
 
-    timer: Optional[Cancel] = None
+    timer: Cancel | None = None
     # The odometer reading the debounce is waiting on.
-    pending: Optional[float] = None
+    pending: float | None = None
     # Phone positions held for a report trip's route (``phone_route.py``).
-    phone_route: Optional[PhoneRoute] = None
+    phone_route: PhoneRoute | None = None
     # The second phone's (``trip_settings.TripSettings.phones``, slot 1).
-    phone_route_2: Optional[PhoneRoute] = None
+    phone_route_2: PhoneRoute | None = None
 
-    def route_in(self, slot: int) -> Optional[PhoneRoute]:
+    def route_in(self, slot: int) -> PhoneRoute | None:
         return self.phone_route_2 if slot else self.phone_route
 
-    def set_route_in(self, slot: int, route: Optional[PhoneRoute]) -> None:
+    def set_route_in(self, slot: int, route: PhoneRoute | None) -> None:
         if slot:
             self.phone_route_2 = route
         else:
@@ -280,7 +281,7 @@ class Vehicle:
     # The day's outside temperature where the car is parked (``trip_weather``,
     # with route weather on): ``date``, ``temp_c``, ``temp_min_c``,
     # ``temp_max_c``, ``source`` (``car`` or ``home``). Never a position.
-    outside: Optional[dict[str, Any]] = None
+    outside: dict[str, Any] | None = None
     # Descriptors the stream delivered since this instance started --
     # situations are judged on these alone, never on a value restored after a
     # restart (``vehicle_triggers``).

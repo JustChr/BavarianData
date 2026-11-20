@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import logging
 from datetime import timedelta
-from typing import Any, Optional
+from typing import Any
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -63,7 +63,7 @@ class AbrpPush:
         self._refused.clear()
 
     @callback
-    def async_schedule(self, vin: Optional[str] = None) -> None:
+    def async_schedule(self, vin: str | None = None) -> None:
         """Queue a send for one car (or all), coalescing a burst."""
 
         if not self.enabled:

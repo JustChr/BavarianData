@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
-from typing import Any, Callable, Dict, Mapping, Optional, Tuple
+from typing import Any
+from collections.abc import Callable, Mapping
 
 from homeassistant.components.sensor import (
     RestoreSensor,
@@ -107,7 +108,7 @@ class CardataRestoreSensor(CardataEntity, RestoreSensor):
     saved native data.
     """
 
-    async def async_restored_native(self) -> Tuple[Any, Optional[str], Any]:
+    async def async_restored_native(self) -> tuple[Any, str | None, Any]:
         """Return ``(value, unit, last_state)`` from the previous run.
 
         ``value`` is ``None`` when there is nothing trustworthy to restore --
@@ -155,7 +156,7 @@ class CardataSensor(CardataRestoreSensor):
     def __init__(self, coordinator: CardataCoordinator, vin: str, descriptor: str) -> None:
         super().__init__(coordinator, vin, descriptor)
         self._attr_should_poll = False
-        self._unsubscribe: Optional[Callable[[], None]] = None
+        self._unsubscribe: Callable[[], None] | None = None
         # Check Control keeps the messages that have since cleared, so the card
         # can list them apart from the current ones (see structured_values).
         self._history = MessageHistory() if descriptor == CHECK_CONTROL else None
@@ -303,7 +304,7 @@ class CardataDiagnosticsSensor(SensorEntity, RestoreEntity):
         self._entry_id = entry_id
         self._sensor_type = sensor_type
         self._quota = quota_manager
-        self._unsub: Optional[Callable[[], None]] = None
+        self._unsub: Callable[[], None] | None = None
         # One of sensor_plan.DIAGNOSTIC_TYPES, each named from translations
         # (tools/derived_entities.json).
         self._attr_translation_key = sensor_type
@@ -389,7 +390,7 @@ class CardataQuotaSensor(SensorEntity):
         self._coordinator = coordinator
         self._entry_id = entry_id
         self._quota = quota_manager
-        self._unsub: Optional[Callable[[], None]] = None
+        self._unsub: Callable[[], None] | None = None
         self._attr_unique_id = f"{entry_id}_diagnostics_api_quota_remaining"
 
     @property
@@ -397,7 +398,7 @@ class CardataQuotaSensor(SensorEntity):
         return _account_device_info(self._entry_id)
 
     @property
-    def native_value(self) -> Optional[int]:
+    def native_value(self) -> int | None:
         return self._quota.remaining if self._quota else None
 
     @property
@@ -436,7 +437,7 @@ class CardataSocEstimateSensor(CardataRestoreSensor):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "soc_estimate")
-        self._unsubscribe: Optional[Callable[[], None]] = None
+        self._unsubscribe: Callable[[], None] | None = None
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
@@ -499,7 +500,7 @@ class CardataSocRateSensor(CardataRestoreSensor):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "soc_rate")
-        self._unsubscribe: Optional[Callable[[], None]] = None
+        self._unsubscribe: Callable[[], None] | None = None
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
@@ -559,7 +560,7 @@ class CardataChargeEtaSensor(CardataEntity, SensorEntity):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "charge_eta")
-        self._unsubscribe: Optional[Callable[[], None]] = None
+        self._unsubscribe: Callable[[], None] | None = None
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
@@ -598,7 +599,7 @@ class CardataChargedEnergySensor(CardataRestoreSensor):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "charged_energy_total")
-        self._unsubscribe: Optional[Callable[[], None]] = None
+        self._unsubscribe: Callable[[], None] | None = None
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
@@ -646,10 +647,10 @@ class CardataSessionEnergySensor(CardataRestoreSensor):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "charged_energy_session")
-        self._unsubscribe: Optional[Callable[[], None]] = None
+        self._unsubscribe: Callable[[], None] | None = None
 
     @property
-    def last_reset(self) -> Optional[datetime]:
+    def last_reset(self) -> datetime | None:
         return self._coordinator.get_session_start(self.vin)
 
     @property
@@ -710,11 +711,11 @@ class CardataChargingSummarySensor(CardataEntity, SensorEntity):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str, key: str) -> None:
         super().__init__(coordinator, vin, key)
-        self._unsubscribe: Optional[Callable[[], None]] = None
-        self._unsub_midnight: Optional[Callable[[], None]] = None
+        self._unsubscribe: Callable[[], None] | None = None
+        self._unsub_midnight: Callable[[], None] | None = None
 
     @property
-    def _summary(self) -> Dict[str, Any]:
+    def _summary(self) -> dict[str, Any]:
         history = self._coordinator.history
         if history is None:
             return {}
@@ -789,7 +790,7 @@ class CardataChargingCostSessionSensor(CardataEntity, SensorEntity):
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "charging_cost_session")
         self._attr_native_unit_of_measurement = coordinator.pricing.currency
-        self._unsubscribe: Optional[Callable[[], None]] = None
+        self._unsubscribe: Callable[[], None] | None = None
 
     @property
     def _latest(self) -> Any:
@@ -893,7 +894,7 @@ class CardataBatteryHealthSensor(CardataEntity, SensorEntity):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "battery_health")
-        self._unsubscribe: Optional[Callable[[], None]] = None
+        self._unsubscribe: Callable[[], None] | None = None
 
     @property
     def _health(self) -> Any:
@@ -972,17 +973,17 @@ class CardataRealRangeSensor(CardataEntity, SensorEntity):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "real_range")
-        self._unsub_history: Optional[Callable[[], None]] = None
-        self._unsub_soc: Optional[Callable[[], None]] = None
-        self._unsub_live: Optional[Callable[[], None]] = None
-        self._unsub_heartbeat: Optional[Callable[[], None]] = None
-        self._cached: Optional[Dict[str, Any]] = None
+        self._unsub_history: Callable[[], None] | None = None
+        self._unsub_soc: Callable[[], None] | None = None
+        self._unsub_live: Callable[[], None] | None = None
+        self._unsub_heartbeat: Callable[[], None] | None = None
+        self._cached: dict[str, Any] | None = None
         # What the cached profile was computed from, so the heartbeat can tell
         # "nothing moved" from "nobody told us" without walking the ledger.
-        self._inputs: Optional[tuple[Any, ...]] = None
+        self._inputs: tuple[Any, ...] | None = None
 
     @property
-    def _profile(self) -> Dict[str, Any]:
+    def _profile(self) -> dict[str, Any]:
         """The efficiency profile, recomputed only when something moved it.
 
         Both the state and the attributes read this, and each state write asks
@@ -1104,11 +1105,11 @@ class CardataDrivingDistanceMonthSensor(CardataEntity, SensorEntity):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "driving_distance_month")
-        self._unsubscribe: Optional[Callable[[], None]] = None
-        self._unsub_midnight: Optional[Callable[[], None]] = None
+        self._unsubscribe: Callable[[], None] | None = None
+        self._unsub_midnight: Callable[[], None] | None = None
 
     @property
-    def _summary(self) -> Dict[str, Any]:
+    def _summary(self) -> dict[str, Any]:
         history = self._coordinator.history
         if history is None:
             return {}
@@ -1176,10 +1177,10 @@ class CardataLastVehicleReportSensor(CardataEntity, SensorEntity):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "last_vehicle_report")
-        self._unsubscribe: Optional[Callable[[], None]] = None
+        self._unsubscribe: Callable[[], None] | None = None
 
     @property
-    def native_value(self) -> Optional[datetime]:
+    def native_value(self) -> datetime | None:
         return self._coordinator.last_vehicle_report(self.vin)
 
     async def async_added_to_hass(self) -> None:
@@ -1220,7 +1221,7 @@ class CardataMileageAllowanceSensor(CardataEntity, SensorEntity):
         self._unsubscribers: list[Any] = []
 
     @property
-    def _allowance(self) -> Dict[str, Any]:
+    def _allowance(self) -> dict[str, Any]:
         return self._coordinator.mileage_report(self.vin).get("allowance") or {}
 
     @property
@@ -1275,10 +1276,10 @@ class CardataTyreEntity(CardataEntity, SensorEntity):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str, key: str) -> None:
         super().__init__(coordinator, vin, key)
-        self._unsubscribe: Optional[Callable[[], None]] = None
+        self._unsubscribe: Callable[[], None] | None = None
 
     @property
-    def _diagnosis(self) -> Dict[str, Any]:
+    def _diagnosis(self) -> dict[str, Any]:
         return self._coordinator.tyre_diagnosis.get(self.vin) or {}
 
     @property
@@ -1356,7 +1357,7 @@ class CardataTyreStatusSensor(CardataTyreEntity):
         return attrs
 
 
-_DERIVED: Dict[str, Callable[[CardataCoordinator, str], SensorEntity]] = {
+_DERIVED: dict[str, Callable[[CardataCoordinator, str], SensorEntity]] = {
     "soc_estimate": CardataSocEstimateSensor,
     "soc_rate": CardataSocRateSensor,
     "charge_eta": CardataChargeEtaSensor,

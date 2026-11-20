@@ -28,7 +28,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from statistics import median
-from typing import Iterable, Optional
+from collections.abc import Iterable
 
 from .models import ChargingSession
 from .sessions import meter_counts_this_session
@@ -97,9 +97,7 @@ class _Sample:
     hours: float
 
 
-def meter_rate(
-    sessions: Iterable[ChargingSession], home_zone: Optional[str]
-) -> Optional[MeterRate]:
+def meter_rate(sessions: Iterable[ChargingSession], home_zone: str | None) -> MeterRate | None:
     """The model from the newest qualifying home charges, or ``None``.
 
     A session qualifies only when its two ends and its meter delta describe the
@@ -151,7 +149,7 @@ def meter_rate(
     )
 
 
-def _fit(samples: list[_Sample]) -> Optional[tuple[float, float]]:
+def _fit(samples: list[_Sample]) -> tuple[float, float] | None:
     """Least squares for ``points = a*kWh - b*hours``; ``(a, b/a)`` or ``None``.
 
     No intercept: no energy, no points. ``None`` when the sessions cannot tell

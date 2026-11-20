@@ -18,7 +18,8 @@ from __future__ import annotations
 import hashlib
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Collection, Mapping, Optional
+from typing import Any
+from collections.abc import Collection, Mapping
 
 # How long a selected-but-unseen descriptor is given before it is called
 # "overdue". BMW streams many descriptors only on a state change (a charge, a
@@ -99,9 +100,7 @@ EV_ONLY_DESCRIPTORS = frozenset(
 )
 
 
-def monitoring_since(
-    started_at: Optional[datetime], first_seen: Optional[datetime]
-) -> Optional[datetime]:
+def monitoring_since(started_at: datetime | None, first_seen: datetime | None) -> datetime | None:
     """When one vehicle's grace window starts.
 
     ``started_at`` is the entry's clock, which restarts whenever the cluster
@@ -157,11 +156,11 @@ def has_combustion(seen: Collection[str]) -> bool:
     return any(descriptor.startswith(COMBUSTION_PREFIXES) for descriptor in seen)
 
 
-def _basic_drive_train(drive_train: Optional[str]) -> str:
+def _basic_drive_train(drive_train: str | None) -> str:
     return str(drive_train or "").strip().upper()
 
 
-def is_combustion_only(seen: Collection[str], drive_train: Optional[str] = None) -> bool:
+def is_combustion_only(seen: Collection[str], drive_train: str | None = None) -> bool:
     """Whether the car has an engine and no high-voltage battery.
 
     BMW's basic data answers when it has a spelling for it: ``CONV`` is a
@@ -181,7 +180,7 @@ def is_combustion_only(seen: Collection[str], drive_train: Optional[str] = None)
     return has_combustion(seen_set) and not has_high_voltage(seen_set)
 
 
-def is_plug_in_hybrid(seen: Collection[str], drive_train: Optional[str] = None) -> bool:
+def is_plug_in_hybrid(seen: Collection[str], drive_train: str | None = None) -> bool:
     """Whether the car has both a high-voltage battery and a fuel system.
 
     BMW's basic data wins where it has said something: ``PHEV`` is one (an X3
@@ -213,7 +212,7 @@ def is_ev_only_descriptor(descriptor: str) -> bool:
 
 
 def unsupported_sections(
-    clusters: "Collection[ClusterCoverage]",
+    clusters: Collection[ClusterCoverage],
     *,
     monitoring_days: float,
     excluded: Collection[str] = (),
@@ -281,7 +280,7 @@ class CoverageReport:
     """The self-test result for one vehicle."""
 
     vin: str
-    monitoring_since: Optional[str]
+    monitoring_since: str | None
     monitoring_days: float
     grace_days: int
     past_grace: bool
@@ -353,11 +352,11 @@ def analyze_coverage(
     expected_by_section: Mapping[str, Collection[str]],
     labels: Mapping[str, str],
     seen: Collection[str],
-    monitoring_since: Optional[datetime],
+    monitoring_since: datetime | None,
     now: datetime,
     grace_days: int = DEFAULT_GRACE_DAYS,
     unsupported_after_days: int = UNSUPPORTED_AFTER_DAYS,
-    drive_train: Optional[str] = None,
+    drive_train: str | None = None,
 ) -> CoverageReport:
     """Build a :class:`CoverageReport` from the raw inputs.
 

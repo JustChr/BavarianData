@@ -24,7 +24,8 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from typing import Any, Iterable, Mapping, Optional
+from typing import Any
+from collections.abc import Iterable, Mapping
 
 from .evcc import BridgeConfig, normalize_prefix
 
@@ -50,13 +51,13 @@ def is_position(name: str) -> bool:
     return name.startswith(POSITION_PREFIXES)
 
 
-def stream_topic(prefix: Optional[str], vin: str) -> str:
+def stream_topic(prefix: str | None, vin: str) -> str:
     """Where a car's messages go, as BMW sent them."""
 
     return f"{normalize_prefix(prefix)}/{vin}/{STREAM}"
 
 
-def sweep_filter(prefix: Optional[str]) -> str:
+def sweep_filter(prefix: str | None) -> str:
     """The subscription that finds every shared field still retained."""
 
     return f"{normalize_prefix(prefix)}/+/{STREAM}/#"
@@ -72,13 +73,13 @@ class SharedMessage:
 
     # ``(topic, payload)`` of the message itself, or ``None`` when nothing in it
     # may be shared.
-    message: Optional[tuple[str, str]] = None
+    message: tuple[str, str] | None = None
     # The per-field topics, topic -> payload.
     fields: dict[str, str] = field(default_factory=dict)
 
 
 def shared_message(
-    prefix: Optional[str], payload: Mapping[str, Any], *, hide_position: bool
+    prefix: str | None, payload: Mapping[str, Any], *, hide_position: bool
 ) -> SharedMessage:
     """What one stream message becomes on the broker.
 
@@ -112,9 +113,9 @@ def shared_message(
 
 def clears(
     topic: str,
-    prefix: Optional[str],
+    prefix: str | None,
     *,
-    vins: Optional[Iterable[str]] = None,
+    vins: Iterable[str] | None = None,
     position_only: bool = False,
 ) -> bool:
     """Whether a retained topic the sweep found is one to delete.
@@ -142,7 +143,7 @@ class Sweep:
 
     prefix: str
     # Only these cars' topics, or every car's.
-    vins: Optional[tuple[str, ...]] = None
+    vins: tuple[str, ...] | None = None
     position_only: bool = False
 
 

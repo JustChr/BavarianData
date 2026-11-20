@@ -28,7 +28,7 @@ reached the battery -- because that is the side the house meters measure.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 # The buckets, in the order a user reads them.
 SOURCE_PV = "pv"
@@ -43,17 +43,17 @@ SOURCES = (SOURCE_PV, SOURCE_BATTERY, SOURCE_GRID, SOURCE_UNKNOWN)
 MIN_SUPPLY_W = 50.0
 
 
-def _positive(value: Optional[float]) -> float:
+def _positive(value: float | None) -> float:
     return 0.0 if value is None or value <= 0 else float(value)
 
 
 def supply_shares(
     *,
-    pv_w: Optional[float],
-    grid_w: Optional[float],
-    battery_w: Optional[float] = None,
+    pv_w: float | None,
+    grid_w: float | None,
+    battery_w: float | None = None,
     sun_down: bool = False,
-) -> Optional[dict[str, float]]:
+) -> dict[str, float] | None:
     """How the site is being supplied right now, as fractions summing to 1.
 
     Sign conventions, which are the whole difficulty:
@@ -104,8 +104,8 @@ def supply_shares(
 
 
 def split_energy(
-    energy_kwh: Optional[float],
-    shares: Optional[dict[str, float]],
+    energy_kwh: float | None,
+    shares: dict[str, float] | None,
 ) -> dict[str, float]:
     """Divide one energy increment between the sources supplying it.
 
@@ -136,8 +136,8 @@ class MixAccumulator:
 
     def add(
         self,
-        energy_kwh: Optional[float],
-        shares: Optional[dict[str, float]],
+        energy_kwh: float | None,
+        shares: dict[str, float] | None,
     ) -> dict[str, float]:
         """Book an increment and return how it was split (for the cost step)."""
 
@@ -154,7 +154,7 @@ class MixAccumulator:
     def known_kwh(self) -> float:
         return self.total_kwh - self.totals.get(SOURCE_UNKNOWN, 0.0)
 
-    def solar_percent(self) -> Optional[float]:
+    def solar_percent(self) -> float | None:
         """Share of the *attributable* energy that came off the roof.
 
         Measured against the known energy, not the session total: a session that
@@ -168,7 +168,7 @@ class MixAccumulator:
             return None
         return round(self.totals.get(SOURCE_PV, 0.0) / known * 100.0, 1)
 
-    def as_record(self) -> Optional[dict[str, Any]]:
+    def as_record(self) -> dict[str, Any] | None:
         """The stored mix, or ``None`` when there is nothing to say.
 
         A session whose energy is *entirely* unknown records no mix rather than
@@ -192,7 +192,7 @@ class MixAccumulator:
         return {"totals": dict(self.totals)}
 
     @classmethod
-    def from_dict(cls, data: Optional[dict[str, Any]]) -> "MixAccumulator":
+    def from_dict(cls, data: dict[str, Any] | None) -> MixAccumulator:
         """Rebuild a snapshotted accumulator, or start a fresh one."""
 
         if not isinstance(data, dict):
@@ -211,7 +211,7 @@ class MixAccumulator:
         return cls(totals=totals)
 
 
-def merge_mix(records: list[Optional[dict[str, Any]]]) -> Optional[dict[str, Any]]:
+def merge_mix(records: list[dict[str, Any] | None]) -> dict[str, Any] | None:
     """Sum several sessions' mixes into one, for a monthly total.
 
     Sessions with no mix contribute nothing at all -- not a zero -- so one

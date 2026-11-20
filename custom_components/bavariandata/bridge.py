@@ -37,7 +37,8 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any, Iterable, Optional, cast
+from typing import Any, cast
+from collections.abc import Iterable
 
 from homeassistant.components import mqtt
 from homeassistant.config_entries import ConfigEntryState
@@ -108,7 +109,7 @@ async def async_clear_shared(
     hass: HomeAssistant,
     *,
     prefix: str,
-    vins: Optional[Iterable[str]] = None,
+    vins: Iterable[str] | None = None,
     position_only: bool = False,
 ) -> None:
     """Delete the shared stream's retained topics, for these cars or all.
@@ -215,7 +216,7 @@ class VehicleBridge:
         self._warned_unavailable = False
 
     @callback
-    def async_schedule(self, vin: Optional[str] = None) -> None:
+    def async_schedule(self, vin: str | None = None) -> None:
         """Queue a publish for one vehicle (or all), coalescing a burst."""
 
         if not self.enabled:
@@ -404,7 +405,7 @@ class VehicleBridge:
         payload: str,
         *,
         clearing: bool = False,
-        retain: Optional[bool] = None,
+        retain: bool | None = None,
     ) -> None:
         """One publish, with the broker's problems kept out of the stream.
 

@@ -89,9 +89,9 @@ def parse_streamable(cell_html: str) -> bool:
     return match.group(1) == "true" if match else True
 
 
-def parse_html(path: Path = HTML_FILE) -> "OrderedDict[str, dict]":
+def parse_html(path: Path = HTML_FILE) -> OrderedDict[str, dict]:
     raw = path.read_text(encoding="utf-8")
-    entries: "OrderedDict[str, dict]" = OrderedDict()
+    entries: OrderedDict[str, dict] = OrderedDict()
     # Split the document into (heading, table-body) chunks in document order.
     parts = re.split(r"<h3>(.*?)</h3>", raw, flags=re.S)
     # parts[0] is the preamble; then alternating heading, body, heading, body...

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import re
-from typing import Any, Optional
+from typing import Any
 
 from .const import (
     OPTION_BATTERY_POWER_ENTITY,
@@ -50,7 +50,7 @@ ENTITY_ID_OPTIONS = frozenset(
 )
 
 
-def fingerprint(value: Any) -> Optional[str]:
+def fingerprint(value: Any) -> str | None:
     """A short, stable, non-reversible stand-in for a redacted identifier.
 
     The GCID is redacted -- it identifies the account -- but "do these two

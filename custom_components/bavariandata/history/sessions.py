@@ -14,7 +14,8 @@ takes the final figure at close.
 from __future__ import annotations
 
 from datetime import datetime, timedelta
-from typing import Any, Mapping, Optional
+from typing import Any
+from collections.abc import Mapping
 
 from .meter_reading import HOLD, RESET, judge
 from .models import ChargingSession, _iso, _parse  # shared ISO (de)serialisation helpers
@@ -90,12 +91,12 @@ GRID_METER_MIN_KWH = 0.2
 
 
 def measured_grid_kwh(
-    meter_start: Optional[float],
-    meter_end: Optional[float],
+    meter_start: float | None,
+    meter_end: float | None,
     *,
-    battery_kwh: Optional[float] = None,
+    battery_kwh: float | None = None,
     cross_check: bool = True,
-) -> Optional[float]:
+) -> float | None:
     """What the bound wallbox meter says this charge drew, or ``None``.
 
     ``grid_kwh`` is the one field in a record that is *measured* rather than
@@ -145,7 +146,7 @@ def measured_grid_kwh(
 AT_HOUSE_M = 150.0
 
 
-def at_the_house(latitude: float, longitude: float, home: Optional[Mapping[str, Any]]) -> bool:
+def at_the_house(latitude: float, longitude: float, home: Mapping[str, Any] | None) -> bool:
     """Whether a point is at the house: inside ``zone.home``, and near its centre.
 
     Home Assistant names the *smallest* zone a point lies in, so a zone drawn
@@ -165,7 +166,7 @@ def at_the_house(latitude: float, longitude: float, home: Optional[Mapping[str, 
     return distance_m(latitude, longitude, *centre) <= min(radius, AT_HOUSE_M)
 
 
-def meter_counts_this_session(location: Optional[dict[str, Any]], home_zone: Optional[str]) -> bool:
+def meter_counts_this_session(location: dict[str, Any] | None, home_zone: str | None) -> bool:
     """Whether the bound wallbox meter can be measuring this charge at all.
 
     The meter hangs on a wall at home, and nothing it reports says *which* car
@@ -190,9 +191,7 @@ def meter_counts_this_session(location: Optional[dict[str, Any]], home_zone: Opt
     return bool(zone == home_zone or zone == "zone.home")
 
 
-def house_supplies_this_session(
-    location: Optional[dict[str, Any]], home_zone: Optional[str]
-) -> bool:
+def house_supplies_this_session(location: dict[str, Any] | None, home_zone: str | None) -> bool:
     """Whether the house's own sensors and tariff describe this charge.
 
     The energy mix samples the PV, house-battery and grid sensors at home, and
@@ -273,7 +272,7 @@ OPEN_SESSION_MAX_AGE_S = 3600.0
 
 
 def open_session_is_resumable(
-    saved_at: Optional[datetime],
+    saved_at: datetime | None,
     now: datetime,
     *,
     max_age_s: float = OPEN_SESSION_MAX_AGE_S,
@@ -295,8 +294,8 @@ def open_session_is_resumable(
 
 
 def soc_is_from_session(
-    reading_at: Optional[datetime],
-    session_start: Optional[datetime],
+    reading_at: datetime | None,
+    session_start: datetime | None,
     *,
     skew: timedelta = SOC_SESSION_SKEW,
 ) -> bool:
@@ -326,12 +325,12 @@ def soc_is_from_session(
 
 
 def energy_ceiling_kwh(
-    soc_start: Optional[float],
-    soc_now: Optional[float],
-    capacity_kwh: Optional[float],
+    soc_start: float | None,
+    soc_now: float | None,
+    capacity_kwh: float | None,
     *,
     margin_percent: float = SOC_CEILING_MARGIN_PERCENT,
-) -> Optional[float]:
+) -> float | None:
     """Most energy a session can plausibly have put into the pack, in kWh.
 
     Battery-side energy and state of charge measure the same thing, so the pack
@@ -358,11 +357,11 @@ def energy_ceiling_kwh(
 
 
 def meter_energy_bound_kwh(
-    metered_kwh: Optional[float],
-    soc_start: Optional[float],
-    soc_now: Optional[float],
-    capacity_kwh: Optional[float],
-) -> Optional[float]:
+    metered_kwh: float | None,
+    soc_start: float | None,
+    soc_now: float | None,
+    capacity_kwh: float | None,
+) -> float | None:
     """The wallbox meter's count so far as a session's bound, or ``None``.
 
     At home with a meter bound, the meter is the better bound than SoC: it
@@ -389,7 +388,7 @@ def meter_energy_bound_kwh(
     return metered_kwh
 
 
-def _is_late_start(soc_before: Optional[float], soc_start: Optional[float]) -> bool:
+def _is_late_start(soc_before: float | None, soc_start: float | None) -> bool:
     """True when the pack was already fuller at open than we last saw it.
 
     Charging only raises SoC, so a session opening meaningfully above the last
@@ -410,11 +409,11 @@ class SessionBuilder:
         vin: str,
         start: datetime,
         *,
-        soc_start: Optional[float] = None,
-        target_soc: Optional[float] = None,
-        location: Optional[dict[str, Any]] = None,
+        soc_start: float | None = None,
+        target_soc: float | None = None,
+        location: dict[str, Any] | None = None,
         location_assumed: bool = False,
-        soc_before: Optional[float] = None,
+        soc_before: float | None = None,
     ) -> None:
         self.vin = vin
         self.start = start
@@ -423,7 +422,7 @@ class SessionBuilder:
         # Seeding it from ``soc_start`` would turn "we never saw the end" into a
         # confident claim that the charge moved the pack not at all -- which on a
         # car that doesn't stream SoC is every session it ever records.
-        self.soc_end: Optional[float] = None
+        self.soc_end: float | None = None
         self.target_soc = target_soc
         self.location = location
         self.location_assumed = location_assumed
@@ -433,31 +432,31 @@ class SessionBuilder:
         # charge too, and moving one end without the other would make the record
         # internally inconsistent rather than more accurate.
         self.late_start = _is_late_start(soc_before, soc_start)
-        self.peak_power_kw: Optional[float] = None
+        self.peak_power_kw: float | None = None
         # "ac"/"dc" once the car has said which (see ``ChargingSession.charge_method``).
-        self.charge_method: Optional[str] = None
+        self.charge_method: str | None = None
         # True once this session has survived a restart (see
         # ``ChargingSession.interrupted``): set by :meth:`from_dict`, never here.
         self.interrupted = False
         self._curve: list[list[float]] = []
         self._interval = MIN_SAMPLE_INTERVAL_S
-        self._last_offset: Optional[int] = None
-        self._last_power: Optional[float] = None
+        self._last_offset: int | None = None
+        self._last_power: float | None = None
         # Wall-clock time of the most recent sample. The curve stores offsets,
         # which are useless for deciding *when* a session that was interrupted
         # should be recorded as having ended -- that has to be the last moment we
         # actually watched it charge, not whenever we noticed it had stopped.
-        self.last_sample_at: Optional[datetime] = None
+        self.last_sample_at: datetime | None = None
         # The bound wallbox meter's own cumulative total, first and latest.
         # Sampled rather than read once at each end so the figure survives a
         # restart and so a charge that ends while the meter is briefly
         # unavailable still has a usable last reading.
-        self.grid_meter_start: Optional[float] = None
-        self.grid_meter_last: Optional[float] = None
+        self.grid_meter_start: float | None = None
+        self.grid_meter_last: float | None = None
         # A reading below ``grid_meter_last`` that is not yet known to be a glitch
         # or a reset (``meter_reading``). Not snapshotted: after a restart the
         # next reading decides afresh.
-        self.grid_meter_dip: Optional[float] = None
+        self.grid_meter_dip: float | None = None
         # Another car charged on the same meter during this session, so its
         # advance is both cars' and this session has no measured figure.
         self.meter_shared = False
@@ -467,7 +466,7 @@ class SessionBuilder:
         # the start; clamp rather than emitting a negative x value.
         return max(0, int((at - self.start).total_seconds()))
 
-    def sample(self, at: datetime, power_kw: Optional[float]) -> None:
+    def sample(self, at: datetime, power_kw: float | None) -> None:
         """Record a power reading.
 
         The peak comes from *every* reading, not only the stored ones -- a
@@ -495,11 +494,11 @@ class SessionBuilder:
         self._curve = self._curve[::2]
         self._interval *= 2
 
-    def note_soc(self, soc: Optional[float]) -> None:
+    def note_soc(self, soc: float | None) -> None:
         if soc is not None:
             self.soc_end = soc
 
-    def note_grid_meter(self, reading: Optional[float]) -> None:
+    def note_grid_meter(self, reading: float | None) -> None:
         """Record where the bound wallbox meter stands.
 
         The *first* reading becomes the baseline and is never revised: a later
@@ -539,14 +538,14 @@ class SessionBuilder:
         self.grid_meter_last = None
         self.grid_meter_dip = None
 
-    def metered_so_far_kwh(self) -> Optional[float]:
+    def metered_so_far_kwh(self) -> float | None:
         """What the meter has counted since the session opened, unchecked."""
 
         if self.grid_meter_start is None or self.grid_meter_last is None:
             return None
         return self.grid_meter_last - self.grid_meter_start
 
-    def measured_grid_kwh(self, *, battery_kwh: Optional[float] = None) -> Optional[float]:
+    def measured_grid_kwh(self, *, battery_kwh: float | None = None) -> float | None:
         """The meter's verdict on this session, or ``None`` if unusable.
 
         The cross-check is skipped for a session whose battery-side energy is
@@ -591,7 +590,7 @@ class SessionBuilder:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Optional["SessionBuilder"]:
+    def from_dict(cls, data: dict[str, Any]) -> SessionBuilder | None:
         """Rebuild a snapshotted session, or ``None`` if it is unusable.
 
         Always comes back with ``interrupted`` set: by definition the only way
@@ -643,10 +642,10 @@ class SessionBuilder:
         self,
         at: datetime,
         *,
-        soc_end: Optional[float] = None,
-        energy_kwh: Optional[float] = None,
-        cost: Optional[dict[str, Any]] = None,
-        reason: Optional[str] = None,
+        soc_end: float | None = None,
+        energy_kwh: float | None = None,
+        cost: dict[str, Any] | None = None,
+        reason: str | None = None,
     ) -> ChargingSession:
         """Finish the session and return the record to persist."""
 

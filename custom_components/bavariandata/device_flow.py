@@ -8,7 +8,7 @@ import hashlib
 import secrets
 import string
 import time
-from typing import Any, Dict, Optional, cast
+from typing import Any, cast
 
 import aiohttp
 
@@ -41,10 +41,10 @@ class CardataAuthError(Exception):
         self,
         message: str,
         *,
-        status: Optional[int] = None,
-        error_code: Optional[str] = None,
-        error_description: Optional[str] = None,
-        correlation_id: Optional[str] = None,
+        status: int | None = None,
+        error_code: str | None = None,
+        error_description: str | None = None,
+        correlation_id: str | None = None,
     ) -> None:
         super().__init__(message)
         self.status = status
@@ -87,7 +87,7 @@ _CORRELATION_HEADERS = (
 )
 
 
-def _correlation_id(headers: Any) -> Optional[str]:
+def _correlation_id(headers: Any) -> str | None:
     """Extract a BMW/gateway correlation id from response headers, if any."""
 
     if not headers:
@@ -125,7 +125,7 @@ def _safe_error(status: int, data: Any, *, headers: Any = None) -> str:
     return message
 
 
-def _auth_error(status: int, data: Any, headers: Any = None) -> "CardataAuthError":
+def _auth_error(status: int, data: Any, headers: Any = None) -> CardataAuthError:
     """Build a structured :class:`CardataAuthError` from an OAuth error response."""
 
     code = data.get("error") if isinstance(data, dict) else None
@@ -141,7 +141,7 @@ def _auth_error(status: int, data: Any, headers: Any = None) -> "CardataAuthErro
 
 def _access_denied_error(
     status: int, data: Any, headers: Any = None, *, saw_server_error: bool = False
-) -> "CardataAuthError":
+) -> CardataAuthError:
     """Build the terminal ``access_denied`` error with a clearer explanation.
 
     By the time this is raised we have already polled through
@@ -174,7 +174,7 @@ async def request_device_code(
     scope: str,
     code_challenge: str,
     code_challenge_method: str = "S256",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Request a device & user code pair from BMW."""
 
     data = {
@@ -214,7 +214,7 @@ async def poll_for_tokens(
     interval: int,
     timeout: int = 900,
     token_url: str = TOKEN_URL,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Poll the token endpoint until tokens are issued or timeout elapsed."""
 
     start = time.monotonic()
@@ -236,7 +236,7 @@ async def poll_for_tokens(
     consecutive_transient = 0
     max_consecutive_transient = 10
     # Timestamp of the first access_denied seen; used to bound the grace window.
-    access_denied_since: Optional[float] = None
+    access_denied_since: float | None = None
     # Whether BMW returned a 5xx/429 at any point this attempt. A terminal
     # access_denied that follows one is the tell-tale of the backend consent bug.
     saw_server_error = False
@@ -290,7 +290,7 @@ async def poll_for_tokens(
                     continue
 
                 raise _auth_error(resp.status, data, resp.headers)
-        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+        except (TimeoutError, aiohttp.ClientError) as err:
             consecutive_transient += 1
             if consecutive_transient > max_consecutive_transient:
                 raise CardataAuthError(f"Token polling failed (network error: {err})") from err
@@ -303,9 +303,9 @@ async def refresh_tokens(
     *,
     client_id: str,
     refresh_token: str,
-    scope: Optional[str] = None,
+    scope: str | None = None,
     token_url: str = TOKEN_URL,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Refresh access/ID tokens using the stored refresh token."""
 
     payload = {

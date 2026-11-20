@@ -251,11 +251,11 @@ class _TimeoutSession:
 
     def get(self, url, **kwargs):
         self.calls.append("GET")
-        raise asyncio.TimeoutError
+        raise TimeoutError
 
     def post(self, url, **kwargs):
         self.calls.append("POST")
-        raise asyncio.TimeoutError
+        raise TimeoutError
 
 
 def test_timeout_is_classified_not_leaked():

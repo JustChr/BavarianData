@@ -27,7 +27,7 @@ Home Assistant-free on purpose, so the pace arithmetic is unit-tested;
 from __future__ import annotations
 
 from datetime import date, timedelta
-from typing import Mapping, MutableMapping, Optional
+from collections.abc import Mapping, MutableMapping
 
 # Ten years of daily readings.
 MAX_DAYS = 3660
@@ -124,7 +124,7 @@ def km_per_day(
     *,
     window_days: int = PACE_WINDOW_DAYS,
     min_span_days: int = PACE_MIN_SPAN_DAYS,
-) -> Optional[float]:
+) -> float | None:
     """The car's average km a day over the last ``window_days``, or ``None``.
 
     Measured between the oldest reading inside the window and the newest one.
@@ -143,7 +143,7 @@ def km_per_day(
     return max(0.0, (last_km - first_km) / span)
 
 
-def reading_on_or_before(log: Mapping[str, float], day: date) -> Optional[tuple[date, float]]:
+def reading_on_or_before(log: Mapping[str, float], day: date) -> tuple[date, float] | None:
     """The newest reading taken on or before ``day``, or ``None``."""
 
     found = None

@@ -15,7 +15,8 @@ No Home Assistant imports: the resolution rules are unit-tested directly.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Mapping, Optional
+from typing import Any
+from collections.abc import Mapping
 
 from .const import (
     DEFAULT_TRIP_COMMUTE_GAP_MIN,
@@ -41,9 +42,9 @@ from .vehicle_options import TRIP_OPTIONS, cars_with_own
 class TripSettings:
     """How one car's trips are detected, recorded and classified."""
 
-    work_zone_entity: Optional[str] = None
+    work_zone_entity: str | None = None
     # ``None`` means "leave unclassified" (see ``trip_class_setting``).
-    default_class: Optional[str] = DEFAULT_TRIP_DEFAULT_CLASS
+    default_class: str | None = DEFAULT_TRIP_DEFAULT_CLASS
     # 0 switches commute chaining off.
     commute_gap_s: int = DEFAULT_TRIP_COMMUTE_GAP_MIN * 60
     detection: str = TRIP_DETECTION_LIVE
@@ -51,11 +52,11 @@ class TripSettings:
     # A phone's ``device_tracker`` and the binary sensor that says it is in the
     # car (``phone_route.py``). Kept as set even where unused, so switching
     # back to reports finds them where they were.
-    phone_tracker: Optional[str] = None
-    phone_in_car: Optional[str] = None
+    phone_tracker: str | None = None
+    phone_in_car: str | None = None
     # A second phone's pair: when both rode along, the first one's route wins.
-    phone_tracker_2: Optional[str] = None
-    phone_in_car_2: Optional[str] = None
+    phone_tracker_2: str | None = None
+    phone_in_car_2: str | None = None
 
     @property
     def report_trips(self) -> bool:
@@ -70,7 +71,7 @@ class TripSettings:
         return self.report_trips and self.record_track and bool(self.phones)
 
     @property
-    def phones(self) -> tuple[tuple[int, str, Optional[str]], ...]:
+    def phones(self) -> tuple[tuple[int, str, str | None], ...]:
         """The phones that give a route, in priority order: (slot, tracker, in-car)."""
 
         return tuple(
@@ -85,7 +86,7 @@ class TripSettings:
         )
 
     @classmethod
-    def from_values(cls, values: Mapping[str, Any]) -> "TripSettings":
+    def from_values(cls, values: Mapping[str, Any]) -> TripSettings:
         """Parse the stored option values; anything unrecognised is the default."""
 
         detection = values.get(OPTION_TRIP_DETECTION)

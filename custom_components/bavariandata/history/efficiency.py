@@ -37,7 +37,8 @@ imported charge does not poison the recent figure.
 from __future__ import annotations
 
 from datetime import datetime, timedelta
-from typing import Any, Callable, Iterable, Optional
+from typing import Any
+from collections.abc import Callable, Iterable
 
 from .models import ChargingSession
 from .summary import (
@@ -93,12 +94,12 @@ def _within(sessions: list[ChargingSession], *, days: int, now: datetime) -> lis
 def consumption(
     sessions: Iterable[ChargingSession],
     *,
-    battery_capacity_kwh: Optional[float],
+    battery_capacity_kwh: float | None,
     now: datetime,
     side: str = SIDE_BATTERY,
     windows: Iterable[int] = EFFICIENCY_WINDOWS_DAYS,
     hybrid: bool = False,
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     """Recent consumption, from the shortest window that can support a figure.
 
     Returns the :func:`~.summary.energy_balance` dict with ``window_days``
@@ -131,7 +132,7 @@ def _previous_month(year: int, month: int) -> tuple[int, int]:
 def monthly_consumption(
     sessions: Iterable[ChargingSession],
     *,
-    battery_capacity_kwh: Optional[float],
+    battery_capacity_kwh: float | None,
     now: datetime,
     months: int = TREND_MONTHS,
     localize: Localizer = _identity,
@@ -176,11 +177,11 @@ def monthly_consumption(
 
 def real_range(
     *,
-    kwh_per_100km: Optional[float],
-    capacity_kwh: Optional[float],
-    soc_percent: Optional[float] = None,
-    bmw_range_km: Optional[float] = None,
-) -> Optional[dict[str, Any]]:
+    kwh_per_100km: float | None,
+    capacity_kwh: float | None,
+    soc_percent: float | None = None,
+    bmw_range_km: float | None = None,
+) -> dict[str, Any] | None:
     """How far the measured consumption reaches on the measured capacity.
 
     ``capacity_kwh`` and ``kwh_per_100km`` must both be battery-side: usable
@@ -247,10 +248,10 @@ STATUS_PLUG_IN_HYBRID = "plug_in_hybrid"
 def efficiency_profile(
     sessions: Iterable[ChargingSession],
     *,
-    battery_capacity_kwh: Optional[float] = None,
-    usable_capacity_kwh: Optional[float] = None,
-    soc_percent: Optional[float] = None,
-    bmw_range_km: Optional[float] = None,
+    battery_capacity_kwh: float | None = None,
+    usable_capacity_kwh: float | None = None,
+    soc_percent: float | None = None,
+    bmw_range_km: float | None = None,
     now: datetime,
     localize: Localizer = _identity,
     months: int = TREND_MONTHS,

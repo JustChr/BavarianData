@@ -42,12 +42,12 @@ Confirmed contract (reverse-engineered from a real portal HAR, 2026-07-25):
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
 import urllib.parse
 from dataclasses import dataclass, field
-from typing import Any, Iterable, Optional
+from typing import Any
+from collections.abc import Iterable
 
 import aiohttp
 
@@ -114,7 +114,7 @@ class StreamActivationError(Exception):
         self,
         message: str,
         *,
-        status: Optional[int] = None,
+        status: int | None = None,
         kind: str = "unexpected",
         retryable: bool = False,
     ) -> None:
@@ -222,10 +222,10 @@ class StreamSelection:
     attributes: list[str] = field(default_factory=list)
     # MQTT connection facts the portal returns alongside the selection. Handy for
     # diagnostics; never required by this module.
-    host: Optional[str] = None
-    port: Optional[int] = None
-    topic: Optional[str] = None
-    username: Optional[str] = None
+    host: str | None = None
+    port: int | None = None
+    topic: str | None = None
+    username: str | None = None
 
 
 @dataclass
@@ -314,7 +314,7 @@ class PortalStreamClient:
             ) as response:
                 text = await response.text()
                 payload = _parse_envelope(response.status, text, action="Reading stream attributes")
-        except asyncio.TimeoutError as err:
+        except TimeoutError as err:
             raise StreamActivationError(
                 "Timed out reading stream attributes: the portal did not respond "
                 "(often Akamai bot-defense throttling repeated automated calls). "
@@ -398,7 +398,7 @@ class PortalStreamClient:
             ) as response:
                 text = await response.text()
                 payload = _parse_envelope(response.status, text, action="Setting stream attributes")
-        except asyncio.TimeoutError as err:
+        except TimeoutError as err:
             raise StreamActivationError(
                 "Timed out setting stream attributes: the portal did not respond "
                 "(often Akamai bot-defense throttling repeated automated calls). "

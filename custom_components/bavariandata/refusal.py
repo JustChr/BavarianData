@@ -12,7 +12,8 @@ holds the English text, which is also what a log line shows;
 
 from __future__ import annotations
 
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 MESSAGES: dict[str, str] = {
     # Which account and car a service call names (service_target.py).

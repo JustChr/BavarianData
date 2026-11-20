@@ -19,7 +19,8 @@ from __future__ import annotations
 
 import hashlib
 import re
-from typing import Any, Iterable, Mapping, Optional
+from typing import Any
+from collections.abc import Iterable, Mapping
 
 __all__ = [
     "account_title",
@@ -42,9 +43,9 @@ _SETUP_TITLE = re.compile(
 
 def known_vins(
     *,
-    stored_metadata: Optional[Mapping[str, Any]] = None,
-    coordinator_data: Optional[Mapping[str, Any]] = None,
-    configured_vin: Optional[str] = None,
+    stored_metadata: Mapping[str, Any] | None = None,
+    coordinator_data: Mapping[str, Any] | None = None,
+    configured_vin: str | None = None,
 ) -> list[str]:
     """Every VIN this entry knows about, most-established first.
 
@@ -113,7 +114,7 @@ def setup_title(client_id: str) -> str:
     return f"BavarianData ({client_id[:8]})"
 
 
-def account_title(names: Iterable[Any]) -> Optional[str]:
+def account_title(names: Iterable[Any]) -> str | None:
     """The cars of an account as its title: ``"i5 eDrive40, iX1 xDrive30"``."""
 
     cleaned = [name.strip() for name in names if isinstance(name, str) and name.strip()]
@@ -121,8 +122,8 @@ def account_title(names: Iterable[Any]) -> Optional[str]:
 
 
 def new_account_title(
-    current: Optional[str], last_auto: Optional[str], names: Iterable[Any]
-) -> Optional[str]:
+    current: str | None, last_auto: str | None, names: Iterable[Any]
+) -> str | None:
     """The title to give an entry now, or ``None`` to leave it alone.
 
     Only a title we set -- the setup one, or the car names we wrote last time
@@ -136,7 +137,7 @@ def new_account_title(
     return wanted if ours else None
 
 
-def left_account_vins(account_vins: Iterable[str], mapping_payload: Any) -> Optional[list[str]]:
+def left_account_vins(account_vins: Iterable[str], mapping_payload: Any) -> list[str] | None:
     """The cars this entry has that BMW's mapping no longer lists as primary.
 
     ``None`` when the payload isn't a mapping answer at all: a malformed reply
