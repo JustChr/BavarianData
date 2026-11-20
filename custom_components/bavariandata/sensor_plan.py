@@ -12,7 +12,8 @@ each ``Want`` names and hands it to Home Assistant (``tests/test_sensor_plan.py`
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Callable, Iterable, Mapping, Optional, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
+from collections.abc import Callable, Iterable, Mapping
 
 from .car_signals import DESC_ODOMETER
 from .coverage import HIGH_VOLTAGE_SIGNALS, is_ev_only_descriptor
@@ -78,7 +79,7 @@ class Want:
 class SensorHost(Protocol):
     """What the plan reads off the coordinator."""
 
-    history: Optional[HistoryStore]
+    history: HistoryStore | None
     pricing: PricingConfig
 
     @property
@@ -338,7 +339,7 @@ class SensorPlan:
             return
         self._make([Want(DESCRIPTOR, vin, descriptor)], False)
 
-    def restore(self, unique_id: Optional[str]) -> bool:
+    def restore(self, unique_id: str | None) -> bool:
         """Re-create a sensor the registry holds as what it was.
 
         Each derived sensor is routed to its own maker, or the generic path

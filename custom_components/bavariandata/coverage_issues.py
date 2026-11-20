@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Optional
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import issue_registry as ir
@@ -20,9 +19,7 @@ from .runtime import CardataRuntimeData
 _LOGGER = logging.getLogger(__name__)
 
 
-def coverage_reports(
-    runtime: "CardataRuntimeData", vin: Optional[str] = None
-) -> list[CoverageReport]:
+def coverage_reports(runtime: CardataRuntimeData, vin: str | None = None) -> list[CoverageReport]:
     """Build the coverage self-test reports, folding in live descriptor state.
 
     The persisted store outlives a disabled entity; the live coordinator state
@@ -52,9 +49,7 @@ def refresh_coverage_issues(hass: HomeAssistant, entry_id: str) -> None:
     """Create or clear a per-vehicle repair issue from the coverage self-test."""
 
     entry = hass.config_entries.async_get_entry(entry_id)
-    runtime: Optional["CardataRuntimeData"] = (
-        getattr(entry, "runtime_data", None) if entry else None
-    )
+    runtime: CardataRuntimeData | None = getattr(entry, "runtime_data", None) if entry else None
     if runtime is None or runtime.coverage is None:
         return
     for report in coverage_reports(runtime):

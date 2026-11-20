@@ -11,7 +11,7 @@ points per kWh after a 0.30 kW overhead.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, UTC
 
 import pytest
 
@@ -22,7 +22,7 @@ models = load_module("history.models")
 soc = load_module("soc_tracking")
 
 VIN = "WBATEST0000000001"
-T0 = datetime(2026, 10, 1, 18, 0, tzinfo=timezone.utc)
+T0 = datetime(2026, 10, 1, 18, 0, tzinfo=UTC)
 A = 1.30
 OVERHEAD = 0.30
 

@@ -8,7 +8,7 @@ triggers a car gets offered at all.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, UTC
 
 import pytest
 
@@ -16,7 +16,7 @@ from .conftest import load_module
 
 vt = load_module("vehicle_triggers")
 
-NOW = datetime(2026, 9, 27, 8, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 9, 27, 8, 0, tzinfo=UTC)
 DOOR = "vehicle.cabin.door.status"
 LOCK = "vehicle.cabin.door.lock.status"
 

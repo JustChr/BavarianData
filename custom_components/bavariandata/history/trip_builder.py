@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import math
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from .trips import Trip
 
@@ -71,8 +71,8 @@ SILENT_STOP_MAX_KMH = 3.0
 
 
 def silence_implies_stop(
-    gap_s: Optional[float],
-    step_km: Optional[float],
+    gap_s: float | None,
+    step_km: float | None,
     *,
     min_gap_s: float,
     max_kmh: float = SILENT_STOP_MAX_KMH,
@@ -108,8 +108,8 @@ class GpsTracker:
     """
 
     def __init__(self) -> None:
-        self.last_lat: Optional[float] = None
-        self.last_lon: Optional[float] = None
+        self.last_lat: float | None = None
+        self.last_lon: float | None = None
 
     def step(self, lat: float, lon: float) -> float:
         """Distance (km) from the previous fix to this one; 0 for the first."""
@@ -130,9 +130,9 @@ class TripBuilder:
         vin: str,
         start: datetime,
         *,
-        start_place: Optional[dict[str, Any]] = None,
-        soc_start: Optional[float] = None,
-        mileage_start: Optional[float] = None,
+        start_place: dict[str, Any] | None = None,
+        soc_start: float | None = None,
+        mileage_start: float | None = None,
         location_assumed: bool = False,
         record_track: bool = False,
     ) -> None:
@@ -163,7 +163,7 @@ class TripBuilder:
         if km and km > 0:
             self.gps_km += km
 
-    def add_track_point(self, lat: float, lon: float, at: Optional[datetime] = None) -> None:
+    def add_track_point(self, lat: float, lon: float, at: datetime | None = None) -> None:
         """Append a fix to the route polyline, when route recording is on.
 
         A no-op unless the user opted in, so a coordinate is only ever stored
@@ -216,10 +216,10 @@ class TripBuilder:
 
     def _distance_km(
         self,
-        mileage_end: Optional[float],
-        travelled_km: Optional[float],
-        at: Optional[datetime] = None,
-    ) -> Optional[float]:
+        mileage_end: float | None,
+        travelled_km: float | None,
+        at: datetime | None = None,
+    ) -> float | None:
         """Odometer delta, then BMW's segment distance, then the GPS track.
 
         A non-positive odometer span (unchanged, or a reading that went
@@ -241,10 +241,10 @@ class TripBuilder:
 
     def _segment_km(
         self,
-        travelled_km: Optional[float],
-        mileage_end: Optional[float],
-        at: Optional[datetime],
-    ) -> Optional[float]:
+        travelled_km: float | None,
+        mileage_end: float | None,
+        at: datetime | None,
+    ) -> float | None:
         """BMW's ``trip.segment.end.travelledDistance`` as this trip's distance, if it is one.
 
         BMW documents the field as the mileage *after* the last drive, an
@@ -273,7 +273,7 @@ class TripBuilder:
             return None
         return km
 
-    def progress_km(self, mileage_now: Optional[float] = None) -> Optional[float]:
+    def progress_km(self, mileage_now: float | None = None) -> float | None:
         """Provisional distance for a drive still under way.
 
         The same source ranking the finished record uses, so the figure shown
@@ -294,8 +294,8 @@ class TripBuilder:
         self,
         now: datetime,
         *,
-        mileage_now: Optional[float] = None,
-        soc_now: Optional[float] = None,
+        mileage_now: float | None = None,
+        soc_now: float | None = None,
     ) -> dict[str, Any]:
         """A live view of the trip so far, for surfacing a drive in progress.
 
@@ -327,14 +327,14 @@ class TripBuilder:
         self,
         at: datetime,
         *,
-        end_place: Optional[dict[str, Any]] = None,
-        soc_end: Optional[float] = None,
-        mileage_end: Optional[float] = None,
-        energy_kwh: Optional[float] = None,
-        travelled_km: Optional[float] = None,
-        stats: Optional[dict[str, Any]] = None,
-        classification: Optional[str] = None,
-        classification_source: Optional[str] = None,
+        end_place: dict[str, Any] | None = None,
+        soc_end: float | None = None,
+        mileage_end: float | None = None,
+        energy_kwh: float | None = None,
+        travelled_km: float | None = None,
+        stats: dict[str, Any] | None = None,
+        classification: str | None = None,
+        classification_source: str | None = None,
         hybrid: bool = False,
     ) -> Trip:
         """Finish the trip and return the record to persist."""

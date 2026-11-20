@@ -10,7 +10,8 @@ activator in ``flow_activator.py``.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Sequence
+from typing import Any
+from collections.abc import Sequence
 
 import voluptuous as vol
 
@@ -64,18 +65,16 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
         # Carried between the bridge step and the snippet screen that follows it,
         # so the snippet describes the settings just submitted rather than the
         # ones still on disk.
-        self._bridge_options: Optional[Dict[str, Any]] = None
+        self._bridge_options: dict[str, Any] | None = None
         # The car whose settings are being edited (multi-car accounts).
-        self._picked_vin: Optional[str] = None
+        self._picked_vin: str | None = None
         # A Trips form waiting for the phone screen: ``(car values, shared)``.
-        self._trips_pending: tuple[Dict[str, Any], Dict[str, Any]] = ({}, {})
+        self._trips_pending: tuple[dict[str, Any], dict[str, Any]] = ({}, {})
         # The upholstery BMW lists for the car being edited: ``(vin, choices)``.
-        self._upholstery_choices: tuple[Optional[str], list[tuple[str, str]]] = (None, [])
+        self._upholstery_choices: tuple[str | None, list[tuple[str, str]]] = (None, [])
         self._init_activator_state()
 
-    async def async_step_init(
-        self, user_input: Optional[Dict[str, Any]] = None
-    ) -> ConfigFlowResult:
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         # Labels/descriptions come from translations (options.step.init.menu_options),
         # so the menu is localizable and stays in sync with each action step.
         # Settings first; the one-off tools sit one level down, so the menu
@@ -98,7 +97,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
         )
 
     async def async_step_share_live_data(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Where the car's live state goes outside Home Assistant."""
 
@@ -108,7 +107,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
         )
 
     async def async_step_fetch_now(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Ask BMW for something now; every entry spends quota."""
 
@@ -125,7 +124,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
         )
 
     async def async_step_connection(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Keep the link to BMW working, and log for a bug report."""
 
@@ -143,8 +142,8 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
         self,
         *,
         step_id: str,
-        errors: Optional[Dict[str, str]] = None,
-        placeholders: Optional[Dict[str, Any]] = None,
+        errors: dict[str, str] | None = None,
+        placeholders: dict[str, Any] | None = None,
     ) -> ConfigFlowResult:
         # An empty schema renders as a plain confirmation dialog: pressing "Submit"
         # confirms the action. No checkbox to tick first.
@@ -155,7 +154,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
             description_placeholders=placeholders,
         )
 
-    def _get_runtime(self) -> Optional[CardataRuntimeData]:
+    def _get_runtime(self) -> CardataRuntimeData | None:
         return getattr(self._config_entry, "runtime_data", None)
 
     def _finish(self) -> ConfigFlowResult:
@@ -167,7 +166,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
     # --- connection ---------------------------------------------------------
 
     async def async_step_action_refresh_tokens(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         if user_input is None:
             return self._show_confirm(step_id="action_refresh_tokens")
@@ -182,7 +181,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
         return self._finish()
 
     async def async_step_action_reauth(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Sign in to BMW again with the account's Client ID.
 
@@ -217,7 +216,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
         return self.async_abort(reason="reauth_started")
 
     async def async_step_action_reset_container(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         runtime = self._get_runtime()
         if runtime is None:
@@ -256,7 +255,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
         return self._finish()
 
     async def async_step_action_debug_logging(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Toggle the integration's verbose debug logging.
 
@@ -292,7 +291,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
         return account_vins(self.hass, self._config_entry, runtime.coordinator if runtime else None)
 
     async def async_step_action_fetch_mappings(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         runtime = self._get_runtime()
         if runtime is None:
@@ -305,7 +304,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
         return await self._call_for_each("action_fetch_mappings", "fetch_vehicle_mappings", [None])
 
     async def async_step_action_fetch_basic(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         runtime = self._get_runtime()
         if runtime is None:
@@ -324,7 +323,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
         return await self._call_for_each("action_fetch_basic", "fetch_basic_data", sorted(vins))
 
     async def async_step_action_fetch_telematic(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         runtime = self._get_runtime()
         if runtime is None:
@@ -337,7 +336,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
         return await self._call_for_each("action_fetch_telematic", "fetch_telematic_data", [None])
 
     async def async_step_action_fetch_charging_history(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         return await self._run_simple_service(
             step_id="action_fetch_charging_history",
@@ -346,7 +345,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
         )
 
     async def async_step_action_fetch_tyre(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         return await self._run_simple_service(
             step_id="action_fetch_tyre",
@@ -355,7 +354,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
         )
 
     async def async_step_action_fetch_location_charging(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         return await self._run_simple_service(
             step_id="action_fetch_location_charging",
@@ -364,7 +363,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
         )
 
     async def _call_for_each(
-        self, step_id: str, service: str, vins: Sequence[Optional[str]]
+        self, step_id: str, service: str, vins: Sequence[str | None]
     ) -> ConfigFlowResult:
         """Call ``service`` once per car (``None``: for the account) and finish.
 
@@ -374,7 +373,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
         """
 
         for vin in vins:
-            data: Dict[str, Any] = {"entry_id": self._config_entry.entry_id}
+            data: dict[str, Any] = {"entry_id": self._config_entry.entry_id}
             if vin is not None:
                 data["vin"] = vin
             try:
@@ -388,7 +387,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
         return self._finish()
 
     async def _run_simple_service(
-        self, *, step_id: str, service: str, user_input: Optional[Dict[str, Any]]
+        self, *, step_id: str, service: str, user_input: dict[str, Any] | None
     ) -> ConfigFlowResult:
         """Confirm-then-call helper for read-only VIN-scoped API services."""
 
@@ -405,7 +404,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
     # --- account-wide settings ----------------------------------------------
 
     async def async_step_action_energy_sources(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Point the integration at the house's own meters.
 
@@ -476,7 +475,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
         return self.async_create_entry(title="", data=options)
 
     async def async_step_action_data_refresh(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Choose whether to catch up over REST after Home Assistant starts.
 
@@ -535,7 +534,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
         )
 
     async def async_step_action_units(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Choose the units values are shown in; Automatic keeps today's rules."""
 
@@ -555,7 +554,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
                 # The card reads the choice off the connection sensor.
                 async_dispatcher_send(self.hass, runtime.coordinator.signal_diagnostics)
             return self.async_create_entry(title="", data=options)
-        fields: Dict[Any, Any] = {}
+        fields: dict[Any, Any] = {}
         for key, quantity in self._UNIT_FIELDS:
             if quantity == "fuel" and not fuel:
                 continue
@@ -575,7 +574,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
     # --- the car's picture --------------------------------------------------
 
     async def async_step_action_fetch_image(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Choose where the car's picture comes from, and fetch it.
 
@@ -611,10 +610,10 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
         if user_input is None and source == IMAGE_SOURCE_CONFIGURATOR:
             return await self.async_step_vehicle_image()
         switched = source != IMAGE_SOURCE_CONFIGURATOR
-        errors: Dict[str, str] = {}
+        errors: dict[str, str] = {}
         vehicle = ""
         error_text = ""
-        failed: Dict[str, str] = {}
+        failed: dict[str, str] = {}
         if user_input is not None:
             source = user_input.get(OPTION_IMAGE_SOURCE, source)
             vins = list(runtime.coordinator.data.keys())
@@ -670,7 +669,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
         return self._image_form(source, errors, vehicle=vehicle, error=error_text)
 
     async def async_step_vehicle_image(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Vehicle image with the configurator: its source, and each car's upholstery."""
 
@@ -679,7 +678,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
         )
 
     async def async_step_image_source(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """The Vehicle image menu's Picture source: the source screen itself."""
 
@@ -687,7 +686,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
         return self._image_form(source, {})
 
     def _image_form(
-        self, source: str, errors: Dict[str, str], *, vehicle: str = "", error: str = ""
+        self, source: str, errors: dict[str, str], *, vehicle: str = "", error: str = ""
     ) -> ConfigFlowResult:
         """The Vehicle image screen, with ``source`` chosen and any errors.
 
@@ -715,7 +714,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
     # --- streamed data ------------------------------------------------------
 
     async def async_step_action_select_clusters(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Pick which data clusters to stream, then activate them in the browser.
 

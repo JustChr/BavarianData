@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, UTC
 
 import pytest
 
@@ -11,7 +11,7 @@ from .conftest import load_module
 
 rw = load_module("route_weather")
 
-T0 = datetime(2026, 11, 4, 10, 52, 30, tzinfo=timezone.utc)
+T0 = datetime(2026, 11, 4, 10, 52, 30, tzinfo=UTC)
 
 
 def _at(minutes: float) -> datetime:

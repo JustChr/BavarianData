@@ -42,16 +42,15 @@ import sys
 import tempfile
 from itertools import pairwise
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, UTC
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import pytest
 
 from .fake_ha import Clock, FakeHass, clocked_datetime, install_fake_ha, load_with_fake_ha
 from .trace import tracer_for
 
-UTC = timezone.utc
 VIN = "WBATEST0000000001"
 # The second car of twin mode.
 TWIN_VIN = "WBATWIN0000000099"
@@ -107,10 +106,10 @@ def _clocked_modules() -> list:
 
 # Every harness a test made, so the ``conftest`` fixture can close the ones a
 # test leaves open (their trace is written on close, their patches undone).
-OPEN_HARNESSES: list["CoordinatorHarness"] = []
+OPEN_HARNESSES: list[CoordinatorHarness] = []
 
 
-def _twin_offset(twin: Optional[float]) -> Optional[float]:
+def _twin_offset(twin: float | None) -> float | None:
     if twin is not None:
         return twin
     value = os.environ.get(TWIN_ENV)
@@ -141,9 +140,9 @@ class Row:
 
     minute: float
     step: str
-    estimate: Optional[float]
-    rate: Optional[float]
-    charging: Optional[bool]
+    estimate: float | None
+    rate: float | None
+    charging: bool | None
     open_session: bool
     sessions: int
     events: list[str] = field(default_factory=list)
@@ -167,15 +166,15 @@ class CoordinatorHarness:
         self,
         *,
         vin: str = VIN,
-        capacity_kwh: Optional[float] = 75.0,
+        capacity_kwh: float | None = 75.0,
         history: bool = True,
         start: datetime = START,
-        home: Optional[tuple[float, float]] = None,
-        wallbox_meter: Optional[str] = None,
-        pricing: Optional[dict[str, Any]] = None,
+        home: tuple[float, float] | None = None,
+        wallbox_meter: str | None = None,
+        pricing: dict[str, Any] | None = None,
         trip_debug: bool = False,
-        twin: Optional[float] = None,
-        trace: Optional[Path] = None,
+        twin: float | None = None,
+        trace: Path | None = None,
     ) -> None:
         self.vin = vin
         # Twin mode: a second car, sent a copy of every batch ``twin`` minutes
@@ -194,12 +193,10 @@ class CoordinatorHarness:
         # Trip-capture mode, which appends every batch to a file in HA's config
         # directory -- a scratch directory here, removed on close.
         self.trip_debug = trip_debug
-        self._config_dir: Optional[str] = (
-            tempfile.mkdtemp(prefix="harness-") if trip_debug else None
-        )
+        self._config_dir: str | None = tempfile.mkdtemp(prefix="harness-") if trip_debug else None
         # Each car's estimate entity's last written ``meter_reading_kwh``
         # attribute -- what HA hands back with the restored state.
-        self._meter_attribute: dict[str, Optional[float]] = {}
+        self._meter_attribute: dict[str, float | None] = {}
         self.clock = Clock(start)
         self.start = start
         self.hass = FakeHass(self.clock)
@@ -269,7 +266,7 @@ class CoordinatorHarness:
         if self._config_dir is not None:
             shutil.rmtree(self._config_dir, ignore_errors=True)
 
-    def __enter__(self) -> "CoordinatorHarness":
+    def __enter__(self) -> CoordinatorHarness:
         return self
 
     def __exit__(self, *exc) -> None:
@@ -342,7 +339,7 @@ class CoordinatorHarness:
     def at(self, minute: float) -> datetime:
         return self.start + timedelta(minutes=minute)
 
-    def advance_to(self, minute: float, *, step: Optional[str] = None) -> None:
+    def advance_to(self, minute: float, *, step: str | None = None) -> None:
         """Move the clock forward, firing timers and watchdog ticks in order."""
 
         target = self.at(minute)
@@ -381,11 +378,11 @@ class CoordinatorHarness:
     # -- input -------------------------------------------------------------
     def send(
         self,
-        minute: Optional[float] = None,
+        minute: float | None = None,
         *,
-        stamped: Optional[float] = None,
-        step: Optional[str] = None,
-        extra: Optional[dict[str, Any]] = None,
+        stamped: float | None = None,
+        step: str | None = None,
+        extra: dict[str, Any] | None = None,
         rest: bool = False,
         **values: Any,
     ) -> None:
@@ -422,7 +419,7 @@ class CoordinatorHarness:
         # Both halves carry the fix's own timestamp; only the arrival differs.
         self.send(minute + 1 / 60, stamped=minute, lon=lon, step="  (longitude)")
 
-    def meter(self, minute: Optional[float], kwh: Optional[float], *, unit: str = "kWh") -> None:
+    def meter(self, minute: float | None, kwh: float | None, *, unit: str = "kWh") -> None:
         """Set the wallbox meter's running total (``None`` = unavailable)."""
 
         if self.wallbox_meter is None:
@@ -474,7 +471,7 @@ class CoordinatorHarness:
         self._mirror.append((due, twin))
         self._mirror.sort(key=lambda item: item[0])
 
-    def tyres(self, payload: Any, *, minute: Optional[float] = None) -> None:
+    def tyres(self, payload: Any, *, minute: float | None = None) -> None:
         """A tyre diagnosis fetched over REST (the daily poll), for every car."""
 
         if minute is not None and self.at(minute) > self.clock.now:
@@ -483,7 +480,7 @@ class CoordinatorHarness:
             self.coordinator.apply_tyre_diagnosis(vin, payload)
         self._observe("tyres")
 
-    def connection(self, status: str, *, reason: Optional[str] = None) -> None:
+    def connection(self, status: str, *, reason: str | None = None) -> None:
         self._run(self.coordinator.async_handle_connection_event(status, reason=reason))
         self._observe(f"stream {status}")
 
@@ -595,10 +592,10 @@ class CoordinatorHarness:
 
         return data.get("vin") in (None, self.vin)
 
-    def estimate(self) -> Optional[float]:
+    def estimate(self) -> float | None:
         return self.coordinator.get_soc_estimate(self.vin)
 
-    def rate(self) -> Optional[float]:
+    def rate(self) -> float | None:
         return self.coordinator.get_soc_rate(self.vin)
 
     def sessions(self) -> list:

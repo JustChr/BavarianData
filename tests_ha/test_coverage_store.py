@@ -6,7 +6,7 @@ store: what it reads back, what it forgives, and when its grace clock restarts.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 from unittest.mock import patch
 
 from homeassistant.core import HomeAssistant
@@ -46,7 +46,7 @@ async def test_a_record_reads_back_and_a_new_selection_restarts_the_clock(
     assert store.seen_descriptors(VIN) == {SOC}
     assert store.seen_descriptors("broken") == set()
     # The selection changed while Home Assistant was down.
-    assert store.monitoring_since(VIN) > datetime(2026, 10, 1, tzinfo=timezone.utc)
+    assert store.monitoring_since(VIN) > datetime(2026, 10, 1, tzinfo=UTC)
 
 
 async def test_a_naive_start_reads_as_utc_and_a_bad_one_as_none(
@@ -55,7 +55,7 @@ async def test_a_naive_start_reads_as_utc_and_a_bad_one_as_none(
     _stored(hass_storage, {"seen": {}, "started_at": "2026-09-01T00:00:00", "sections": []})
     store = CoverageStore(hass, "entry-1", sections=[])
     await store.async_load()
-    assert store.monitoring_since("new car") == datetime(2026, 9, 1, tzinfo=timezone.utc)
+    assert store.monitoring_since("new car") == datetime(2026, 9, 1, tzinfo=UTC)
 
     _stored(hass_storage, {"seen": [], "first_seen": [], "started_at": "yesterday"})
     store = CoverageStore(hass, "entry-1", sections=[])

@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import json
 import pathlib
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, UTC
 
 import pytest
 
@@ -26,11 +26,11 @@ from .conftest import load_module
 evcc = load_module("evcc")
 sessions = load_module("history.sessions")
 
-NOW = datetime(2026, 9, 12, 18, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 9, 12, 18, 0, tzinfo=UTC)
 VIN = "WBAEXAMPLE0000001"
 
 
-def snap(**kwargs) -> "evcc.BridgeSnapshot":
+def snap(**kwargs) -> evcc.BridgeSnapshot:
     return evcc.BridgeSnapshot(vin=VIN, **kwargs)
 
 

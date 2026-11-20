@@ -15,7 +15,8 @@ understating.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Mapping, Optional
+from typing import Any
+from collections.abc import Mapping
 
 # The option keys are read here and written by the options flow; sharing the
 # constants keeps a rename from silently reverting everyone to the defaults.
@@ -54,18 +55,18 @@ class PricingConfig:
 
     mode: str = MODE_NONE
     currency: str = DEFAULT_CURRENCY
-    fixed_price: Optional[float] = None
-    price_entity: Optional[str] = None
-    grid_energy_entity: Optional[str] = None
+    fixed_price: float | None = None
+    price_entity: str | None = None
+    grid_energy_entity: str | None = None
     loss_percent: float = 0.0
     # Where the energy came from (see ``energy_mix.py``). Independent of the
     # tariff: a user with no price set can still see their solar share, and a
     # user with a tariff and no PV sensors sees costs exactly as before.
-    grid_power_entity: Optional[str] = None
-    pv_power_entity: Optional[str] = None
-    battery_power_entity: Optional[str] = None
+    grid_power_entity: str | None = None
+    pv_power_entity: str | None = None
+    battery_power_entity: str | None = None
     battery_power_invert: bool = False
-    solar_price: Optional[float] = None
+    solar_price: float | None = None
 
     @property
     def mix_enabled(self) -> bool:
@@ -93,8 +94,8 @@ class PricingConfig:
         return False
 
     @classmethod
-    def from_options(cls, options: Mapping[str, Any]) -> "PricingConfig":
-        def _float(key: str) -> Optional[float]:
+    def from_options(cls, options: Mapping[str, Any]) -> PricingConfig:
+        def _float(key: str) -> float | None:
             try:
                 value = options.get(key)
                 return None if value is None or value == "" else float(value)
@@ -139,7 +140,7 @@ class CostAccumulator:
     priced_kwh: float = 0.0
     unpriced_kwh: float = 0.0
 
-    def add(self, energy_kwh: Optional[float], price_per_kwh: Optional[float]) -> None:
+    def add(self, energy_kwh: float | None, price_per_kwh: float | None) -> None:
         """Bill an energy delta at the price in force right now.
 
         A delta that arrives while the price is unknown (price entity
@@ -168,7 +169,7 @@ class CostAccumulator:
         }
 
     @classmethod
-    def from_dict(cls, data: Optional[dict[str, Any]], *, currency: str) -> "CostAccumulator":
+    def from_dict(cls, data: dict[str, Any] | None, *, currency: str) -> CostAccumulator:
         """Rebuild a snapshotted accumulator, or start a fresh one.
 
         ``currency`` is the one configured *now*. A snapshot taken under a
@@ -207,7 +208,7 @@ class CostAccumulator:
             return False
         return (self.unpriced_kwh / total) > PARTIAL_TOLERANCE
 
-    def as_cost(self) -> Optional[dict[str, Any]]:
+    def as_cost(self) -> dict[str, Any] | None:
         """The cost record, or ``None`` when nothing could be priced."""
 
         if self.priced_kwh <= 0:
@@ -226,8 +227,8 @@ class CostAccumulator:
 
 
 def fixed_cost(
-    energy_kwh: Optional[float], price_per_kwh: Optional[float], currency: str
-) -> Optional[dict[str, Any]]:
+    energy_kwh: float | None, price_per_kwh: float | None, currency: str
+) -> dict[str, Any] | None:
     """Cost at a single flat price -- for a fixed tariff or a backfilled session."""
 
     if not energy_kwh or energy_kwh <= 0 or price_per_kwh is None:
@@ -239,7 +240,7 @@ def fixed_cost(
     }
 
 
-def bmw_cost(payload: Optional[dict[str, Any]]) -> Optional[dict[str, Any]]:
+def bmw_cost(payload: dict[str, Any] | None) -> dict[str, Any] | None:
     """Normalise BMW's ``chargingCostInformation`` into our cost record.
 
     BMW bills the session itself for public charging, so where it has a figure
@@ -270,9 +271,7 @@ def bmw_cost(payload: Optional[dict[str, Any]]) -> Optional[dict[str, Any]]:
 SOURCE_USER = "user"
 
 
-def entered_cost(
-    amount: float, currency: str, previous: Optional[dict[str, Any]]
-) -> dict[str, Any]:
+def entered_cost(amount: float, currency: str, previous: dict[str, Any] | None) -> dict[str, Any]:
     """The cost record for an amount the user entered, keeping what it replaces.
 
     Entering a second amount keeps the *original* figure, not the first typed one.
@@ -289,7 +288,7 @@ def entered_cost(
     return cost
 
 
-def cleared_cost(cost: Optional[dict[str, Any]]) -> Optional[dict[str, Any]]:
+def cleared_cost(cost: dict[str, Any] | None) -> dict[str, Any] | None:
     """The cost once an entered amount is taken back: the figure it replaced."""
 
     if is_entered(cost):
@@ -297,7 +296,7 @@ def cleared_cost(cost: Optional[dict[str, Any]]) -> Optional[dict[str, Any]]:
     return cost
 
 
-def is_entered(cost: Optional[dict[str, Any]]) -> bool:
+def is_entered(cost: dict[str, Any] | None) -> bool:
     """True when ``cost`` is an amount the user entered."""
 
     return bool(cost) and (cost or {}).get("source") == SOURCE_USER
@@ -305,9 +304,9 @@ def is_entered(cost: Optional[dict[str, Any]]) -> bool:
 
 def resolve_cost(
     *,
-    bmw: Optional[dict[str, Any]] = None,
-    accumulated: Optional[dict[str, Any]] = None,
-) -> Optional[dict[str, Any]]:
+    bmw: dict[str, Any] | None = None,
+    accumulated: dict[str, Any] | None = None,
+) -> dict[str, Any] | None:
     """Pick the cost to store: BMW's own figure, then ours, then nothing."""
 
     return bmw or accumulated or None
@@ -315,10 +314,10 @@ def resolve_cost(
 
 def billable_energy(
     *,
-    battery_kwh: Optional[float],
-    grid_kwh: Optional[float] = None,
+    battery_kwh: float | None,
+    grid_kwh: float | None = None,
     loss_percent: float = 0.0,
-) -> tuple[Optional[float], str]:
+) -> tuple[float | None, str]:
     """Return the energy to bill and a label for where it came from.
 
     A measured grid figure always wins. Otherwise we bill the battery-side

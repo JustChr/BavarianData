@@ -33,7 +33,8 @@ from __future__ import annotations
 
 import re
 from datetime import datetime
-from typing import Any, Callable, Iterable, Mapping, Optional
+from typing import Any
+from collections.abc import Callable, Iterable, Mapping
 
 from .evcc import PLUG_DESCRIPTORS
 from .structured_values import CHECK_CONTROL as CHECK_CONTROL_DESCRIPTOR
@@ -196,7 +197,7 @@ _CONDITIONING_WORDS = frozenset({"HEATING", "COOLING", "VENTILATION", "ACTIVE"})
 _IDLE_WORDS = frozenset({"INACTIVE", "STANDBY"})
 
 
-def lock_state(values: Mapping[str, Any]) -> Optional[bool]:
+def lock_state(values: Mapping[str, Any]) -> bool | None:
     """``True`` locked, ``False`` not (fully) locked, ``None`` when the car doesn't say.
 
     Case- and punctuation-insensitive (``SELECTIVE_LOCKED``, ``selective-Locked``
@@ -214,7 +215,7 @@ def lock_state(values: Mapping[str, Any]) -> Optional[bool]:
     return None
 
 
-def _lock_word(value: Any) -> Optional[str]:
+def _lock_word(value: Any) -> str | None:
     if isinstance(value, Mapping):
         # The structured form: {"allDoorsLocked": "ASN_isTrue", ...}.
         flag = _lock_word(value.get("allDoorsLocked"))
@@ -226,7 +227,7 @@ def _lock_word(value: Any) -> Optional[str]:
     return _word(value)
 
 
-def _word(value: Any) -> Optional[str]:
+def _word(value: Any) -> str | None:
     """A BMW word, compared loosely: case, punctuation and ``ASN_`` don't matter."""
 
     if not isinstance(value, str):
@@ -237,7 +238,7 @@ def _word(value: Any) -> Optional[str]:
     return re.sub(r"[^A-Z]", "", word) or None
 
 
-def parked_unlocked(locked: Optional[bool], trip_open: bool) -> Optional[bool]:
+def parked_unlocked(locked: bool | None, trip_open: bool) -> bool | None:
     """Whether the car stands unlocked. ``None`` when the lock state is unknown."""
 
     if locked is None:
@@ -245,7 +246,7 @@ def parked_unlocked(locked: Optional[bool], trip_open: bool) -> Optional[bool]:
     return not locked and not trip_open
 
 
-def _opening_open(value: Any) -> Optional[bool]:
+def _opening_open(value: Any) -> bool | None:
     if isinstance(value, bool):
         return value
     word = _word(value)
@@ -266,7 +267,7 @@ def open_windows(values: Mapping[str, Any]) -> list[str]:
     ]
 
 
-def window_open(values: Mapping[str, Any]) -> Optional[bool]:
+def window_open(values: Mapping[str, Any]) -> bool | None:
     """Whether any window or the sunroof is open. ``None`` when the car says of none.
 
     One opening the car reports as closed is enough to answer ``False``: a car
@@ -281,7 +282,7 @@ def window_open(values: Mapping[str, Any]) -> Optional[bool]:
     return None
 
 
-def parked_window_open(opened: Optional[bool], trip_open: bool) -> Optional[bool]:
+def parked_window_open(opened: bool | None, trip_open: bool) -> bool | None:
     """Whether the car stands with a window open. ``None`` when no window is known."""
 
     if opened is None:
@@ -289,7 +290,7 @@ def parked_window_open(opened: Optional[bool], trip_open: bool) -> Optional[bool
     return opened and not trip_open
 
 
-def alarm_on(value: Any) -> Optional[bool]:
+def alarm_on(value: Any) -> bool | None:
     """Whether the anti-theft alarm sounds. ``None`` for anything but a flag."""
 
     if isinstance(value, bool):
@@ -302,7 +303,7 @@ def alarm_on(value: Any) -> Optional[bool]:
     return None
 
 
-def preconditioning_active(value: Any) -> Optional[bool]:
+def preconditioning_active(value: Any) -> bool | None:
     """Whether the car is heating or cooling itself. ``None`` for an unknown word."""
 
     word = _word(value)
@@ -313,7 +314,7 @@ def preconditioning_active(value: Any) -> Optional[bool]:
     return None
 
 
-def fresh(stamp: Optional[datetime], now: datetime) -> bool:
+def fresh(stamp: datetime | None, now: datetime) -> bool:
     """Whether a value stamped ``stamp`` speaks of now. No stamp counts as now."""
 
     return stamp is None or (now - stamp).total_seconds() <= EDGE_FRESH_S
@@ -327,7 +328,7 @@ def _message_key(item: Mapping[str, Any]) -> tuple[Any, ...]:
 
 def message_changes(
     before: Any, after: Any
-) -> Optional[tuple[list[dict[str, Any]], list[dict[str, Any]]]]:
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]] | None:
     """``(new, gone)`` Check Control messages between two lists.
 
     ``None`` when either side is not a list: with nothing to compare against,
@@ -346,11 +347,11 @@ def message_changes(
 
 
 def plugged_not_charging(
-    plugged: Optional[bool],
-    charging: Optional[bool],
-    soc: Optional[float],
-    target: Optional[float],
-) -> Optional[bool]:
+    plugged: bool | None,
+    charging: bool | None,
+    soc: float | None,
+    target: float | None,
+) -> bool | None:
     """Whether a cable is in, no charge is running, and the car still wants one.
 
     ``None`` when the plug or the charging state is unknown. A car at its target
@@ -364,9 +365,7 @@ def plugged_not_charging(
     return not _at_target(soc, target)
 
 
-def charging_interrupted(
-    soc: Optional[float], target: Optional[float], plugged: Optional[bool]
-) -> bool:
+def charging_interrupted(soc: float | None, target: float | None, plugged: bool | None) -> bool:
     """Whether a charge that just ended stopped short, with the cable still in.
 
     Deliberately strict: an unplug before the target is the driver's choice,
@@ -378,7 +377,7 @@ def charging_interrupted(
     return not _at_target(soc, target)
 
 
-def _at_target(soc: Optional[float], target: Optional[float]) -> bool:
+def _at_target(soc: float | None, target: float | None) -> bool:
     return soc is not None and target is not None and soc >= target - TARGET_TOLERANCE
 
 
@@ -427,9 +426,9 @@ def event_matches(
     data: Mapping[str, Any],
     *,
     vin: str,
-    situation: Optional[str] = None,
-    zone: Optional[str] = None,
-    active: Optional[bool] = None,
+    situation: str | None = None,
+    zone: str | None = None,
+    active: bool | None = None,
 ) -> bool:
     """Whether a bus event's data belongs to this trigger.
 
@@ -476,9 +475,7 @@ class SituationTracker:
     def __init__(self) -> None:
         self._since: dict[tuple[str, str], datetime] = {}
 
-    def update(
-        self, vin: str, situation: str, active: Optional[bool], now: datetime
-    ) -> Optional[bool]:
+    def update(self, vin: str, situation: str, active: bool | None, now: datetime) -> bool | None:
         """Record the current truth; return ``True``/``False`` on a start/end.
 
         ``None`` (unknown) ends a running situation: once we can no longer say
@@ -495,7 +492,7 @@ class SituationTracker:
             return False
         return None
 
-    def since(self, vin: str, situation: str) -> Optional[datetime]:
+    def since(self, vin: str, situation: str) -> datetime | None:
         return self._since.get((vin, situation))
 
     def active(self, vin: str) -> list[str]:
@@ -519,7 +516,7 @@ class SituationDelay:
         self._seconds = seconds
         self._call_later = call_later
         self._fire = fire
-        self._cancel: Optional[Callable[[], None]] = None
+        self._cancel: Callable[[], None] | None = None
 
     @property
     def pending(self) -> bool:

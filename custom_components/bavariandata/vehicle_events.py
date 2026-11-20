@@ -21,7 +21,8 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
-from typing import Any, Dict, Iterable, Mapping, Optional, Protocol
+from typing import Any, Protocol
+from collections.abc import Iterable, Mapping
 
 from .car_profile import REST
 from .car_state import Vehicle
@@ -73,14 +74,14 @@ class EventHost(Protocol):
     def _car(self, vin: str) -> Vehicle: ...
     def _peek(self, vin: str) -> Vehicle: ...
     def _value(self, vin: str, descriptor: str) -> Any: ...
-    def _live_values(self, vin: str, descriptors: Iterable[str]) -> Dict[str, Any]: ...
-    def _current_soc(self, vin: str) -> Optional[float]: ...
-    def _current_zone(self, vin: str) -> Optional[tuple[str, str]]: ...
-    def _zone_at(self, latitude: float, longitude: float) -> Optional[tuple[str, str]]: ...
-    def _fire(self, event_type: str, payload: Dict[str, Any]) -> None: ...
+    def _live_values(self, vin: str, descriptors: Iterable[str]) -> dict[str, Any]: ...
+    def _current_soc(self, vin: str) -> float | None: ...
+    def _current_zone(self, vin: str) -> tuple[str, str] | None: ...
+    def _zone_at(self, latitude: float, longitude: float) -> tuple[str, str] | None: ...
+    def _fire(self, event_type: str, payload: dict[str, Any]) -> None: ...
 
 
-def _parse(value: Any) -> Optional[datetime]:
+def _parse(value: Any) -> datetime | None:
     """A BMW timestamp, or None when it isn't one with a timezone."""
 
     if not isinstance(value, str) or not value:
@@ -112,7 +113,7 @@ class VehicleEvents:
 
         try:
             tracking = self._host._peek(vin).charge.tracking
-            charging: Optional[bool] = None
+            charging: bool | None = None
             if (
                 tracking is not None
                 and DESC_CHARGE_STATUS in self._host._peek(vin).live_descriptors
@@ -143,7 +144,7 @@ class VehicleEvents:
                 if change is None:
                     continue
                 zone = self._host._current_zone(vin)
-                payload: Dict[str, Any] = {
+                payload: dict[str, Any] = {
                     "vin": vin,
                     "entry_id": self._host.entry_id,
                     "situation": situation,
@@ -236,7 +237,7 @@ class VehicleEvents:
             _LOGGER.exception("Edge trigger evaluation failed for %s", mask_vin(vin))
 
     @staticmethod
-    def _edge_reading(descriptor: str, value: Any) -> Optional[bool]:
+    def _edge_reading(descriptor: str, value: Any) -> bool | None:
         if descriptor == ALARM_DESCRIPTOR:
             return alarm_on(value)
         return preconditioning_active(value)
@@ -251,7 +252,7 @@ class VehicleEvents:
             if isinstance(items, list):
                 self._edges.seed(vin, descriptor, items)
 
-    def _fire_edge(self, event_type: str, vin: str, active: bool, extra: Dict[str, Any]) -> None:
+    def _fire_edge(self, event_type: str, vin: str, active: bool, extra: dict[str, Any]) -> None:
         zone = self._host._current_zone(vin)
         if debug_enabled():
             _LOGGER.debug("[trigger] %s %s %s", vin, event_type, "BEGIN" if active else "END")

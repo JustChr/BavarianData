@@ -23,7 +23,6 @@ one reading against them. Home Assistant-free on purpose.
 
 from __future__ import annotations
 
-from typing import Optional
 
 # The reading is at or above the trusted one: count the difference.
 ADVANCE = "advance"
@@ -33,7 +32,7 @@ HOLD = "hold"
 RESET = "reset"
 
 
-def judge(trusted: float, dip: Optional[float], reading: float) -> str:
+def judge(trusted: float, dip: float | None, reading: float) -> str:
     """Which of :data:`ADVANCE`, :data:`HOLD` or :data:`RESET` ``reading`` is."""
 
     if reading >= trusted:

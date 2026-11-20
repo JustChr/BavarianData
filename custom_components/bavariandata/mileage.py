@@ -28,7 +28,8 @@ Home Assistant-free on purpose; the sensor, the service and the card read
 from __future__ import annotations
 
 from datetime import date, timedelta
-from typing import Any, Mapping, Optional
+from typing import Any
+from collections.abc import Mapping
 
 from .const import (
     OPTION_MILEAGE_ALLOWANCE_KM,
@@ -61,7 +62,7 @@ KEY_TOLERANCE_KM = OPTION_MILEAGE_TOLERANCE_KM
 MONTHS_SHOWN = 12
 
 
-def parse_date(value: Any) -> Optional[date]:
+def parse_date(value: Any) -> date | None:
     if isinstance(value, date):
         return value
     try:
@@ -70,7 +71,7 @@ def parse_date(value: Any) -> Optional[date]:
         return None
 
 
-def _number(value: Any) -> Optional[float]:
+def _number(value: Any) -> float | None:
     if isinstance(value, bool):
         return None
     try:
@@ -80,7 +81,7 @@ def _number(value: Any) -> Optional[float]:
     return number if number >= 0 else None
 
 
-def odometer_at(log: Mapping[str, float], day: date) -> Optional[float]:
+def odometer_at(log: Mapping[str, float], day: date) -> float | None:
     """The odometer at the **start** of ``day``, or ``None`` outside the log.
 
     A day's reading is its highest, so it stands for the end of that day (the
@@ -109,7 +110,7 @@ def _month_start(day: date, back: int = 0) -> date:
     return date(index // 12, index % 12 + 1, 1)
 
 
-def _distance_since(log: Mapping[str, float], since: date, today: date) -> Optional[dict[str, Any]]:
+def _distance_since(log: Mapping[str, float], since: date, today: date) -> dict[str, Any] | None:
     """Km driven from the start of ``since`` to now; partial when the log starts later."""
 
     pairs = readings(log)
@@ -174,7 +175,7 @@ def overview(log: Mapping[str, float], today: date) -> dict[str, Any]:
     }
 
 
-def allowance_settings(values: Mapping[str, Any]) -> Optional[dict[str, Any]]:
+def allowance_settings(values: Mapping[str, Any]) -> dict[str, Any] | None:
     """A car's stored allowance, validated, or ``None`` when it has none (or a broken one)."""
 
     kind = values.get(KEY_KIND)
@@ -203,8 +204,8 @@ def allowance_settings(values: Mapping[str, Any]) -> Optional[dict[str, Any]]:
 
 
 def lease_cost(
-    settings: Mapping[str, Any], projected_over_km: float, currency: Optional[str]
-) -> Optional[dict[str, Any]]:
+    settings: Mapping[str, Any], projected_over_km: float, currency: str | None
+) -> dict[str, Any] | None:
     """What the projected km over or under the allowance cost at the return (#325).
 
     ``amount`` is what is owed for extra km, or a negative refund for unused km,
@@ -296,7 +297,7 @@ def allowance_status(
     settings: Mapping[str, Any],
     log: Mapping[str, float],
     today: date,
-    currency: Optional[str] = None,
+    currency: str | None = None,
 ) -> dict[str, Any]:
     """Where the car stands against its allowance today.
 
@@ -360,8 +361,8 @@ def allowance_status(
 def mileage_report(
     log: Mapping[str, float],
     today: date,
-    allowance: Optional[Mapping[str, Any]] = None,
-    currency: Optional[str] = None,
+    allowance: Mapping[str, Any] | None = None,
+    currency: str | None = None,
 ) -> dict[str, Any]:
     """The overview, plus ``allowance`` (``None`` when the car has none)."""
 

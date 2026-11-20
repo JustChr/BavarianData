@@ -29,7 +29,8 @@ changes nothing does not churn the recorder's database.
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Callable, Optional, cast
+from typing import TYPE_CHECKING, Any, cast
+from collections.abc import Callable
 
 from homeassistant.core import HomeAssistant
 
@@ -63,7 +64,7 @@ _KWH = "kWh"
 # Home Assistant's statistics unit-conversion class per unit. It must be supplied
 # (>=2026.11 warns, then requires it); ``None`` is valid and means "no conversion"
 # -- correct for a currency. Keyed on our own unit constants so it can't drift.
-_UNIT_CLASS: dict[str, Optional[str]] = {
+_UNIT_CLASS: dict[str, str | None] = {
     _KWH: "energy",
     _KM: "distance",
 }
@@ -80,7 +81,7 @@ def statistic_id(vin: str, suffix: str) -> str:
     return f"{DOMAIN}:{suffix}_{vin.lower()}"
 
 
-def _metadata(*, name: str, stat_id: str, unit: Optional[str]) -> dict[str, Any]:
+def _metadata(*, name: str, stat_id: str, unit: str | None) -> dict[str, Any]:
     """Build ``StatisticMetaData`` across the ``has_mean``/``mean_type`` change.
 
     Home Assistant replaced the boolean ``has_mean`` with a ``mean_type`` enum;
@@ -157,7 +158,7 @@ class StatisticsPublisher:
 
         return "recorder" in self.hass.config.components
 
-    def statistic_ids(self, vins: Optional[list[str]] = None) -> list[str]:
+    def statistic_ids(self, vins: list[str] | None = None) -> list[str]:
         vins = vins if vins is not None else self._vins()
         return [
             statistic_id(vin, suffix)
@@ -175,9 +176,7 @@ class StatisticsPublisher:
         vins.update(trip.vin for trip in self.store.trips())
         return sorted(vins)
 
-    async def async_publish(
-        self, *, vin: Optional[str] = None, force: bool = False
-    ) -> dict[str, int]:
+    async def async_publish(self, *, vin: str | None = None, force: bool = False) -> dict[str, int]:
         """Rebuild the statistics for one vehicle, or all of them.
 
         Returns the number of hourly rows written per statistic id, so the
@@ -212,7 +211,7 @@ class StatisticsPublisher:
         home = self.hass.states.get("zone.home")
         home_zone = home.name if home is not None else "Home"
 
-        series: list[tuple[str, str, Optional[str], list[dict[str, Any]]]] = [
+        series: list[tuple[str, str, str | None, list[dict[str, Any]]]] = [
             (
                 STAT_CHARGING_ENERGY,
                 f"{name} charging energy",

@@ -10,7 +10,8 @@ the same ``trigger.data`` shape for every type.
 
 from __future__ import annotations
 
-from typing import Any, Callable, Mapping, Optional
+from typing import Any
+from collections.abc import Callable, Mapping
 
 import voluptuous as vol
 
@@ -71,7 +72,7 @@ from .vehicle_triggers import (
 
 # The bus event behind each point trigger, and which side of a two-sided event
 # it is (``None``: the event has one). Situations all share EVENT_SITUATION.
-_POINT_EVENTS: dict[str, tuple[str, Optional[bool]]] = {
+_POINT_EVENTS: dict[str, tuple[str, bool | None]] = {
     TRIGGER_ARRIVED: (EVENT_ZONE_ARRIVED, None),
     TRIGGER_LEFT: (EVENT_ZONE_LEFT, None),
     TRIGGER_TRIP_ENDED: (EVENT_TRIP_ENDED, None),
@@ -96,7 +97,7 @@ TRIGGER_SCHEMA = DEVICE_TRIGGER_BASE_SCHEMA.extend(
 )
 
 
-def _vin_for_device(hass: HomeAssistant, device_id: str) -> Optional[str]:
+def _vin_for_device(hass: HomeAssistant, device_id: str) -> str | None:
     device = dr.async_get(hass).async_get(device_id)
     if device is None:
         return None
@@ -180,7 +181,7 @@ async def async_attach_trigger(
     trigger_type: str = config[CONF_TYPE]
     device_id: str = config[CONF_DEVICE_ID]
     vin = _vin_for_device(hass, device_id)
-    zone: Optional[str] = config.get(CONF_ZONE)
+    zone: str | None = config.get(CONF_ZONE)
     job = HassJob(action, f"{DOMAIN} device trigger {trigger_type}")
     trigger_data = trigger_info["trigger_data"]
 

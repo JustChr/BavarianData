@@ -11,6 +11,7 @@ from __future__ import annotations
 import pytest
 
 from .conftest import load_module
+from datetime import UTC
 
 tyre = load_module("tyre")
 
@@ -211,12 +212,12 @@ def test_wheel_slugs_match_the_streamed_tire_attributes():
 
 def _store():
     import asyncio
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     from .fake_ha import Clock, FakeHass, load_with_fake_ha
 
     tyre_store = load_with_fake_ha("tyre_store")
-    hass = FakeHass(clock=Clock(datetime(2026, 10, 24, tzinfo=timezone.utc)))
+    hass = FakeHass(clock=Clock(datetime(2026, 10, 24, tzinfo=UTC)))
     return asyncio.run, hass, tyre_store.TyreStore(hass, "entry")
 
 

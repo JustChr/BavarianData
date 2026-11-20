@@ -35,6 +35,7 @@ import pytest
 
 from .test_card_drivetrain import I5, M2, MINI, PHEV
 from .card_source import evaluable_card
+from datetime import UTC
 
 _CARD = evaluable_card()
 
@@ -544,13 +545,13 @@ def test_a_working_login_shows_the_car() -> None:
 # What ``get_charging_places`` answers, built by the server's own code from
 # stored sessions, so the card is pinned against the real response shape.
 def _places(remembered: bool) -> list:
-    from datetime import datetime, timedelta, timezone
+    from datetime import datetime, timedelta
 
     from .conftest import load_module
 
     models = load_module("history.models")
     stations = load_module("history.stations")
-    t0 = datetime(2026, 9, 1, 8, 0, tzinfo=timezone.utc)
+    t0 = datetime(2026, 9, 1, 8, 0, tzinfo=UTC)
 
     def point(lat, lon):
         return {"lat": lat, "lon": lon} if remembered else {}
@@ -587,12 +588,12 @@ def _places(remembered: bool) -> list:
 # server's own model: home charges with and without the sun, one with the house
 # battery, one priced partly, one away; newest first, as the service sorts them.
 def _month_of_charging() -> list:
-    from datetime import datetime, timedelta, timezone
+    from datetime import datetime, timedelta
 
     from .conftest import load_module
 
     models = load_module("history.models")
-    t0 = datetime(2026, 9, 1, 8, 0, tzinfo=timezone.utc)
+    t0 = datetime(2026, 9, 1, 8, 0, tzinfo=UTC)
 
     def charge(day, hours, kwh, soc, location, cost=None, mix=None, peak=11.0):
         start = t0 + timedelta(days=day)

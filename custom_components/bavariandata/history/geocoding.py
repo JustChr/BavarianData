@@ -24,7 +24,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from typing import Any, Optional
+from typing import Any
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -49,7 +49,7 @@ class _Transient(Exception):
     """A lookup that failed for a reason unrelated to the place itself."""
 
 
-def format_address(payload: Optional[dict[str, Any]]) -> Optional[str]:
+def format_address(payload: dict[str, Any] | None) -> str | None:
     """Turn a Nominatim ``reverse`` response into a short label.
 
     Prefers "<road>, <city>" (or a named POI + city), falling back to whatever
@@ -101,11 +101,11 @@ class ReverseGeocoder:
     def __init__(self, session: Any, *, enabled: bool = False) -> None:
         self._session = session
         self.enabled = enabled
-        self._cache: dict[tuple[float, float], Optional[str]] = {}
+        self._cache: dict[tuple[float, float], str | None] = {}
         self._last_call = 0.0
         self._lock = asyncio.Lock()
 
-    async def resolve(self, latitude: float, longitude: float) -> Optional[str]:
+    async def resolve(self, latitude: float, longitude: float) -> str | None:
         """Best-effort address string for a coordinate, or ``None``.
 
         Never raises: any network, timeout or parsing failure resolves to
@@ -141,7 +141,7 @@ class ReverseGeocoder:
             await asyncio.sleep(wait)
         self._last_call = time.monotonic()
 
-    async def _request(self, latitude: float, longitude: float) -> Optional[str]:
+    async def _request(self, latitude: float, longitude: float) -> str | None:
         """The place's address, ``None`` for a definite "none here".
 
         Raises :class:`_Transient` when the answer says nothing about the place.

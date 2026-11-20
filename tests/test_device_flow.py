@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Any, List
+from typing import Any
 
 import pytest
 
@@ -18,7 +18,7 @@ class _PollResponse:
         self._body = body
         self.headers = headers or {}
 
-    async def __aenter__(self) -> "_PollResponse":
+    async def __aenter__(self) -> _PollResponse:
         return self
 
     async def __aexit__(self, *exc) -> bool:
@@ -31,7 +31,7 @@ class _PollResponse:
 class _PollSession:
     """Replays a queue of responses for ``session.post`` calls."""
 
-    def __init__(self, responses: List[_PollResponse]):
+    def __init__(self, responses: list[_PollResponse]):
         self._responses = list(responses)
         self.calls = 0
 

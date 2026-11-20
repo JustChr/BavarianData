@@ -10,7 +10,8 @@ from __future__ import annotations
 from collections import Counter
 from datetime import datetime
 from statistics import mean
-from typing import Any, Callable, Iterable, Optional, cast
+from typing import Any, cast
+from collections.abc import Callable, Iterable
 
 from .energy_mix import merge_mix
 from .models import ChargingSession, _iso
@@ -156,7 +157,7 @@ def summarise(sessions: Iterable[ChargingSession], *, hybrid: bool = False) -> d
     return summary
 
 
-def _distance_km(sessions: list[ChargingSession]) -> Optional[float]:
+def _distance_km(sessions: list[ChargingSession]) -> float | None:
     """Distance covered between the first and last charge of the period.
 
     Odometer readings taken at each session end are the only distance signal a
@@ -178,7 +179,7 @@ def _distance_km(sessions: list[ChargingSession]) -> Optional[float]:
 _STYLE_KEYS = ("accel_stars", "brake_stars")
 
 
-def _style_score(stats: dict[str, Any]) -> Optional[float]:
+def _style_score(stats: dict[str, Any]) -> float | None:
     """A single 0-5 driving-style score from BMW's accel/brake stars.
 
     Averages whichever of the two ratings a segment carried; returns ``None``
@@ -200,7 +201,7 @@ def _style_score(stats: dict[str, Any]) -> Optional[float]:
 _RECUP_KEYS = ("recuperation_kwh_per_100km", "recuperation_kwh")
 
 
-def _recuperation_value(stats: dict[str, Any]) -> Optional[float]:
+def _recuperation_value(stats: dict[str, Any]) -> float | None:
     for key in _RECUP_KEYS:
         value = stats.get(key)
         if isinstance(value, (int, float)):
@@ -208,7 +209,7 @@ def _recuperation_value(stats: dict[str, Any]) -> Optional[float]:
     return None
 
 
-def _recuperation_per_100km(trips: list[Trip]) -> Optional[float]:
+def _recuperation_per_100km(trips: list[Trip]) -> float | None:
     """Distance-weighted mean recuperation, in kWh/100 km.
 
     Weighted rather than a plain mean for the same reason consumption is: a long
@@ -231,7 +232,7 @@ def _recuperation_per_100km(trips: list[Trip]) -> Optional[float]:
     return round(weighted / total_weight, 1)
 
 
-def _dest_label(trip: Trip) -> Optional[str]:
+def _dest_label(trip: Trip) -> str | None:
     """A named destination for the top-destinations tally, or ``None``.
 
     Unknown/unnamed endpoints are skipped rather than lumped into one bogus
@@ -250,7 +251,7 @@ def _iso_week(dt: datetime) -> str:
     return f"{year}-W{week:02d}"
 
 
-def fleet_consumption_kwh_per_100km(trips: Iterable[Trip]) -> Optional[float]:
+def fleet_consumption_kwh_per_100km(trips: Iterable[Trip]) -> float | None:
     """Battery-side consumption across many trips: total energy over total distance.
 
     Deliberately *not* the mean of the per-trip figures. Averaging ratios weights
@@ -299,7 +300,7 @@ SIDE_BATTERY = "battery"
 SIDE_GRID = "grid"
 
 
-def _side_energy(session: ChargingSession, side: str) -> Optional[float]:
+def _side_energy(session: ChargingSession, side: str) -> float | None:
     if side == SIDE_BATTERY:
         return session.energy_kwh
     if side == SIDE_GRID:
@@ -310,10 +311,10 @@ def _side_energy(session: ChargingSession, side: str) -> Optional[float]:
 def energy_balance(
     sessions: Iterable[ChargingSession],
     *,
-    battery_capacity_kwh: Optional[float] = None,
+    battery_capacity_kwh: float | None = None,
     side: str = SIDE_AUTO,
     hybrid: bool = False,
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     """Consumption over a period, measured from the charging ledger alone.
 
     The per-trip route cannot beat the resolution of the SoC signal it is built
@@ -455,11 +456,11 @@ def energy_balance(
 def driving_summary(
     trips: Iterable[Trip],
     *,
-    prev_trips: Optional[Iterable[Trip]] = None,
-    cost_per_100km: Optional[float] = None,
-    currency: Optional[str] = None,
-    sessions: Optional[Iterable[ChargingSession]] = None,
-    battery_capacity_kwh: Optional[float] = None,
+    prev_trips: Iterable[Trip] | None = None,
+    cost_per_100km: float | None = None,
+    currency: str | None = None,
+    sessions: Iterable[ChargingSession] | None = None,
+    battery_capacity_kwh: float | None = None,
     hybrid: bool = False,
 ) -> dict[str, Any]:
     """The whole "month in review" object the trips card renders.
@@ -489,7 +490,7 @@ def driving_summary(
         else:
             unclassified_km += km
 
-    def _pct(value: float) -> Optional[float]:
+    def _pct(value: float) -> float | None:
         return round(value / total_km * 100, 1) if total_km > 0 else None
 
     split = {
@@ -519,7 +520,7 @@ def driving_summary(
         sessions or [], battery_capacity_kwh=battery_capacity_kwh, hybrid=hybrid
     )
 
-    def _trip_ref(pair: Optional[tuple[Trip, Optional[float]]]) -> Optional[dict[str, Any]]:
+    def _trip_ref(pair: tuple[Trip, float | None] | None) -> dict[str, Any] | None:
         if pair is None:
             return None
         trip, value = pair

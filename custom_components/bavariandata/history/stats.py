@@ -17,8 +17,9 @@ for hours, and a DC fast charge is over inside one or two buckets.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
-from typing import Any, Iterable, Optional
+from datetime import datetime, timedelta, UTC
+from typing import Any
+from collections.abc import Iterable
 
 from .models import ChargingSession
 from .sessions import house_supplies_this_session
@@ -36,12 +37,10 @@ MAX_SPAN = timedelta(hours=48)
 def floor_hour(value: datetime) -> datetime:
     """The UTC hour a timestamp falls in -- the key statistics are indexed by."""
 
-    return value.astimezone(timezone.utc).replace(minute=0, second=0, microsecond=0)
+    return value.astimezone(UTC).replace(minute=0, second=0, microsecond=0)
 
 
-def spread(
-    start: datetime, end: Optional[datetime], total: Optional[float]
-) -> dict[datetime, float]:
+def spread(start: datetime, end: datetime | None, total: float | None) -> dict[datetime, float]:
     """Distribute ``total`` over the UTC hours between ``start`` and ``end``.
 
     Each hour gets the share of the record that fell inside it. An open-ended,
@@ -51,12 +50,12 @@ def spread(
     if not total:
         return {}
     amount = float(total)
-    begin = start.astimezone(timezone.utc)
+    begin = start.astimezone(UTC)
     first = floor_hour(begin)
 
     if end is None:
         return {first: amount}
-    finish = end.astimezone(timezone.utc)
+    finish = end.astimezone(UTC)
     span = (finish - begin).total_seconds()
     if span <= 0 or finish - begin > MAX_SPAN:
         return {first: amount}
@@ -72,7 +71,7 @@ def spread(
     return buckets
 
 
-def session_energy_kwh(session: ChargingSession) -> Optional[float]:
+def session_energy_kwh(session: ChargingSession) -> float | None:
     """The kWh figure a statistic should carry for one session.
 
     Thin wrapper over :attr:`ChargingSession.effective_energy_kwh` so the
@@ -98,7 +97,7 @@ def hourly_energy(sessions: Iterable[ChargingSession]) -> dict[datetime, float]:
 
 
 def hourly_energy_at_home(
-    sessions: Iterable[ChargingSession], home_zone: Optional[str]
+    sessions: Iterable[ChargingSession], home_zone: str | None
 ) -> dict[datetime, float]:
     """Charged energy per UTC hour, in kWh, for charges at home only.
 
@@ -117,7 +116,7 @@ def hourly_energy_at_home(
 
 def hourly_cost(
     sessions: Iterable[ChargingSession],
-) -> tuple[dict[datetime, float], Optional[str]]:
+) -> tuple[dict[datetime, float], str | None]:
     """Charging cost per UTC hour, plus the currency it is denominated in.
 
     Mixed currencies yield no series at all: summing euros and pounds into one

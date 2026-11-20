@@ -14,6 +14,7 @@ import json
 import pytest
 
 from .conftest import load_module
+from datetime import UTC
 
 mix = load_module("history.energy_mix")
 
@@ -194,10 +195,10 @@ def test_a_session_without_a_mix_does_not_dilute_the_month():
 
 
 def _session(**overrides):
-    from datetime import datetime, timedelta, timezone
+    from datetime import datetime, timedelta
 
     models = load_module("history.models")
-    start = datetime(2026, 9, 5, 12, 0, tzinfo=timezone.utc)
+    start = datetime(2026, 9, 5, 12, 0, tzinfo=UTC)
     data = {
         "vin": "WBY1",
         "start": start,

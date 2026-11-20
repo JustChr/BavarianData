@@ -32,7 +32,6 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import Optional
 
 # Changes under these never count as "the fix": they are the proof, or prose.
 NOT_THE_FIX = ("tests/", "docs/", ".claude/", "screenshots/")
@@ -63,7 +62,7 @@ def is_the_fix(path: str) -> bool:
     return not path.startswith(NOT_THE_FIX) and path not in NOT_THE_FIX_FILES
 
 
-def base_content(repo: Path, base: str, path: str) -> Optional[bytes]:
+def base_content(repo: Path, base: str, path: str) -> bytes | None:
     """The file at ``base``, or ``None`` if the change added it."""
 
     listed = git(repo, "ls-tree", "--name-only", base, "--", path).strip()
@@ -104,7 +103,7 @@ def run_tests(repo: Path, tests: list[str]) -> tuple[bool, str]:
     return out.returncode == 0, tail
 
 
-def prove(repo: Path, tests: list[str], base: str, revert: Optional[list[str]]) -> int:
+def prove(repo: Path, tests: list[str], base: str, revert: list[str] | None) -> int:
     fix = revert if revert else [p for p in changed_files(repo, base) if is_the_fix(p)]
     if not fix:
         print(f"Nothing to revert: no change outside tests/ since {base}.", file=sys.stderr)
@@ -122,7 +121,7 @@ def prove(repo: Path, tests: list[str], base: str, revert: Optional[list[str]]) 
         return 1
     print("\n1/3 with the fix: pass")
 
-    saved: dict[str, Optional[bytes]] = {}
+    saved: dict[str, bytes | None] = {}
     for path in fix:
         target = repo / path
         saved[path] = target.read_bytes() if target.exists() else None
@@ -178,7 +177,7 @@ def prove(repo: Path, tests: list[str], base: str, revert: Optional[list[str]]) 
     return 0
 
 
-def main(argv: Optional[list[str]] = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("tests", nargs="+", help="pytest node ids or files")
     parser.add_argument("--base", help="git ref the fix is measured against")

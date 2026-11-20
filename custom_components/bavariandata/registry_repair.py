@@ -22,7 +22,8 @@ makes the registry calls.
 
 from __future__ import annotations
 
-from typing import Any, Callable, Iterable, Mapping, Optional
+from typing import Any
+from collections.abc import Callable, Iterable, Mapping
 
 from .coverage import is_ev_only_descriptor
 
@@ -68,7 +69,7 @@ RETIRED_SUFFIXES = frozenset({"soc_estimate_testing"})
 DISABLED_BY_INTEGRATION = "integration"
 
 
-def descriptor_of(unique_id: str) -> Optional[str]:
+def descriptor_of(unique_id: str) -> str | None:
     """The descriptor behind a ``<VIN>_<descriptor>`` unique id, if it has one.
 
     Our other entities (``<VIN>_soc_estimate``, ``<VIN>_tracker``,

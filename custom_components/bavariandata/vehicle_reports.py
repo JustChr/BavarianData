@@ -13,8 +13,9 @@ fully tested); this applies them to the record and the car through its host.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any, Callable, Dict, Mapping, Optional, Protocol
+from datetime import datetime, UTC
+from typing import TYPE_CHECKING, Any, Protocol
+from collections.abc import Callable, Mapping
 
 from homeassistant.core import callback
 from homeassistant.helpers.event import async_call_later, async_track_state_change_event
@@ -56,27 +57,27 @@ class ReportHost(Protocol):
 
     hass: HomeAssistant
     entry_id: str
-    history: Optional[HistoryStore]
-    data: Dict[str, Dict[str, Any]]
-    names: Dict[str, str]
+    history: HistoryStore | None
+    data: dict[str, dict[str, Any]]
+    names: dict[str, str]
     trip_log: TripLog
     trip_settings: TripSettings
-    vehicle_trip_settings: Dict[str, TripSettings]
+    vehicle_trip_settings: dict[str, TripSettings]
 
     @property
-    def _cars(self) -> Dict[str, Vehicle]: ...
+    def _cars(self) -> dict[str, Vehicle]: ...
     def _car(self, vin: str) -> Vehicle: ...
     def _peek(self, vin: str) -> Vehicle: ...
-    def _numeric(self, vin: str, descriptor: str) -> Optional[float]: ...
-    def _fuel_litres(self, vin: str) -> Optional[float]: ...
-    def _coordinate(self, vin: str, kind: str) -> Optional[float]: ...
-    def _current_soc(self, vin: str) -> Optional[float]: ...
-    def _odometer_timestamp(self, vin: str) -> Optional[str]: ...
-    def odometer_km(self, vin: str) -> Optional[float]: ...
+    def _numeric(self, vin: str, descriptor: str) -> float | None: ...
+    def _fuel_litres(self, vin: str) -> float | None: ...
+    def _coordinate(self, vin: str, kind: str) -> float | None: ...
+    def _current_soc(self, vin: str) -> float | None: ...
+    def _odometer_timestamp(self, vin: str) -> str | None: ...
+    def odometer_km(self, vin: str) -> float | None: ...
     def is_plug_in_hybrid(self, vin: str) -> bool: ...
     def report_trips(self, vin: str) -> bool: ...
     def trip_settings_for(self, vin: str) -> TripSettings: ...
-    def _fire(self, event_type: str, payload: Dict[str, Any]) -> None: ...
+    def _fire(self, event_type: str, payload: dict[str, Any]) -> None: ...
 
     trips: VehicleTrips
 
@@ -87,10 +88,10 @@ class VehicleReports:
     def __init__(self, host: ReportHost) -> None:
         self._host = host
         # The one state listener feeding the cars' phone routes.
-        self._phone_unsub: Optional[Callable[[], None]] = None
+        self._phone_unsub: Callable[[], None] | None = None
 
     def note_odometer(
-        self, vin: str, *, parked_soc: Optional[tuple[float, Optional[datetime]]] = None
+        self, vin: str, *, parked_soc: tuple[float, datetime | None] | None = None
     ) -> None:
         """Arm the vehicle-report debounce when the odometer reached a new reading.
 
@@ -154,16 +155,16 @@ class VehicleReports:
 
         self._host._car(vin).report.timer = async_call_later(self._host.hass, REPORT_QUIET_S, _fire)
 
-    def _report_decision(self, vin: str, odometer_km: Optional[float]) -> ReportDecision:
+    def _report_decision(self, vin: str, odometer_km: float | None) -> ReportDecision:
         return report_decision(
             odometer_km,
             self._host.history.last_report(vin) if self._host.history is not None else None,
             timestamp=self._host._odometer_timestamp(vin),
-            now=datetime.now(timezone.utc),
+            now=datetime.now(UTC),
         )
 
     def _report_record(
-        self, vin: str, odometer_km: float, *, starts: Optional[list[str]] = None
+        self, vin: str, odometer_km: float, *, starts: list[str] | None = None
     ) -> dict[str, Any]:
         """A reading as the record keeps it: by the car's clock and by ours.
 
@@ -175,7 +176,7 @@ class VehicleReports:
         record: dict[str, Any] = {
             "odometer_km": odometer_km,
             "timestamp": self._host._odometer_timestamp(vin),
-            "recorded_at": datetime.now(timezone.utc).isoformat(),
+            "recorded_at": datetime.now(UTC).isoformat(),
             "fuel_l": self._host._fuel_litres(vin),
             "soc": self._host._current_soc(vin),
         }
@@ -234,7 +235,7 @@ class VehicleReports:
             self._phone_unsub = None
 
     def _phone_route(
-        self, vin: str, slot: int, in_car: Optional[str], in_car_state: Any
+        self, vin: str, slot: int, in_car: str | None, in_car_state: Any
     ) -> PhoneRoute:
         route = self._host._peek(vin).report.route_in(slot)
         if route is None:
@@ -255,7 +256,7 @@ class VehicleReports:
             new_state = event.data.get("new_state")
             if new_state is None:
                 return
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             for vin in sorted(
                 {*self._host.data, *self._host.names, *self._host.vehicle_trip_settings}
             ):
@@ -335,10 +336,10 @@ class VehicleReports:
         record = self._host.history.last_report(vin) or {}
         starts = record.get("starts")
         parked = {key: record.get(key) for key in ("soc_parked", "soc_parked_at")}
-        start: Optional[datetime] = None
+        start: datetime | None = None
         end_at = dt_util.parse_datetime(timestamp) if timestamp else None
         if end_at is None:
-            end_at = datetime.now(timezone.utc)
+            end_at = datetime.now(UTC)
         if self._host.report_trips(vin):
             start, starts = take_start_mark(
                 starts, previous_at=report_time(baseline), end_at=end_at
@@ -381,7 +382,7 @@ class VehicleReports:
         vin: str,
         odometer_km: float,
         baseline: Mapping[str, Any],
-        start: Optional[datetime],
+        start: datetime | None,
         end_at: datetime,
     ) -> None:
         """One trip from a vehicle report: from the previous report to this one.
@@ -465,7 +466,7 @@ class VehicleReports:
             _LOGGER.exception("Could not record the report trip for %s", mask_vin(vin))
 
     def _phone_report_route(
-        self, vin: str, start: Optional[datetime], end_at: datetime
+        self, vin: str, start: datetime | None, end_at: datetime
     ) -> list[tuple[datetime, float, float]]:
         """The phone's route for a report trip, ending where the car parked.
 

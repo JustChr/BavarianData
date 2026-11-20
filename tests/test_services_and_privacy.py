@@ -207,7 +207,7 @@ def test_the_leaking_id_is_still_derivable_so_it_can_be_deleted() -> None:
 # shape, since the failure is invisible until someone owns two accounts.
 
 
-def _registers_services(node: "ast.AST") -> bool:
+def _registers_services(node: ast.AST) -> bool:
     return any(
         isinstance(call, ast.Call) and ast.unparse(call.func).endswith("services.async_register")
         for call in ast.walk(node)
@@ -263,7 +263,7 @@ def _service_tree() -> ast.Module:
     return ast.Module(body=body, type_ignores=[])
 
 
-def _service_handler(name: str) -> "ast.AsyncFunctionDef":
+def _service_handler(name: str) -> ast.AsyncFunctionDef:
     tree = _service_tree()
     return next(
         node

@@ -11,7 +11,7 @@ that decides whether a number survives and what it is worth.
 from __future__ import annotations
 
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, UTC
 
 from .conftest import load_module
 
@@ -21,7 +21,7 @@ pricing = load_module("history.pricing")
 SessionBuilder = sessions.SessionBuilder
 CostAccumulator = pricing.CostAccumulator
 
-START = datetime(2026, 9, 5, 12, 22, tzinfo=timezone.utc)
+START = datetime(2026, 9, 5, 12, 22, tzinfo=UTC)
 
 
 def _charging_builder() -> SessionBuilder:

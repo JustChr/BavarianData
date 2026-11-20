@@ -25,7 +25,8 @@ import hashlib
 import logging
 import re
 from pathlib import Path
-from typing import Any, Dict, Mapping, Optional, Tuple, cast
+from typing import Any, cast
+from collections.abc import Mapping
 
 from aiohttp import web
 from homeassistant.components.http import HomeAssistantView
@@ -98,13 +99,13 @@ def _render_dir(hass: HomeAssistant) -> Path:
     return Path(hass.config.path(".storage", _RENDER_DIR))
 
 
-async def _async_load_renders(hass: HomeAssistant) -> Dict[str, dict[str, Any]]:
+async def _async_load_renders(hass: HomeAssistant) -> dict[str, dict[str, Any]]:
     """Return the shared ``{vin: {...}}`` configurator-render metadata."""
 
     domain_data = _domain_data(hass)
     renders = domain_data.get(_RENDER_CACHE_KEY)
     if renders is not None:
-        return cast(Dict[str, dict[str, Any]], renders)
+        return cast(dict[str, dict[str, Any]], renders)
     store = domain_data.get(_RENDER_STORE_HANDLE_KEY)
     if store is None:
         store = Store(hass, _STORE_VERSION, _RENDER_STORE_KEY)
@@ -149,8 +150,8 @@ async def async_refresh_configurator_render(
     vin: str,
     *,
     full: bool = True,
-    options: Optional[Mapping[str, Any]] = None,
-) -> Optional[str]:
+    options: Mapping[str, Any] | None = None,
+) -> str | None:
     """Draw ``vin`` with BMW's configurator and keep the result.
 
     ``full=False`` fetches only the plain turntable (about 5 s), for the
@@ -319,13 +320,13 @@ async def _async_get_store(hass: HomeAssistant) -> Store[dict[str, Any]]:
     return store
 
 
-async def _async_load_cache(hass: HomeAssistant) -> Dict[str, dict[str, Any]]:
+async def _async_load_cache(hass: HomeAssistant) -> dict[str, dict[str, Any]]:
     """Return the shared ``{vin: {...}}`` render cache, hydrating from Store once."""
 
     domain_data = _domain_data(hass)
     cache = domain_data.get(_CACHE_KEY)
     if cache is not None:
-        return cast(Dict[str, dict[str, Any]], cache)
+        return cast(dict[str, dict[str, Any]], cache)
     cache = {}
     store = await _async_get_store(hass)
     stored = await store.async_load()
@@ -376,7 +377,7 @@ async def async_refresh_vehicle_image(
     vin: str,
     *,
     strict: bool = False,
-) -> Optional[Tuple[bytes, Optional[str]]]:
+) -> tuple[bytes, str | None] | None:
     """Fetch the render for ``vin``, update the shared cache and notify entities.
 
     Takes its token and quota slot through the entry's REST gateway, so it can
@@ -449,7 +450,7 @@ async def async_setup_entry(
     cache = await _async_load_cache(hass)
     renders = await _async_load_renders(hass)
     _ensure_spin_view(hass)
-    entities: Dict[str, CardataVehicleImage] = {}
+    entities: dict[str, CardataVehicleImage] = {}
 
     @callback
     def ensure_entity(vin: str) -> None:
@@ -502,8 +503,8 @@ class CardataVehicleImage(CardataEntity, ImageEntity):
         entry: ConfigEntry,
         runtime: Any,
         vin: str,
-        cache: Dict[str, dict[str, Any]],
-        renders: Dict[str, dict[str, Any]],
+        cache: dict[str, dict[str, Any]],
+        renders: dict[str, dict[str, Any]],
     ) -> None:
         CardataEntity.__init__(self, coordinator, vin, "vehicle_image")
         ImageEntity.__init__(self, hass)
@@ -511,11 +512,11 @@ class CardataVehicleImage(CardataEntity, ImageEntity):
         self._runtime = runtime
         self._cache = cache
         self._renders = renders
-        self._still: Optional[bytes] = None
+        self._still: bytes | None = None
         self._attr_unique_id = f"{vin}_vehicle_image"
         self._sync_picture()
 
-    def _render(self) -> Optional[dict[str, Any]]:
+    def _render(self) -> dict[str, Any] | None:
         """The configurator render, when that is the chosen source and one exists."""
 
         if image_source(self._entry) != IMAGE_SOURCE_CONFIGURATOR:
@@ -582,7 +583,7 @@ class CardataVehicleImage(CardataEntity, ImageEntity):
         self._sync_picture()
         self.async_write_ha_state()
 
-    async def async_image(self) -> Optional[bytes]:
+    async def async_image(self) -> bytes | None:
         render = self._render()
         if render:
             if self._still is None:
@@ -616,7 +617,7 @@ class CardataVehicleImage(CardataEntity, ImageEntity):
             key = render["key"]
             parts = set(render.get("parts") or ())
 
-            def path(part: Optional[str] = None) -> str:
+            def path(part: str | None = None) -> str:
                 return f"{SPIN_PATH}/{key}{'_' + part if part else ''}/{version}"
 
             spin = {

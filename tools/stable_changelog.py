@@ -32,7 +32,6 @@ import argparse
 import re
 import sys
 from pathlib import Path
-from typing import Optional
 
 CHANGELOG = Path(__file__).resolve().parents[1] / "CHANGELOG.md"
 
@@ -60,8 +59,8 @@ def bullets(body: list[str]) -> dict[str, list[str]]:
     """``{heading: [bullet text]}``; a bullet runs until the next one or heading."""
 
     grouped: dict[str, list[str]] = {}
-    heading: Optional[str] = None
-    current: Optional[list[str]] = None
+    heading: str | None = None
+    current: list[str] | None = None
 
     def flush() -> None:
         if heading and current:
@@ -84,7 +83,7 @@ def bullets(body: list[str]) -> dict[str, list[str]]:
     return grouped
 
 
-def tag(bullet: str, label: Optional[str]) -> str:
+def tag(bullet: str, label: str | None) -> str:
     """Tag a bullet with its beta the way a stable entry reads: ``**Lead** (beta.3).``
 
     The lead's own full stop moves after the tag. ``label=None`` (still
@@ -105,7 +104,7 @@ def tag(bullet: str, label: Optional[str]) -> str:
     return f"- **{inner}** ({label}){stop}{rest}"
 
 
-def lead(bullet: str) -> Optional[str]:
+def lead(bullet: str) -> str | None:
     match = re.match(r"- \*\*(.+?)\*\*", bullet, flags=re.S)
     return " ".join(match[1].split()).rstrip(".").lower() if match else None
 
@@ -198,7 +197,7 @@ def write(text: str, body: str) -> str:
     return "".join(lines[: start + 1]) + "\n" + body + "\n" + "".join(lines[end:])
 
 
-def main(argv: Optional[list[str]] = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--write", action="store_true", help="put the draft into [Unreleased]")
     parser.add_argument("--changelog", type=Path, default=CHANGELOG, help=argparse.SUPPRESS)

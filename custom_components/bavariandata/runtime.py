@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 import aiohttp
 from homeassistant.config_entries import ConfigEntry
@@ -42,12 +42,12 @@ class CardataRuntimeData:
     # ``tokens`` and its quota slot through ``rest``.
     tokens: TokenKeeper
     rest: RestGateway
-    history: Optional[HistoryStore] = None
-    statistics: Optional[StatisticsPublisher] = None
-    coverage: Optional[CoverageStore] = None
-    tyre: Optional[TyreStore] = None
-    bridge: Optional[VehicleBridge] = None
-    abrp: Optional[AbrpPush] = None
+    history: HistoryStore | None = None
+    statistics: StatisticsPublisher | None = None
+    coverage: CoverageStore | None = None
+    tyre: TyreStore | None = None
+    bridge: VehicleBridge | None = None
+    abrp: AbrpPush | None = None
     bootstrap_task: asyncio.Task[Any] | None = None
     quota_manager: QuotaManager | None = None
     telematic_task: asyncio.Task[Any] | None = None

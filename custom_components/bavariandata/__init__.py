@@ -5,9 +5,10 @@ from __future__ import annotations
 import asyncio
 import logging
 from contextlib import suppress
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, UTC
 from functools import partial
-from typing import Any, Mapping
+from typing import Any
+from collections.abc import Mapping
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP, Platform
@@ -239,7 +240,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     _async_wire_coverage(hass, entry)
     last_fetch_ts = last_fetch_at(data.get(LAST_TELEMATIC_POLL), data.get(LAST_STARTUP_REFRESH))
     if last_fetch_ts is not None:
-        coordinator.last_telematic_api_at = datetime.fromtimestamp(last_fetch_ts, timezone.utc)
+        coordinator.last_telematic_api_at = datetime.fromtimestamp(last_fetch_ts, UTC)
     _async_restore_devices(hass, entry, coordinator)
     _async_wire_retitle(hass, entry, coordinator)
 

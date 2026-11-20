@@ -16,7 +16,7 @@ and ``async_redact_data`` runs over the result as a second line of defence.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 from typing import Any
 
 from homeassistant.components.diagnostics import async_redact_data
@@ -125,7 +125,7 @@ async def async_get_config_entry_diagnostics(
                 # How this car reports (``car_profile.py``): counts and gaps only.
                 "behaviour": None
                 if (profile := coordinator.car_profiles.get(vin)) is None
-                else profile.as_dict(datetime.now(timezone.utc)),
+                else profile.as_dict(datetime.now(UTC)),
                 # Not a value from the car's stream but the answer to "what kind
                 # of car is this", which decides the card's whole overview and
                 # which EV-only entities exist. Neither is sensitive -- they are

@@ -22,7 +22,7 @@ therefore spans both accounts while either has it on; the options screen says so
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from .const import DEBUG_LOG
 
@@ -43,7 +43,7 @@ def _apply() -> None:
     logger.setLevel(logging.DEBUG if _DEBUG_ENABLED else logging.INFO)
 
 
-def set_debug_enabled(value: bool, *, entry_id: Optional[str] = None) -> None:
+def set_debug_enabled(value: bool, *, entry_id: str | None = None) -> None:
     """Record a debug choice and apply the union of every entry's.
 
     ``entry_id`` names the config entry the choice belongs to; without one the

@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from contextlib import suppress
-from typing import Any, Dict
+from typing import Any
 
 from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.core import HomeAssistant, callback
@@ -59,7 +59,7 @@ def registered_vins(hass: HomeAssistant, entry: ConfigEntry, *, exclude: set[str
 # one, and the second, finding the entry mid-unload, would open the same stores
 # alongside the first: whichever saved last brought the other car's data back.
 # Module-level, not in ``hass.data``: unloading the last entry empties that.
-_FORGET_LOCKS: Dict[str, asyncio.Lock] = {}
+_FORGET_LOCKS: dict[str, asyncio.Lock] = {}
 
 
 async def async_forget_account_cars(hass: HomeAssistant, entry_id: str, vins: list[str]) -> None:

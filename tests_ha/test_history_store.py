@@ -8,7 +8,7 @@ repair saves only when it changed something.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, UTC
 from unittest.mock import patch
 
 from homeassistant.core import HomeAssistant
@@ -21,7 +21,7 @@ from custom_components.bavariandata.history.trips import Trip
 from .conftest import VIN
 
 KEY = "bavariandata_entry-1_history"
-START = datetime.now(timezone.utc) - timedelta(days=3)
+START = datetime.now(UTC) - timedelta(days=3)
 OTHER = "WBATEST0000000002"
 
 

@@ -31,7 +31,6 @@ import sys
 import tempfile
 import urllib.request
 from pathlib import Path
-from typing import Optional
 
 TOOLS = Path(__file__).resolve().parent
 URL = "https://mybmwweb-utilities.api.bmw/{locale}/utilities/bmw/api/cd/catalogue/file"
@@ -97,7 +96,7 @@ def compare(old: dict[str, dict], new: dict[str, dict], *, main: bool) -> list[s
     return lines
 
 
-def main(argv: Optional[list[str]] = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--write", action="store_true", help="replace the committed exports")
     args = parser.parse_args(argv)

@@ -17,7 +17,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from statistics import median
-from typing import Any, Iterable, Optional
+from typing import Any
+from collections.abc import Iterable
 
 from .models import ChargingSession
 
@@ -57,11 +58,11 @@ class BatteryHealth:
     ``confident`` flips.
     """
 
-    usable_kwh: Optional[float]
+    usable_kwh: float | None
     samples: int
     confident: bool
-    nominal_kwh: Optional[float] = None
-    vs_new_percent: Optional[float] = None
+    nominal_kwh: float | None = None
+    vs_new_percent: float | None = None
     suspicious: bool = False
 
     def as_dict(self) -> dict[str, Any]:
@@ -75,7 +76,7 @@ class BatteryHealth:
         }
 
 
-def _capacity_sample(session: ChargingSession) -> Optional[float]:
+def _capacity_sample(session: ChargingSession) -> float | None:
     """The usable-capacity a single session implies, or ``None`` if it can't.
 
     Uses ``energy_kwh``, the integration's sum of the car's own streamed
@@ -112,8 +113,8 @@ def _capacity_sample(session: ChargingSession) -> Optional[float]:
 def usable_capacity(
     sessions: Iterable[ChargingSession],
     *,
-    nominal_kwh: Optional[float] = None,
-    sanity_kwh: Optional[float] = None,
+    nominal_kwh: float | None = None,
+    sanity_kwh: float | None = None,
 ) -> BatteryHealth:
     """Estimate usable pack capacity from wide-SoC charges.
 
@@ -161,7 +162,7 @@ def usable_capacity(
 
 
 def degradation_series(
-    sessions: Iterable[ChargingSession], *, limit: Optional[int] = None
+    sessions: Iterable[ChargingSession], *, limit: int | None = None
 ) -> list[list[float]]:
     """``[odometer_km, usable_kwh]`` points for a capacity-vs-mileage trend.
 

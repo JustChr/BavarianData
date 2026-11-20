@@ -33,7 +33,8 @@ from __future__ import annotations
 
 import math
 from statistics import median
-from typing import Any, Iterable, Optional
+from typing import Any
+from collections.abc import Iterable
 
 from .models import ChargingSession
 
@@ -68,7 +69,7 @@ CHARGE_METHOD_DESCRIPTORS = (
 )
 
 
-def streamed_charge_method(values: dict[str, Any]) -> Optional[str]:
+def streamed_charge_method(values: dict[str, Any]) -> str | None:
     """ "dc" or "ac" from the car's own plug descriptors, ``None`` if they don't say.
 
     ``values`` maps descriptor -> current streamed value. A connected DC socket
@@ -85,7 +86,7 @@ def streamed_charge_method(values: dict[str, Any]) -> Optional[str]:
     return None
 
 
-def charge_kind(session: ChargingSession) -> Optional[str]:
+def charge_kind(session: ChargingSession) -> str | None:
     """AC or DC for one visit, or ``None`` when nothing says which.
 
     The car's own word wins when it sent one (recorded on the session as
@@ -114,7 +115,7 @@ def distance_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     return 2 * radius * math.asin(math.sqrt(min(1.0, a)))
 
 
-def _coords(location: Any) -> Optional[tuple[float, float]]:
+def _coords(location: Any) -> tuple[float, float] | None:
     if not isinstance(location, dict):
         return None
     lat, lon = location.get("lat"), location.get("lon")
@@ -128,7 +129,7 @@ class _Place:
 
     def __init__(self, key: str) -> None:
         self.key = key
-        self.zone: Optional[str] = None
+        self.zone: str | None = None
         self.assumed = False
         self.unnamed = False
         self.sessions: list[ChargingSession] = []
@@ -140,7 +141,7 @@ class _Place:
         if point is not None:
             self.points.append(point)
 
-    def centroid(self) -> Optional[tuple[float, float]]:
+    def centroid(self) -> tuple[float, float] | None:
         if not self.points:
             return None
         return (
@@ -148,7 +149,7 @@ class _Place:
             sum(point[1] for point in self.points) / len(self.points),
         )
 
-    def _most_common(self, field: str) -> Optional[str]:
+    def _most_common(self, field: str) -> str | None:
         counts: dict[str, int] = {}
         for session in self.sessions:
             value = (session.location or {}).get(field)
@@ -159,15 +160,15 @@ class _Place:
         return max(counts.items(), key=lambda item: (item[1], item[0]))[0]
 
     @property
-    def address(self) -> Optional[str]:
+    def address(self) -> str | None:
         return self._most_common("address")
 
     @property
-    def provider(self) -> Optional[str]:
+    def provider(self) -> str | None:
         return self._most_common("provider")
 
 
-def _group(sessions: Iterable[ChargingSession], home_zone: Optional[str]) -> list[_Place]:
+def _group(sessions: Iterable[ChargingSession], home_zone: str | None) -> list[_Place]:
     places: dict[str, _Place] = {}
     coordinate_places: list[_Place] = []
     address_only: list[tuple[ChargingSession, str]] = []
@@ -195,7 +196,7 @@ def _group(sessions: Iterable[ChargingSession], home_zone: Optional[str]) -> lis
             continue
         point = _coords(location)
         if point is not None:
-            nearest: Optional[_Place] = None
+            nearest: _Place | None = None
             best = MERGE_RADIUS_M
             for candidate in coordinate_places:
                 centre = candidate.centroid()
@@ -231,7 +232,7 @@ def _group(sessions: Iterable[ChargingSession], home_zone: Optional[str]) -> lis
     return list(places.values())
 
 
-def _visit_power_kw(session: ChargingSession) -> Optional[float]:
+def _visit_power_kw(session: ChargingSession) -> float | None:
     """The average power one visit delivered, or ``None`` if it can't be trusted.
 
     A session that started late or lost a stretch to a restart has an energy
@@ -247,7 +248,7 @@ def _visit_power_kw(session: ChargingSession) -> Optional[float]:
     return energy / (duration / 3600.0)
 
 
-def _minutes_per_10(session: ChargingSession) -> Optional[float]:
+def _minutes_per_10(session: ChargingSession) -> float | None:
     if session.late_start or session.interrupted:
         return None
     if session.soc_start is None or session.soc_end is None or not session.duration_s:
@@ -271,7 +272,7 @@ def _figures(sessions: list[ChargingSession]) -> dict[str, Any]:
     }
 
 
-def _summary(values: list[float]) -> Optional[float]:
+def _summary(values: list[float]) -> float | None:
     """The median of two or more visits, the value itself for exactly one."""
 
     if not values:
@@ -294,7 +295,7 @@ def _describe(found: _Place) -> dict[str, Any]:
     sessions = sorted(found.sessions, key=lambda item: item.start, reverse=True)
     kinds = [charge_kind(s) for s in sessions]
     known = [k for k in kinds if k is not None]
-    dominant: Optional[str] = None
+    dominant: str | None = None
     if known:
         dominant = KIND_DC if known.count(KIND_DC) > known.count(KIND_AC) else KIND_AC
     kind = None
@@ -353,7 +354,7 @@ def _describe(found: _Place) -> dict[str, Any]:
 
 
 def charging_places(
-    sessions: Iterable[ChargingSession], *, home_zone: Optional[str] = None
+    sessions: Iterable[ChargingSession], *, home_zone: str | None = None
 ) -> list[dict[str, Any]]:
     """Every place the sessions were charged at, most visited first.
 

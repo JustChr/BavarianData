@@ -14,7 +14,8 @@ units as the card.
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from typing import Any
+from collections.abc import Mapping
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er

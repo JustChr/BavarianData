@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 
 from .conftest import load_module
 from .fake_ha import load_with_fake_ha
@@ -20,7 +20,7 @@ car_state = load_module("car_state")
 trips = load_with_fake_ha("vehicle_trips")
 
 VIN = "WBA00000000000001"
-NOW = datetime(2026, 10, 25, 12, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 10, 25, 12, 0, tzinfo=UTC)
 
 
 class _Host:

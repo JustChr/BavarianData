@@ -23,7 +23,7 @@ import hashlib
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Mapping, Optional
+from collections.abc import Mapping
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -57,7 +57,7 @@ class Plan:
 
 def plan(
     shipped: Mapping[str, bytes],
-    present: Mapping[str, Optional[bytes]],
+    present: Mapping[str, bytes | None],
     record: Mapping[str, str],
 ) -> Plan:
     """Which shipped files to write, given what is on disk and what we wrote last."""

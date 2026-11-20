@@ -19,8 +19,9 @@ from __future__ import annotations
 
 import asyncio
 import time
-from datetime import datetime, timezone
-from typing import Any, Awaitable, Callable, Mapping, Optional, TypeVar
+from datetime import datetime, UTC
+from typing import Any, TypeVar
+from collections.abc import Awaitable, Callable, Mapping
 
 from .api import CardataApiError
 from .device_flow import CardataAuthError
@@ -58,7 +59,7 @@ class TokenKeeper:
         self._margin_s = margin_s
         self._lock = asyncio.Lock()
 
-    def _usable(self) -> Optional[str]:
+    def _usable(self) -> str | None:
         data = self._stored()
         token = data.get("access_token")
         if not isinstance(token, str) or not token:
@@ -94,8 +95,8 @@ class TokenKeeper:
             await self._renew()
 
 
-def _iso(at: Optional[float]) -> Optional[str]:
-    return None if at is None else datetime.fromtimestamp(at, timezone.utc).isoformat()
+def _iso(at: float | None) -> str | None:
+    return None if at is None else datetime.fromtimestamp(at, UTC).isoformat()
 
 
 class RestOutcomes:
@@ -112,8 +113,8 @@ class RestOutcomes:
         self._clock = clock
         self.succeeded = 0
         self.failed = 0
-        self.last_success_at: Optional[float] = None
-        self.last_failure: Optional[dict[str, Any]] = None
+        self.last_success_at: float | None = None
+        self.last_failure: dict[str, Any] | None = None
 
     def success(self) -> None:
         self.succeeded += 1
@@ -155,7 +156,7 @@ class RestGateway:
         self,
         session: Any,
         tokens: TokenKeeper,
-        claim: Optional[Callable[[], Awaitable[None]]] = None,
+        claim: Callable[[], Awaitable[None]] | None = None,
         *,
         clock: Callable[[], float] = time.time,
     ) -> None:
@@ -171,7 +172,7 @@ class RestGateway:
             await self._claim()
 
     async def call(
-        self, request: Callable[..., Awaitable[T]], *args: Any, what: Optional[str] = None
+        self, request: Callable[..., Awaitable[T]], *args: Any, what: str | None = None
     ) -> T:
         """``request(session, access_token, *args)``, once the token and a slot are in hand.
 
@@ -190,7 +191,7 @@ class RestGateway:
         request: Callable[..., Awaitable[T]],
         access_token: str,
         *args: Any,
-        what: Optional[str] = None,
+        what: str | None = None,
         **kwargs: Any,
     ) -> T:
         """``request(session, access_token, *args, **kwargs)`` with token and slot already in hand.

@@ -7,7 +7,7 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 from types import SimpleNamespace
 
 import aiohttp
@@ -21,7 +21,7 @@ flow_answers = load_module("flow_answers")
 vehicle_options = load_module("vehicle_options")
 const = load_module("const")
 
-NOW = datetime(2026, 11, 4, 12, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 11, 4, 12, 0, tzinfo=UTC)
 UTC = int(NOW.timestamp())
 VIN = "WBAEXAMPLE0000001"
 OTHER = "WBAEXAMPLE0000002"

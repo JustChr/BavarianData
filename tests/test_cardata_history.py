@@ -8,7 +8,7 @@ update the existing session, never duplicate it.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, UTC
 
 import pytest
 
@@ -24,7 +24,7 @@ merge_cardata_sessions = cardata_history.merge_cardata_sessions
 
 # 2026-07-19 09:14:04 UTC-ish; exact value only matters for round-tripping.
 START_EPOCH = 1784628184
-START_DT = datetime.fromtimestamp(START_EPOCH, tz=timezone.utc)
+START_DT = datetime.fromtimestamp(START_EPOCH, tz=UTC)
 
 
 def _raw(**overrides) -> dict:

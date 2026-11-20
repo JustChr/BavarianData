@@ -18,7 +18,7 @@ the morning's solar.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 from .energy_mix import MixAccumulator
 from .pricing import CostAccumulator
@@ -51,8 +51,8 @@ class HeldEnergy:
     def hold(
         self,
         battery_kwh: float,
-        billable_kwh: Optional[float],
-        shares: Optional[dict[str, float]],
+        billable_kwh: float | None,
+        shares: dict[str, float] | None,
     ) -> dict[str, float]:
         """Book one increment; return how it split, for the caller to bill.
 
@@ -69,8 +69,8 @@ class HeldEnergy:
     def release(
         self,
         battery_kwh: float,
-        mix: Optional[MixAccumulator],
-        cost: Optional[CostAccumulator],
+        mix: MixAccumulator | None,
+        cost: CostAccumulator | None,
     ) -> None:
         """Move the share of the pool that ``battery_kwh`` represents.
 
@@ -110,7 +110,7 @@ class HeldEnergy:
         }
 
     @classmethod
-    def from_dict(cls, data: Optional[dict[str, Any]], *, currency: str) -> "HeldEnergy":
+    def from_dict(cls, data: dict[str, Any] | None, *, currency: str) -> HeldEnergy:
         """Rebuild a snapshotted pool, or start an empty one.
 
         A snapshot from before the pool existed has none; the session then

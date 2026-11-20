@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, UTC
 
 from .conftest import load_module
 
 PR = load_module("phone_route")
 
-T0 = datetime(2026, 10, 12, 8, 0, tzinfo=timezone.utc)
+T0 = datetime(2026, 10, 12, 8, 0, tzinfo=UTC)
 PARKED = (50.7300, 7.1000)
 
 

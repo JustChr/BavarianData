@@ -21,7 +21,8 @@ Home Assistant-free on purpose.
 
 from __future__ import annotations
 
-from typing import Any, Callable, Optional
+from typing import Any
+from collections.abc import Callable
 
 _FUEL = "vehicle.drivetrain.fuelSystem.consumptionOverLifeTime."
 _GRID = "vehicle.drivetrain.electricEngine.charging.consumptionOverLifeTime."
@@ -55,12 +56,12 @@ MIN_DISTANCE_KM = 500.0
 FUEL_RANGE = (1.0, 30.0)
 ELECTRIC_RANGE = (8.0, 50.0)
 
-Reader = Callable[[str], Optional[float]]
+Reader = Callable[[str], float | None]
 
 
 def _ratio(
-    amount: Optional[float], distance: Optional[float], bounds: tuple[float, float]
-) -> Optional[float]:
+    amount: float | None, distance: float | None, bounds: tuple[float, float]
+) -> float | None:
     if amount is None or distance is None or distance < MIN_DISTANCE_KM:
         return None
     value = amount / distance * 100.0
@@ -69,7 +70,7 @@ def _ratio(
     return round(value, 1)
 
 
-def lifetime(read: Reader, *, hybrid: bool = False) -> Optional[dict[str, Any]]:
+def lifetime(read: Reader, *, hybrid: bool = False) -> dict[str, Any] | None:
     """BMW's lifetime figures for one car, or ``None`` when it has none.
 
     ``read`` returns a descriptor's current numeric value (litres, kWh, km).

@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, UTC
 
 from .conftest import load_module
 
 trips = load_module("history.trips")
 wc = load_module("history.weather_consumption")
 
-START = datetime(2026, 1, 10, 8, 0, tzinfo=timezone.utc)
+START = datetime(2026, 1, 10, 8, 0, tzinfo=UTC)
 
 
 def _trip(

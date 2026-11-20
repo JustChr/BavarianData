@@ -37,7 +37,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Mapping, Optional
+from typing import Any
+from collections.abc import Mapping
 
 # How long a new odometer reading must hold before it is announced. Long enough
 # that a car streaming live (1 km steps, GPS every few seconds) is past its
@@ -63,10 +64,10 @@ class ReportDecision:
     """What to do with a reading; ``baseline`` is what an ``ARM`` is measured from."""
 
     kind: str
-    baseline: Optional[Mapping[str, Any]] = None
+    baseline: Mapping[str, Any] | None = None
 
 
-def _parse(value: Any) -> Optional[datetime]:
+def _parse(value: Any) -> datetime | None:
     if not isinstance(value, str) or not value:
         return None
     try:
@@ -76,7 +77,7 @@ def _parse(value: Any) -> Optional[datetime]:
     return parsed if parsed.tzinfo is not None else None
 
 
-def _km(record: Optional[Mapping[str, Any]]) -> Optional[float]:
+def _km(record: Mapping[str, Any] | None) -> float | None:
     if record is None:
         return None
     value = record.get("odometer_km")
@@ -86,7 +87,7 @@ def _km(record: Optional[Mapping[str, Any]]) -> Optional[float]:
 
 
 def plausible_step(
-    base: Mapping[str, Any], odometer_km: float, *, timestamp: Optional[str], now: datetime
+    base: Mapping[str, Any], odometer_km: float, *, timestamp: str | None, now: datetime
 ) -> bool:
     """Whether the car could have driven from ``base`` to this reading.
 
@@ -113,10 +114,10 @@ def plausible_step(
 
 
 def report_decision(
-    odometer_km: Optional[float],
-    last: Optional[Mapping[str, Any]],
+    odometer_km: float | None,
+    last: Mapping[str, Any] | None,
     *,
-    timestamp: Optional[str] = None,
+    timestamp: str | None = None,
     now: datetime,
 ) -> ReportDecision:
     """What a new odometer reading means: seed, arm, set aside, or nothing.
@@ -148,9 +149,9 @@ def report_payload(
     vin: str,
     *,
     odometer_km: float,
-    timestamp: Optional[str],
+    timestamp: str | None,
     last: Mapping[str, Any],
-    values: Mapping[str, Optional[float]],
+    values: Mapping[str, float | None],
 ) -> dict[str, Any]:
     """The event data: the new reading, the one before it, and what came with it.
 
@@ -195,7 +196,7 @@ MARK_MAX_AGE_S = 12 * 3600
 MAX_MARKS = 10
 
 
-def add_start_mark(record: Optional[Mapping[str, Any]], at: datetime) -> dict[str, Any]:
+def add_start_mark(record: Mapping[str, Any] | None, at: datetime) -> dict[str, Any]:
     """The report record with a start mark added, in time order, bounded.
 
     Kept in the record so a mark survives a restart between the driver getting
@@ -212,8 +213,8 @@ def add_start_mark(record: Optional[Mapping[str, Any]], at: datetime) -> dict[st
 
 
 def take_start_mark(
-    marks: Any, *, previous_at: Optional[datetime], end_at: datetime
-) -> tuple[Optional[datetime], list[str]]:
+    marks: Any, *, previous_at: datetime | None, end_at: datetime
+) -> tuple[datetime | None, list[str]]:
     """The trip's start from the marks, and the marks left for later trips.
 
     A trip ends at ``end_at`` (the report, by the car's clock) and cannot have
@@ -232,7 +233,7 @@ def take_start_mark(
     return (min(inside) if inside else None), later
 
 
-def report_time(record: Optional[Mapping[str, Any]]) -> Optional[datetime]:
+def report_time(record: Mapping[str, Any] | None) -> datetime | None:
     """When a recorded reading was taken: by the car's clock, else by ours."""
 
     if record is None:

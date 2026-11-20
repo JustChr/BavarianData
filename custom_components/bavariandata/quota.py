@@ -17,14 +17,15 @@ from __future__ import annotations
 import asyncio
 import time
 from collections import deque
-from datetime import datetime, timezone
-from typing import Any, Callable, Deque, Iterable, Optional
+from datetime import datetime, UTC
+from typing import Any
+from collections.abc import Callable, Iterable
 
 from .const import REQUEST_LIMIT
 from .rest import CardataQuotaError
 
 
-def parse_timestamps(raw: Any) -> Deque[float]:
+def parse_timestamps(raw: Any) -> deque[float]:
     """The stored claims as epoch seconds, oldest first.
 
     Numbers, numeric strings and ISO 8601 strings (an older format) are read;
@@ -33,7 +34,7 @@ def parse_timestamps(raw: Any) -> Deque[float]:
 
     values: list[float] = []
     for item in raw if isinstance(raw, (list, tuple)) else []:
-        value: Optional[float] = None
+        value: float | None = None
         if isinstance(item, (int, float)) and not isinstance(item, bool):
             value = float(item)
         elif isinstance(item, str):
@@ -68,14 +69,14 @@ class QuotaManager:
         clock: Callable[[], float] = time.time,
     ) -> None:
         self._store = store
-        self._timestamps: Deque[float] = deque(timestamps)
+        self._timestamps: deque[float] = deque(timestamps)
         self._on_exhausted = on_exhausted
         self._on_available = on_available
         self._clock = clock
         self._lock = asyncio.Lock()
 
     @classmethod
-    async def async_create(cls, store: Any, **kwargs: Any) -> "QuotaManager":
+    async def async_create(cls, store: Any, **kwargs: Any) -> QuotaManager:
         """Load the stored claims, drop the expired ones and save the rest."""
 
         data = await store.async_load() or {}
@@ -117,18 +118,18 @@ class QuotaManager:
         return max(0, REQUEST_LIMIT - self.used)
 
     @property
-    def next_reset_epoch(self) -> Optional[float]:
+    def next_reset_epoch(self) -> float | None:
         self._prune(self._clock())
         if len(self._timestamps) < REQUEST_LIMIT:
             return None
         return day_start(self._clock()) + 86400
 
     @property
-    def next_reset_iso(self) -> Optional[str]:
+    def next_reset_iso(self) -> str | None:
         ts = self.next_reset_epoch
         if ts is None:
             return None
-        return datetime.fromtimestamp(ts, timezone.utc).isoformat()
+        return datetime.fromtimestamp(ts, UTC).isoformat()
 
     async def async_close(self) -> None:
         async with self._lock:

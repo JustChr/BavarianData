@@ -8,7 +8,7 @@ report a month whose charging couldn't bracket enough distance to mean anything.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, UTC
 
 from .conftest import load_module
 
@@ -21,7 +21,7 @@ ChargingSession = models.ChargingSession
 # The live car this was calibrated against: a 78 kWh i5 that measured
 # 17.5 kWh/100 km battery-side over a 451 km window.
 CAP = 78.0
-NOW = datetime(2026, 9, 12, 12, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 9, 12, 12, 0, tzinfo=UTC)
 
 
 def _charge(days_ago: float, *, odo: float, soc: float, kwh=None, grid=None):
@@ -211,8 +211,8 @@ def test_bmw_range_is_not_scaled_up_from_a_nearly_empty_battery():
 def _month_pair(year: int, month: int, *, odo: float, kwh: float):
     """Two charges inside one calendar month, bracketing 200 km."""
 
-    first = datetime(year, month, 2, 8, 0, tzinfo=timezone.utc)
-    second = datetime(year, month, 20, 8, 0, tzinfo=timezone.utc)
+    first = datetime(year, month, 2, 8, 0, tzinfo=UTC)
+    second = datetime(year, month, 20, 8, 0, tzinfo=UTC)
     return [
         ChargingSession(
             vin="WBY1",
@@ -241,7 +241,7 @@ def test_monthly_trend_runs_oldest_first_and_skips_what_it_cannot_measure():
         + [
             ChargingSession(
                 vin="WBY1",
-                start=datetime(2026, 8, 10, 8, 0, tzinfo=timezone.utc),
+                start=datetime(2026, 8, 10, 8, 0, tzinfo=UTC),
                 mileage_km=10300.0,
                 soc_end=80.0,
                 energy_kwh=30.0,

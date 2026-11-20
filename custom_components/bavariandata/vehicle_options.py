@@ -21,7 +21,8 @@ No Home Assistant imports: the rules are unit-tested directly.
 
 from __future__ import annotations
 
-from typing import Any, Mapping, Optional
+from typing import Any
+from collections.abc import Mapping
 
 from .const import (
     OPTION_ABRP_ENABLED,
@@ -108,8 +109,8 @@ def _vehicles(options: Mapping[str, Any]) -> Mapping[str, Any]:
 
 
 def own_values(
-    options: Mapping[str, Any], vin: Optional[str], keys: tuple[str, ...]
-) -> Optional[dict[str, Any]]:
+    options: Mapping[str, Any], vin: str | None, keys: tuple[str, ...]
+) -> dict[str, Any] | None:
     """The car's own values for one group, or ``None`` if it has none."""
 
     own = _vehicles(options).get(vin) if vin else None
@@ -119,7 +120,7 @@ def own_values(
 
 
 def values_for(
-    options: Mapping[str, Any], vin: Optional[str], keys: tuple[str, ...]
+    options: Mapping[str, Any], vin: str | None, keys: tuple[str, ...]
 ) -> dict[str, Any]:
     """The values of one group in force for ``vin`` (what its screen shows)."""
 
@@ -145,7 +146,7 @@ def store_values(
     values: Mapping[str, Any],
     keys: tuple[str, ...],
     *,
-    vin: Optional[str],
+    vin: str | None,
     per_vehicle: bool,
 ) -> dict[str, Any]:
     """New options with one screen's per-car values stored.
@@ -180,7 +181,7 @@ def store_values(
     return updated
 
 
-def mileage_values(options: Mapping[str, Any], vin: Optional[str]) -> dict[str, Any]:
+def mileage_values(options: Mapping[str, Any], vin: str | None) -> dict[str, Any]:
     """The car's own mileage allowance; empty when it has none."""
 
     return own_values(options, vin, MILEAGE_OPTIONS) or {}
@@ -230,14 +231,14 @@ def _without_group(options: Mapping[str, Any], vin: str, keys: tuple[str, ...]) 
     return updated
 
 
-def upholstery_for(options: Mapping[str, Any], vin: Optional[str]) -> Optional[str]:
+def upholstery_for(options: Mapping[str, Any], vin: str | None) -> str | None:
     """The upholstery code the car's configurator picture is drawn in, or None for BMW's default."""
 
     value = (own_values(options, vin, UPHOLSTERY_OPTIONS) or {}).get(OPTION_CONFIGURATOR_UPHOLSTERY)
     return value if isinstance(value, str) and value else None
 
 
-def store_upholstery(options: Mapping[str, Any], vin: str, code: Optional[str]) -> dict[str, Any]:
+def store_upholstery(options: Mapping[str, Any], vin: str, code: str | None) -> dict[str, Any]:
     """New options with the car's upholstery set to ``code``; None returns it to BMW's default."""
 
     if not code:
@@ -246,7 +247,7 @@ def store_upholstery(options: Mapping[str, Any], vin: str, code: Optional[str]) 
     return store_values(options, picked, UPHOLSTERY_OPTIONS, vin=vin, per_vehicle=True)
 
 
-def abrp_values(options: Mapping[str, Any], vin: Optional[str]) -> dict[str, Any]:
+def abrp_values(options: Mapping[str, Any], vin: str | None) -> dict[str, Any]:
     """The car's own ABRP settings; empty when it has none."""
 
     return own_values(options, vin, ABRP_OPTIONS) or {}

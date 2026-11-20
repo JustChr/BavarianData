@@ -9,7 +9,7 @@ the service / repair-issue wiring import HA and are exercised on a live instance
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, UTC
 
 from .conftest import load_module
 
@@ -18,7 +18,7 @@ coverage = load_module("coverage")
 analyze_coverage = coverage.analyze_coverage
 DEFAULT_GRACE_DAYS = coverage.DEFAULT_GRACE_DAYS
 
-NOW = datetime(2026, 7, 24, 12, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 7, 24, 12, 0, tzinfo=UTC)
 
 LABELS = {"electric": "Electric", "tire": "Tyres"}
 EXPECTED = {

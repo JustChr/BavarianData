@@ -28,7 +28,7 @@ from __future__ import annotations
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Deque, Dict, Optional
+from typing import Any
 
 # Both repairs link to the Wiki's Troubleshooting page so the fix is one click
 # away; the URL lives here rather than in the translation strings because
@@ -56,21 +56,21 @@ class StreamHealth:
     """The stream's state as the diagnostics and the repairs see it."""
 
     status: str = "connecting"
-    last_disconnect_reason: Optional[str] = None
+    last_disconnect_reason: str | None = None
     # Recent connection transitions (status + rc/reason + time).
-    history: Deque[Dict[str, Any]] = field(
+    history: deque[dict[str, Any]] = field(
         default_factory=lambda: deque(maxlen=CONNECTION_HISTORY_LEN), repr=False
     )
     # When the stream last stopped being connected; None while connected.
-    down_since: Optional[datetime] = field(default=None, repr=False)
+    down_since: datetime | None = field(default=None, repr=False)
     # First time the stream went "unauthorized" without recovering since.
     # Cleared on the next successful connect.
-    unauthorized_since: Optional[datetime] = None
+    unauthorized_since: datetime | None = None
     # A renewed token was refused too since then: another client holds the
     # stream. Cleared, like ``unauthorized_since``, on the next connect.
     held_elsewhere: bool = False
 
-    def note(self, status: str, reason: Optional[str], now: datetime) -> Optional[float]:
+    def note(self, status: str, reason: str | None, now: datetime) -> float | None:
         """Record one connection event; the outage's length when it just ended.
 
         An outage is measured from the first event that was not "connected"
@@ -78,7 +78,7 @@ class StreamHealth:
         outage behind it -- returns ``None``; the startup catch-up covers that.
         """
 
-        outage_s: Optional[float] = None
+        outage_s: float | None = None
         if status == "connected":
             down_since, self.down_since = self.down_since, None
             if down_since is not None:
@@ -108,8 +108,8 @@ class StreamHealth:
         self,
         now: datetime,
         *,
-        last_message_at: Optional[datetime],
-        started_at: Optional[datetime],
+        last_message_at: datetime | None,
+        started_at: datetime | None,
     ) -> tuple[bool, bool]:
         """Which repairs should stand now: ``(unauthorized, no_data)``."""
 

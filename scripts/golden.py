@@ -50,7 +50,6 @@ import sys
 import tempfile
 import time
 from pathlib import Path
-from typing import Optional
 
 REPO = Path(__file__).resolve().parents[1]
 TRACE_DIR_ENV = "BAVARIANDATA_TRACE_DIR"
@@ -93,8 +92,8 @@ class Run:
         out: Path,
         *,
         root: Path = REPO,
-        twin: Optional[str] = None,
-        pytest_args: Optional[list[str]] = None,
+        twin: str | None = None,
+        pytest_args: list[str] | None = None,
     ) -> None:
         if out.exists():
             shutil.rmtree(out)
@@ -139,7 +138,7 @@ def record(out: Path, **kwargs) -> int:
 WRITE_TIMING = ("store ", "final ")
 
 
-def _lines(path: Path, car: Optional[str]) -> list[str]:
+def _lines(path: Path, car: str | None) -> list[str]:
     lines = path.read_text(encoding="utf-8").splitlines()
     if car is None:
         return lines
@@ -152,7 +151,7 @@ def _lines(path: Path, car: Optional[str]) -> list[str]:
     ]
 
 
-def compare(a: Path, b: Path, *, car: Optional[str] = None, label: str = "") -> bool:
+def compare(a: Path, b: Path, *, car: str | None = None, label: str = "") -> bool:
     """True when every trace in ``a`` matches its namesake in ``b``."""
 
     names_a = {p.name for p in a.glob("*.trace")}
@@ -257,7 +256,7 @@ def gate(base: str, twins: list[str], keep: Path) -> int:
     return 0 if green else 1
 
 
-def main(argv: Optional[list[str]] = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     sub = parser.add_subparsers(dest="command", required=True)
     p_gate = sub.add_parser("gate", help="determinism, behaviour against a base, isolation")

@@ -44,7 +44,8 @@ import os
 import re
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Optional
+from typing import TYPE_CHECKING, Any
+from collections.abc import Callable
 
 if TYPE_CHECKING:
     from .harness import CoordinatorHarness
@@ -255,11 +256,11 @@ class Tracer:
         self._issues: dict[str, str] = {}
         self._store: dict[tuple[str, str], str] = {}
         self._store_writes = -1
-        self._timers: Optional[str] = None
+        self._timers: str | None = None
         self._gets: dict[tuple[str, str], str] = {}
         self._steps = 0
 
-    def _tag(self, vin: Optional[str]) -> str:
+    def _tag(self, vin: str | None) -> str:
         return self._h.alias(vin) if vin else "-"
 
     def _emit(self, owner: str, kind: str, text: str) -> None:
@@ -347,7 +348,7 @@ class Tracer:
 _counts: dict[str, int] = {}
 
 
-def tracer_for(harness: CoordinatorHarness, path: Optional[Path] = None) -> Optional[Tracer]:
+def tracer_for(harness: CoordinatorHarness, path: Path | None = None) -> Tracer | None:
     """A tracer writing to ``path``, or under the running test's name when tracing is on."""
 
     if path is not None:

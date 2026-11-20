@@ -9,7 +9,7 @@ so Bronze's ``config-flow-test-coverage`` holds for every line of the flows.
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 from unittest.mock import AsyncMock, patch
 
 from homeassistant.core import HomeAssistant
@@ -173,7 +173,7 @@ async def test_charging_costs_with_statistics_rebuild_them(hass: HomeAssistant, 
 
 async def _bridge_for(
     hass: HomeAssistant, entry, vin: str, enabled: bool, *, stream: bool = False, **shared: Any
-) -> Optional[str]:
+) -> str | None:
     """Set one car's switches; the evcc configuration shown after, if any."""
 
     result = await _configure(hass, entry, _Walk(), "share_live_data", "action_evcc_bridge")

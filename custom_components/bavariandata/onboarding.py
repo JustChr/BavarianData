@@ -39,7 +39,7 @@ import urllib.parse
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from html import escape
-from typing import Any, Optional
+from typing import Any
 
 try:  # normal case: imported as part of the package
     from .descriptors import default_sections, descriptors_for_sections
@@ -408,16 +408,16 @@ class OnboardingClient:
 class OnboardingResult:
     """Decoded, non-secret result of one activator run."""
 
-    origin: Optional[str] = None
-    locale: Optional[str] = None
-    mapped_vehicle_id: Optional[str] = None
+    origin: str | None = None
+    locale: str | None = None
+    mapped_vehicle_id: str | None = None
     clients: list[OnboardingClient] = field(default_factory=list)
     vehicle: dict[str, Any] = field(default_factory=dict)
-    activated: Optional[dict[str, Any]] = None
+    activated: dict[str, Any] | None = None
     errors: list[str] = field(default_factory=list)
 
     @property
-    def primary_client_id(self) -> Optional[str]:
+    def primary_client_id(self) -> str | None:
         """The client id to feed the device flow.
 
         Prefer an application carrying ``cardata:api:read``; fall back to the
@@ -429,7 +429,7 @@ class OnboardingResult:
                 return client.apikey
         return self.clients[0].apikey if self.clients else None
 
-    def _activated_int(self, key: str) -> Optional[int]:
+    def _activated_int(self, key: str) -> int | None:
         if isinstance(self.activated, dict):
             value = self.activated.get(key)
             if isinstance(value, (int, float)):
@@ -437,19 +437,19 @@ class OnboardingResult:
         return None
 
     @property
-    def activated_count(self) -> Optional[int]:
+    def activated_count(self) -> int | None:
         """Total fields streaming after activation."""
 
         return self._activated_int("total")
 
     @property
-    def added_count(self) -> Optional[int]:
+    def added_count(self) -> int | None:
         """How many fields this run newly switched on."""
 
         return self._activated_int("added")
 
     @property
-    def skipped_count(self) -> Optional[int]:
+    def skipped_count(self) -> int | None:
         """How many wanted fields were dropped as not streamable for this vehicle."""
 
         return self._activated_int("skipped")

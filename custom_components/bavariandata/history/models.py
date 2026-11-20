@@ -12,8 +12,8 @@ why timestamps are serialised as ISO 8601 strings.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from typing import Any, Optional, cast
+from datetime import datetime, timedelta, UTC
+from typing import Any, cast
 
 # Bumped whenever a record's on-disk shape changes incompatibly. ``store.py``
 # refuses to load data written by a newer schema than it understands.
@@ -21,11 +21,11 @@ from typing import Any, Optional, cast
 SCHEMA_VERSION = 2
 
 
-def _iso(value: Optional[datetime]) -> Optional[str]:
-    return None if value is None else value.astimezone(timezone.utc).isoformat()
+def _iso(value: datetime | None) -> str | None:
+    return None if value is None else value.astimezone(UTC).isoformat()
 
 
-def _parse(value: Optional[str]) -> Optional[datetime]:
+def _parse(value: str | None) -> datetime | None:
     if not value:
         return None
     try:
@@ -35,7 +35,7 @@ def _parse(value: Optional[str]) -> Optional[datetime]:
     # Treat a naive stored timestamp as UTC rather than dropping the record;
     # older writes (or a hand-edited store) shouldn't lose a whole session.
     if parsed.tzinfo is None:
-        return parsed.replace(tzinfo=timezone.utc)
+        return parsed.replace(tzinfo=UTC)
     return parsed
 
 
@@ -53,13 +53,13 @@ class ChargingSession:
 
     vin: str
     start: datetime
-    end: Optional[datetime] = None
-    soc_start: Optional[float] = None
-    soc_end: Optional[float] = None
-    target_soc: Optional[float] = None
-    energy_kwh: Optional[float] = None
-    grid_kwh: Optional[float] = None
-    peak_power_kw: Optional[float] = None
+    end: datetime | None = None
+    soc_start: float | None = None
+    soc_end: float | None = None
+    target_soc: float | None = None
+    energy_kwh: float | None = None
+    grid_kwh: float | None = None
+    peak_power_kw: float | None = None
     # [[seconds_since_start, kw], ...] -- downsampled, bounded (see sessions.py).
     power_curve: list[list[float]] = field(default_factory=list)
     # {"zone": "Home"|"Work"|...} when the point falls in an HA zone; otherwise
@@ -68,15 +68,15 @@ class ChargingSession:
     # {"provider": "<operator>"}. Raw coordinates ("lat"/"lon") are kept only
     # while *Remember charging locations* is on (``HistoryStore.remember_locations``);
     # turning it off strips them from every record (``forget_locations``).
-    location: Optional[dict[str, Any]] = None
+    location: dict[str, Any] | None = None
     # True when no GPS was available and the home tariff was applied anyway.
     location_assumed: bool = False
     # {"amount": float, "currency": "EUR", "source": "tariff"|"bmw"|"user"};
     # an entered ("user") cost keeps the figure it replaced under "replaced".
-    cost: Optional[dict[str, Any]] = None
-    end_reason: Optional[str] = None
+    cost: dict[str, Any] | None = None
+    end_reason: str | None = None
     # Odometer at the end of the session; lets cost be expressed per distance.
-    mileage_km: Optional[float] = None
+    mileage_km: float | None = None
     # Set once BMW's charging history has been merged in.
     enriched: bool = False
     # True when charging had demonstrably been running before we noticed it: the
@@ -102,20 +102,20 @@ class ChargingSession:
     # asked (no PV/grid sensors configured) or nothing could be attributed --
     # which is deliberately distinct from a mix that says none of it was solar.
     # Built by ``energy_mix.MixAccumulator`` as the energy arrives.
-    energy_mix: Optional[dict[str, Any]] = None
+    energy_mix: dict[str, Any] | None = None
     # Who measured ``grid_kwh``: "meter" (the bound wallbox, over exactly this
     # record's span) or "bmw" (its charging history). The meter's figure is the
     # exact one and survives a merge with BMW's; only a "meter" figure may teach
     # the meter model (``meter_rate``). ``None`` when there is no grid figure, or
     # on a record enriched before this was kept, whose figure may be either.
-    grid_source: Optional[str] = None
+    grid_source: str | None = None
     # "ac" or "dc" when the car said which at the start of a live charge
     # (``chargingPort.dcStatus`` / ``charging.method``). ``None`` leaves it to
     # the peak power (``stations.charge_kind``).
-    charge_method: Optional[str] = None
+    charge_method: str | None = None
     # Whether the battery was preconditioned for this charge. Only BMW's
     # charging history says so; ``None`` means nobody told us.
-    preconditioned: Optional[bool] = None
+    preconditioned: bool | None = None
 
     @property
     def id(self) -> str:
@@ -124,7 +124,7 @@ class ChargingSession:
         return f"{self.vin}-{_iso(self.start)}"
 
     @property
-    def effective_energy_kwh(self) -> Optional[float]:
+    def effective_energy_kwh(self) -> float | None:
         """The kWh figure a user-facing total should count for this session.
 
         Prefers the measured grid figure over our integrated battery-side one:
@@ -141,19 +141,19 @@ class ChargingSession:
         return self.energy_kwh
 
     @property
-    def duration_s(self) -> Optional[int]:
+    def duration_s(self) -> int | None:
         if self.end is None:
             return None
         return max(0, int((self.end - self.start).total_seconds()))
 
     @property
-    def soc_delta(self) -> Optional[float]:
+    def soc_delta(self) -> float | None:
         if self.soc_start is None or self.soc_end is None:
             return None
         return round(self.soc_end - self.soc_start, 1)
 
     @property
-    def avg_power_kw(self) -> Optional[float]:
+    def avg_power_kw(self) -> float | None:
         """Derived from energy over time rather than averaging the curve.
 
         The curve is downsampled and unevenly spaced, so averaging its points
@@ -192,7 +192,7 @@ class ChargingSession:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Optional["ChargingSession"]:
+    def from_dict(cls, data: dict[str, Any]) -> ChargingSession | None:
         """Rebuild a record, or return ``None`` if it is unusable.
 
         A stored session without a VIN or start time can't be placed on a
@@ -233,7 +233,7 @@ class ChargingSession:
         )
 
 
-def _grid_source(data: dict[str, Any]) -> Optional[str]:
+def _grid_source(data: dict[str, Any]) -> str | None:
     """Who measured a stored record's ``grid_kwh``, inferring it for old ones.
 
     Before the source was kept, a live record only ever got ``grid_kwh`` from
@@ -254,7 +254,7 @@ def prune_sessions(
     sessions: list[ChargingSession],
     *,
     now: datetime,
-    retain_months: Optional[int],
+    retain_months: int | None,
     max_entries: int,
 ) -> list[ChargingSession]:
     """Apply the retention policy, newest first.

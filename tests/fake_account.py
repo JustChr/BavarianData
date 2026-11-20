@@ -9,7 +9,8 @@ order.
 from __future__ import annotations
 
 import asyncio
-from typing import Any, Callable, Optional
+from typing import Any
+from collections.abc import Callable
 
 from .conftest import load_module
 
@@ -21,7 +22,7 @@ rest = load_module("rest")
 class FixedTokens:
     """A token keeper whose token never lapses, or that can't get one."""
 
-    def __init__(self, token: str = "token", error: Optional[BaseException] = None) -> None:
+    def __init__(self, token: str = "token", error: BaseException | None = None) -> None:
         self.token = token
         self.error = error
         self.asked = 0
@@ -36,9 +37,9 @@ class FixedTokens:
 def gateway(
     session: Any,
     *,
-    claim: Optional[Callable] = None,
+    claim: Callable | None = None,
     token: str = "token",
-    error: Optional[BaseException] = None,
+    error: BaseException | None = None,
 ) -> Any:
     """A real ``RestGateway`` over ``session`` (``conftest.FakeSession``)."""
 
@@ -52,7 +53,7 @@ class FakeBmw:
     request's arguments and returning (or raising) one.
     """
 
-    def __init__(self, answers: Optional[dict[Callable, Any]] = None) -> None:
+    def __init__(self, answers: dict[Callable, Any] | None = None) -> None:
         self.answers = dict(answers or {})
         self.sent: list[tuple[str, tuple]] = []
 
@@ -101,24 +102,24 @@ class FakeCoordinator:
 class FakeContainer:
     """A container manager whose BMW side answers ``created``."""
 
-    def __init__(self, kind: Any, created: Optional[str] = None, error: bool = False) -> None:
+    def __init__(self, kind: Any, created: str | None = None, error: bool = False) -> None:
         self.kind = kind
         self.descriptor_signature = f"sig-{kind.key}"
         self.created = created
         self.error = error
         self.calls: list[str] = []
-        self.synced: list[Optional[str]] = []
+        self.synced: list[str | None] = []
 
-    def sync_from_entry(self, container_id: Optional[str]) -> None:
+    def sync_from_entry(self, container_id: str | None) -> None:
         self.synced.append(container_id)
 
-    async def async_ensure_hv_container(self) -> Optional[str]:
+    async def async_ensure_hv_container(self) -> str | None:
         return self._answer("ensure")
 
-    async def async_reset_hv_container(self) -> Optional[str]:
+    async def async_reset_hv_container(self) -> str | None:
         return self._answer("reset")
 
-    def _answer(self, call: str) -> Optional[str]:
+    def _answer(self, call: str) -> str | None:
         self.calls.append(call)
         if self.error:
             raise container.CardataContainerError("BMW said no")
@@ -131,10 +132,10 @@ class FakeHost:
         bmw: FakeBmw,
         *,
         vins: tuple[str, ...] = (),
-        data: Optional[dict] = None,
-        options: Optional[dict] = None,
-        containers: Optional[dict] = None,
-        quota_remaining: Optional[int] = None,
+        data: dict | None = None,
+        options: dict | None = None,
+        containers: dict | None = None,
+        quota_remaining: int | None = None,
     ) -> None:
         self.entry_id = "entry"
         self.coordinator = FakeCoordinator()

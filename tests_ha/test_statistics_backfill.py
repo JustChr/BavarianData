@@ -8,7 +8,7 @@ the recorder's database and are read back from its metadata.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, UTC
 from unittest.mock import patch
 
 import pytest
@@ -26,7 +26,7 @@ from custom_components.bavariandata.history.trips import Trip
 
 from .conftest import VIN
 
-START = datetime(2026, 10, 20, 10, 0, tzinfo=timezone.utc)
+START = datetime(2026, 10, 20, 10, 0, tzinfo=UTC)
 ENERGY = statistic_id(VIN, "charging_energy")
 HOME = statistic_id(VIN, "charging_energy_home")
 COST = statistic_id(VIN, "charging_cost")

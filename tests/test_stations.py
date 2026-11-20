@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, UTC
 
 from .conftest import load_module
 
@@ -12,7 +12,7 @@ stations = load_module("history.stations")
 ChargingSession = models.ChargingSession
 charging_places = stations.charging_places
 
-T0 = datetime(2026, 9, 1, 8, 0, tzinfo=timezone.utc)
+T0 = datetime(2026, 9, 1, 8, 0, tzinfo=UTC)
 HOME = {"zone": "Home"}
 # Two posts of one charging park, ~30 m apart, and a site 5 km away.
 PARK_A = {"zone": None, "lat": 48.30000, "lon": 11.90000, "provider": "Ionity"}

@@ -13,7 +13,8 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Any, Callable, Iterable, Mapping, Optional
+from typing import Any
+from collections.abc import Callable, Iterable, Mapping
 
 from .const import (
     DEBUG_LOG,
@@ -50,7 +51,7 @@ def debug_flag(options: Mapping[str, Any]) -> bool:
     return DEBUG_LOG if value is None else bool(value)
 
 
-def retain_months(options: Mapping[str, Any]) -> Optional[int]:
+def retain_months(options: Mapping[str, Any]) -> int | None:
     """Retention in months, where 0 (or nonsense) means keep forever."""
 
     try:
@@ -60,7 +61,7 @@ def retain_months(options: Mapping[str, Any]) -> Optional[int]:
     return months if months > 0 else None
 
 
-def without_retired_keys(data: Mapping[str, Any]) -> Optional[dict[str, Any]]:
+def without_retired_keys(data: Mapping[str, Any]) -> dict[str, Any] | None:
     """The entry's data without keys no release reads, or ``None`` if it has none.
 
     v0.9.20-beta.6's fallback container and the service items' container of

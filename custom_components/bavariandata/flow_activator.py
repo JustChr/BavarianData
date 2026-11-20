@@ -14,7 +14,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import TYPE_CHECKING, Any
 
 from aiohttp import web
 import voluptuous as vol
@@ -172,11 +172,11 @@ class StreamActivatorFlow(_FlowBase):
     def _init_activator_state(self) -> None:
         """Initialise the per-flow activator state (call from ``__init__``)."""
 
-        self._onboarding: Optional[OnboardingResult] = None
-        self._onboarding_webhook_id: Optional[str] = None
-        self._onboarding_event: Optional[asyncio.Event] = None
+        self._onboarding: OnboardingResult | None = None
+        self._onboarding_webhook_id: str | None = None
+        self._onboarding_event: asyncio.Event | None = None
         self._onboarding_page_url: str = ""
-        self._onboarding_wait_task: Optional[asyncio.Task[Any]] = None
+        self._onboarding_wait_task: asyncio.Task[Any] | None = None
         self._onboarding_auto: bool = False
 
     @callback
@@ -273,13 +273,13 @@ class StreamActivatorFlow(_FlowBase):
         self._onboarding_webhook_id = None
         self._onboarding_event = None
 
-    async def _await_onboarding_result(self) -> Optional[OnboardingResult]:
+    async def _await_onboarding_result(self) -> OnboardingResult | None:
         """Wait (bounded) for the activator to POST its result to the webhook."""
 
         assert self._onboarding_event is not None
         try:
             await asyncio.wait_for(self._onboarding_event.wait(), timeout=ONBOARDING_WAIT_TIMEOUT)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return None
         pending = (
             self.hass.data.get(DOMAIN, {})
@@ -315,7 +315,7 @@ class StreamActivatorFlow(_FlowBase):
         raise NotImplementedError
 
     async def async_step_activate_stream_wait(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Wait for the browser activator to report the stream fields it turned on."""
 
@@ -341,7 +341,7 @@ class StreamActivatorFlow(_FlowBase):
         return self.async_show_progress_done(next_step_id="activate_stream_done")
 
     async def async_step_activate_stream_paste(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Fallback: paste the activator result if the auto-report didn't arrive."""
 
@@ -381,7 +381,7 @@ class StreamActivatorFlow(_FlowBase):
         return await self.async_step_activate_stream_done()
 
     async def async_step_activate_stream_done(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Confirm what the activator turned on, then hand back to the flow."""
 

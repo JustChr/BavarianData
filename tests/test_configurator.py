@@ -381,7 +381,7 @@ def _tile(color=(20, 60, 160), size=(168, 95)) -> bytes:
 
 class _Timeout:
     async def __aenter__(self):
-        raise asyncio.TimeoutError
+        raise TimeoutError
 
     async def __aexit__(self, *exc):
         return False

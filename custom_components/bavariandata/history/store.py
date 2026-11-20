@@ -13,8 +13,8 @@ cache and request log already use.
 from __future__ import annotations
 
 import logging
-from datetime import date, datetime, timedelta, timezone
-from typing import Any, Optional
+from datetime import date, datetime, timedelta, UTC
+from typing import Any
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.storage import Store
@@ -44,7 +44,7 @@ STORE_VERSION = 1
 SAVE_DELAY_S = 30
 # How often a plain tank reading is worth a save (see ``async_note_fuel``).
 FUEL_SAVE_INTERVAL = timedelta(minutes=15)
-DEFAULT_RETAIN_MONTHS: Optional[int] = 24
+DEFAULT_RETAIN_MONTHS: int | None = 24
 # Backstop against unbounded growth even with retention set to "forever".
 MAX_SESSIONS_PER_VIN = 2000
 # Trips are far more frequent than charges (several a day vs a few a week), so
@@ -60,7 +60,7 @@ class HistoryStore:
         hass: HomeAssistant,
         entry_id: str,
         *,
-        retain_months: Optional[int] = DEFAULT_RETAIN_MONTHS,
+        retain_months: int | None = DEFAULT_RETAIN_MONTHS,
         max_sessions: int = MAX_SESSIONS_PER_VIN,
         max_trips: int = MAX_TRIPS_PER_VIN,
         remember_locations: bool = False,
@@ -319,7 +319,7 @@ class HistoryStore:
     def _prune(self, sessions: list[ChargingSession]) -> list[ChargingSession]:
         return prune_sessions(
             sessions,
-            now=datetime.now(timezone.utc),
+            now=datetime.now(UTC),
             retain_months=self.retain_months,
             max_entries=self.max_sessions,
         )
@@ -327,18 +327,18 @@ class HistoryStore:
     def _prune_trips(self, trips: list[Trip]) -> list[Trip]:
         return prune_trips(
             trips,
-            now=datetime.now(timezone.utc),
+            now=datetime.now(UTC),
             retain_months=self.retain_months,
             max_entries=self.max_trips,
         )
 
     def sessions(
         self,
-        vin: Optional[str] = None,
+        vin: str | None = None,
         *,
-        start: Optional[datetime] = None,
-        end: Optional[datetime] = None,
-        limit: Optional[int] = None,
+        start: datetime | None = None,
+        end: datetime | None = None,
+        limit: int | None = None,
     ) -> list[ChargingSession]:
         """Recorded sessions, newest first, optionally filtered."""
 
@@ -356,7 +356,7 @@ class HistoryStore:
             found = found[:limit]
         return found
 
-    def find_session(self, vin: str, session_id: str) -> Optional[ChargingSession]:
+    def find_session(self, vin: str, session_id: str) -> ChargingSession | None:
         """A single stored charge by id, for the cost service."""
 
         for session in self._sessions.get(vin, []):
@@ -403,7 +403,7 @@ class HistoryStore:
         self.async_schedule_save()
         return True
 
-    def last_report(self, vin: str) -> Optional[dict[str, Any]]:
+    def last_report(self, vin: str) -> dict[str, Any] | None:
         """The last odometer reading announced for one VIN, or ``None``."""
 
         report = self._reports.get(vin)
@@ -416,7 +416,7 @@ class HistoryStore:
         self._reports[vin] = dict(report)
         self.async_schedule_save()
 
-    def outside(self, vin: str) -> Optional[dict[str, Any]]:
+    def outside(self, vin: str) -> dict[str, Any] | None:
         """The last day's outside temperature stored for one VIN (a copy), or ``None``."""
 
         reading = self._outside.get(vin)
@@ -447,9 +447,9 @@ class HistoryStore:
         vin: str,
         when: datetime,
         *,
-        litres: Optional[float],
-        percent: Optional[float],
-        km: Optional[float],
+        litres: float | None,
+        percent: float | None,
+        km: float | None,
     ) -> None:
         """Feed one tank reading to the fuel log.
 
@@ -464,7 +464,7 @@ class HistoryStore:
         )
         if changed is None:
             return
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         last_saved = self._fuel_saved_at.get(vin)
         if (
             changed == CHANGED_REFUEL
@@ -479,7 +479,7 @@ class HistoryStore:
 
         return fuel_report(self._fuel.get(vin, {}), now)
 
-    def km_per_day(self, vin: str, today: date) -> Optional[float]:
+    def km_per_day(self, vin: str, today: date) -> float | None:
         """The car's pace over the last 90 days, or ``None`` until it is known."""
 
         return km_per_day(self._odometer.get(vin, {}), today)
@@ -489,9 +489,9 @@ class HistoryStore:
         vin: str,
         raw_sessions: Any,
         *,
-        cost_fn: Optional[CostFn] = None,
-        zone_fn: Optional[ZoneFn] = None,
-        home_zone: Optional[str] = None,
+        cost_fn: CostFn | None = None,
+        zone_fn: ZoneFn | None = None,
+        home_zone: str | None = None,
     ) -> tuple[int, int]:
         """Import BMW's REST charging history, returning (added, updated).
 
@@ -524,7 +524,7 @@ class HistoryStore:
             return (0, 0)
         self._sessions[vin] = prune_sessions(
             merged,
-            now=datetime.now(timezone.utc),
+            now=datetime.now(UTC),
             retain_months=self.retain_months,
             max_entries=self.max_sessions,
         )
@@ -533,11 +533,11 @@ class HistoryStore:
 
     def trips(
         self,
-        vin: Optional[str] = None,
+        vin: str | None = None,
         *,
-        start: Optional[datetime] = None,
-        end: Optional[datetime] = None,
-        limit: Optional[int] = None,
+        start: datetime | None = None,
+        end: datetime | None = None,
+        limit: int | None = None,
     ) -> list[Trip]:
         """Recorded trips, newest first, optionally filtered by VIN / date range."""
 
@@ -555,7 +555,7 @@ class HistoryStore:
             found = found[:limit]
         return found
 
-    def find_trip(self, vin: str, trip_id: str) -> Optional[Trip]:
+    def find_trip(self, vin: str, trip_id: str) -> Trip | None:
         """A single stored trip by id, for the reclassification service."""
 
         for trip in self._trips.get(vin, []):

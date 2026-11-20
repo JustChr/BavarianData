@@ -13,7 +13,7 @@ Runs the shipped card under Node on synthetic ``hass.states``, like
 from __future__ import annotations
 
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, UTC
 import shutil
 import subprocess
 
@@ -389,7 +389,7 @@ def test_the_time_tile_prefers_the_meter_driven_estimate():
 
 
 def _written(states: dict, entity_id: str, ago: timedelta) -> dict:
-    when = (datetime.now(timezone.utc) - ago).replace(microsecond=0)
+    when = (datetime.now(UTC) - ago).replace(microsecond=0)
     states[entity_id] = {**states[entity_id], "last_updated": when.isoformat()}
     return states
 

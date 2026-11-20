@@ -10,7 +10,7 @@ BMW's ALL_CAPS token. BMW's reading at 10:22 was 47 %.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, UTC
 
 from tests.conftest import load_module
 
@@ -21,10 +21,10 @@ POWER_W = 3480.0
 MAX_ENERGY_KWH = 75.0  # 3.48 kW into 75 kWh is the 4.64 %/h the i5 showed
 RATE = POWER_W / 1000.0 / MAX_ENERGY_KWH * 100.0
 
-READING_AT = datetime(2026, 9, 26, 8, 12, 46, tzinfo=timezone.utc)
-CHARGE_START = datetime(2026, 9, 26, 8, 9, 58, tzinfo=timezone.utc)
-ESTIMATE_AT = datetime(2026, 9, 26, 8, 27, 40, tzinfo=timezone.utc)
-APP_OPENED = datetime(2026, 9, 26, 10, 22, 23, tzinfo=timezone.utc)
+READING_AT = datetime(2026, 9, 26, 8, 12, 46, tzinfo=UTC)
+CHARGE_START = datetime(2026, 9, 26, 8, 9, 58, tzinfo=UTC)
+ESTIMATE_AT = datetime(2026, 9, 26, 8, 27, 40, tzinfo=UTC)
+APP_OPENED = datetime(2026, 9, 26, 10, 22, 23, tzinfo=UTC)
 
 
 def _restored(

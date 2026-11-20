@@ -8,7 +8,8 @@ flips, what the trip-in-progress sensor carries, and how often it is rewritten.
 
 from __future__ import annotations
 
-from typing import Any, Callable, Iterable, Mapping, NamedTuple, Optional, Protocol
+from typing import Any, NamedTuple, Protocol
+from collections.abc import Callable, Iterable, Mapping
 
 from .coverage import is_ev_only_descriptor
 from .evcc import PLUG_DESCRIPTORS, plug_source, plug_state
@@ -32,7 +33,7 @@ CHARGING_CABLE = "charging_cable"
 TRIP_PROGRESS_WRITE_INTERVAL_S = 60
 
 
-def device_class(descriptor: str) -> tuple[Optional[str], bool]:
+def device_class(descriptor: str) -> tuple[str | None, bool]:
     """Return ``(device_class, invert)`` for a boolean descriptor.
 
     The device class is Home Assistant's ``BinarySensorDeviceClass`` value. A
@@ -61,7 +62,7 @@ def device_class(descriptor: str) -> tuple[Optional[str], bool]:
     return None, False
 
 
-def trip_attributes(progress: Optional[Mapping[str, Any]]) -> dict[str, Any]:
+def trip_attributes(progress: Mapping[str, Any] | None) -> dict[str, Any]:
     """The drive so far, as the trip-in-progress sensor's attributes.
 
     Parked (``None``): no figures at all rather than the last drive's, which
@@ -96,7 +97,7 @@ def trip_write_due(on: bool, written_on: bool, since_write_s: float) -> bool:
     return on and since_write_s >= TRIP_PROGRESS_WRITE_INTERVAL_S
 
 
-def plugged(host: "BinarySensorHost", vin: str) -> Optional[bool]:
+def plugged(host: BinarySensorHost, vin: str) -> bool | None:
     """Whether a cable is in the car now, or ``None`` if no source answers.
 
     ``INVALID`` and the like are no answer: they fall through to the next source,
@@ -106,7 +107,7 @@ def plugged(host: "BinarySensorHost", vin: str) -> Optional[bool]:
     return plug_state(_plug_values(host, vin))
 
 
-def _plug_values(host: "BinarySensorHost", vin: str) -> dict[str, Any]:
+def _plug_values(host: BinarySensorHost, vin: str) -> dict[str, Any]:
     values: dict[str, Any] = {}
     for descriptor in PLUG_DESCRIPTORS:
         state = host.get_state(vin, descriptor)
@@ -118,13 +119,13 @@ def _plug_values(host: "BinarySensorHost", vin: str) -> dict[str, Any]:
 class CableMemory(NamedTuple):
     """The cable sensor's own last state from before a restart, with its attributes."""
 
-    on: Optional[bool] = None
-    source: Optional[str] = None
-    timestamp: Optional[str] = None
+    on: bool | None = None
+    source: str | None = None
+    timestamp: str | None = None
 
 
 def cable_attributes(
-    host: "BinarySensorHost", vin: str, memory: CableMemory, heard: bool
+    host: BinarySensorHost, vin: str, memory: CableMemory, heard: bool
 ) -> dict[str, Any]:
     """When the car measured what the cable sensor shows, and whether that is confirmed.
 
@@ -155,7 +156,7 @@ def cable_attributes(
     return {"source": None, "timestamp": None, "from_before_restart": False}
 
 
-def cable_shown(current: Optional[bool], restored: Optional[bool], heard: bool) -> Optional[bool]:
+def cable_shown(current: bool | None, restored: bool | None, heard: bool) -> bool | None:
     """What the charging-cable sensor shows.
 
     The car's plug state, once the integration holds one. Until then -- right
@@ -241,7 +242,7 @@ class BinarySensorPlan:
         self._descriptors.add((vin, descriptor))
         self._add_descriptor(vin, descriptor)
 
-    def restore(self, unique_id: Optional[str]) -> None:
+    def restore(self, unique_id: str | None) -> None:
         """Re-create a binary sensor the registry holds as what it was."""
 
         if not unique_id or "_" not in unique_id:

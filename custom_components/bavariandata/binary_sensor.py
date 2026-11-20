@@ -7,7 +7,8 @@ Which binary sensors a car gets and what they show is decided in
 from __future__ import annotations
 
 import time
-from typing import Any, Callable, Optional
+from typing import Any
+from collections.abc import Callable
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
@@ -31,7 +32,7 @@ class CardataBinarySensor(CardataEntity, BinarySensorEntity):
     def __init__(self, coordinator: CardataCoordinator, vin: str, descriptor: str) -> None:
         super().__init__(coordinator, vin, descriptor)
         self._attr_should_poll = False
-        self._unsubscribe: Optional[Callable[[], None]] = None
+        self._unsubscribe: Callable[[], None] | None = None
         device_class, self._invert = binary_sensor_plan.device_class(descriptor)
         self._attr_device_class = (
             BinarySensorDeviceClass(device_class) if device_class is not None else None
@@ -91,8 +92,8 @@ class CardataTripInProgressBinarySensor(CardataEntity, BinarySensorEntity):
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, binary_sensor_plan.TRIP_IN_PROGRESS)
         self._attr_should_poll = False
-        self._unsub_active: Optional[Callable[[], None]] = None
-        self._unsub_update: Optional[Callable[[], None]] = None
+        self._unsub_active: Callable[[], None] | None = None
+        self._unsub_update: Callable[[], None] | None = None
         self._last_write = 0.0
         self._written_on = False
 
@@ -168,7 +169,7 @@ class CardataChargingCableBinarySensor(CardataEntity, BinarySensorEntity):
         self._heard = False
 
     @property
-    def is_on(self) -> Optional[bool]:
+    def is_on(self) -> bool | None:
         return binary_sensor_plan.cable_shown(
             binary_sensor_plan.plugged(self._coordinator, self.vin), self._memory.on, self._heard
         )

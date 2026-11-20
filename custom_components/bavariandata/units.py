@@ -25,12 +25,13 @@ unit here is the deliberate act of deciding what it means.
 
 from __future__ import annotations
 
-from typing import Any, Dict, FrozenSet, Iterable, Mapping, Optional, Tuple, cast
+from typing import Any, cast
+from collections.abc import Iterable, Mapping
 
 # Every unit symbol the project emits. Anything reaching an entity or the
 # metadata registry is one of these -- or an unrecognised string that survived
 # pass-through, which the tests are there to prevent.
-CANONICAL_UNITS: FrozenSet[str] = frozenset(
+CANONICAL_UNITS: frozenset[str] = frozenset(
     {
         "%",
         "°",
@@ -57,7 +58,7 @@ CANONICAL_UNITS: FrozenSet[str] = frozenset(
 
 # Spellings BMW actually uses, mapped onto the symbol above. Case variants do
 # not need an entry -- see the fold index below.
-UNIT_ALIASES: Dict[str, str] = {
+UNIT_ALIASES: dict[str, str] = {
     # Catalogue export.
     "percent": "%",
     "celsius": "°C",
@@ -81,14 +82,14 @@ UNIT_ALIASES: Dict[str, str] = {
 # descriptor arrived as ``miles`` while its neighbours stayed ``km``, so the car
 # decides per descriptor. Everything downstream -- the catalogue's unit, the
 # trips, the ledger, the card -- speaks kilometres.
-MILE_UNITS: FrozenSet[str] = frozenset({"mi", "mile", "miles"})
+MILE_UNITS: frozenset[str] = frozenset({"mi", "mile", "miles"})
 KM_PER_MILE = 1.609344
 
 # Unit fields that mean "this reading has no unit". BMW uses all three.
-NO_UNIT_TOKENS: FrozenSet[str] = frozenset({"", "-", "null"})
+NO_UNIT_TOKENS: frozenset[str] = frozenset({"", "-", "null"})
 
 
-def _fold_index() -> Dict[str, str]:
+def _fold_index() -> dict[str, str]:
     """Case-insensitive lookup, built only where case cannot be load-bearing.
 
     Folding is what lets ``kpa``/``KPA``/``Celsius`` resolve without an entry
@@ -100,7 +101,7 @@ def _fold_index() -> Dict[str, str]:
     later.
     """
 
-    index: Dict[str, str] = {}
+    index: dict[str, str] = {}
     ambiguous = set()
     for variant, canonical in (
         *((unit, unit) for unit in CANONICAL_UNITS),
@@ -118,7 +119,7 @@ def _fold_index() -> Dict[str, str]:
 _FOLDED = _fold_index()
 
 
-def normalize_unit(unit: Optional[str]) -> Optional[str]:
+def normalize_unit(unit: str | None) -> str | None:
     """Return the canonical symbol for a raw BMW unit string.
 
     ``None`` for anything that means "no unit". An *unrecognised* unit is passed
@@ -145,14 +146,14 @@ def normalize_unit(unit: Optional[str]) -> Optional[str]:
     return stripped
 
 
-def is_known(unit: Optional[str]) -> bool:
+def is_known(unit: str | None) -> bool:
     """Whether this table recognises ``unit`` (including as "no unit")."""
 
     canonical = normalize_unit(unit)
     return canonical is None or canonical in CANONICAL_UNITS
 
 
-def miles_to_km(value: Any, unit: Optional[str]) -> Tuple[Any, Optional[str]]:
+def miles_to_km(value: Any, unit: str | None) -> tuple[Any, str | None]:
     """Return ``(value, unit)`` in kilometres when the car sent miles.
 
     Anything else -- another unit, or a miles label on a value that is not a
@@ -176,10 +177,10 @@ DESC_DISPLAY_DISTANCE = (
     "vehicle.cabin.infotainment.displayUnit.distance",
     "vehicle.cabin.infotainment.hmi.distanceUnit",
 )
-_KM_UNITS: FrozenSet[str] = frozenset({"km", "kilometer", "kilometers", "kilometre", "kilometres"})
+_KM_UNITS: frozenset[str] = frozenset({"km", "kilometer", "kilometers", "kilometre", "kilometres"})
 
 
-def _mi_or_km(unit: Any) -> Optional[str]:
+def _mi_or_km(unit: Any) -> str | None:
     if not isinstance(unit, str):
         return None
     folded = unit.strip().casefold()
@@ -221,7 +222,7 @@ def distance_unit(
 
 # The account's Units setting (Configure -> Units): one choice per quantity,
 # "auto" unless the user named a unit. The first value of each is the default.
-UNIT_CHOICES: Dict[str, Tuple[str, ...]] = {
+UNIT_CHOICES: dict[str, tuple[str, ...]] = {
     "distance": ("auto", "km", "mi"),
     "fuel": ("auto", "l", "l_mpg_uk", "gal_us"),
     "temperature": ("auto", "c", "f"),
@@ -229,7 +230,7 @@ UNIT_CHOICES: Dict[str, Tuple[str, ...]] = {
 }
 
 
-def unit_choices(stored: Mapping[str, Any]) -> Dict[str, str]:
+def unit_choices(stored: Mapping[str, Any]) -> dict[str, str]:
     """``{"distance": ..., "fuel": ..., ...}`` from options keyed ``unit_<quantity>``.
 
     Anything missing or unknown reads as "auto", so an older entry, or a value
@@ -263,7 +264,7 @@ def fuel_unit(choice: Any, distance: str, system_unit: Any) -> str:
 # sensor keeps storing its native unit; Home Assistant converts what it shows
 # and keeps its statistics in one unit, so switching never splits a history.
 # Home Assistant has no imperial gallon: UK fuel is bought in litres anyway.
-_SENSOR_UNITS: Dict[str, Tuple[str, Dict[str, str]]] = {
+_SENSOR_UNITS: dict[str, tuple[str, dict[str, str]]] = {
     "distance": ("distance", {"km": "km", "mi": "mi"}),
     "speed": ("distance", {"km": "km/h", "mi": "mph"}),
     "temperature": ("temperature", {"c": "°C", "f": "°F"}),
@@ -273,15 +274,15 @@ _SENSOR_UNITS: Dict[str, Tuple[str, Dict[str, str]]] = {
 
 # A distance sensor follows the setting only when it counts road distance. The
 # GPS altitude is a distance in metres too, and in miles it reads 0.11.
-_ROAD_UNITS: Dict[str, FrozenSet[str]] = {
+_ROAD_UNITS: dict[str, frozenset[str]] = {
     "distance": frozenset({"km", "mi"}),
     "speed": frozenset({"km/h", "mph"}),
 }
 
 
 def sensor_display_unit(
-    device_class: Any, choices: Mapping[str, str], native: Optional[str] = None
-) -> Optional[str]:
+    device_class: Any, choices: Mapping[str, str], native: str | None = None
+) -> str | None:
     """The unit a sensor should be shown in, or ``None`` to leave it to Home Assistant.
 
     ``native`` is the unit the sensor's value arrives in, when known; a distance
@@ -301,10 +302,10 @@ def sensor_display_unit(
 def sensor_unit_update(
     device_class: Any,
     choices: Mapping[str, str],
-    current: Optional[str],
-    applied: Optional[str],
-    native: Optional[str] = None,
-) -> Optional[Tuple[Optional[str], Optional[str]]]:
+    current: str | None,
+    applied: str | None,
+    native: str | None = None,
+) -> tuple[str | None, str | None] | None:
     """What to write for one sensor: ``(display unit, our mark)``, or ``None`` for nothing.
 
     ``current`` is the display unit set on the entity (``None``: Home Assistant's
@@ -332,7 +333,7 @@ def sensor_unit_update(
 DEFAULT_FUEL_UNIT = "L"
 
 
-def entity_unit(device_class: Optional[str], unit: Optional[str]) -> Optional[str]:
+def entity_unit(device_class: str | None, unit: str | None) -> str | None:
     """The unit an entity should carry for a reading whose unit came off the stream."""
 
     if unit is None and device_class == "volume_storage":

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone, UTC
 
 import pytest
 
@@ -42,22 +42,20 @@ def test_bmw_timestamps_are_utc_with_a_z() -> None:
 def test_a_bare_date_bound_covers_the_whole_local_day() -> None:
     day = date(2026, 8, 31)
     assert answers.day_bound(day, end_of_day=False, local_tz=BERLIN) == datetime(
-        2026, 8, 30, 22, 0, tzinfo=timezone.utc
+        2026, 8, 30, 22, 0, tzinfo=UTC
     )
     end = answers.day_bound(day, end_of_day=True, local_tz=BERLIN)
-    assert end.tzinfo is timezone.utc
+    assert end.tzinfo is UTC
     assert end.astimezone(BERLIN).date() == day and end.astimezone(BERLIN).hour == 23
 
 
 def test_an_explicit_bound_is_taken_at_its_word() -> None:
     aware = datetime(2026, 8, 31, 12, 0, tzinfo=BERLIN)
     assert answers.day_bound(aware, end_of_day=True, local_tz=BERLIN) == datetime(
-        2026, 8, 31, 10, 0, tzinfo=timezone.utc
+        2026, 8, 31, 10, 0, tzinfo=UTC
     )
     naive = datetime(2026, 8, 31, 12, 0)
-    assert answers.day_bound(naive, end_of_day=True, local_tz=BERLIN) == naive.replace(
-        tzinfo=timezone.utc
-    )
+    assert answers.day_bound(naive, end_of_day=True, local_tz=BERLIN) == naive.replace(tzinfo=UTC)
 
 
 def _ha_parse_datetime(raw: str):
@@ -78,11 +76,11 @@ def test_a_typed_to_date_runs_to_the_end_of_its_day() -> None:
     start = answers.read_bound(
         " 2026-10-01 ", _ha_parse_datetime, end_of_day=False, local_tz=BERLIN
     )
-    assert start == datetime(2026, 9, 30, 22, 0, tzinfo=timezone.utc)
+    assert start == datetime(2026, 9, 30, 22, 0, tzinfo=UTC)
     at = answers.read_bound(
         "2026-10-31T12:00:00", _ha_parse_datetime, end_of_day=True, local_tz=BERLIN
     )
-    assert at == datetime(2026, 10, 31, 12, 0, tzinfo=timezone.utc)
+    assert at == datetime(2026, 10, 31, 12, 0, tzinfo=UTC)
     assert (
         answers.read_bound("last week", _ha_parse_datetime, end_of_day=True, local_tz=BERLIN)
         is None
@@ -117,7 +115,7 @@ def test_a_backfilled_session_is_priced_only_on_a_fixed_tariff() -> None:
 
 
 def test_an_open_drive_belongs_to_the_window_holding_now() -> None:
-    now = datetime(2026, 10, 24, 12, tzinfo=timezone.utc)
+    now = datetime(2026, 10, 24, 12, tzinfo=UTC)
     assert answers.window_holds(None, None, now)
     assert answers.window_holds(now - timedelta(days=1), now + timedelta(days=1), now)
     assert not answers.window_holds(None, now - timedelta(days=1), now)
