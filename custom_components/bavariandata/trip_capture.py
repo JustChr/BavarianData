@@ -20,6 +20,7 @@ import os
 from datetime import datetime
 from typing import Any
 
+from .readings import parse_time
 from .debug import debug_enabled, mask_vin
 
 _LOGGER = logging.getLogger("custom_components.bavariandata.coordinator")
@@ -71,18 +72,6 @@ TRIP_CAPTURE_MAX_BYTES = 25 * 1024 * 1024
 # ``end.*`` subset the detector reduces to a boolean) so we can tell whether any
 # variant ever carries a real trip end.
 DESC_SEG_CAPTURE_PREFIX = "vehicle.trip.segment."
-
-
-def _parse(value: Any) -> datetime | None:
-    """A BMW timestamp, or None when it isn't one with a timezone."""
-
-    if not isinstance(value, str) or not value:
-        return None
-    try:
-        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except ValueError:
-        return None
-    return parsed if parsed.tzinfo is not None else None
 
 
 class TripLog:
@@ -154,7 +143,7 @@ class TripLog:
                     if isinstance(payload, dict):
                         ts = payload.get("timestamp")
                         parts.append(f"{short}={payload.get('value')}@{ts}")
-                        parsed = _parse(ts)
+                        parsed = parse_time(ts)
                         if parsed is not None and (freshest is None or parsed > freshest):
                             freshest = parsed
                     else:

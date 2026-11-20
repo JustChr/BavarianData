@@ -19,8 +19,8 @@ from collections.abc import Callable, Mapping
 
 from homeassistant.core import callback
 from homeassistant.helpers.event import async_call_later, async_track_state_change_event
-from homeassistant.util import dt as dt_util
 
+from .readings import parse_time
 from .car_signals import DESC_GPS_HEADING, DESC_GPS_LAT, DESC_GPS_LON
 from .car_state import Vehicle
 from .const import EVENT_VEHICLE_REPORT
@@ -337,7 +337,7 @@ class VehicleReports:
         starts = record.get("starts")
         parked = {key: record.get(key) for key in ("soc_parked", "soc_parked_at")}
         start: datetime | None = None
-        end_at = dt_util.parse_datetime(timestamp) if timestamp else None
+        end_at = parse_time(timestamp)
         if end_at is None:
             end_at = datetime.now(UTC)
         if self._host.report_trips(vin):
@@ -431,7 +431,7 @@ class VehicleReports:
                 # SoC with its burst still shows the one it set off with, and
                 # "38 -> 38 %" would claim the battery never moved.
                 tracking = self._host._peek(vin).charge.tracking
-                before = dt_util.parse_datetime(baseline.get("soc_parked_at") or "")
+                before = parse_time(baseline.get("soc_parked_at"))
                 last = tracking.last_update if tracking is not None else None
                 if last is None or (before is not None and last <= before):
                     soc_end = None

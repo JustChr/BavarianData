@@ -72,6 +72,7 @@ from .stream_health import (
     StreamHealth,
 )
 from .placeholders import is_placeholder
+from .readings import as_float, parse_time
 from .sensor_values import session_progress_attributes
 from .structured_values import EMPTY_WHEN_NULL
 from .trip_settings import TripSettings
@@ -89,17 +90,10 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-def _as_number(value: Any) -> float | None:
-    try:
-        return float(value)
-    except TypeError, ValueError:
-        return None
-
-
 def _state_time(state: DescriptorState | None) -> datetime | None:
     """The car's own timestamp for a reading, or ``None``."""
 
-    return dt_util.parse_datetime(state.timestamp) if state and state.timestamp else None
+    return state.at if state else None
 
 
 @dataclass(frozen=True)
@@ -616,7 +610,7 @@ class CardataCoordinator:
         # descriptor (issue #62) must not have the number shown as km.
         value, unit = miles_to_km(value, normalize_unit(descriptor_payload.get("unit")))
         timestamp = descriptor_payload.get("timestamp")
-        parsed_ts = dt_util.parse_datetime(timestamp) if timestamp else None
+        parsed_ts = parse_time(timestamp)
         if value is None and descriptor in EMPTY_WHEN_NULL:
             # BMW's word for "no Check Control messages" (structured_values).
             value = []
@@ -659,7 +653,7 @@ class CardataCoordinator:
             else:
                 batch.new_sensor.append(descriptor)
         if reading is not None:
-            number = _as_number(value) if reading.numeric else value
+            number = as_float(value) if reading.numeric else value
             if number is not None or reading.clears:
                 reading.apply(self, vin, tracking, number, parsed_ts)
         elif descriptor == "vehicle.drivetrain.electricEngine.charging.status":
@@ -985,7 +979,7 @@ class CardataCoordinator:
         """
 
         timestamp = self._odometer_timestamp(vin)
-        return dt_util.parse_datetime(timestamp) if timestamp else None
+        return parse_time(timestamp)
 
     def pricing_for(self, vin: str) -> PricingConfig:
         """The pricing in force for ``vin``: its own meter and losses, if any."""
@@ -1635,7 +1629,7 @@ class CardataCoordinator:
         unit: str | None,
         timestamp: str | None,
     ) -> None:
-        parsed_ts = dt_util.parse_datetime(timestamp) if timestamp else None
+        parsed_ts = parse_time(timestamp)
         unit = normalize_unit(unit)
         if is_placeholder(descriptor, value):
             value = None

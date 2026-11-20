@@ -133,8 +133,3 @@ def test_a_failed_write_is_a_warning(tmp_path, lines):
     trip_capture.TripLog().append_line(str(tmp_path / "missing" / "capture.ndjson"), "x")
 
     assert any("write failed" in r.getMessage() for r in lines.records)
-
-
-@pytest.mark.parametrize("value", [None, "", "not a time", "2026-10-24T08:00:00", 5])
-def test_only_a_zoned_timestamp_parses(value):
-    assert trip_capture._parse(value) is None

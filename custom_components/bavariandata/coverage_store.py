@@ -26,6 +26,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.storage import Store
 
 from .const import DOMAIN
+from .readings import parse_time
 from .coverage import (
     DEFAULT_GRACE_DAYS,
     CoverageReport,
@@ -45,16 +46,6 @@ STORE_VERSION = 1
 # Seen descriptors accrue fastest in the first minutes after setup and then
 # almost never; a generous debounce keeps the write off the hot stream path.
 SAVE_DELAY_S = 60
-
-
-def _parse(value: Any) -> datetime | None:
-    if not isinstance(value, str):
-        return None
-    try:
-        parsed = datetime.fromisoformat(value)
-    except ValueError:
-        return None
-    return parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)
 
 
 class CoverageStore:
@@ -103,7 +94,7 @@ class CoverageStore:
             raw_first = data.get("first_seen")
             if isinstance(raw_first, dict):
                 self._first_seen = {str(vin): str(stamp) for vin, stamp in raw_first.items()}
-            self._started_at = _parse(data.get("started_at"))
+            self._started_at = parse_time(data.get("started_at"))
             # Records written before first sightings were kept still carry the
             # arrival timestamps to recover them from.
             recovered = backfill_first_seen(self._seen, self._first_seen)
@@ -161,7 +152,7 @@ class CoverageStore:
     def monitoring_since(self, vin: str) -> datetime | None:
         """When this vehicle's grace window started (see ``coverage``)."""
 
-        return monitoring_since(self._started_at, _parse(self._first_seen.get(vin)))
+        return monitoring_since(self._started_at, parse_time(self._first_seen.get(vin)))
 
     def seen_descriptors(self, vin: str) -> set[str]:
         """Every descriptor that has ever arrived for ``vin``, across restarts."""

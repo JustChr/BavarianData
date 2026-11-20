@@ -18,7 +18,8 @@ from typing import Any
 from collections.abc import Mapping
 
 from .meter_reading import HOLD, RESET, judge
-from .models import ChargingSession, _iso, _parse  # shared ISO (de)serialisation helpers
+from ..readings import parse_time
+from .models import ChargingSession, _iso  # shared ISO serialisation helper
 from .pricing import PARTIAL_TOLERANCE
 from .stations import distance_m
 
@@ -604,7 +605,7 @@ class SessionBuilder:
         if not isinstance(data, dict):
             return None
         vin = data.get("vin")
-        start = _parse(data.get("start"))
+        start = parse_time(data.get("start"))
         if not vin or start is None:
             return None
         builder = cls(
@@ -629,7 +630,7 @@ class SessionBuilder:
         last_offset = data.get("last_offset")
         builder._last_offset = None if last_offset is None else int(last_offset)
         builder._last_power = data.get("last_power")
-        builder.last_sample_at = _parse(data.get("last_sample_at"))
+        builder.last_sample_at = parse_time(data.get("last_sample_at"))
         # Absent from snapshots written before the wallbox meter was wired up;
         # such a session simply gets no measured grid figure, which is the
         # behaviour it already had.
