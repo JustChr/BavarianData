@@ -46,6 +46,7 @@ from .route_weather import (
 )
 
 if TYPE_CHECKING:
+    from .places import Places
     from homeassistant.core import HomeAssistant
 
     from .history.store import HistoryStore
@@ -84,8 +85,8 @@ class WeatherHost(Protocol):
     def _car(self, vin: str) -> Vehicle: ...
     def _peek(self, vin: str) -> Vehicle: ...
     def _vins_where(self, test: Callable[[Vehicle], Any]) -> list[str]: ...
-    def _zone_location(self, name: str) -> tuple[float, float] | None: ...
-    def _home_location(self) -> tuple[float, float] | None: ...
+
+    places: Places
 
 
 class TripWeather:
@@ -221,14 +222,14 @@ class TripWeather:
             if points:
                 return points, "track"
         ends = [
-            self._host._zone_location(place["zone"])
+            self._host.places.zone_location(place["zone"])
             if isinstance(place, dict) and place.get("zone")
             else None
             for place in (trip.start_place, trip.end_place)
         ]
         if ends[0] is not None or ends[1] is not None:
             return points_from_ends(ends[0], ends[1], trip.start, trip.end), "ends"
-        home = self._host._home_location()
+        home = self._host.places.home_location()
         if home is not None:
             return points_from_ends(home, None, trip.start, None), "home"
         return [], "home"
@@ -297,7 +298,7 @@ class TripWeather:
                 continue
             where, source = car.gps.last_position, "car"
             if where is None:
-                where, source = self._host._home_location(), "home"
+                where, source = self._host.places.home_location(), "home"
             if where is None:
                 continue
             reading = await client.day(where[0], where[1], today)

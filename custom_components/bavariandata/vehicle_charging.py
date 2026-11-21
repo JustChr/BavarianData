@@ -78,6 +78,7 @@ from .soc_tracking import SocTracking
 from .vehicle_triggers import charging_interrupted
 
 if TYPE_CHECKING:
+    from .places import Places
     from homeassistant.core import HomeAssistant
 
     from .history.store import HistoryStore
@@ -137,8 +138,9 @@ class ChargingHost(Protocol):
     def _tracked_cars(self) -> list[tuple[str, SocTracking]]: ...
     def _live_values(self, vin: str, descriptors: Any) -> dict[str, Any]: ...
     def _plug_state(self, vin: str) -> bool | None: ...
-    def _charging_location(self, vin: str) -> dict[str, Any] | None: ...
-    def _home_zone_name(self) -> str | None: ...
+
+    places: Places
+
     def pricing_for(self, vin: str) -> PricingConfig: ...
     def battery_capacity_kwh(self, vin: str) -> float | None: ...
     def odometer_km(self, vin: str) -> float | None: ...
@@ -464,7 +466,7 @@ class VehicleCharging:
         # Away from home the house's meters and tariff describe the house, not
         # this charge: no mix, no cost (see ``house_supplies_this_session``).
         if builder is None or house_supplies_this_session(
-            builder.location, self._host._home_zone_name()
+            builder.location, self._host.places.home_zone_name()
         ):
             if held is not None:
                 # One sample of the house's meters serves both the mix and the
@@ -798,7 +800,7 @@ class VehicleCharging:
     def _open_session_record(self, vin: str, tracking: SocTracking, started_at: datetime) -> None:
         if self._host.history is None:
             return
-        location = self._host._charging_location(vin)
+        location = self._host.places.charging_location(vin)
         builder = self._host._car(vin).session.builder = SessionBuilder(
             vin,
             started_at,
@@ -1324,7 +1326,7 @@ class VehicleCharging:
         """
 
         if builder is not None and not meter_counts_this_session(
-            builder.location, self._host._home_zone_name()
+            builder.location, self._host.places.home_zone_name()
         ):
             return None
         if self._meter_shared(vin):
@@ -1364,9 +1366,11 @@ class VehicleCharging:
                 continue
             builder = self._host._peek(vin).session.builder
             location = (
-                builder.location if builder is not None else self._host._charging_location(vin)
+                builder.location
+                if builder is not None
+                else self._host.places.charging_location(vin)
             )
-            if meter_counts_this_session(location, self._host._home_zone_name()):
+            if meter_counts_this_session(location, self._host.places.home_zone_name()):
                 found.append(vin)
         return found
 
@@ -1562,7 +1566,9 @@ class VehicleCharging:
         if self._host._plug_state(vin) is False or self._meter_shared(vin):
             return None
         builder = self._host._peek(vin).session.builder
-        location = builder.location if builder is not None else self._host._charging_location(vin)
-        if not meter_counts_this_session(location, self._host._home_zone_name()):
+        location = (
+            builder.location if builder is not None else self._host.places.charging_location(vin)
+        )
+        if not meter_counts_this_session(location, self._host.places.home_zone_name()):
             return None
         return self._host.learned_meter_rate(vin)

@@ -25,6 +25,7 @@ from typing import Any, Protocol
 from collections.abc import Iterable, Mapping
 
 from .readings import parse_time
+from .places import Places
 from .car_profile import REST
 from .car_state import Vehicle
 from .const import (
@@ -77,8 +78,9 @@ class EventHost(Protocol):
     def _value(self, vin: str, descriptor: str) -> Any: ...
     def _live_values(self, vin: str, descriptors: Iterable[str]) -> dict[str, Any]: ...
     def _current_soc(self, vin: str) -> float | None: ...
-    def _current_zone(self, vin: str) -> tuple[str, str] | None: ...
-    def _zone_at(self, latitude: float, longitude: float) -> tuple[str, str] | None: ...
+
+    places: Places
+
     def _fire(self, event_type: str, payload: dict[str, Any]) -> None: ...
 
 
@@ -132,7 +134,7 @@ class VehicleEvents:
                 change = self._situations.update(vin, situation, active, now)
                 if change is None:
                     continue
-                zone = self._host._current_zone(vin)
+                zone = self._host.places.current_ha_zone(vin)
                 payload: dict[str, Any] = {
                     "vin": vin,
                     "entry_id": self._host.entry_id,
@@ -242,7 +244,7 @@ class VehicleEvents:
                 self._edges.seed(vin, descriptor, items)
 
     def _fire_edge(self, event_type: str, vin: str, active: bool, extra: dict[str, Any]) -> None:
-        zone = self._host._current_zone(vin)
+        zone = self._host.places.current_ha_zone(vin)
         if debug_enabled():
             _LOGGER.debug("[trigger] %s %s %s", vin, event_type, "BEGIN" if active else "END")
         self._host._fire(
@@ -278,7 +280,7 @@ class VehicleEvents:
         start = self._host._peek(vin).trip.start_zone
         if start is None or self._host._peek(vin).trip.zone_left_fired:
             return
-        here = self._host._zone_at(latitude, longitude)
+        here = self._host.places.ha_zone(latitude, longitude)
         if here is not None and here[1] == start[1]:
             return
         self.fire_zone_left(vin, start)

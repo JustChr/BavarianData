@@ -69,10 +69,14 @@ class _Host:
     def _peek(self, vin):
         return self.car
 
-    def _zone_location(self, name):
+    @property
+    def places(self):
+        return self  # this fake answers the location questions itself
+
+    def zone_location(self, name):
         return self.zones.get(name)
 
-    def _home_location(self):
+    def home_location(self):
         return self.home
 
     def _vins_where(self, test):

@@ -38,7 +38,11 @@ class _Host:
     def _peek(self, vin):
         raise RuntimeError("host gone")
 
-    def _current_zone(self, vin):
+    @property
+    def places(self):
+        return self  # this fake answers the location questions itself
+
+    def current_ha_zone(self, vin):
         return None
 
     def _fire(self, event_type, payload):
