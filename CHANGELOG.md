@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.33-beta.3] - 2026-11-21
+
 ### Added
 - **A busy month's trips and charges can come a page at a time.** The trips
   and charging views list every entry of the month in one column, so a month
