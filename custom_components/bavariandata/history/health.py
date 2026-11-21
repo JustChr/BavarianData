@@ -8,14 +8,27 @@ either returns a trustworthy number or admits it does not have one yet.
 
 The estimate is deliberately simple and robust rather than clever. A charge that
 adds energy ``E`` while raising the state of charge by ``ΔSoC`` implies a usable
-capacity of ``E / (ΔSoC / 100)``. Averaging that across many charges cancels the
-per-session noise; taking the *median* rather than the mean stops a single
-weird session (a mid-charge unplug, a bad SoC reading) from dragging it.
+capacity of ``E / (ΔSoC / 100)``. Two things keep that honest:
+
+- The car's own draw while it charges (:data:`OVERHEAD_KW` for every hour power
+  flows) is taken off ``E`` first. It never reaches the pack, and it is a fixed
+  power, not a share of the charge: a slow solar charge carries far more of it
+  per kWh than an 11 kW one. Left in, one i5 charge at 2.6 kW over 13 hours
+  implied an 87.7 kWh pack where its 11 kW charges said 76-81.
+- The capacity is every qualifying charge's energy over every one's SoC gain,
+  pooled -- after dropping any charge whose own figure strays more than
+  :data:`OUTLIER_BAND` from the median (a mid-charge unplug, a bad SoC reading).
+  Pooling weights a wide charge above a narrow one, as its whole-number SoC
+  deserves: one point either way is 4 % of a 25-point charge, 2 % of a 50.
+
+On the i5's twelve charges (2026-11-21) this reads 76.3 kWh against BMW's own
+``maxEnergy`` of 76; the old median of per-charge figures read 80.1.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+from itertools import pairwise
 from statistics import median
 from typing import Any
 from collections.abc import Iterable
@@ -47,6 +60,18 @@ MIN_SAMPLES = 10
 # suspicious number is worse than an honest "not yet".
 SANITY_TOLERANCE = 0.25
 
+# The car's own draw while it charges, in kW: what the wallbox meter counts that
+# never reaches the pack (the cooling, the electronics, the charger idling).
+# Fitted on the i5's metered home charges by the SoC estimate's model
+# (0.30-0.38 kW, 2026-10-10) and again by battery health's own charges
+# (0.24 kW, 2026-11-21). An error of 0.1 kW moves an 11 kW charge's figure by
+# under 1 %, a 2.6 kW one's by about 4 %.
+OVERHEAD_KW = 0.3
+
+# A charge whose own capacity figure strays further than this from the median
+# is left out of the pooled estimate (and still drawn on the trend).
+OUTLIER_BAND = 0.15
+
 
 @dataclass
 class BatteryHealth:
@@ -74,6 +99,38 @@ class BatteryHealth:
             "vs_new_percent": self.vs_new_percent,
             "suspicious": self.suspicious,
         }
+
+
+def charging_hours(session: ChargingSession) -> float | None:
+    """How long power flowed into the car, from its power curve.
+
+    Not the session's length: a car plugged in at six and charged from one sat
+    idle for seven hours, drawing nothing through the wallbox. A curve point
+    holds until the next one, the last until the session ended. Without a curve
+    (an imported charge, an older record) ``None``: no overhead is taken off.
+    """
+
+    curve = session.power_curve
+    if not curve:
+        return None
+    seconds = 0.0
+    for (start, power), (end, _next) in pairwise(curve):
+        if power > 0:
+            seconds += max(0.0, end - start)
+    last_at, last_power = curve[-1]
+    if last_power > 0 and session.end is not None:
+        seconds += max(0.0, (session.end - session.start).total_seconds() - last_at)
+    return seconds / 3600
+
+
+def _stored_kwh(session: ChargingSession) -> float | None:
+    """The energy that went into the pack: the charge's, less the car's own draw."""
+
+    energy = session.energy_kwh
+    if energy is None or energy <= 0:
+        return None
+    stored = energy - OVERHEAD_KW * (charging_hours(session) or 0.0)
+    return stored if stored > 0 else None
 
 
 def _capacity_sample(session: ChargingSession) -> float | None:
@@ -104,10 +161,10 @@ def _capacity_sample(session: ChargingSession) -> float | None:
     delta = session.soc_delta
     if delta is None or delta < MIN_SOC_DELTA:
         return None
-    energy = session.energy_kwh
-    if energy is None or energy <= 0:
+    stored = _stored_kwh(session)
+    if stored is None:
         return None
-    return energy / (delta / 100.0)
+    return stored / (delta / 100.0)
 
 
 def usable_capacity(
@@ -125,11 +182,12 @@ def usable_capacity(
     own maths as suspect and stay in "Learning".
     """
 
-    samples = sorted(
-        value for value in (_capacity_sample(session) for session in sessions) if value is not None
-    )
-    count = len(samples)
-    if count == 0:
+    qualifying = [
+        (session, value)
+        for session, value in ((session, _capacity_sample(session)) for session in sessions)
+        if value is not None
+    ]
+    if not qualifying:
         return BatteryHealth(
             usable_kwh=None,
             samples=0,
@@ -137,7 +195,14 @@ def usable_capacity(
             nominal_kwh=nominal_kwh,
         )
 
-    estimate = round(median(samples), 1)
+    middle = median(value for _session, value in qualifying)
+    kept = [
+        session for session, value in qualifying if abs(value - middle) <= OUTLIER_BAND * middle
+    ]
+    count = len(kept)
+    stored = sum(_stored_kwh(session) or 0.0 for session in kept)
+    gained = sum(session.soc_delta or 0.0 for session in kept)
+    estimate = round(stored / (gained / 100.0), 1)
 
     reference = sanity_kwh or nominal_kwh
     suspicious = (

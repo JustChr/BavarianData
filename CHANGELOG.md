@@ -9,6 +9,19 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Changed
+- **Battery health no longer counts the car's own power use as stored.** While
+  it charges, the car draws about 0.3 kW for itself (cooling, electronics), and
+  battery health counted that as energy in the pack. A slow charge carries far
+  more of it than a fast one: a 13-hour solar charge at 2.6 kW read as an
+  88 kWh battery on a car whose 11 kW charges said 76–81. Now 0.3 kW is taken
+  off for every hour power flowed, and the capacity adds up every qualifying
+  charge's energy over every one's gain in charge instead of taking the median
+  of the per-charge figures, so a wide charge counts for more than a narrow one.
+  On the maintainer's i5 the figure moves from 80.1 to 76.3 kWh, against BMW's
+  own 76, and the points of the capacity trend sit much closer together. The
+  *real range* that uses this capacity moves with it.
+
 ### Fixed
 - **A battery size of 0 kWh is shown as unknown.** Some cars, an i5 eDrive40
   among them, send the battery's as-new size (`batterySizeMax`) as 0, BMW's

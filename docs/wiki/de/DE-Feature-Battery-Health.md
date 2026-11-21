@@ -11,9 +11,11 @@ REST-Kontingent, alles aus dem Stream abgeleitet.
 
 Eine **Ladung über einen weiten Bereich** (etwa 20 → 80 %), die eine bekannte
 Menge kWh hinzufügt, verrät die Kapazität des ganzen Akkus: Nahmen 30 % der
-Batterie *X* kWh auf, hat der Akku rund *X / 0,30*. Der Median über viele solche
-Ladungen gleicht das Rauschen durch Temperatur, Ladegeschwindigkeit und
-Messfehler aus.
+Batterie *X* kWh auf, hat der Akku rund *X / 0,30*. Der Wert rechnet alle
+solchen Ladungen zusammen, die Energie aller geteilt durch den Ladezuwachs
+aller, sodass eine weite Ladung mehr zählt als eine schmale. Eine Ladung, deren
+eigener Wert mehr als 15 % von den übrigen abweicht, bleibt außen vor: ein
+Abstecken mitten in der Ladung oder ein falscher Ladestand.
 
 ### Was im Wert steckt
 
@@ -24,11 +26,17 @@ der Integration. BMW nennt dieses Feld die Ladeleistung der *Batterie*, an dem
 einen Auto, das gegen einen Wallbox-Zähler geprüft wurde (ein i5 mit 11 kW AC),
 folgte es aber dem Zähler, nicht dem Akku: 57,0 kWh laut Auto gegen 56,9 kWh am
 Zähler bei einer sauberen Ladung von 8 auf 80 %. Gemessen wird also am Stecker,
-und die Verluste des Ladegeräts sind darin enthalten. Die gelernte Kapazität
-liegt deshalb ein paar Prozent über dem, was der Akku selbst fasst: an diesem
-Auto rund 80 kWh pro 100 % angezeigtem Ladestand, während BMWs eigenes
-`maxEnergy` 77 angab. Lies sie als Verlauf über das Autoleben, nicht als genaue
-Akkugröße.
+und ein Teil davon kommt nie im Akku an: Während es lädt, braucht das Auto
+selbst etwa **0,3 kW** (Kühlung, Elektronik). Das ist eine feste Leistung, kein
+Anteil der Ladung, also steckt in einer langsamen Ladung viel mehr davon. Am
+i5 zählte eine 13-stündige Solarladung mit 2,6 kW rund 4 kWh, die der Akku nie
+gesehen hat, und ergab allein einen Akku von 88 kWh. Vor dem Teilen zieht die
+Integration deshalb 0,3 kW für jede Stunde ab, in der Strom floss, gelesen aus
+der Leistungskurve der Ladung (eingesteckt, aber wartend, zählt nicht). An
+diesem Auto liegt die gelernte Kapazität dann bei 76 kWh, genau BMWs eigenes
+`maxEnergy`; ohne die Korrektur waren es 80. Was das Ladegerät beim Umwandeln
+verliert, bleibt drin; lies den Wert also als Verlauf über das Autoleben, nicht
+als genaue Akkugröße.
 
 ## Der Sensor Batteriezustand
 
