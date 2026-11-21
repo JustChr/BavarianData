@@ -21,7 +21,7 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   charge's energy over every one's gain in charge instead of taking the median
   of the per-charge figures, so a wide charge counts for more than a narrow one.
   On the maintainer's i5 the figure moves from 80.1 to 76.3 kWh, against BMW's
-  own 76, and the points of the capacity trend sit much closer together. The
+  own 76, and the capacity trend's highest point drops from 88 to 83 kWh. The
   *real range* that uses this capacity moves with it.
 
 ### Fixed
