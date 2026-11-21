@@ -4,14 +4,12 @@ from __future__ import annotations
 
 import logging
 from typing import Any
-from collections.abc import Callable
 
 from homeassistant.components.device_tracker import SourceType, TrackerEntity
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .coordinator import CardataCoordinator
@@ -64,16 +62,13 @@ async def async_setup_entry(
     for vin in coordinator.data.keys():
         ensure_tracker(vin)
 
-    async def handle_update(vin: str, descriptor: str) -> None:
-        if descriptor in LOCATION_DESCRIPTORS:
-            ensure_tracker(vin)
+    def handle_location(vin: str, _descriptor: str) -> None:
+        ensure_tracker(vin)
 
-    unsub = async_dispatcher_connect(
-        hass,
-        coordinator.signal_update,
-        handle_update,
+    # Any car's first fix creates its tracker.
+    config_entry.async_on_unload(
+        coordinator.router.subscribe(None, LOCATION_DESCRIPTORS, handle_location)
     )
-    config_entry.async_on_unload(unsub)
 
 
 class CardataDeviceTracker(CardataEntity, TrackerEntity):
@@ -87,16 +82,13 @@ class CardataDeviceTracker(CardataEntity, TrackerEntity):
         """Initialize the tracker."""
         super().__init__(coordinator, vin, "device_tracker")
         self._attr_unique_id = f"{vin}_tracker"
-        self._unsubscribe: Callable[[], None] | None = None
 
     async def async_added_to_hass(self) -> None:
         """Handle entity added to Home Assistant."""
         await super().async_added_to_hass()
         await self._async_restore_location()
-        self._unsubscribe = async_dispatcher_connect(
-            self.hass,
-            self._coordinator.signal_update,
-            self._handle_update,
+        self.async_on_remove(
+            self._coordinator.router.subscribe(self.vin, LOCATION_DESCRIPTORS, self._handle_update)
         )
 
     async def _async_restore_location(self) -> None:
@@ -121,17 +113,8 @@ class CardataDeviceTracker(CardataEntity, TrackerEntity):
         self._coordinator.restore_descriptor_state(self._vin, lat_desc, lat, None, timestamp)
         self._coordinator.restore_descriptor_state(self._vin, lon_desc, lon, None, timestamp)
 
-    async def async_will_remove_from_hass(self) -> None:
-        """Handle entity removal from Home Assistant."""
-        await super().async_will_remove_from_hass()
-        if self._unsubscribe:
-            self._unsubscribe()
-            self._unsubscribe = None
-
-    def _handle_update(self, vin: str, descriptor: str) -> None:
-        """Handle updates from coordinator."""
-        if vin != self.vin or descriptor not in LOCATION_DESCRIPTORS:
-            return
+    def _handle_update(self, _vin: str, _descriptor: str) -> None:
+        """A new fix for this car (the router hands it only those)."""
         self.schedule_update_ha_state()
 
     @property

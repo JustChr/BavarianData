@@ -9,10 +9,19 @@ from __future__ import annotations
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.util import dt as dt_util
 
-from custom_components.bavariandata.const import DOMAIN
+from custom_components.bavariandata.const import (
+    DOMAIN,
+    OPTION_MILEAGE_ALLOWANCE_KM,
+    OPTION_MILEAGE_END,
+    OPTION_MILEAGE_KIND,
+    OPTION_MILEAGE_START,
+    OPTION_MILEAGE_START_KM,
+)
 from custom_components.bavariandata.service_calendar import CBS
+from custom_components.bavariandata.vehicle_options import mileage_allowances, store_mileage
 
 from .conftest import VIN
 from .conftest import make_entry as _entry
@@ -70,6 +79,45 @@ async def test_the_calendar_follows_the_service_list(hass: HomeAssistant, no_bmw
         return_response=True,
     )
     assert nothing[calendar_id]["events"] == []
+
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    await hass.async_block_till_done()
+
+
+async def test_a_lease_set_in_configure_shows_its_end_at_once(hass: HomeAssistant, no_bmw) -> None:
+    entry = _entry()
+    entry.add_to_hass(hass)
+    calendar_id = (
+        er.async_get(hass)
+        .async_get_or_create("calendar", DOMAIN, f"{VIN}_service_calendar", config_entry=entry)
+        .entity_id
+    )
+    await _set_up(hass, entry)
+    coordinator = entry.runtime_data.coordinator
+    assert hass.states.get(calendar_id).attributes.get("message") is None
+
+    # What Configure -> Mileage allowance does on save (options_cars._save_mileage).
+    options = store_mileage(
+        {},
+        VIN,
+        {
+            OPTION_MILEAGE_KIND: "lease",
+            OPTION_MILEAGE_START: "2026-01-01",
+            OPTION_MILEAGE_END: "2026-12-31",
+            OPTION_MILEAGE_ALLOWANCE_KM: 10000,
+            OPTION_MILEAGE_START_KM: 0,
+        },
+    )
+    coordinator.mileage_allowances = mileage_allowances(options)
+    # Another car's allowance leaves this calendar as it was ...
+    async_dispatcher_send(hass, coordinator.signal_mileage, "WBATEST0000000002")
+    await hass.async_block_till_done()
+    assert hass.states.get(calendar_id).attributes.get("message") is None
+
+    # ... its own puts the hand-back day in, without waiting for a service item.
+    async_dispatcher_send(hass, coordinator.signal_mileage, VIN)
+    await hass.async_block_till_done()
+    assert hass.states.get(calendar_id).attributes["message"] == "Lease ends"
 
     assert await hass.config_entries.async_unload(entry.entry_id)
     await hass.async_block_till_done()
