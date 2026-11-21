@@ -262,6 +262,26 @@ Füllt sich *Ladestatus der Hochvoltbatterie* nie, ist der Deskriptor in deiner
 Datenauswahl nicht eingeschaltet — siehe
 [Ladeverlauf](DE-Feature-Charging-History-and-Cost#no-startend-soc-on-a-session).
 
+## Welche Stecker-Entität verwenden
+
+<a id="which-plug-entity-to-use"></a>
+
+Mehrere BMW-Felder beschreiben das Ladekabel, und nur einige davon folgen ihm,
+wenn es eingesteckt oder abgezogen wird:
+
+| Entität | Deskriptor | Aktualisierung |
+| --- | --- | --- |
+| **Ladekabel** | — (berechnet) | Unsere: ein `plug`-Binärsensor, gelesen aus den gestreamten Feldern darunter. **Die richtige für Automationen.** Sie erscheint erst, wenn das Auto eines davon gestreamt hat. |
+| **Status der Ladesteckverbindung** | `chargingPort.status` | **Über den Stream**, sobald das Kabel eingesteckt oder abgezogen wird. Die meisten Autos senden dieses Feld. |
+| **Status des Ladesteckers** | `electricEngine.charging.connectorStatus` | **Über den Stream**, bei Autos, die es senden. |
+| **Ladeanschluss-Verbindungsstatus** | `chargingPort.combinedStatus` | **Nur REST**: Er ändert sich nur bei der [täglichen Aktualisierung](DE-Feature-API-Quota#the-daily-refresh) oder mit *Jetzt von BMW abrufen*, kann also mitten im Laden *Getrennt* anzeigen. |
+| **Verriegelungszustand des Ladeanschlusses** | `chargingPort.lockedStatus` | **Nur REST**, wie oben. |
+
+Gibt es keinen Sensor *Ladekabel* und bleibt *Status der Ladesteckverbindung*
+nach dem Einstecken leer, prüfe, ob die Stecker-Felder in deiner Datenauswahl
+angehakt sind: **Konfigurieren → Gestreamte Daten auswählen** hakt sie für dich
+an. Sind sie angehakt und kommen trotzdem nie an, sendet dein Auto sie nicht.
+
 ## Entitätsnamen und deine Sprache
 
 <a id="entity-names-and-your-language"></a>
