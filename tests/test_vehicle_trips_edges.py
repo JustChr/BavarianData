@@ -44,7 +44,11 @@ class _Host:
     def get_state(self, vin, descriptor):
         return None  # an unstamped fix
 
-    def _coordinate(self, vin, axis):
+    @property
+    def places(self):
+        return self  # this fake answers the location questions itself
+
+    def coordinate(self, vin, axis):
         return "garbled"  # a tracker step on this raises
 
 

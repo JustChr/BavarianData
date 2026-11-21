@@ -31,7 +31,6 @@ from .history.pricing import (
 )
 from .evcc import PLUG_DESCRIPTORS, BridgeSnapshot, plug_state
 from .history.sessions import (
-    at_the_house,
     house_supplies_this_session,
 )
 from .history.trips import Trip
@@ -65,12 +64,12 @@ from .vehicle_events import VehicleEvents
 from .vehicle_reports import VehicleReports
 from .trip_weather import TripWeather
 from .vehicle_trips import VehicleTrips
+from .stream_repairs import StreamRepairs
 from .stream_health import (
-    NO_DATA_REPAIR_AFTER_S,
-    UNAUTHORIZED_REPAIR_AFTER_S,
     WIKI_TROUBLESHOOTING,
     StreamHealth,
 )
+from .places import Places
 from .placeholders import is_placeholder
 from .readings import as_float, parse_time
 from .sensor_values import session_progress_attributes
@@ -207,11 +206,6 @@ class CardataCoordinator:
     # BMW refuses the account's login until the user signs in again; the cars'
     # entities are unavailable meanwhile (``reauth.ReauthGate.refused``).
     login_refused: bool = field(default=False, init=False)
-    # Latched repair state so the watchdog only calls the issue registry on a
-    # transition rather than every tick.
-    _no_data_issue_active: bool = field(default=False, init=False)
-    # The rc=5 repair standing now, by its translation key; None when none does.
-    _unauthorized_issue: str | None = field(default=None, init=False)
     # Every car's own state (``car_state.py``), by VIN. Written through
     # :meth:`_car`, read through :meth:`_peek`.
     _cars: dict[str, Vehicle] = field(default_factory=dict, init=False)
@@ -264,8 +258,19 @@ class CardataCoordinator:
     weather: TripWeather = field(init=False, repr=False)
     # The SoC estimate, energy counters and charging sessions (``vehicle_charging``).
     charging: VehicleCharging = field(init=False, repr=False)
+    # Where the cars are: position, zone, Home (``places``).
+    places: Places = field(init=False, repr=False)
+    # The stream's two repairs, latched (``stream_repairs``).
+    repairs: StreamRepairs = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
+        self.repairs = StreamRepairs(self.hass, self.entry_id, self.health)
+        self.places = Places(
+            self.hass,
+            self.get_state,
+            remember_locations=lambda: self.history is not None and self.history.remember_locations,
+            work_zone_entity=lambda vin: self.trip_settings_for(vin).work_zone_entity,
+        )
         self.events = VehicleEvents(self)
         self.reports = VehicleReports(self)
         self.trips = VehicleTrips(self)
@@ -1143,7 +1148,7 @@ class CardataCoordinator:
         # Where the car is, as the charging ledger judges it: the open session's
         # place, else the current fix. See ``BridgeSnapshot.away``.
         builder = self._peek(vin).session.builder
-        location = builder.location if builder is not None else self._charging_location(vin)
+        location = builder.location if builder is not None else self.places.charging_location(vin)
         power_kw: float | None = None
         if charging is True:
             power_w = self._peek(vin).charge.charging_power_w
@@ -1160,7 +1165,7 @@ class CardataCoordinator:
             limit_soc=None if tracking is None else tracking.target_soc_percent,
             charge_power_kw=power_kw,
             updated=None if tracking is None else tracking.last_update,
-            away=not house_supplies_this_session(location, self._home_zone_name()),
+            away=not house_supplies_this_session(location, self.places.home_zone_name()),
         )
 
     def efficiency(self, vin: str, *, months: int = TREND_MONTHS) -> dict[str, Any]:
@@ -1202,82 +1207,11 @@ class CardataCoordinator:
         )
         return profile
 
-    def _charging_location(self, vin: str) -> dict[str, Any] | None:
-        """Where the car is plugged in, as an HA zone name when we can tell.
-
-        Knowing a session happened "at home" is what costing needs, so the zone
-        is all that is kept -- unless the user turned on *Remember charging
-        locations*, which adds the point itself for the charging places map. A
-        list of exact positions is far more sensitive than a zone name, so that
-        stays the user's choice.
-        """
-
-        latitude = self._coordinate(vin, "latitude")
-        longitude = self._coordinate(vin, "longitude")
-        if latitude is None or longitude is None:
-            return None
-        zone = self._zone_name(latitude, longitude)
-        location: dict[str, Any] = {"zone": zone} if zone else {"zone": None}
-        if self.history is not None and self.history.remember_locations:
-            location["lat"] = round(latitude, 5)
-            location["lon"] = round(longitude, 5)
-        return location
-
-    def _coordinate(self, vin: str, kind: str) -> float | None:
-        for descriptor in (
-            f"vehicle.cabin.infotainment.navigation.currentLocation.{kind}",
-            f"vehicle.trip.segment.end.vehicleLocation.gpsPosition.{kind}",
-        ):
-            state = self.get_state(vin, descriptor)
-            if state is None or state.value is None:
-                continue
-            try:
-                return float(state.value)
-            except TypeError, ValueError:
-                continue
-        return None
-
     def zone_at(self, latitude: float, longitude: float) -> str | None:
         """Public zone lookup, used when importing BMW's charging history so an
         imported session resolves to the same zone a live one would."""
 
-        return self._zone_name(latitude, longitude)
-
-    def _zone_name(self, latitude: float, longitude: float) -> str | None:
-        """The place a charge or trip is filed under: Home wherever it is the house.
-
-        Only places, not zone events: those keep the zone Home Assistant names
-        (``_zone_at``), so an automation on a carport zone still fires.
-        """
-
-        found = self._zone_at(latitude, longitude)
-        if found is None:
-            return None
-        if found[1] != "zone.home":
-            home = self.hass.states.get("zone.home")
-            if home is not None and at_the_house(latitude, longitude, home.attributes):
-                return self._home_zone_name()
-        return found[0]
-
-    def _zone_at(self, latitude: float, longitude: float) -> tuple[str, str] | None:
-        """The zone a point lies in, as ``(name, entity_id)``, or ``None``."""
-
-        from homeassistant.components import zone as zone_component
-
-        try:
-            found = zone_component.async_active_zone(self.hass, latitude, longitude)
-        except Exception:  # noqa: BLE001 - zone lookup is best-effort
-            return None
-        if found is None:
-            return None
-        return (found.name or found.entity_id, found.entity_id)
-
-    def _current_zone(self, vin: str) -> tuple[str, str] | None:
-        latitude = self._coordinate(vin, "latitude")
-        longitude = self._coordinate(vin, "longitude")
-        if latitude is None or longitude is None:
-            return None
-        return self._zone_at(latitude, longitude)
+        return self.places.zone_name(latitude, longitude)
 
     # --- device triggers (vehicle_triggers.py) ------------------------------
 
@@ -1298,12 +1232,6 @@ class CardataCoordinator:
         state = self.get_state(vin, descriptor)
         return None if state is None else state.value
 
-    def _raw_value(self, vin: str, descriptor: str) -> Any:
-        """Latest stored value of a descriptor, or None if never streamed."""
-
-        state = self.get_state(vin, descriptor)
-        return None if state is None else state.value
-
     def _current_soc(self, vin: str) -> float | None:
         tracking = self._peek(vin).charge.tracking
         if tracking is None:
@@ -1314,37 +1242,10 @@ class CardataCoordinator:
             return round(tracking.last_soc_percent, 1)
         return None
 
-    def _zone_location(self, name: str) -> tuple[float, float] | None:
-        """Where the zone called ``name`` is, for a stored trip's weather."""
-
-        for state in self.hass.states.async_all("zone"):
-            if state.name == name:
-                lat, lon = state.attributes.get("latitude"), state.attributes.get("longitude")
-                if isinstance(lat, (int, float)) and isinstance(lon, (int, float)):
-                    return (float(lat), float(lon))
-        return None
-
-    def _home_location(self) -> tuple[float, float] | None:
-        lat, lon = self.hass.config.latitude, self.hass.config.longitude
-        if isinstance(lat, (int, float)) and isinstance(lon, (int, float)):
-            return (float(lat), float(lon))
-        return None
-
-    def _home_zone_name(self) -> str | None:
-        state = self.hass.states.get("zone.home")
-        return state.name if state is not None else "Home"
-
     def home_zone_name(self) -> str | None:
         """Public form, for the BMW history import's home-only tariff."""
 
-        return self._home_zone_name()
-
-    def _work_zone_name(self, vin: str) -> str | None:
-        entity_id = self.trip_settings_for(vin).work_zone_entity
-        if not entity_id:
-            return None
-        state = self.hass.states.get(entity_id)
-        return state.name if state is not None else None
+        return self.places.home_zone_name()
 
     def get_state(self, vin: str, descriptor: str) -> DescriptorState | None:
         return self.data.get(vin, {}).get(descriptor)
@@ -1388,7 +1289,7 @@ class CardataCoordinator:
         outage_s = self.health.note(status, reason, now)
         if outage_s is not None and self.on_reconnect_after_outage is not None:
             self.on_reconnect_after_outage(outage_s)
-        self._log_diagnostics()
+        self._heartbeat()
         self._evaluate_stream_repairs(now)
 
     def _evaluate_stream_repairs(self, now: datetime | None = None) -> None:
@@ -1400,13 +1301,11 @@ class CardataCoordinator:
         matching Wiki anchor -- the fix, not just the symptom.
         """
 
-        unauthorized, no_data = self.health.repairs_due(
+        self.repairs.evaluate(
             now or datetime.now(UTC),
             last_message_at=self.last_message_at,
             started_at=self.stream_started_at,
         )
-        self._set_unauthorized_issue(unauthorized)
-        self._set_no_data_issue(no_data)
 
     def _fire(self, event_type: str, payload: dict[str, Any]) -> None:
         """Fire one of the integration's events, with the car's name on it.
@@ -1422,78 +1321,10 @@ class CardataCoordinator:
             event_type, {**payload, "vehicle": name if name and name != vin else None}
         )
 
-    def _account_name(self) -> str:
-        """The account as its repairs name it: the entry's title, its cars."""
-
-        entries = getattr(self.hass, "config_entries", None)
-        entry = entries.async_get_entry(self.entry_id) if entries is not None else None
-        return getattr(entry, "title", None) or "BavarianData"
-
-    def _set_unauthorized_issue(self, active: bool) -> None:
-        """Raise, reword or clear the rc=5 repair.
-
-        A renewed token refused as well means the login works and another
-        client holds the account's one stream (``StreamHealth.held_elsewhere``):
-        the repair then says so, instead of asking for new tokens that would not
-        help. The same issue id either way, so one replaces the other.
-        """
-
-        issue_id = f"stream_unauthorized_{self.entry_id}"
-        key: str | None = None
-        if active:
-            key = "stream_held_elsewhere" if self.health.held_elsewhere else "stream_unauthorized"
-        if key == self._unauthorized_issue:
-            return
-        self._unauthorized_issue = key
-        if key is None:
-            ir.async_delete_issue(self.hass, DOMAIN, issue_id)
-            return
-        anchor = (
-            "only-one-stream-per-account"
-            if key == "stream_held_elsewhere"
-            else "stream-authorization-failing"
-        )
-        ir.async_create_issue(
-            self.hass,
-            DOMAIN,
-            issue_id,
-            is_fixable=False,
-            severity=ir.IssueSeverity.ERROR,
-            translation_key=key,
-            translation_placeholders={
-                "minutes": str(UNAUTHORIZED_REPAIR_AFTER_S // 60),
-                "account": self._account_name(),
-            },
-            learn_more_url=f"{WIKI_TROUBLESHOOTING}#{anchor}",
-        )
-
-    def _set_no_data_issue(self, active: bool) -> None:
-        issue_id = f"stream_no_data_{self.entry_id}"
-        if active == self._no_data_issue_active:
-            return
-        self._no_data_issue_active = active
-        if not active:
-            ir.async_delete_issue(self.hass, DOMAIN, issue_id)
-            return
-        ir.async_create_issue(
-            self.hass,
-            DOMAIN,
-            issue_id,
-            is_fixable=False,
-            severity=ir.IssueSeverity.WARNING,
-            translation_key="stream_no_data",
-            translation_placeholders={
-                "hours": str(NO_DATA_REPAIR_AFTER_S // 3600),
-                "account": self._account_name(),
-            },
-            learn_more_url=f"{WIKI_TROUBLESHOOTING}#no-data-arriving",
-        )
-
     def async_clear_stream_repairs(self) -> None:
         """Drop both stream-health repairs (called on unload)."""
 
-        ir.async_delete_issue(self.hass, DOMAIN, f"stream_unauthorized_{self.entry_id}")
-        ir.async_delete_issue(self.hass, DOMAIN, f"stream_no_data_{self.entry_id}")
+        self.repairs.clear()
 
     def descriptor_diagnostics(self, vin: str) -> list[dict[str, Any]]:
         """Per-descriptor arrival count + last timestamp for the diagnostics dump.
@@ -1550,10 +1381,10 @@ class CardataCoordinator:
     def watchdog_tick(self) -> None:
         """One heartbeat: advance the estimates, settle what timed out, check the stream."""
 
-        self._log_diagnostics()
+        self._heartbeat()
         self._evaluate_stream_repairs()
 
-    def _log_diagnostics(self) -> None:
+    def _heartbeat(self) -> None:
         if debug_enabled():
             _LOGGER.debug(
                 "Stream heartbeat: status=%s last_reason=%s last_message=%s",
@@ -1595,7 +1426,7 @@ class CardataCoordinator:
 
         if self.history is None or not self.pricing_for(vin).grid_energy_entity:
             return None
-        return meter_rate(self.history.sessions(vin), self._home_zone_name())
+        return meter_rate(self.history.sessions(vin), self.places.home_zone_name())
 
     def soc_estimate_attributes(self, vin: str) -> dict[str, Any]:
         """What drives the estimate, for the entity's attributes.

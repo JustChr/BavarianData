@@ -321,7 +321,7 @@ def test_every_account_wide_repair_names_its_account() -> None:
     # The two stream repairs; the quota's is proven in a real Home Assistant
     # (tests_ha/test_setup.py, a spent quota raises a repair).
     sources = "".join(
-        (_PKG / name).read_text(encoding="utf-8") for name in ("__init__.py", "coordinator.py")
+        (_PKG / name).read_text(encoding="utf-8") for name in ("__init__.py", "stream_repairs.py")
     )
     assert sources.count('"account": self._account_name()') == 2
 

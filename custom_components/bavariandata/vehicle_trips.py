@@ -50,6 +50,7 @@ from .car_signals import (
     TRIP_SILENT_HOLD_MAX_S,
 )
 from .car_state import ClosedTrip, Vehicle
+from .places import Places
 from .const import EVENT_TRIP_ENDED, EVENT_ZONE_ARRIVED
 from .debug import mask_vin
 from .history.classify import COMMUTE_CHAIN_MAX_LEGS, classify_trip, commute_chain
@@ -100,18 +101,15 @@ class TripHost(Protocol):
     def _peek(self, vin: str) -> Vehicle: ...
     def _vins_where(self, test: Any) -> list[str]: ...
     def get_state(self, vin: str, descriptor: str) -> Any: ...
-    def _raw_value(self, vin: str, descriptor: str) -> Any: ...
-    def _coordinate(self, vin: str, kind: str) -> float | None: ...
+    def _value(self, vin: str, descriptor: str) -> Any: ...
+
+    places: Places
+
     def _current_soc(self, vin: str) -> float | None: ...
     def odometer_km(self, vin: str) -> float | None: ...
     def battery_capacity_kwh(self, vin: str) -> float | None: ...
     def is_plug_in_hybrid(self, vin: str) -> bool: ...
     def trip_settings_for(self, vin: str) -> TripSettings: ...
-    def _zone_at(self, latitude: float, longitude: float) -> tuple[str, str] | None: ...
-    def _zone_name(self, latitude: float, longitude: float) -> str | None: ...
-    def _current_zone(self, vin: str) -> tuple[str, str] | None: ...
-    def _home_zone_name(self) -> str | None: ...
-    def _work_zone_name(self, vin: str) -> str | None: ...
     def _fire(self, event_type: str, payload: dict[str, Any]) -> None: ...
 
 
@@ -386,8 +384,8 @@ class VehicleTrips:
         # dropping it unregistered left every later fix paired one behind.
         if not self._gps_fix_ready(vin, now, set(parts or GPS_PAIR_PARTS)):
             return
-        latitude = self._host._coordinate(vin, "latitude")
-        longitude = self._host._coordinate(vin, "longitude")
+        latitude = self._host.places.coordinate(vin, "latitude")
+        longitude = self._host.places.coordinate(vin, "longitude")
         if latitude is None or longitude is None:
             return
         try:
@@ -556,9 +554,9 @@ class VehicleTrips:
         builder = self._host._peek(vin).trip.builder
         # GPS-quality context: distinguishes "the car stopped" from "the fix was
         # lost" when a run of fixes shows no movement.
-        fix_state = self._host._raw_value(vin, DESC_GPS_FIX)
-        sats = self._host._raw_value(vin, DESC_GPS_SATS)
-        heading = self._host._raw_value(vin, DESC_GPS_HEADING)
+        fix_state = self._host._value(vin, DESC_GPS_FIX)
+        sats = self._host._value(vin, DESC_GPS_SATS)
+        heading = self._host._value(vin, DESC_GPS_HEADING)
         self._host.trip_log.cap(
             "[trip.gps] %s fix=(%.5f,%.5f) step=%dm gap=%ss lat=%ss moving=%s "
             "sinceMove=%ss odo=%s soc=%s gpsKm=%.2f open=%s timer=%s "
@@ -638,8 +636,8 @@ class VehicleTrips:
         parked = self._host._peek(vin).gps.last_position
         if parked is not None:
             return parked, started_at
-        latitude = self._host._coordinate(vin, "latitude")
-        longitude = self._host._coordinate(vin, "longitude")
+        latitude = self._host.places.coordinate(vin, "latitude")
+        longitude = self._host.places.coordinate(vin, "longitude")
         if latitude is not None and longitude is not None:
             return (latitude, longitude), started_at
         return None, started_at
@@ -709,7 +707,7 @@ class VehicleTrips:
         self._host._car(vin).trip.zone_left_fired = False
         self._host._peek(vin).trip.take("start_zone")
         if seed is not None:
-            start_zone = self._host._zone_at(seed[0], seed[1])
+            start_zone = self._host.places.ha_zone(seed[0], seed[1])
             if start_zone is not None:
                 self._host._car(vin).trip.start_zone = start_zone
         # Start the per-trip capture stats (a no-op cost when capture is off, but
@@ -858,8 +856,8 @@ class VehicleTrips:
                 substrate=True,
             )
         self.store_trip(vin, trip, start_zone=start_zone, left_fired=left_fired, announce=announce)
-        end_lat = self._host._coordinate(vin, "latitude")
-        end_lon = self._host._coordinate(vin, "longitude")
+        end_lat = self._host.places.coordinate(vin, "latitude")
+        end_lon = self._host.places.coordinate(vin, "longitude")
         # Not on the way out (the stop flush): the backfill fills that trip in
         # after the restart, from its ends.
         self._host.weather.trip_stored(
@@ -985,8 +983,8 @@ class VehicleTrips:
             )
             return
 
-        home_zone = self._host._home_zone_name()
-        work_zone = self._host._work_zone_name(vin)
+        home_zone = self._host.places.home_zone_name()
+        work_zone = self._host.places.work_zone_name(vin)
         classification = classify_trip(
             trip.start_place,
             trip.end_place,
@@ -1036,7 +1034,7 @@ class VehicleTrips:
         """Fire "left" (if the fixes were too sparse to catch it), "arrived" and "ended"."""
 
         try:
-            end_zone = self._host._current_zone(vin)
+            end_zone = self._host.places.current_ha_zone(vin)
             if start_zone is not None and not left_fired:
                 if end_zone is None or end_zone[1] != start_zone[1]:
                     self._host.events.fire_zone_left(vin, start_zone)
@@ -1273,11 +1271,11 @@ class VehicleTrips:
         """
 
         if latitude is None or longitude is None:
-            latitude = self._host._coordinate(vin, "latitude")
-            longitude = self._host._coordinate(vin, "longitude")
+            latitude = self._host.places.coordinate(vin, "latitude")
+            longitude = self._host.places.coordinate(vin, "longitude")
         if latitude is None or longitude is None:
             return None
-        zone = self._host._zone_name(latitude, longitude)
+        zone = self._host.places.zone_name(latitude, longitude)
         if zone:
             return place(zone=zone)
         address = None

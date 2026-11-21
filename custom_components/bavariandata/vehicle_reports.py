@@ -21,6 +21,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.event import async_call_later, async_track_state_change_event
 
 from .readings import parse_time
+from .places import Places
 from .car_signals import DESC_GPS_HEADING, DESC_GPS_LAT, DESC_GPS_LON
 from .car_state import Vehicle
 from .const import EVENT_VEHICLE_REPORT
@@ -70,7 +71,9 @@ class ReportHost(Protocol):
     def _peek(self, vin: str) -> Vehicle: ...
     def _numeric(self, vin: str, descriptor: str) -> float | None: ...
     def _fuel_litres(self, vin: str) -> float | None: ...
-    def _coordinate(self, vin: str, kind: str) -> float | None: ...
+
+    places: Places
+
     def _current_soc(self, vin: str) -> float | None: ...
     def _odometer_timestamp(self, vin: str) -> str | None: ...
     def odometer_km(self, vin: str) -> float | None: ...
@@ -478,8 +481,8 @@ class VehicleReports:
         report = self._host._peek(vin).report
         if not settings.phone_route:
             return []
-        latitude = self._host._coordinate(vin, "latitude")
-        longitude = self._host._coordinate(vin, "longitude")
+        latitude = self._host.places.coordinate(vin, "latitude")
+        longitude = self._host.places.coordinate(vin, "longitude")
         end_fix = (latitude, longitude) if latitude is not None and longitude is not None else None
         # Every phone lets go of what it held up to this report; the first one,
         # in the order the user set, whose route fits the trip draws it.
