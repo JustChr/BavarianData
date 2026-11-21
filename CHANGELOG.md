@@ -9,6 +9,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **A battery size of 0 kWh is shown as unknown.** Some cars, an i5 eDrive40
+  among them, send the battery's as-new size (`batterySizeMax`) as 0, BMW's
+  stand-in for no reading, so the *Battery HV Max size* sensor showed 0.0 kWh. It
+  now shows *unknown*, after a restart too, like the trip-end battery charge
+  that BMW sends the same way. Battery health already ignored the 0, so its
+  percentage of the as-new pack stays blank on such a car.
+
 ## [0.9.33-beta.1] - 2026-11-21
 
 ### Changed
