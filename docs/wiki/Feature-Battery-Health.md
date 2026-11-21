@@ -10,8 +10,10 @@ recorded charging sessions used for [charging history](Feature-Charging-History-
 
 A **wide-range charge** (say 20 → 80 %) that adds a known number of kWh implies
 the capacity of the whole pack: if 30 % of the battery took *X* kWh, the pack is
-roughly *X / 0.30*. Taking the median across many such charges cancels the
-noise from temperature, charging speed and measurement error.
+roughly *X / 0.30*. The figure adds up all such charges, every one's energy
+over every one's gain in charge, so a wide charge counts for more than a narrow
+one. A charge whose own figure lies more than 15 % from the others' is left
+out: an unplug mid-charge or a bad charge reading.
 
 ### What the figure includes
 
@@ -19,11 +21,17 @@ The kWh are the integration's own sum of the charging power the car streams.
 BMW calls that field the *battery* charging power, but on the one car checked
 against a wallbox meter (an i5 on 11 kW AC) it tracked the meter, not the pack:
 57.0 kWh by the car against 56.9 kWh at the meter over one clean 8 → 80 %
-charge. So it is measured at the plug, and the charger's losses are in it. The
-learned capacity therefore reads a few percent above what the pack itself
-holds: about 80 kWh per 100 % of displayed charge on that car, where BMW's own
-`maxEnergy` said 77. Read it as a trend over the car's life, not as the exact
-pack size.
+charge. So it is measured at the plug, and part of it never reaches the pack:
+while it charges, the car draws about **0.3 kW** for itself (cooling,
+electronics). That is a fixed power, not a share of the charge, so a slow
+charge carries far more of it. On the i5, a 13-hour solar charge at 2.6 kW
+counted about 4 kWh the pack never saw, and alone implied an 88 kWh battery.
+Before dividing, the integration therefore takes 0.3 kW off for every hour
+power flowed, read from the charge's power curve (time spent plugged in but
+waiting doesn't count). On that car the learned capacity reads 76 kWh, the
+same as BMW's own `maxEnergy`; without the correction it read 80. Whatever
+the charger loses in converting the power stays in, so read the figure as a
+trend over the car's life, not as the exact pack size.
 
 ## The Battery Health sensor
 

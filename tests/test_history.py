@@ -504,6 +504,99 @@ def test_degradation_series_keeps_only_the_most_recent_points():
     assert [point[0] for point in series] == [4000.0, 5000.0]
 
 
+def _timed(soc_from: float, soc_to: float, energy_kwh: float, hours: float, **overrides):
+    """A charge whose power flowed for ``hours``, as its power curve records it."""
+
+    return _charge(
+        soc_from,
+        soc_to,
+        energy_kwh,
+        end=START + timedelta(hours=hours),
+        power_curve=[[0, round(energy_kwh / hours, 3)], [round(hours * 3600), 0.0]],
+        **overrides,
+    )
+
+
+def test_the_cars_own_draw_is_not_counted_as_stored():
+    # 77 kWh pack, +38 points: 29.26 kWh stored. At 2.6 kW the charge runs ~12.9 h
+    # and the car draws 0.3 kW for itself throughout; at 11 kW, under 3 h.
+    slow = _timed(22.0, 60.0, 29.26 + 0.3 * 12.95, 12.95)
+    fast = _timed(22.0, 60.0, 29.26 + 0.3 * 2.7, 2.7)
+
+    assert health._capacity_sample(slow) == pytest.approx(77.0, abs=0.05)
+    assert health._capacity_sample(fast) == pytest.approx(77.0, abs=0.05)
+    # Counted as stored, the slow one looked 10 % bigger.
+    assert slow.energy_kwh / 0.38 == pytest.approx(87.2, abs=0.1)
+
+
+def test_only_the_hours_power_flowed_count():
+    # Plugged in at 18:00, charging from 01:00 to 04:00: three hours, not ten.
+    waiting = _charge(
+        20.0,
+        60.0,
+        32.0,
+        end=START + timedelta(hours=10),
+        power_curve=[[0, 0.0], [7 * 3600, 10.7], [10 * 3600, 0.0]],
+    )
+    assert health.charging_hours(waiting) == pytest.approx(3.0)
+    # The last reading holds until the session ended.
+    held = _charge(20.0, 60.0, 32.0, end=START + timedelta(hours=3), power_curve=[[0, 10.7]])
+    assert health.charging_hours(held) == pytest.approx(3.0)
+    # A charge that is all the car's own draw stored nothing to measure.
+    assert health._capacity_sample(_timed(20.0, 60.0, 2.0, 10.0)) is None
+    # No curve (an imported charge): nothing is taken off.
+    assert health.charging_hours(_charge(20.0, 60.0, 32.0)) is None
+    assert health._capacity_sample(_charge(20.0, 60.0, 32.0)) == 80.0
+
+
+def test_wide_charges_weigh_more_than_narrow_ones():
+    # Pooled energy over pooled SoC: the 60-point charge counts for twice the
+    # 30-point one, as its whole-number SoC deserves.
+    wide = [_charge(20.0, 80.0, 48.0)] * 5  # 80 kWh
+    narrow = [_charge(50.0, 80.0, 22.5)] * 5  # 75 kWh
+    assert health.usable_capacity(wide + narrow).usable_kwh == pytest.approx(78.3, abs=0.05)
+
+
+def test_a_charge_far_from_the_others_is_left_out_of_the_figure():
+    good = [_charge(20.0, 80.0, 48.0)] * 9  # 80 kWh
+    stray = _charge(20.0, 80.0, 60.0)  # 100 kWh: 25 % off
+    result = health.usable_capacity(good + [stray])
+    assert result.usable_kwh == 80.0
+    assert result.samples == 9
+
+
+# The i5 eDrive40's twelve qualifying charges as of 2026-11-21: (SoC from, to,
+# kWh the car counted, hours power flowed). BMW's own ``maxEnergy`` read 76 kWh.
+# Eleven AC (one at 2.6 kW from solar over 13 h), one DC at 186 kW peak.
+I5_CHARGES = [
+    (35, 86, 41.34, 4.14),
+    (27, 52, 19.312, 1.84),
+    (28, 73, 36.66, 3.54),
+    (59, 90, 25.08, 2.55),
+    (61, 100, 30.75, 9.19),
+    (56, 100, 35.42, 3.83),
+    (35, 77, 32.312, 3.06),
+    (55, 80, 21.254, 2.08),
+    (19, 50, 22.031, 2.0),
+    (6, 53, 37.5, 0.27),
+    (43, 99, 41.348, 4.15),
+    (22, 60, 33.315, 12.95),
+]
+
+
+def test_the_i5s_charges_agree_with_bmws_own_capacity():
+    charges = [_timed(a, b, kwh, h) for a, b, kwh, h in I5_CHARGES]
+    result = health.usable_capacity(charges, sanity_kwh=76.0)
+
+    # The per-charge median of the energy the car counted said 80.1.
+    assert result.usable_kwh == pytest.approx(76.3, abs=0.05)
+    assert result.samples == 12
+    assert result.confident is True
+    # The slow solar charge no longer stands out of the trend.
+    solar = health._capacity_sample(charges[-1])
+    assert abs(solar - result.usable_kwh) / result.usable_kwh < 0.03
+
+
 # --- energy balance --------------------------------------------------------
 #
 # The plug-side consumption figure, and the one the card leads with. It exists
