@@ -272,7 +272,8 @@ so far.
 
 **One month at a time.** As on the trips view, a `‹ August 2026 ›` control under
 the header scopes the figures and the list to one calendar month; page back for
-older sessions.
+older sessions. A month with more than ten charges lists them a page at a time,
+the same way as the trips view.
 
 ```yaml
 type: custom:bavariandata-card
@@ -469,6 +470,12 @@ list, the month-in-review and the **CSV** / **Report** buttons to a single
 calendar month. Page back to reach older records — history is kept for two years
 by default ([retention](Settings-Reference#charging-costs--history)), which is far more than any
 one screen should show at once. Forward stops at the current month.
+
+**Ten at a time.** A busy month lists about ten trips a page, whole days
+together, so the card doesn't push the rest of your dashboard down. The
+`‹ 15 Nov – 21 Nov ›` control under the list moves to earlier or later days,
+in the same directions as the month control above; the month in review always
+covers the whole month. A drive under way leads the newest page.
 
 > **Average consumption** is measured from the charging ledger and the odometer,
 > not from the trips, and is labeled **at the battery** or **at the plug**

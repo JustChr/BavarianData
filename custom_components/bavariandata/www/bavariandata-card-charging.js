@@ -121,6 +121,7 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
       figures,
       live,
       expanded,
+      page: this._chgPage || 0,
       rows: (sessions || []).map((s) => [s.start, s.energy_kwh, s.cost && s.cost.amount, s.cost && s.cost.source]),
     });
     if (sig === this._sig) return;
@@ -136,9 +137,12 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
         isCurrent ? "ch_empty" : "ch_empty_month"
       )}</div>`;
     } else {
-      body = `<div class="chg__list">${live ? this._liveRow(live) : ""}${(sessions || [])
+      // Whole days a page (#356); the charge under way leads the newest page only.
+      const cut = this._pageByDay(sessions || [], this._chgPage);
+      this._chgPage = cut.page;
+      body = `<div class="chg__list">${live && !cut.page ? this._liveRow(live) : ""}${cut.items
         .map((s) => this._chargingRow(s, expanded))
-        .join("")}</div>`;
+        .join("")}</div>${this._pageNav("charging", cut)}`;
     }
 
     const count = sessions ? sessions.length : 0;
@@ -166,6 +170,7 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
     `;
     this._wireChargingTaps();
     this._wireMonthNav();
+    this._wirePageNav();
   }
 
   /** The Sessions | Places switch at the top of the charging view. */

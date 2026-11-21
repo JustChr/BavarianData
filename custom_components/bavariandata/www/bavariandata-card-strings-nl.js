@@ -209,6 +209,8 @@ export default {
   ch_error: "Laadgeschiedenis kon niet worden geladen. Herlaad de pagina en probeer het opnieuw.",
   mn_prev: "Vorige maand",
   mn_next: "Volgende maand",
+  pg_earlier: "Eerdere dagen",
+  pg_later: "Latere dagen",
   ch_home: "Thuis",
   ch_public: "Onderweg",
   ch_assumed: "aangenomen",

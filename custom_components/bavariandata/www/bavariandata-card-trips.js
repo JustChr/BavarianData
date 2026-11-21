@@ -132,6 +132,7 @@ export default (Base, { TRIP_CLASS_COLORS, _lang }) => class TripsPart extends B
       summary,
       expanded,
       filter,
+      page: this._trpPage || 0,
       // Elapsed minutes so the in-progress row's duration ticks between fetches.
       open: open
         ? [open.start, open.distance_km, this._elapsedMin(open.start), open.held]
@@ -159,12 +160,15 @@ export default (Base, { TRIP_CLASS_COLORS, _lang }) => class TripsPart extends B
     } else {
       const avg = summary && summary.avg_consumption_kwh_per_100km;
       const shown = (trips || []).filter((t) => !filter || (t.classification || "unclassified") === filter);
-      body = `${this._tripReview(summary, unit)}<div class="chg__list">${openRow}${this._tripDays(
-        shown,
+      // Whole days a page (#356); the drive under way leads the newest page only.
+      const cut = this._pageByDay(shown, this._trpPage);
+      this._trpPage = cut.page;
+      body = `${this._tripReview(summary, unit)}<div class="chg__list">${cut.page ? "" : openRow}${this._tripDays(
+        cut.items,
         expanded,
         unit,
         avg
-      )}</div>`;
+      )}</div>${this._pageNav("trips", cut)}`;
     }
 
     const count = trips ? trips.length : 0;
@@ -189,6 +193,7 @@ export default (Base, { TRIP_CLASS_COLORS, _lang }) => class TripsPart extends B
     `;
     this._wireTripTaps();
     this._wireMonthNav();
+    this._wirePageNav();
   }
 
   /** The "month in review" panel, built entirely from get_driving_summary. */
@@ -668,6 +673,7 @@ export default (Base, { TRIP_CLASS_COLORS, _lang }) => class TripsPart extends B
       el.addEventListener("click", () => {
         const key = el.getAttribute("data-trip-filter");
         this._trpFilter = this._trpFilter === key ? null : key;
+        this._trpPage = 0;
         this._sig = null;
         const deviceId = this._resolveDeviceId();
         this._paintTrips(deviceId, this._deviceEntities(deviceId));

@@ -209,6 +209,8 @@ export default {
   ch_error: "Laddningshistoriken kunde inte läsas in. Ladda om sidan och försök igen.",
   mn_prev: "Föregående månad",
   mn_next: "Nästa månad",
+  pg_earlier: "Tidigare dagar",
+  pg_later: "Senare dagar",
   ch_home: "Hemma",
   ch_public: "Borta",
   ch_assumed: "antaget",

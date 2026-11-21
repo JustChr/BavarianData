@@ -9,6 +9,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Changed
+- **A busy month's trips and charges come ten at a time.** The trips and
+  charging views listed every entry of the month in one column, so a month
+  with 30 trips pushed the rest of the dashboard far down. They now show about
+  ten a page, whole days together, with a `‹ 15 Nov – 21 Nov ›` pager under the
+  list; the month in review still covers the whole month. Thanks to
+  @kerzebrozzer for the idea (#356).
+
 ## [0.9.33-beta.2] - 2026-11-21
 
 ### Changed

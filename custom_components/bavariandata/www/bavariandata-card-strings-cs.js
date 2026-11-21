@@ -209,6 +209,8 @@ export default {
   ch_error: "Historii nabíjení se nepodařilo načíst. Obnovte stránku a zkuste to znovu.",
   mn_prev: "Předchozí měsíc",
   mn_next: "Další měsíc",
+  pg_earlier: "Dřívější dny",
+  pg_later: "Pozdější dny",
   ch_home: "Doma",
   ch_public: "Venku",
   ch_assumed: "předpokládáno",

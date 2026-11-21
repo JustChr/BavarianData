@@ -209,6 +209,8 @@ export default {
   ch_error: "Ladeverlauf konnte nicht geladen werden. Lade die Seite neu und versuche es erneut.",
   mn_prev: "Vorheriger Monat",
   mn_next: "Nächster Monat",
+  pg_earlier: "Frühere Tage",
+  pg_later: "Spätere Tage",
   ch_home: "Zuhause",
   ch_public: "Unterwegs",
   ch_assumed: "angenommen",

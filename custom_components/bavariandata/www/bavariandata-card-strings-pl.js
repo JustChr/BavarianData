@@ -209,6 +209,8 @@ export default {
   ch_error: "Nie udało się wczytać historii ładowania. Odśwież stronę i spróbuj ponownie.",
   mn_prev: "Poprzedni miesiąc",
   mn_next: "Następny miesiąc",
+  pg_earlier: "Wcześniejsze dni",
+  pg_later: "Późniejsze dni",
   ch_home: "Dom",
   ch_public: "Poza domem",
   ch_assumed: "założono",

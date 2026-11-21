@@ -209,6 +209,8 @@ export default {
   ch_error: "Impossible de charger l'historique de recharge. Rechargez la page et réessayez.",
   mn_prev: "Mois précédent",
   mn_next: "Mois suivant",
+  pg_earlier: "Jours précédents",
+  pg_later: "Jours suivants",
   ch_home: "Domicile",
   ch_public: "Ailleurs",
   ch_assumed: "supposé",

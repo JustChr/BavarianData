@@ -464,6 +464,10 @@ export default (Base) => class StylesPart extends Base {
       /* Forward past the current month leads nowhere, so the control says so
          rather than silently doing nothing. */
       .mnav__btn[disabled] { opacity: 0.35; cursor: default; }
+      /* The pager under a long month list (#356): quieter than the month
+         control above it, which it must not be mistaken for. */
+      .mnav--foot { padding: 0 14px 12px; }
+      .mnav--foot .mnav__label { font-weight: 500; color: var(--secondary-text-color); }
       .xbtn {
         display: inline-flex; align-items: center; gap: 4px;
         padding: 5px 10px 5px 7px;
