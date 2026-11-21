@@ -8,6 +8,11 @@ and trips every low-battery alert a user has. No car with a high-voltage
 battery ends a trip at 0 % -- it would not have driven there -- so a zero here
 is never a measurement.
 
+``vehicle.drivetrain.batteryManagement.batterySizeMax`` is the battery's
+as-new size. An i5 eDrive40 has sent it as ``0.0`` since delivery, shown as a
+battery of 0.0 kWh. No battery has that size, so a zero there is the same
+stand-in.
+
 A placeholder clears the value rather than being skipped: an entity that
 already holds the zero (restored, or from before this rule) must go to unknown,
 not keep it for good.
@@ -21,9 +26,10 @@ from __future__ import annotations
 from typing import Any
 
 TRIP_END_HV_SOC = "vehicle.trip.segment.end.drivetrain.batteryManagement.hvSoc"
+BATTERY_SIZE_MAX = "vehicle.drivetrain.batteryManagement.batterySizeMax"
 
 # Descriptors whose zero means "no reading".
-ZERO_MEANS_NONE: frozenset[str] = frozenset({TRIP_END_HV_SOC})
+ZERO_MEANS_NONE: frozenset[str] = frozenset({TRIP_END_HV_SOC, BATTERY_SIZE_MAX})
 
 
 def is_placeholder(descriptor: str, value: Any) -> bool:

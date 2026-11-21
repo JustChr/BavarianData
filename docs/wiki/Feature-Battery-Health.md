@@ -79,7 +79,8 @@ swing in one session) rather than many small top-ups.
 > **State of health (SOCE)** sensor gives you a figure directly, if your car
 > streams it. Note also that the vs-new percentage needs BMW's `batterySizeMax`,
 > which some cars report as `0` (invalid); where that happens the percentage
-> stays blank however many samples accumulate.
+> stays blank however many samples accumulate, and the *Battery HV Max size*
+> sensor shows *unknown* rather than 0 kWh.
 
 ## Viewing it
 

@@ -89,7 +89,8 @@ vieler kleiner Nachladungen.
 > Solange liefert BMWs eigener Sensor **State of Health (SOCE)** direkt einen
 > Wert, sofern dein Auto ihn streamt. Beachte auch: Der Prozentwert vom Neuwert
 > braucht BMWs `batterySizeMax`, den manche Autos als `0` (ungültig) melden; dann
-> bleibt der Prozentwert leer, egal wie viele Proben zusammenkommen.
+> bleibt der Prozentwert leer, egal wie viele Proben zusammenkommen, und der
+> Sensor *Größe der Hochvoltbatterie* zeigt *unbekannt* statt 0 kWh.
 
 ## Ansehen
 
