@@ -12,6 +12,8 @@ and checks are HA-free in ``flow_answers.py``.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from typing import TYPE_CHECKING, Any
 from collections.abc import Awaitable, Callable, Mapping
 
@@ -140,8 +142,56 @@ PHONE_PAIRS = (
     (OPTION_TRIP_PHONE_TRACKER_2, OPTION_TRIP_PHONE_IN_CAR_2),
 )
 PHONE_KEYS = tuple(key for pair in PHONE_PAIRS for key in pair)
-# ``_vehicle_context``'s "no car picked yet" (``None`` means "no car known").
+# ``CarScreen.vin`` before a car is picked (``None`` means "no car known").
 _PICK = object()
+
+
+@dataclass(frozen=True, slots=True)
+class CarScreen:
+    """Which car a per-car screen edits, and how its form is laid out.
+
+    With more than one car the screen edits the car picked first (``vin`` is
+    ``_PICK`` until one has been), and the settings every car shares sit in an
+    "All vehicles" section below the car's own. With one car, or none yet, it
+    edits the account-wide settings on behalf of that car, in one flat form.
+    """
+
+    vehicles: list[tuple[str, str]]
+    per_vehicle: bool
+    vin: Any
+    # The car's name for the form's description (the entry's title without one).
+    label: str
+
+    @property
+    def unpicked(self) -> bool:
+        """Two or more cars and none picked yet: the picker comes first."""
+
+        return self.vin is _PICK
+
+    def schema(
+        self,
+        car_fields: dict[Any, Any],
+        shared_fields: dict[Any, Any],
+        *,
+        collapsed: bool = True,
+        flat: dict[Any, Any] | None = None,
+    ) -> vol.Schema:
+        """The car's fields, then the shared ones: in a section with two cars.
+
+        ``flat`` orders a one-car form differently where a screen wants that;
+        by default it is the car's fields, then the shared ones.
+        """
+
+        if self.per_vehicle:
+            return vol.Schema(
+                {
+                    **car_fields,
+                    vol.Required(SHARED_SECTION): section(
+                        vol.Schema(shared_fields), {"collapsed": collapsed}
+                    ),
+                }
+            )
+        return vol.Schema(flat if flat is not None else {**car_fields, **shared_fields})
 
 
 if TYPE_CHECKING:
@@ -184,19 +234,35 @@ class PerCarScreens(_FlowBase):
             for vin in coordinator.data
         )
 
-    def _vehicle_context(self) -> tuple[list[tuple[str, str]], bool, Any]:
-        """``(vehicles, per_vehicle, vin)`` for a screen with per-car settings.
-
-        With more than one car the screen edits the car picked first, and
-        ``vin`` is ``_PICK`` until one has been; with one (or none yet) it edits
-        the account-wide settings on behalf of that car.
-        """
+    def _car_screen(self) -> CarScreen:
+        """The car a per-car screen edits now (see :class:`CarScreen`)."""
 
         vehicles = self._vehicles()
+        vin: Any
         if len(vehicles) > 1:
             vin = self._picked_vin if self._picked_vin in dict(vehicles) else _PICK
-            return vehicles, True, vin
-        return vehicles, False, vehicles[0][0] if vehicles else None
+        else:
+            vin = vehicles[0][0] if vehicles else None
+        return CarScreen(vehicles, len(vehicles) > 1, vin, self._vehicle_label(vehicles, vin))
+
+    def _car_form(
+        self,
+        screen: CarScreen,
+        schema: vol.Schema,
+        *,
+        step_id: str,
+        errors: dict[str, str] | None = None,
+        **kwargs: Any,
+    ) -> ConfigFlowResult:
+        """A per-car screen's form, its description naming the car."""
+
+        return self.async_show_form(
+            step_id=step_id,
+            data_schema=schema,
+            errors=errors,
+            description_placeholders={"vehicle": screen.label},
+            **kwargs,
+        )
 
     def _vehicle_label(self, vehicles: list[tuple[str, str]], vin: str | None) -> str:
         return dict(vehicles).get(vin or "") or self._config_entry.title
@@ -296,9 +362,10 @@ class PerCarScreens(_FlowBase):
         the form as it always was.
         """
 
-        vehicles, per_vehicle, vin = self._vehicle_context()
-        if vin is _PICK:
+        screen = self._car_screen()
+        if screen.unpicked:
             return await self.async_step_charging_vehicle()
+        vin = screen.vin
 
         options = dict(self._config_entry.options)
         car = values_for(options, vin, CHARGING_OPTIONS)
@@ -364,27 +431,17 @@ class PerCarScreens(_FlowBase):
                 default=bool(options.get(OPTION_CHARGE_LOCATIONS, False)),
             ): selector.BooleanSelector(),
         }
-        if per_vehicle:
+        schema = screen.schema(
+            car_fields,
+            {**price_fields, **history_fields},
             # Expanded, unlike the other screens' shared sections: the price is
             # the main thing this screen is for.
-            schema = vol.Schema(
-                {
-                    **car_fields,
-                    vol.Required(SHARED_SECTION): section(
-                        vol.Schema({**price_fields, **history_fields}), {"collapsed": False}
-                    ),
-                }
-            )
-        else:
-            schema = vol.Schema({**price_fields, **car_fields, **history_fields})
+            collapsed=False,
+            flat={**price_fields, **car_fields, **history_fields},
+        )
 
         def _form(errors: dict[str, str] | None = None) -> ConfigFlowResult:
-            return self.async_show_form(
-                step_id="action_charging_costs",
-                data_schema=schema,
-                errors=errors,
-                description_placeholders={"vehicle": self._vehicle_label(vehicles, vin)},
-            )
+            return self._car_form(screen, schema, step_id="action_charging_costs", errors=errors)
 
         if user_input is None:
             return _form()
@@ -395,7 +452,7 @@ class PerCarScreens(_FlowBase):
 
         options.update(shared)
         options = store_values(
-            options, submitted, CHARGING_OPTIONS, vin=vin, per_vehicle=per_vehicle
+            options, submitted, CHARGING_OPTIONS, vin=vin, per_vehicle=screen.per_vehicle
         )
         # Apply immediately rather than reloading the entry: BMW allows only one
         # concurrent stream per account, so a reload risks racing the reconnect.
@@ -444,9 +501,10 @@ class PerCarScreens(_FlowBase):
         collapsed "All vehicles" section.
         """
 
-        vehicles, per_vehicle, vin = self._vehicle_context()
-        if vin is _PICK:
+        screen = self._car_screen()
+        if screen.unpicked:
             return await self.async_step_bridge_vehicle()
+        vin = screen.vin
 
         options = dict(self._config_entry.options)
         before = BridgeConfig.from_options(options)
@@ -479,25 +537,10 @@ class PerCarScreens(_FlowBase):
                 default=bool(options.get(OPTION_BRIDGE_RETAIN, DEFAULT_BRIDGE_RETAIN)),
             ): selector.BooleanSelector(),
         }
-        if per_vehicle:
-            schema = vol.Schema(
-                {
-                    **car_fields,
-                    vol.Required(SHARED_SECTION): section(
-                        vol.Schema(shared_fields), {"collapsed": True}
-                    ),
-                }
-            )
-        else:
-            schema = vol.Schema({**car_fields, **shared_fields})
+        schema = screen.schema(car_fields, shared_fields)
 
         def _form(errors: dict[str, str] | None = None) -> ConfigFlowResult:
-            return self.async_show_form(
-                step_id="action_evcc_bridge",
-                data_schema=schema,
-                errors=errors,
-                description_placeholders={"vehicle": self._vehicle_label(vehicles, vin)},
-            )
+            return self._car_form(screen, schema, step_id="action_evcc_bridge", errors=errors)
 
         if user_input is None:
             return _form()
@@ -513,7 +556,9 @@ class PerCarScreens(_FlowBase):
             return _form({"base": "mqtt_missing"})
 
         options.update(shared)
-        options = store_values(options, submitted, BRIDGE_OPTIONS, vin=vin, per_vehicle=per_vehicle)
+        options = store_values(
+            options, submitted, BRIDGE_OPTIONS, vin=vin, per_vehicle=screen.per_vehicle
+        )
         after = BridgeConfig.from_options(options)
         runtime = self._get_runtime()
         bridge = None if runtime is None else runtime.bridge
@@ -617,9 +662,10 @@ class PerCarScreens(_FlowBase):
         only in the log.
         """
 
-        vehicles, per_vehicle, vin = self._vehicle_context()
-        if vin is _PICK:
+        screen = self._car_screen()
+        if screen.unpicked:
             return await self.async_step_abrp_vehicle()
+        vin = screen.vin
 
         options = dict(self._config_entry.options)
         car = abrp_values(options, vin)
@@ -649,25 +695,10 @@ class PerCarScreens(_FlowBase):
                 selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
             ),
         }
-        if per_vehicle:
-            schema = vol.Schema(
-                {
-                    **car_fields,
-                    vol.Required(SHARED_SECTION): section(
-                        vol.Schema(shared_fields), {"collapsed": True}
-                    ),
-                }
-            )
-        else:
-            schema = vol.Schema({**car_fields, **shared_fields})
+        schema = screen.schema(car_fields, shared_fields)
 
         def _form(errors: dict[str, str] | None = None) -> ConfigFlowResult:
-            return self.async_show_form(
-                step_id="action_abrp",
-                data_schema=schema,
-                errors=errors,
-                description_placeholders={"vehicle": self._vehicle_label(vehicles, vin)},
-            )
+            return self._car_form(screen, schema, step_id="action_abrp", errors=errors)
 
         if user_input is None:
             return _form()
@@ -724,15 +755,16 @@ class PerCarScreens(_FlowBase):
         the form stays, with the pick and the reason.
         """
 
-        vehicles, _per_vehicle, vin = self._vehicle_context()
-        if vin is _PICK:
+        screen = self._car_screen()
+        if screen.unpicked:
             return await self.async_step_upholstery_vehicle()
+        vin = screen.vin
         runtime = self._get_runtime()
         if runtime is None:
             return self.async_abort(reason="runtime_missing")
         if vin is None:
             return self.async_abort(reason="no_vins")
-        label = self._vehicle_label(vehicles, vin)
+        label = screen.label
         if self._upholstery_choices[0] != vin:
             raw = (runtime.coordinator.device_metadata.get(vin) or {}).get("raw_data") or {}
             found = await async_upholstery(
@@ -828,9 +860,10 @@ class PerCarScreens(_FlowBase):
         coordinates to disk.
         """
 
-        vehicles, per_vehicle, vin = self._vehicle_context()
-        if vin is _PICK:
+        screen = self._car_screen()
+        if screen.unpicked:
             return await self.async_step_trips_vehicle()
+        vin = screen.vin
 
         options = dict(self._config_entry.options)
         # What applies to this car right now: its own settings if it has any.
@@ -891,23 +924,13 @@ class PerCarScreens(_FlowBase):
                 default=options.get(OPTION_TRIP_DEBUG, False),
             ): selector.BooleanSelector(),
         }
-        if per_vehicle:
-            schema = vol.Schema(
-                {
-                    **car_fields,
-                    vol.Required(SHARED_SECTION): section(
-                        vol.Schema(shared_fields), {"collapsed": True}
-                    ),
-                }
-            )
-        else:
-            schema = vol.Schema({**car_fields, **shared_fields})
+        schema = screen.schema(car_fields, shared_fields)
 
         if user_input is None:
-            return self.async_show_form(
+            return self._car_form(
+                screen,
+                schema,
                 step_id="action_trips",
-                data_schema=schema,
-                description_placeholders={"vehicle": self._vehicle_label(vehicles, vin)},
                 # *Next* where the phone screen follows with the settings in
                 # force; a form can't know what is about to be picked.
                 last_step=not phone_route_follows(values),
@@ -937,7 +960,7 @@ class PerCarScreens(_FlowBase):
         come from a phone that rides along (``phone_route.py``).
         """
 
-        vehicles, _per_vehicle, vin = self._vehicle_context()
+        screen = self._car_screen()
         submitted, shared = self._trips_pending
         errors: dict[str, str] = {}
         if user_input is not None:
@@ -971,17 +994,14 @@ class PerCarScreens(_FlowBase):
                 ): selector.EntitySelector(selector.EntitySelectorConfig(domain="binary_sensor")),
             }
         )
-        return self.async_show_form(
-            step_id="trips_phone",
-            data_schema=schema,
-            errors=errors,
-            description_placeholders={"vehicle": self._vehicle_label(vehicles, vin)},
-        )
+        return self._car_form(screen, schema, step_id="trips_phone", errors=errors)
 
     def _save_trips(self, submitted: dict[str, Any], shared: Mapping[str, Any]) -> ConfigFlowResult:
-        _vehicles, per_vehicle, vin = self._vehicle_context()
+        screen = self._car_screen()
         options = dict(self._config_entry.options)
-        options = store_values(options, submitted, TRIP_OPTIONS, vin=vin, per_vehicle=per_vehicle)
+        options = store_values(
+            options, submitted, TRIP_OPTIONS, vin=screen.vin, per_vehicle=screen.per_vehicle
+        )
         options[OPTION_TRIP_GEOCODE] = bool(shared.get(OPTION_TRIP_GEOCODE))
         options[OPTION_TRIP_WEATHER] = bool(shared.get(OPTION_TRIP_WEATHER))
         options[OPTION_TRIP_DEBUG] = bool(shared.get(OPTION_TRIP_DEBUG))
@@ -1051,9 +1071,10 @@ class PerCarScreens(_FlowBase):
     ) -> ConfigFlowResult:
         """Which kind of mileage allowance the car has, if any."""
 
-        vehicles, _per_vehicle, vin = self._vehicle_context()
-        if vin is _PICK:
+        screen = self._car_screen()
+        if screen.unpicked:
             return await self.async_step_mileage_vehicle()
+        vin = screen.vin
         current = mileage_values(self._config_entry.options, vin)
         kind = current.get(MILEAGE_KIND) if allowance_settings(current) else KIND_NONE
         schema = vol.Schema(
@@ -1067,7 +1088,7 @@ class PerCarScreens(_FlowBase):
                 )
             }
         )
-        placeholders = {"vehicle": self._vehicle_label(vehicles, vin)}
+        placeholders = {"vehicle": screen.label}
         errors: dict[str, str] = {}
         if user_input is not None:
             chosen = user_input.get(MILEAGE_KIND)
@@ -1151,7 +1172,8 @@ class PerCarScreens(_FlowBase):
     async def _mileage_form(
         self, user_input: dict[str, Any] | None, *, step_id: str, kind: str
     ) -> ConfigFlowResult:
-        vehicles, _per_vehicle, vin = self._vehicle_context()
+        screen = self._car_screen()
+        vin = screen.vin
         assert isinstance(vin, str)  # the kind step refuses an account without a car
         miles = self._miles(vin)
         current = mileage_values(self._config_entry.options, vin)
@@ -1192,7 +1214,7 @@ class PerCarScreens(_FlowBase):
             fields[vol.Optional(LEASE_COST_SECTION, default={})] = self._lease_cost_section(
                 values, miles
             )
-        placeholders = {"vehicle": self._vehicle_label(vehicles, vin)}
+        placeholders = {"vehicle": screen.label}
 
         errors: dict[str, str] = {}
         if user_input is not None:
