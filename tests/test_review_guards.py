@@ -774,10 +774,17 @@ def test_the_real_range_entity_watches_the_figures_it_is_measured_against() -> N
         if isinstance(n, ast.ClassDef) and n.name == "CardataRealRangeSensor"
     )
     source = ast.unparse(cls)
-    assert "signal_update" in source, (
-        "The real-range entity no longer subscribes to signal_update: BMW's "
-        "range and the pack capacity would freeze at whatever they were when "
-        "the entity was created."
+    subscriptions = [
+        ast.unparse(call)
+        for call in ast.walk(cls)
+        if isinstance(call, ast.Call) and ast.unparse(call.func).endswith("router.subscribe")
+    ]
+    assert any("EFFICIENCY_LIVE_DESCRIPTORS" in call for call in subscriptions), (
+        "The real-range entity no longer subscribes to the readings it is measured "
+        "against (router.subscribe with EFFICIENCY_LIVE_DESCRIPTORS): BMW's range "
+        "and the pack capacity would freeze at whatever they were when the "
+        "entity was created. Only those two, since recomputing the profile walks "
+        "every stored session."
     )
     assert "signal_diagnostics" in source, (
         "The real-range entity no longer watches the stream heartbeat. A "
@@ -785,11 +792,6 @@ def test_the_real_range_entity_watches_the_figures_it_is_measured_against() -> N
         "each descriptor entity pushes its own restored value back into the "
         "coordinator -- so a parked car would keep the empty profile it wrote "
         "before the restore landed."
-    )
-    assert "EFFICIENCY_LIVE_DESCRIPTORS" in source, (
-        "The descriptor handler must filter on EFFICIENCY_LIVE_DESCRIPTORS -- "
-        "recomputing the profile walks every stored session, so doing it for "
-        "every message a car streams is a cost for nothing."
     )
 
 

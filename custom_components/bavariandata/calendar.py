@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import logging
 from datetime import date, datetime
-from collections.abc import Callable
 
 from homeassistant.components.calendar import CalendarEntity, CalendarEvent
 from homeassistant.config_entries import ConfigEntry
@@ -57,13 +56,11 @@ async def async_setup_entry(
     for vin in coordinator.data.keys():
         ensure_calendar(vin)
 
-    async def handle_update(vin: str, descriptor: str) -> None:
-        if descriptor == CBS:
-            ensure_calendar(vin)
+    def handle_service_items(vin: str, _descriptor: str) -> None:
+        ensure_calendar(vin)
 
-    config_entry.async_on_unload(
-        async_dispatcher_connect(hass, coordinator.signal_update, handle_update)
-    )
+    # Any car's first service items create its calendar.
+    config_entry.async_on_unload(coordinator.router.subscribe(None, (CBS,), handle_service_items))
 
 
 def _event(event: ServiceEvent) -> CalendarEvent:
@@ -86,8 +83,6 @@ class CardataServiceCalendar(CardataEntity, CalendarEntity):
         super().__init__(coordinator, vin, "service_calendar")
         self._attr_unique_id = f"{vin}{UNIQUE_SUFFIX}"
         self._attr_entity_registry_enabled_default = False
-        self._unsubscribe: Callable[[], None] | None = None
-        self._unsubscribe_mileage: Callable[[], None] | None = None
 
     def _events(self) -> list[ServiceEvent]:
         language = self.hass.config.language
@@ -132,25 +127,17 @@ class CardataServiceCalendar(CardataEntity, CalendarEntity):
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
-        self._unsubscribe = async_dispatcher_connect(
-            self.hass, self._coordinator.signal_update, self._handle_update
+        self.async_on_remove(
+            self._coordinator.router.subscribe(self._vin, (CBS,), self._handle_update)
         )
-        self._unsubscribe_mileage = async_dispatcher_connect(
-            self.hass, self._coordinator.signal_mileage, self._handle_mileage
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass, self._coordinator.signal_mileage, self._handle_mileage
+            )
         )
 
-    async def async_will_remove_from_hass(self) -> None:
-        await super().async_will_remove_from_hass()
-        if self._unsubscribe:
-            self._unsubscribe()
-            self._unsubscribe = None
-        if self._unsubscribe_mileage:
-            self._unsubscribe_mileage()
-            self._unsubscribe_mileage = None
-
-    def _handle_update(self, vin: str, descriptor: str) -> None:
-        if vin == self._vin and descriptor == CBS:
-            self.schedule_update_ha_state()
+    def _handle_update(self, _vin: str, _descriptor: str) -> None:
+        self.schedule_update_ha_state()
 
     def _handle_mileage(self, vin: str) -> None:
         if vin == self._vin:

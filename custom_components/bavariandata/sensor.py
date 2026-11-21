@@ -156,7 +156,6 @@ class CardataSensor(CardataRestoreSensor):
     def __init__(self, coordinator: CardataCoordinator, vin: str, descriptor: str) -> None:
         super().__init__(coordinator, vin, descriptor)
         self._attr_should_poll = False
-        self._unsubscribe: Callable[[], None] | None = None
         # Check Control keeps the messages that have since cleared, so the card
         # can list them apart from the current ones (see structured_values).
         self._history = MessageHistory() if descriptor == CHECK_CONTROL else None
@@ -236,22 +235,12 @@ class CardataSensor(CardataRestoreSensor):
                     unit,
                     timestamp,
                 )
-        self._unsubscribe = async_dispatcher_connect(
-            self.hass,
-            self._coordinator.signal_update,
-            self._handle_update,
+        self.async_on_remove(
+            self._coordinator.router.subscribe(self.vin, (self.descriptor,), self._handle_update)
         )
         self._handle_update(self.vin, self.descriptor)
 
-    async def async_will_remove_from_hass(self) -> None:
-        await super().async_will_remove_from_hass()
-        if self._unsubscribe:
-            self._unsubscribe()
-            self._unsubscribe = None
-
     def _handle_update(self, vin: str, descriptor: str) -> None:
-        if vin != self.vin or descriptor != self.descriptor:
-            return
         state = self._coordinator.get_state(vin, descriptor)
         if not state:
             return
@@ -304,7 +293,6 @@ class CardataDiagnosticsSensor(SensorEntity, RestoreEntity):
         self._entry_id = entry_id
         self._sensor_type = sensor_type
         self._quota = quota_manager
-        self._unsub: Callable[[], None] | None = None
         # One of sensor_plan.DIAGNOSTIC_TYPES, each named from translations
         # (tools/derived_entities.json).
         self._attr_translation_key = sensor_type
@@ -339,17 +327,14 @@ class CardataDiagnosticsSensor(SensorEntity, RestoreEntity):
                     self._attr_native_value = dt_util.parse_datetime(last_state.state)
                 else:
                     self._attr_native_value = last_state.state
-        self._unsub = async_dispatcher_connect(
-            self.hass,
-            self._coordinator.signal_diagnostics,
-            self._handle_update,
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass,
+                self._coordinator.signal_diagnostics,
+                self._handle_update,
+            )
         )
         self._handle_update()
-
-    async def async_will_remove_from_hass(self) -> None:
-        if self._unsub:
-            self._unsub()
-            self._unsub = None
 
     def _handle_update(self) -> None:
         if self._sensor_type == "last_message":
@@ -390,7 +375,6 @@ class CardataQuotaSensor(SensorEntity):
         self._coordinator = coordinator
         self._entry_id = entry_id
         self._quota = quota_manager
-        self._unsub: Callable[[], None] | None = None
         self._attr_unique_id = f"{entry_id}_diagnostics_api_quota_remaining"
 
     @property
@@ -411,16 +395,13 @@ class CardataQuotaSensor(SensorEntity):
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
-        self._unsub = async_dispatcher_connect(
-            self.hass,
-            self._coordinator.signal_diagnostics,
-            self._handle_update,
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass,
+                self._coordinator.signal_diagnostics,
+                self._handle_update,
+            )
         )
-
-    async def async_will_remove_from_hass(self) -> None:
-        if self._unsub:
-            self._unsub()
-            self._unsub = None
 
     def _handle_update(self) -> None:
         self.schedule_update_ha_state()
@@ -437,7 +418,6 @@ class CardataSocEstimateSensor(CardataRestoreSensor):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "soc_estimate")
-        self._unsubscribe: Callable[[], None] | None = None
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
@@ -463,20 +443,17 @@ class CardataSocEstimateSensor(CardataRestoreSensor):
                     timestamp=reference,
                     meter_kwh=meter_kwh if isinstance(meter_kwh, (int, float)) else None,
                 )
-        self._unsubscribe = async_dispatcher_connect(
-            self.hass,
-            self._coordinator.signal_soc_estimate,
-            self._handle_update,
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass,
+                self._coordinator.signal_soc_estimate,
+                self._handle_update,
+            )
         )
         existing = self._coordinator.get_soc_estimate(self.vin)
         if existing is not None:
             self._attr_native_value = existing
             self.schedule_update_ha_state()
-
-    async def async_will_remove_from_hass(self) -> None:
-        if self._unsubscribe:
-            self._unsubscribe()
-            self._unsubscribe = None
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
@@ -500,7 +477,6 @@ class CardataSocRateSensor(CardataRestoreSensor):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "soc_rate")
-        self._unsubscribe: Callable[[], None] | None = None
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
@@ -523,20 +499,17 @@ class CardataSocRateSensor(CardataRestoreSensor):
                         rate=self._attr_native_value,
                         timestamp=reference,
                     )
-        self._unsubscribe = async_dispatcher_connect(
-            self.hass,
-            self._coordinator.signal_soc_estimate,
-            self._handle_update,
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass,
+                self._coordinator.signal_soc_estimate,
+                self._handle_update,
+            )
         )
         existing = self._coordinator.get_soc_rate(self.vin)
         if existing is not None:
             self._attr_native_value = existing
             self.schedule_update_ha_state()
-
-    async def async_will_remove_from_hass(self) -> None:
-        if self._unsubscribe:
-            self._unsubscribe()
-            self._unsubscribe = None
 
     def _handle_update(self, vin: str) -> None:
         if vin != self.vin:
@@ -560,21 +533,17 @@ class CardataChargeEtaSensor(CardataEntity, SensorEntity):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "charge_eta")
-        self._unsubscribe: Callable[[], None] | None = None
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
-        self._unsubscribe = async_dispatcher_connect(
-            self.hass,
-            self._coordinator.signal_soc_estimate,
-            self._handle_update,
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass,
+                self._coordinator.signal_soc_estimate,
+                self._handle_update,
+            )
         )
         self._attr_native_value = self._coordinator.get_charge_eta(self.vin)
-
-    async def async_will_remove_from_hass(self) -> None:
-        if self._unsubscribe:
-            self._unsubscribe()
-            self._unsubscribe = None
 
     def _handle_update(self, vin: str) -> None:
         if vin != self.vin:
@@ -599,7 +568,6 @@ class CardataChargedEnergySensor(CardataRestoreSensor):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "charged_energy_total")
-        self._unsubscribe: Callable[[], None] | None = None
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
@@ -616,16 +584,13 @@ class CardataChargedEnergySensor(CardataRestoreSensor):
         existing = self._coordinator.get_lifetime_energy_kwh(self.vin)
         if existing is not None:
             self._attr_native_value = existing
-        self._unsubscribe = async_dispatcher_connect(
-            self.hass,
-            self._coordinator.signal_energy,
-            self._handle_update,
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass,
+                self._coordinator.signal_energy,
+                self._handle_update,
+            )
         )
-
-    async def async_will_remove_from_hass(self) -> None:
-        if self._unsubscribe:
-            self._unsubscribe()
-            self._unsubscribe = None
 
     def _handle_update(self, vin: str) -> None:
         if vin != self.vin:
@@ -647,7 +612,6 @@ class CardataSessionEnergySensor(CardataRestoreSensor):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "charged_energy_session")
-        self._unsubscribe: Callable[[], None] | None = None
 
     @property
     def last_reset(self) -> datetime | None:
@@ -678,16 +642,13 @@ class CardataSessionEnergySensor(CardataRestoreSensor):
         existing = self._coordinator.get_session_energy_kwh(self.vin)
         if existing is not None:
             self._attr_native_value = existing
-        self._unsubscribe = async_dispatcher_connect(
-            self.hass,
-            self._coordinator.signal_energy,
-            self._handle_update,
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass,
+                self._coordinator.signal_energy,
+                self._handle_update,
+            )
         )
-
-    async def async_will_remove_from_hass(self) -> None:
-        if self._unsubscribe:
-            self._unsubscribe()
-            self._unsubscribe = None
 
     def _handle_update(self, vin: str) -> None:
         if vin != self.vin:
@@ -711,8 +672,6 @@ class CardataChargingSummarySensor(CardataEntity, SensorEntity):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str, key: str) -> None:
         super().__init__(coordinator, vin, key)
-        self._unsubscribe: Callable[[], None] | None = None
-        self._unsub_midnight: Callable[[], None] | None = None
 
     @property
     def _summary(self) -> dict[str, Any]:
@@ -732,22 +691,16 @@ class CardataChargingSummarySensor(CardataEntity, SensorEntity):
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
-        self._unsubscribe = async_dispatcher_connect(
-            self.hass,
-            self._coordinator.signal_history,
-            self._handle_update,
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass,
+                self._coordinator.signal_history,
+                self._handle_update,
+            )
         )
-        self._unsub_midnight = async_track_time_change(
-            self.hass, self._handle_rollover, hour=0, minute=0, second=10
+        self.async_on_remove(
+            async_track_time_change(self.hass, self._handle_rollover, hour=0, minute=0, second=10)
         )
-
-    async def async_will_remove_from_hass(self) -> None:
-        if self._unsubscribe:
-            self._unsubscribe()
-            self._unsubscribe = None
-        if self._unsub_midnight:
-            self._unsub_midnight()
-            self._unsub_midnight = None
 
     def _handle_update(self, vin: str) -> None:
         if vin == self.vin:
@@ -790,7 +743,6 @@ class CardataChargingCostSessionSensor(CardataEntity, SensorEntity):
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "charging_cost_session")
         self._attr_native_unit_of_measurement = coordinator.pricing.currency
-        self._unsubscribe: Callable[[], None] | None = None
 
     @property
     def _latest(self) -> Any:
@@ -812,16 +764,13 @@ class CardataChargingCostSessionSensor(CardataEntity, SensorEntity):
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
-        self._unsubscribe = async_dispatcher_connect(
-            self.hass,
-            self._coordinator.signal_history,
-            self._handle_update,
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass,
+                self._coordinator.signal_history,
+                self._handle_update,
+            )
         )
-
-    async def async_will_remove_from_hass(self) -> None:
-        if self._unsubscribe:
-            self._unsubscribe()
-            self._unsubscribe = None
 
     def _handle_update(self, vin: str) -> None:
         if vin == self.vin:
@@ -894,7 +843,6 @@ class CardataBatteryHealthSensor(CardataEntity, SensorEntity):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "battery_health")
-        self._unsubscribe: Callable[[], None] | None = None
 
     @property
     def _health(self) -> Any:
@@ -926,16 +874,13 @@ class CardataBatteryHealthSensor(CardataEntity, SensorEntity):
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
-        self._unsubscribe = async_dispatcher_connect(
-            self.hass,
-            self._coordinator.signal_history,
-            self._handle_update,
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass,
+                self._coordinator.signal_history,
+                self._handle_update,
+            )
         )
-
-    async def async_will_remove_from_hass(self) -> None:
-        if self._unsubscribe:
-            self._unsubscribe()
-            self._unsubscribe = None
 
     def _handle_update(self, vin: str) -> None:
         if vin == self.vin:
@@ -973,10 +918,6 @@ class CardataRealRangeSensor(CardataEntity, SensorEntity):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "real_range")
-        self._unsub_history: Callable[[], None] | None = None
-        self._unsub_soc: Callable[[], None] | None = None
-        self._unsub_live: Callable[[], None] | None = None
-        self._unsub_heartbeat: Callable[[], None] | None = None
         self._cached: dict[str, Any] | None = None
         # What the cached profile was computed from, so the heartbeat can tell
         # "nothing moved" from "nobody told us" without walking the ledger.
@@ -1024,21 +965,27 @@ class CardataRealRangeSensor(CardataEntity, SensorEntity):
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
-        self._unsub_history = async_dispatcher_connect(
-            self.hass, self._coordinator.signal_history, self._handle_update
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass, self._coordinator.signal_history, self._handle_update
+            )
         )
         # The range from *here* moves with every SoC tick, not only when a
         # charge lands.
-        self._unsub_soc = async_dispatcher_connect(
-            self.hass, self._coordinator.signal_soc_estimate, self._handle_update
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass, self._coordinator.signal_soc_estimate, self._handle_update
+            )
         )
         # ...and the two figures it is measured *against* -- BMW's own range and
         # the pack capacity -- move with neither: they are plain stream messages.
         # Without this the first write after a restart, taken before the stream
         # has delivered anything, is the last one a parked car ever gets, and the
         # card's comparison against BMW silently disappears until the next charge.
-        self._unsub_live = async_dispatcher_connect(
-            self.hass, self._coordinator.signal_update, self._handle_descriptor
+        self.async_on_remove(
+            self._coordinator.router.subscribe(
+                self.vin, EFFICIENCY_LIVE_DESCRIPTORS, self._handle_descriptor
+            )
         )
         # A restart delivers those same two figures with no signal at all: every
         # descriptor entity restores its own state and pushes it back into the
@@ -1047,30 +994,15 @@ class CardataRealRangeSensor(CardataEntity, SensorEntity):
         # measured against exist -- and on a parked car, which streams nothing
         # for hours, that first write is the last one. The stream heartbeat is
         # the tick that always comes, so it is what notices.
-        self._unsub_heartbeat = async_dispatcher_connect(
-            self.hass, self._coordinator.signal_diagnostics, self._handle_heartbeat
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass, self._coordinator.signal_diagnostics, self._handle_heartbeat
+            )
         )
 
-    async def async_will_remove_from_hass(self) -> None:
-        if self._unsub_history:
-            self._unsub_history()
-            self._unsub_history = None
-        if self._unsub_soc:
-            self._unsub_soc()
-            self._unsub_soc = None
-        if self._unsub_live:
-            self._unsub_live()
-            self._unsub_live = None
-        if self._unsub_heartbeat:
-            self._unsub_heartbeat()
-            self._unsub_heartbeat = None
-
-    def _handle_descriptor(self, vin: str, descriptor: str) -> None:
-        # Every descriptor this car streams comes through here, and recomputing
-        # the profile walks every stored session -- so filter to the two the
-        # profile actually reads live before paying for it.
-        if descriptor not in EFFICIENCY_LIVE_DESCRIPTORS:
-            return
+    def _handle_descriptor(self, vin: str, _descriptor: str) -> None:
+        # Only the two readings the profile reads live (the router's filter):
+        # recomputing it walks every stored session.
         self._handle_update(vin)
 
     def _handle_heartbeat(self) -> None:
@@ -1105,8 +1037,6 @@ class CardataDrivingDistanceMonthSensor(CardataEntity, SensorEntity):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "driving_distance_month")
-        self._unsubscribe: Callable[[], None] | None = None
-        self._unsub_midnight: Callable[[], None] | None = None
 
     @property
     def _summary(self) -> dict[str, Any]:
@@ -1135,22 +1065,16 @@ class CardataDrivingDistanceMonthSensor(CardataEntity, SensorEntity):
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
-        self._unsubscribe = async_dispatcher_connect(
-            self.hass,
-            self._coordinator.signal_trips,
-            self._handle_update,
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass,
+                self._coordinator.signal_trips,
+                self._handle_update,
+            )
         )
-        self._unsub_midnight = async_track_time_change(
-            self.hass, self._handle_rollover, hour=0, minute=0, second=10
+        self.async_on_remove(
+            async_track_time_change(self.hass, self._handle_rollover, hour=0, minute=0, second=10)
         )
-
-    async def async_will_remove_from_hass(self) -> None:
-        if self._unsubscribe:
-            self._unsubscribe()
-            self._unsubscribe = None
-        if self._unsub_midnight:
-            self._unsub_midnight()
-            self._unsub_midnight = None
 
     def _handle_update(self, vin: str) -> None:
         if vin == self.vin:
@@ -1177,7 +1101,6 @@ class CardataLastVehicleReportSensor(CardataEntity, SensorEntity):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "last_vehicle_report")
-        self._unsubscribe: Callable[[], None] | None = None
 
     @property
     def native_value(self) -> datetime | None:
@@ -1185,18 +1108,12 @@ class CardataLastVehicleReportSensor(CardataEntity, SensorEntity):
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
-        self._unsubscribe = async_dispatcher_connect(
-            self.hass, self._coordinator.signal_update, self._handle_update
+        self.async_on_remove(
+            self._coordinator.router.subscribe(self.vin, DESC_ODOMETER, self._handle_update)
         )
 
-    async def async_will_remove_from_hass(self) -> None:
-        if self._unsubscribe:
-            self._unsubscribe()
-            self._unsubscribe = None
-
-    def _handle_update(self, vin: str, descriptor: str) -> None:
-        if vin == self.vin and descriptor in DESC_ODOMETER:
-            self.schedule_update_ha_state()
+    def _handle_update(self, _vin: str, _descriptor: str) -> None:
+        self.schedule_update_ha_state()
 
 
 class CardataMileageAllowanceSensor(CardataEntity, SensorEntity):
@@ -1218,7 +1135,6 @@ class CardataMileageAllowanceSensor(CardataEntity, SensorEntity):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "mileage_allowance")
-        self._unsubscribers: list[Any] = []
 
     @property
     def _allowance(self) -> dict[str, Any]:
@@ -1236,24 +1152,17 @@ class CardataMileageAllowanceSensor(CardataEntity, SensorEntity):
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
-        self._unsubscribers = [
-            async_dispatcher_connect(
-                self.hass, self._coordinator.signal_update, self._handle_update
-            ),
+        for unsubscribe in (
+            self._coordinator.router.subscribe(self.vin, DESC_ODOMETER, self._handle_update),
             async_dispatcher_connect(
                 self.hass, self._coordinator.signal_mileage, self._handle_allowance
             ),
             async_track_time_change(self.hass, self._handle_rollover, hour=0, minute=0, second=10),
-        ]
+        ):
+            self.async_on_remove(unsubscribe)
 
-    async def async_will_remove_from_hass(self) -> None:
-        for unsubscribe in self._unsubscribers:
-            unsubscribe()
-        self._unsubscribers = []
-
-    def _handle_update(self, vin: str, descriptor: str) -> None:
-        if vin == self.vin and descriptor in DESC_ODOMETER:
-            self.schedule_update_ha_state()
+    def _handle_update(self, _vin: str, _descriptor: str) -> None:
+        self.schedule_update_ha_state()
 
     def _handle_allowance(self, vin: str) -> None:
         if vin == self.vin:
@@ -1276,7 +1185,6 @@ class CardataTyreEntity(CardataEntity, SensorEntity):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str, key: str) -> None:
         super().__init__(coordinator, vin, key)
-        self._unsubscribe: Callable[[], None] | None = None
 
     @property
     def _diagnosis(self) -> dict[str, Any]:
@@ -1290,14 +1198,9 @@ class CardataTyreEntity(CardataEntity, SensorEntity):
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
-        self._unsubscribe = async_dispatcher_connect(
-            self.hass, self._coordinator.signal_tyre, self._handle_update
+        self.async_on_remove(
+            async_dispatcher_connect(self.hass, self._coordinator.signal_tyre, self._handle_update)
         )
-
-    async def async_will_remove_from_hass(self) -> None:
-        if self._unsubscribe:
-            self._unsubscribe()
-            self._unsubscribe = None
 
     def _handle_update(self, vin: str) -> None:
         if vin == self.vin:

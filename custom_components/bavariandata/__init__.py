@@ -236,6 +236,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     # A car on end-of-trip reports may take its route from a phone.
     coordinator.watch_phone_routes()
 
+    _async_wire_router(hass, entry, coordinator)
     statistics = _async_wire_statistics(hass, entry, coordinator, history_store, options)
     _async_wire_coverage(hass, entry)
     last_fetch_ts = last_fetch_at(data.get(LAST_TELEMATIC_POLL), data.get(LAST_STARTUP_REFRESH))
@@ -455,6 +456,23 @@ def _async_restore_devices(
         device_registry.async_get_or_create(
             config_entry_id=entry.entry_id, identifiers={(DOMAIN, vin)}, **fields
         )
+
+
+@callback
+def _async_wire_router(
+    hass: HomeAssistant, entry: CardataConfigEntry, coordinator: CardataCoordinator
+) -> None:
+    """Route every stored reading to the entities that show it (``descriptor_router``).
+
+    One listener for the account, a callback so it runs on the event loop, in
+    place of one listener per entity that each ran on a worker thread.
+    """
+
+    @callback
+    def _route(vin: str, descriptor: str) -> None:
+        coordinator.router.dispatch(vin, descriptor)
+
+    entry.async_on_unload(async_dispatcher_connect(hass, coordinator.signal_update, _route))
 
 
 @callback

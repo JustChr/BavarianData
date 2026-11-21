@@ -70,6 +70,7 @@ from .stream_health import (
     StreamHealth,
 )
 from .places import Places
+from .descriptor_router import DescriptorRouter
 from .placeholders import is_placeholder
 from .readings import as_float, parse_time
 from .sensor_values import session_progress_attributes
@@ -260,6 +261,9 @@ class CardataCoordinator:
     charging: VehicleCharging = field(init=False, repr=False)
     # Where the cars are: position, zone, Home (``places``).
     places: Places = field(init=False, repr=False)
+    # Who shows which reading: ``signal_update`` routed by car and descriptor
+    # (``descriptor_router``), so an entity hears only its own readings.
+    router: DescriptorRouter = field(default_factory=DescriptorRouter, init=False, repr=False)
     # The stream's two repairs, latched (``stream_repairs``).
     repairs: StreamRepairs = field(init=False, repr=False)
 

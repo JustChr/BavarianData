@@ -8,14 +8,13 @@ from __future__ import annotations
 
 import time
 from typing import Any
-from collections.abc import Callable
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers import entity_registry as er
@@ -32,7 +31,6 @@ class CardataBinarySensor(CardataEntity, BinarySensorEntity):
     def __init__(self, coordinator: CardataCoordinator, vin: str, descriptor: str) -> None:
         super().__init__(coordinator, vin, descriptor)
         self._attr_should_poll = False
-        self._unsubscribe: Callable[[], None] | None = None
         device_class, self._invert = binary_sensor_plan.device_class(descriptor)
         self._attr_device_class = (
             BinarySensorDeviceClass(device_class) if device_class is not None else None
@@ -44,22 +42,12 @@ class CardataBinarySensor(CardataEntity, BinarySensorEntity):
             last_state = await self.async_get_last_state()
             if last_state and last_state.state not in ("unknown", "unavailable"):
                 self._attr_is_on = last_state.state.lower() == "on"
-        self._unsubscribe = async_dispatcher_connect(
-            self.hass,
-            self._coordinator.signal_update,
-            self._handle_update,
+        self.async_on_remove(
+            self._coordinator.router.subscribe(self.vin, (self.descriptor,), self._handle_update)
         )
         self._handle_update(self.vin, self.descriptor)
 
-    async def async_will_remove_from_hass(self) -> None:
-        await super().async_will_remove_from_hass()
-        if self._unsubscribe:
-            self._unsubscribe()
-            self._unsubscribe = None
-
     def _handle_update(self, vin: str, descriptor: str) -> None:
-        if vin != self.vin or descriptor != self.descriptor:
-            return
         state = self._coordinator.get_state(vin, descriptor)
         if not state or not isinstance(state.value, bool):
             return
@@ -92,8 +80,6 @@ class CardataTripInProgressBinarySensor(CardataEntity, BinarySensorEntity):
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, binary_sensor_plan.TRIP_IN_PROGRESS)
         self._attr_should_poll = False
-        self._unsub_active: Callable[[], None] | None = None
-        self._unsub_update: Callable[[], None] | None = None
         self._last_write = 0.0
         self._written_on = False
 
@@ -111,26 +97,16 @@ class CardataTripInProgressBinarySensor(CardataEntity, BinarySensorEntity):
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
-        self._unsub_active = async_dispatcher_connect(
-            self.hass,
-            self._coordinator.signal_trip_active,
-            self._handle_trip_edge,
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass, self._coordinator.signal_trip_active, self._handle_trip_edge
+            )
         )
-        self._unsub_update = async_dispatcher_connect(
-            self.hass,
-            self._coordinator.signal_update,
-            self._handle_stream,
+        self.async_on_remove(
+            self._coordinator.router.subscribe(self.vin, None, self._handle_stream)
         )
         self._written_on = self.is_on
         self._last_write = time.monotonic()
-
-    async def async_will_remove_from_hass(self) -> None:
-        await super().async_will_remove_from_hass()
-        for attr in ("_unsub_active", "_unsub_update"):
-            unsub = getattr(self, attr)
-            if unsub:
-                unsub()
-                setattr(self, attr, None)
 
     def _handle_trip_edge(self, vin: str) -> None:
         """A trip opened or closed: write immediately, never throttled."""
@@ -141,7 +117,7 @@ class CardataTripInProgressBinarySensor(CardataEntity, BinarySensorEntity):
     def _handle_stream(self, vin: str, descriptor: str) -> None:
         """Refresh the in-progress figures, at most once per interval."""
 
-        if vin == self.vin and binary_sensor_plan.trip_write_due(
+        if binary_sensor_plan.trip_write_due(
             self.is_on, self._written_on, time.monotonic() - self._last_write
         ):
             self._write()
@@ -194,16 +170,12 @@ class CardataChargingCableBinarySensor(CardataEntity, BinarySensorEntity):
                 timestamp=last_state.attributes.get("timestamp"),
             )
         self.async_on_remove(
-            async_dispatcher_connect(
-                self.hass, self._coordinator.signal_update, self._handle_update
-            )
+            self._coordinator.router.subscribe(self.vin, PLUG_DESCRIPTORS, self._handle_update)
         )
 
-    @callback
-    def _handle_update(self, vin: str, descriptor: str) -> None:
-        if vin == self.vin and descriptor in PLUG_DESCRIPTORS:
-            self._heard = True
-            self.async_write_ha_state()
+    def _handle_update(self, _vin: str, _descriptor: str) -> None:
+        self._heard = True
+        self.async_write_ha_state()
 
 
 async def async_setup_entry(
