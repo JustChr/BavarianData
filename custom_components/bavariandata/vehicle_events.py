@@ -37,6 +37,13 @@ from .const import (
 )
 from .debug import debug_enabled, mask_vin
 from .evcc import PLUG_DESCRIPTORS, plug_state
+from .event_payloads import (
+    CheckControlEvent,
+    EdgeEvent,
+    PreconditioningEvent,
+    SituationEvent,
+    ZoneLeftEvent,
+)
 from .structured_values import structured_state
 from .vehicle_triggers import (
     ALARM_DESCRIPTOR,
@@ -81,7 +88,7 @@ class EventHost(Protocol):
 
     places: Places
 
-    def _fire(self, event_type: str, payload: dict[str, Any]) -> None: ...
+    def _fire(self, event_type: str, payload: Mapping[str, Any]) -> None: ...
 
 
 class VehicleEvents:
@@ -135,15 +142,15 @@ class VehicleEvents:
                 if change is None:
                     continue
                 zone = self._host.places.current_ha_zone(vin)
-                payload: dict[str, Any] = {
-                    "vin": vin,
-                    "entry_id": self._host.entry_id,
-                    "situation": situation,
-                    "active": change,
-                    "since": (now if change else began or now).isoformat(),
-                    "zone": None if zone is None else zone[0],
-                    "zone_entity_id": None if zone is None else zone[1],
-                }
+                payload = SituationEvent(
+                    vin=vin,
+                    entry_id=self._host.entry_id,
+                    situation=situation,
+                    active=change,
+                    since=(now if change else began or now).isoformat(),
+                    zone=None if zone is None else zone[0],
+                    zone_entity_id=None if zone is None else zone[1],
+                )
                 if situation == SITUATION_PLUGGED_NOT_CHARGING:
                     payload["soc"] = None if soc is None else round(soc, 1)
                     payload["target_soc"] = target
@@ -192,19 +199,18 @@ class VehicleEvents:
                     # An end with no start we knew of is nothing to announce.
                     continue
                 if descriptor == ALARM_DESCRIPTOR:
-                    self._fire_edge(EVENT_ALARM, vin, reading, {})
+                    self._fire_edge(EVENT_ALARM, self._edge(vin, reading))
                 else:
                     error = self._host._value(vin, PRECONDITIONING_ERROR_DESCRIPTOR)
                     activity = self._host._value(vin, PRECONDITIONING_DESCRIPTOR)
                     self._fire_edge(
                         EVENT_PRECONDITIONING,
-                        vin,
-                        reading,
-                        {
-                            "activity": activity.lower() if isinstance(activity, str) else None,
-                            "error": error.lower() if isinstance(error, str) else None,
-                            "soc": self._host._current_soc(vin),
-                        },
+                        PreconditioningEvent(
+                            **self._edge(vin, reading),
+                            activity=activity.lower() if isinstance(activity, str) else None,
+                            error=error.lower() if isinstance(error, str) else None,
+                            soc=self._host._current_soc(vin),
+                        ),
                     )
             if CHECK_CONTROL_DESCRIPTOR in seen:
                 _count, items = structured_state(self._host._value(vin, CHECK_CONTROL_DESCRIPTOR))
@@ -214,15 +220,14 @@ class VehicleEvents:
                     for active, message in [(True, m) for m in new] + [(False, m) for m in gone]:
                         self._fire_edge(
                             EVENT_CHECK_CONTROL,
-                            vin,
-                            active,
-                            {
-                                "id": message.get("id"),
-                                "title": message.get("title"),
-                                "text": message.get("text"),
-                                "message_type": message.get("messageType"),
-                                "message": message,
-                            },
+                            CheckControlEvent(
+                                **self._edge(vin, active),
+                                id=message.get("id"),
+                                title=message.get("title"),
+                                text=message.get("text"),
+                                message_type=message.get("messageType"),
+                                message=message,
+                            ),
                         )
         except Exception:  # noqa: BLE001 - a trigger must never break the stream
             _LOGGER.exception("Edge trigger evaluation failed for %s", mask_vin(vin))
@@ -243,35 +248,41 @@ class VehicleEvents:
             if isinstance(items, list):
                 self._edges.seed(vin, descriptor, items)
 
-    def _fire_edge(self, event_type: str, vin: str, active: bool, extra: dict[str, Any]) -> None:
+    def _edge(self, vin: str, active: bool) -> EdgeEvent:
+        """What every edge event carries: whether it began, and where the car is."""
+
         zone = self._host.places.current_ha_zone(vin)
-        if debug_enabled():
-            _LOGGER.debug("[trigger] %s %s %s", vin, event_type, "BEGIN" if active else "END")
-        self._host._fire(
-            event_type,
-            {
-                "vin": vin,
-                "entry_id": self._host.entry_id,
-                "active": active,
-                **extra,
-                "zone": None if zone is None else zone[0],
-                "zone_entity_id": None if zone is None else zone[1],
-            },
+        return EdgeEvent(
+            vin=vin,
+            entry_id=self._host.entry_id,
+            active=active,
+            zone=None if zone is None else zone[0],
+            zone_entity_id=None if zone is None else zone[1],
         )
+
+    def _fire_edge(self, event_type: str, payload: EdgeEvent) -> None:
+        if debug_enabled():
+            _LOGGER.debug(
+                "[trigger] %s %s %s",
+                payload["vin"],
+                event_type,
+                "BEGIN" if payload["active"] else "END",
+            )
+        self._host._fire(event_type, payload)
 
     def fire_zone_left(self, vin: str, zone: tuple[str, str]) -> None:
         self._host._car(vin).trip.zone_left_fired = True
         builder = self._host._peek(vin).trip.builder
         self._host._fire(
             EVENT_ZONE_LEFT,
-            {
-                "vin": vin,
-                "entry_id": self._host.entry_id,
-                "zone": zone[0],
-                "zone_entity_id": zone[1],
-                "trip_start": None if builder is None else builder.start.isoformat(),
-                "soc": self._host._current_soc(vin),
-            },
+            ZoneLeftEvent(
+                vin=vin,
+                entry_id=self._host.entry_id,
+                zone=zone[0],
+                zone_entity_id=zone[1],
+                trip_start=None if builder is None else builder.start.isoformat(),
+                soc=self._host._current_soc(vin),
+            ),
         )
 
     def check_zone_left(self, vin: str, latitude: float, longitude: float) -> None:

@@ -18,6 +18,8 @@ logs.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 import logging
 from contextlib import suppress
 from datetime import datetime, timedelta, UTC
@@ -53,6 +55,7 @@ from .car_state import ClosedTrip, Vehicle
 from .places import Places
 from .const import EVENT_TRIP_ENDED, EVENT_ZONE_ARRIVED
 from .debug import mask_vin
+from .event_payloads import TripEndedEvent, ZoneArrivedEvent
 from .history.classify import COMMUTE_CHAIN_MAX_LEGS, classify_trip, commute_chain
 from .history.trip_builder import (
     GpsTracker,
@@ -110,7 +113,7 @@ class TripHost(Protocol):
     def battery_capacity_kwh(self, vin: str) -> float | None: ...
     def is_plug_in_hybrid(self, vin: str) -> bool: ...
     def trip_settings_for(self, vin: str) -> TripSettings: ...
-    def _fire(self, event_type: str, payload: dict[str, Any]) -> None: ...
+    def _fire(self, event_type: str, payload: Mapping[str, Any]) -> None: ...
 
 
 class VehicleTrips:
@@ -1038,7 +1041,7 @@ class VehicleTrips:
             if start_zone is not None and not left_fired:
                 if end_zone is None or end_zone[1] != start_zone[1]:
                     self._host.events.fire_zone_left(vin, start_zone)
-            payload = {
+            payload: ZoneArrivedEvent = {
                 "vin": vin,
                 "entry_id": self._host.entry_id,
                 "zone": None if end_zone is None else end_zone[0],
@@ -1055,13 +1058,13 @@ class VehicleTrips:
                 self._host._fire(EVENT_ZONE_ARRIVED, payload)
             self._host._fire(
                 EVENT_TRIP_ENDED,
-                {
+                TripEndedEvent(
                     **payload,
-                    "trip_end": None if trip.end is None else trip.end.isoformat(),
-                    "to": (trip.end_place or {}).get("label"),
-                    "soc_start": trip.soc_start,
-                    "classification": trip.classification,
-                },
+                    trip_end=None if trip.end is None else trip.end.isoformat(),
+                    to=(trip.end_place or {}).get("label"),
+                    soc_start=trip.soc_start,
+                    classification=trip.classification,
+                ),
             )
         except Exception:  # noqa: BLE001 - a trigger must never break the stream
             _LOGGER.exception("Arrival trigger failed for %s", mask_vin(vin))

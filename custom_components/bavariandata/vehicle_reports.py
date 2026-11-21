@@ -80,7 +80,7 @@ class ReportHost(Protocol):
     def is_plug_in_hybrid(self, vin: str) -> bool: ...
     def report_trips(self, vin: str) -> bool: ...
     def trip_settings_for(self, vin: str) -> TripSettings: ...
-    def _fire(self, event_type: str, payload: dict[str, Any]) -> None: ...
+    def _fire(self, event_type: str, payload: Mapping[str, Any]) -> None: ...
 
     trips: VehicleTrips
 
@@ -349,6 +349,7 @@ class VehicleReports:
             )
         payload = report_payload(
             vin,
+            entry_id=self._host.entry_id,
             odometer_km=odometer_km,
             timestamp=timestamp,
             last=baseline,
@@ -367,7 +368,6 @@ class VehicleReports:
                 "heading": self._host._numeric(vin, DESC_GPS_HEADING),
             },
         )
-        payload["entry_id"] = self._host.entry_id
         # Recorded before firing: an automation that raises must not leave the
         # reading unrecorded, to be announced a second time. A fresh record
         # also drops any candidate: this reading has settled the question.

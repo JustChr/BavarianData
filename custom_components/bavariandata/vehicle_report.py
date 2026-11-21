@@ -40,6 +40,7 @@ from datetime import datetime
 from typing import Any
 from collections.abc import Mapping
 
+from .event_payloads import ReportValues, VehicleReportEvent
 from .readings import parse_time
 
 # How long a new odometer reading must hold before it is announced. Long enough
@@ -140,11 +141,12 @@ def report_decision(
 def report_payload(
     vin: str,
     *,
+    entry_id: str,
     odometer_km: float,
     timestamp: str | None,
     last: Mapping[str, Any],
-    values: Mapping[str, float | None],
-) -> dict[str, Any]:
+    values: ReportValues,
+) -> VehicleReportEvent:
     """The event data: the new reading, the one before it, and what came with it.
 
     ``last`` is the reading the report is measured from. ``values`` holds
@@ -157,15 +159,16 @@ def report_payload(
     distance = None
     if isinstance(previous_km, (int, float)):
         distance = round(odometer_km - previous_km, 1)
-    return {
-        "vin": vin,
-        "timestamp": timestamp,
-        "odometer_km": odometer_km,
-        "previous_odometer_km": previous_km,
-        "previous_timestamp": last.get("timestamp"),
-        "distance_km": distance,
-        **dict(values),
-    }
+    return VehicleReportEvent(
+        vin=vin,
+        entry_id=entry_id,
+        timestamp=timestamp,
+        odometer_km=odometer_km,
+        previous_odometer_km=previous_km,
+        previous_timestamp=last.get("timestamp"),
+        distance_km=distance,
+        **values,
+    )
 
 
 # --- Trips from reports ------------------------------------------------------
