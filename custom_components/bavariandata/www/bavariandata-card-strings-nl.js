@@ -461,6 +461,8 @@ export default {
   edh_shape: "Gekozen op basis van het model in de voertuiggegevens van BMW. Stel dit alleen in als de tekening niet bij je auto past.",
   ed_pictures: "Afbeeldingen van opties tonen",
   edh_pictures: "Een kleine afbeelding voor elke optie waarvoor BMW er een heeft. Zet uit voor een gewone lijst.",
+  ed_page_size: "Ritten of laadbeurten per pagina",
+  edh_page_size: "Verdeelt een lange maand in pagina's van hele dagen, met pijlen onder de lijst. 0 toont de hele maand in één keer.",
   sh_sedan: "BMW-sedan",
   sh_countryman: "MINI Countryman",
   ed_overview_option: "Overzicht (standaard)",

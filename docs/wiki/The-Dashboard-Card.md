@@ -249,7 +249,6 @@ The top line, the bar and the range beside it stay as the car sets them. A
 petrol or diesel car that shows charging tiles has had its drivetrain detected
 wrong: set **Drivetrain** (above) rather than replacing the tiles.
 
-
 ---
 
 ## Charging history (`view: charging`)
@@ -272,8 +271,8 @@ so far.
 
 **One month at a time.** As on the trips view, a `‹ August 2026 ›` control under
 the header scopes the figures and the list to one calendar month; page back for
-older sessions. A month with more than ten charges lists them a page at a time,
-the same way as the trips view.
+older sessions. With [`page_size`](#a-page-at-a-time) set, a long month lists its
+charges a page at a time, the same way as the trips view.
 
 ```yaml
 type: custom:bavariandata-card
@@ -471,12 +470,6 @@ calendar month. Page back to reach older records — history is kept for two yea
 by default ([retention](Settings-Reference#charging-costs--history)), which is far more than any
 one screen should show at once. Forward stops at the current month.
 
-**Ten at a time.** A busy month lists about ten trips a page, whole days
-together, so the card doesn't push the rest of your dashboard down. The
-`‹ 15 Nov – 21 Nov ›` control under the list moves to earlier or later days,
-in the same directions as the month control above; the month in review always
-covers the whole month. A drive under way leads the newest page.
-
 > **Average consumption** is measured from the charging ledger and the odometer,
 > not from the trips, and is labeled **at the battery** or **at the plug**
 > according to where the energy was actually measured — plug-side only once every
@@ -509,6 +502,21 @@ under **Configure → Trips** so home↔work drives are recognized as commutes
 > This is a trip journal and expense helper — **not a tax-office-compliant
 > logbook** (*kein Finanzamt-konformes Fahrtenbuch*): it has no legal
 > tamper-resistance.
+
+### A page at a time
+
+A busy month can run the card far down your dashboard. Set **Trips or
+charges per page** in the card editor (`page_size: 10` in YAML) and the list
+holds about that many, whole days together. The `‹ 15 Nov – 21 Nov ›` control
+under the list moves to earlier or later days, in the same directions as the month control above; the month in
+review always covers the whole month, and a drive under way leads the newest
+page. Leave it empty or at 0 for the whole month at once.
+
+```yaml
+type: custom:bavariandata-card
+view: trips
+page_size: 10
+```
 
 ---
 
@@ -859,6 +867,7 @@ New: `hub: true`, `view: car`, `view: glance`, `view: row`, `view: garage`.
 | `tiles` | The Overview's tiles, in order: ready-made tiles (`odometer`, `tank`, `total_range`, `target`, `plug`, `time_to_full`, `tires`, `location`, `lock`, `distance_month`, `battery_12v`), entity ids, or `{entity, name, icon}`. Omit for the drivetrain's own. See [Choosing the tiles](#choosing-the-tiles). |
 | `steering` | `left` or `right` — the side the driver sits on, used to place doors and windows in the closures view. Omit to read it from BMW's basic data; a car whose basic data doesn't say is drawn as left-hand drive. |
 | `shape` | `sedan` or `countryman` — the car drawn in the tires and closures views. Omit to pick it from the model in BMW's basic data. |
+| `page_size` | The trips and charging views (and a hub's rooms): entries a page holds, whole days together (**Trips or charges per page** in the visual editor; see [A page at a time](#a-page-at-a-time)). Omit or `0` for the whole month on one page. |
 | `pictures` | `false` — the Equipment view as a plain list, without the option pictures (**Show option pictures** in the visual editor). Omit to show them. |
 | `fuel` | Override the fuel-tank entity (a percentage or a volume). |
 | `hub` | `true`: the Overview with the rooms under it (**Rooms under the overview**). See [The hub](#the-hub-hub-true). |

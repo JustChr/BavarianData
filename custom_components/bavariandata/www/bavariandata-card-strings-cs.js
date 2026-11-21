@@ -461,6 +461,8 @@ export default {
   edh_shape: "Vybírá se podle modelu v údajích o vozidle od BMW. Nastavte jen tehdy, pokud kresba neodpovídá vašemu vozu.",
   ed_pictures: "Zobrazit obrázky výbavy",
   edh_pictures: "Malý obrázek před každou položkou, pro kterou má BMW obrázek. Vypněte pro prostý seznam.",
+  ed_page_size: "Jízdy nebo nabíjení na stránku",
+  edh_page_size: "Rozdělí dlouhý měsíc na stránky celých dnů, se šipkami pod seznamem. 0 zobrazí celý měsíc najednou.",
   sh_sedan: "Sedan BMW",
   sh_countryman: "MINI Countryman",
   ed_overview_option: "Přehled (výchozí)",

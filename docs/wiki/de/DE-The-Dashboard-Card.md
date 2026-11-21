@@ -288,8 +288,9 @@ gebracht und gekostet hat.
 
 **Ein Monat nach dem anderen.** Wie in der Fahrten-Ansicht begrenzt ein Element
 `‹ August 2026 ›` unter der Überschrift Zahlen und Liste auf einen
-Kalendermonat; blättere zurück für ältere Ladevorgänge. Ein Monat mit mehr als
-zehn Ladevorgängen zeigt sie seitenweise, wie die Fahrten-Ansicht.
+Kalendermonat; blättere zurück für ältere Ladevorgänge. Mit
+[`page_size`](#a-page-at-a-time) zeigt ein langer Monat seine Ladevorgänge
+seitenweise, wie die Fahrten-Ansicht.
 
 ```yaml
 type: custom:bavariandata-card
@@ -506,13 +507,6 @@ zwei Jahre aufbewahrt
 ([Aufbewahrung](DE-Settings-Reference#charging-costs--history)), weit mehr, als ein
 Bildschirm auf einmal zeigen sollte. Vorwärts geht es bis zum aktuellen Monat.
 
-**Zehn auf einmal.** Ein voller Monat zeigt etwa zehn Fahrten pro Seite, ganze
-Tage zusammen, damit die Karte den Rest des Dashboards nicht nach unten schiebt.
-Das Element `‹ 15. Nov. – 21. Nov. ›` unter der Liste blättert zu früheren oder
-späteren Tagen, in dieselbe Richtung wie die Monatsauswahl darüber; die
-Monatsübersicht gilt immer für den ganzen Monat. Eine laufende Fahrt steht oben
-auf der neuesten Seite.
-
 > Der **Durchschnittsverbrauch** wird aus dem Ladeverlauf und dem Kilometerstand
 > gemessen, nicht aus den Fahrten, und ist mit **ab Akku** oder **ab Steckdose**
 > beschriftet, je nachdem, wo die Energie tatsächlich gemessen wurde — ab Steckdose
@@ -545,6 +539,22 @@ Fahrten Zuhause↔Arbeit als Pendelfahrten erkannt werden
 
 > Das ist ein Fahrtenbuch und eine Hilfe für Spesen — **kein Finanzamt-konformes
 > Fahrtenbuch**: Es ist rechtlich nicht manipulationssicher.
+
+<a id="a-page-at-a-time"></a>
+### Seitenweise
+
+Ein voller Monat kann die Karte weit nach unten ziehen. Stelle im Karteneditor
+**Fahrten oder Ladevorgänge pro Seite** ein (`page_size: 10` in YAML), dann
+zeigt die Liste etwa so viele, ganze Tage zusammen. Das Element
+`‹ 15. Nov. – 21. Nov. ›` unter der Liste blättert zu früheren oder späteren Tagen, in dieselbe Richtung wie die Monatsauswahl darüber;
+die Monatsübersicht gilt immer für den ganzen Monat, und eine laufende Fahrt
+steht oben auf der neuesten Seite. Leer oder 0 zeigt den ganzen Monat auf einmal.
+
+```yaml
+type: custom:bavariandata-card
+view: trips
+page_size: 10
+```
 
 ---
 
@@ -934,6 +944,7 @@ Neu: `hub: true`, `view: car`, `view: glance`, `view: row`, `view: garage`.
 | `tiles` | Die Kacheln der Übersicht, in Reihenfolge: fertige Kacheln (`odometer`, `tank`, `total_range`, `target`, `plug`, `time_to_full`, `tires`, `location`, `lock`, `distance_month`, `battery_12v`), Entitäts-IDs oder `{entity, name, icon}`. Weglassen für die des Antriebs. Siehe [Kacheln wählen](#choosing-the-tiles). |
 | `steering` | `left` oder `right` — auf welcher Seite der Fahrer sitzt; danach ordnet die Öffnungs-Ansicht Türen und Fenster zu. Weglassen, um es aus BMWs Fahrzeugbasisdaten zu lesen; ein Auto, dessen Basisdaten nichts dazu sagen, wird als Linkslenker gezeichnet. |
 | `shape` | `sedan` oder `countryman` — das Auto, das die Reifen- und die Öffnungs-Ansicht zeichnen. Weglassen, um es anhand des Modells in BMWs Fahrzeugbasisdaten zu wählen. |
+| `page_size` | Fahrten- und Lade-Ansicht (und die Bereiche einer Übersicht mit `hub: true`): Einträge pro Seite, ganze Tage zusammen (**Fahrten oder Ladevorgänge pro Seite** im visuellen Editor; siehe [Seitenweise](#a-page-at-a-time)). Weglassen oder `0` für den ganzen Monat auf einer Seite. |
 | `pictures` | `false` — die Ansicht Ausstattung als reine Liste, ohne die Bilder der Optionen (**Bilder der Optionen zeigen** im visuellen Editor). Weglassen, um sie zu zeigen. |
 | `fuel` | Überschreibt die Tank-Entität (Prozent oder Volumen). |
 | `hub` | `true`: die Übersicht mit den Bereichen darunter (**Bereiche unter der Übersicht**). Siehe [Der Hub](#the-hub-hub-true). |

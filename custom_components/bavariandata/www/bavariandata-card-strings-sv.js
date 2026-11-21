@@ -461,6 +461,8 @@ export default {
   edh_shape: "Väljs utifrån modellen i BMW:s fordonsdata. Ange den bara om ritningen inte stämmer med din bil.",
   ed_pictures: "Visa bilder av tillval",
   edh_pictures: "En liten bild framför varje tillval som BMW har en bild för. Stäng av för en enkel lista.",
+  ed_page_size: "Resor eller laddningar per sida",
+  edh_page_size: "Delar upp en lång månad i sidor med hela dagar, med pilar under listan. 0 visar hela månaden på en gång.",
   sh_sedan: "BMW sedan",
   sh_countryman: "MINI Countryman",
   ed_overview_option: "Översikt (standard)",

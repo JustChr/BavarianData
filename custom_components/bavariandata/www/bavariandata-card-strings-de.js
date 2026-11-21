@@ -461,6 +461,8 @@ export default {
   edh_shape: "Wird anhand des Modells in BMWs Fahrzeugdaten gewählt. Nur setzen, wenn die Zeichnung nicht zum Auto passt.",
   ed_pictures: "Bilder der Optionen zeigen",
   edh_pictures: "Ein kleines Bild vor jeder Option, für die BMW eines hat. Ausschalten für eine reine Liste.",
+  ed_page_size: "Fahrten oder Ladevorgänge pro Seite",
+  edh_page_size: "Teilt einen langen Monat in Seiten aus ganzen Tagen, mit Pfeilen unter der Liste. 0 zeigt den ganzen Monat auf einmal.",
   sh_sedan: "BMW-Limousine",
   sh_countryman: "MINI Countryman",
   ed_overview_option: "Übersicht (Standard)",

@@ -462,6 +462,8 @@ export default {
   edh_shape: "Picked from the model in BMW's vehicle data. Set it only if the drawing does not match your car.",
   ed_pictures: "Show option pictures",
   edh_pictures: "A small picture in front of each option BMW has one for. Turn off for a plain list.",
+  ed_page_size: "Trips or charges per page",
+  edh_page_size: "Splits a long month into pages of whole days, with arrows under the list. 0 shows the whole month at once.",
   sh_sedan: "BMW sedan",
   sh_countryman: "MINI Countryman",
   ed_overview_option: "Overview (default)",
