@@ -209,6 +209,8 @@ export default {
   ch_error: "Impossibile caricare lo storico di ricarica. Ricarica la pagina e riprova.",
   mn_prev: "Mese precedente",
   mn_next: "Mese successivo",
+  pg_earlier: "Giorni precedenti",
+  pg_later: "Giorni successivi",
   ch_home: "Casa",
   ch_public: "Fuori casa",
   ch_assumed: "presunto",

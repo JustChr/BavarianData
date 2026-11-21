@@ -209,6 +209,8 @@ export default {
   ch_error: "Couldn't load charging history. Reload the page and try again.",
   mn_prev: "Previous month",
   mn_next: "Next month",
+  pg_earlier: "Earlier days",
+  pg_later: "Later days",
   ch_home: "Home",
   ch_public: "Away",
   ch_assumed: "assumed",

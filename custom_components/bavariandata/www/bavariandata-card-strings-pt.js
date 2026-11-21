@@ -209,6 +209,8 @@ export default {
   ch_error: "Não foi possível carregar o histórico de carregamento. Recarregue a página e tente novamente.",
   mn_prev: "Mês anterior",
   mn_next: "Mês seguinte",
+  pg_earlier: "Dias anteriores",
+  pg_later: "Dias seguintes",
   ch_home: "Casa",
   ch_public: "Fora",
   ch_assumed: "presumido",

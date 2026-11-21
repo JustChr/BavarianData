@@ -23,6 +23,10 @@ const CARD_VERSION = "2.0.0";
 // again on the next paint instead, a refused call (an account reloading, for
 // one) repeated itself hundreds of times a second (#277).
 const FETCH_RETRY_MS = 30000;
+// Entries a page of the charging or trips list holds before the next day goes
+// on a page of its own (#356): a busy month otherwise ran the card's column off
+// the dashboard.
+const LIST_PAGE_SIZE = 10;
 
 // Classification -> colour, shared by the trips legend and the trip map so a
 // route drawn on the map matches the colour of its row in the Trips view.
@@ -1491,12 +1495,97 @@ class BavarianDataCard extends CardParts {
           // id across would leave a detail panel open on a trip not in the list.
           this._trpExpanded = null;
           this._trp = null;
+          this._trpPage = 0;
         } else {
           this._chgMonth = next;
           this._chgExpanded = null;
           this._chg = null;
+          this._chgPage = 0;
         }
         this._render();
+      });
+    });
+  }
+
+  /** A month's list (newest first) cut into pages of whole days: a page takes
+   * days until the next would carry it past LIST_PAGE_SIZE entries, so a day's
+   * heading never splits across two pages, and a day busier than a page gets
+   * one of its own. Page 0 is the newest; a page past the end (the list shrank)
+   * shows the oldest. */
+  _pageByDay(items, page) {
+    const days = [];
+    let lastKey;
+    for (const it of items) {
+      const d = new Date((it && it.start) || "");
+      const key = Number.isFinite(d.getTime()) ? d.toDateString() : "";
+      if (!days.length || key !== lastKey) days.push([]);
+      days[days.length - 1].push(it);
+      lastKey = key;
+    }
+    const pages = [];
+    for (const day of days) {
+      const cur = pages[pages.length - 1];
+      if (cur && cur.length + day.length <= LIST_PAGE_SIZE) cur.push(...day);
+      else pages.push([...day]);
+    }
+    const at = Math.min(Math.max(Number(page) || 0, 0), Math.max(pages.length - 1, 0));
+    return { items: pages[at] || [], page: at, pages: pages.length };
+  }
+
+  /** ‹ 15 Nov – 21 Nov › under a list with more than one page. Its arrows run
+   * the way the month control's do: back to earlier days, on to later ones. */
+  _pageNav(kind, cut) {
+    if (!cut || cut.pages < 2) return "";
+    const lang = _lang(this._hass);
+    const day = (it) => {
+      const d = new Date((it && it.start) || "");
+      if (!Number.isFinite(d.getTime())) return "";
+      try {
+        return d.toLocaleDateString(lang === "en" ? "en-GB" : lang, { day: "numeric", month: "short" });
+      } catch (_e) {
+        return d.toDateString();
+      }
+    };
+    const newest = day(cut.items[0]);
+    const oldest = day(cut.items[cut.items.length - 1]);
+    const label = newest === oldest ? newest : `${oldest} – ${newest}`;
+    const atOldest = cut.page >= cut.pages - 1;
+    const atNewest = cut.page <= 0;
+    return `
+      <div class="mnav mnav--foot">
+        <button class="mnav__btn" data-page-kind="${kind}" data-page-step="1"
+                title="${this._t("pg_earlier")}" aria-label="${this._t("pg_earlier")}"
+                ${atOldest ? "disabled" : ""}>
+          <ha-icon icon="mdi:chevron-left"></ha-icon>
+        </button>
+        <span class="mnav__label">${this._esc(label)}</span>
+        <button class="mnav__btn" data-page-kind="${kind}" data-page-step="-1"
+                title="${this._t("pg_later")}" aria-label="${this._t("pg_later")}"
+                ${atNewest ? "disabled" : ""}>
+          <ha-icon icon="mdi:chevron-right"></ha-icon>
+        </button>
+      </div>`;
+  }
+
+  _wirePageNav() {
+    this.shadowRoot.querySelectorAll("[data-page-step]").forEach((el) => {
+      el.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        if (el.hasAttribute("disabled")) return;
+        const step = Number(el.getAttribute("data-page-step"));
+        if (el.getAttribute("data-page-kind") === "trips") {
+          this._trpPage = Math.max((this._trpPage || 0) + step, 0);
+        } else {
+          this._chgPage = Math.max((this._chgPage || 0) + step, 0);
+        }
+        this._sig = null;
+        this._render();
+        // The pager sits under the list; when the new page is shorter the
+        // reader would otherwise land below the card, so bring its list back up.
+        const list = this.shadowRoot.querySelector(".chg__list");
+        if (list && list.scrollIntoView && list.getBoundingClientRect().top < 0) {
+          list.scrollIntoView({ block: "start", behavior: "smooth" });
+        }
       });
     });
   }

@@ -288,7 +288,8 @@ gebracht und gekostet hat.
 
 **Ein Monat nach dem anderen.** Wie in der Fahrten-Ansicht begrenzt ein Element
 `‹ August 2026 ›` unter der Überschrift Zahlen und Liste auf einen
-Kalendermonat; blättere zurück für ältere Ladevorgänge.
+Kalendermonat; blättere zurück für ältere Ladevorgänge. Ein Monat mit mehr als
+zehn Ladevorgängen zeigt sie seitenweise, wie die Fahrten-Ansicht.
 
 ```yaml
 type: custom:bavariandata-card
@@ -504,6 +505,13 @@ Kalendermonat. Blättere zurück für ältere Datensätze — der Verlauf wird s
 zwei Jahre aufbewahrt
 ([Aufbewahrung](DE-Settings-Reference#charging-costs--history)), weit mehr, als ein
 Bildschirm auf einmal zeigen sollte. Vorwärts geht es bis zum aktuellen Monat.
+
+**Zehn auf einmal.** Ein voller Monat zeigt etwa zehn Fahrten pro Seite, ganze
+Tage zusammen, damit die Karte den Rest des Dashboards nicht nach unten schiebt.
+Das Element `‹ 15. Nov. – 21. Nov. ›` unter der Liste blättert zu früheren oder
+späteren Tagen, in dieselbe Richtung wie die Monatsauswahl darüber; die
+Monatsübersicht gilt immer für den ganzen Monat. Eine laufende Fahrt steht oben
+auf der neuesten Seite.
 
 > Der **Durchschnittsverbrauch** wird aus dem Ladeverlauf und dem Kilometerstand
 > gemessen, nicht aus den Fahrten, und ist mit **ab Akku** oder **ab Steckdose**
