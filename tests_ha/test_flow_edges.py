@@ -266,3 +266,45 @@ async def test_a_mileage_needs_a_car(hass: HomeAssistant, no_bmw) -> None:
     assert result["step_id"] == "action_mileage"
     assert result["errors"] == {"base": "no_vins"}
     assert "vehicles" not in entry.options
+
+
+async def test_abrp_needs_a_car(hass: HomeAssistant, no_bmw) -> None:
+    entry = await _account(hass)
+    result = await _configure(hass, entry, _Walk(), "share_live_data", "action_abrp")
+    result = await _submit(hass, _Walk(), result, {"abrp_enabled": False, "abrp_position": False})
+
+    assert result["step_id"] == "action_abrp"
+    assert result["errors"] == {"base": "no_vins"}
+    assert "vehicles" not in entry.options
+
+
+async def test_switching_route_weather_on_fills_in_the_stored_trips(
+    hass: HomeAssistant, no_bmw
+) -> None:
+    entry = await _account(hass, VIN)
+    weather = entry.runtime_data.coordinator.weather
+    result = await _configure(hass, entry, _Walk(), "action_trips")
+    with (
+        patch.object(weather, "schedule_backfill") as backfill,
+        patch.object(weather, "schedule_day") as day,
+    ):
+        result = await _submit(hass, _Walk(), result, {**walks.TRIPS, "trip_weather": True})
+
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert entry.runtime_data.coordinator.route_weather.enabled is True
+    backfill.assert_called_once_with()
+    day.assert_called_once_with()
+
+
+async def test_the_evcc_configuration_of_a_bridge_that_is_off_says_so(
+    hass: HomeAssistant, no_bmw
+) -> None:
+    # The snippet screen only follows a car switched on, so the flow never asks
+    # for it with the bridge off; the answer is there for a bridge (or an
+    # account) that went away in between.
+    entry = await _account(hass, VIN)
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    flow = hass.config_entries.options._progress[result["flow_id"]]
+
+    assert flow._evcc_snippet({}) == "(the bridge is switched off -- nothing is published)"
+    hass.config_entries.options.async_abort(result["flow_id"])
