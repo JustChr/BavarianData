@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import logging
 import re
+from collections.abc import Mapping
 from contextlib import suppress
 from datetime import datetime, UTC
 from typing import TYPE_CHECKING, Any, Protocol
@@ -52,6 +53,7 @@ from .const import (
 )
 from .debug import debug_enabled, mask_vin
 from .evcc import PLUG_DESCRIPTORS, plug_state
+from .event_payloads import ChargingEndEvent, ChargingEvent, ChargingInterruptedEvent
 from .history.energy_mix import SOURCE_PV, MixAccumulator, supply_shares
 from .history.held_energy import HeldEnergy
 from .history.meter_rate import MeterRate
@@ -147,7 +149,7 @@ class ChargingHost(Protocol):
     def get_session_energy_kwh(self, vin: str) -> float | None: ...
     def learned_meter_rate(self, vin: str) -> MeterRate | None: ...
     def _log_battery_health(self, vin: str) -> None: ...
-    def _fire(self, event_type: str, payload: dict[str, Any]) -> None: ...
+    def _fire(self, event_type: str, payload: Mapping[str, Any]) -> None: ...
 
 
 class VehicleCharging:
@@ -575,13 +577,13 @@ class VehicleCharging:
             if tracking.estimated_percent is not None
             else tracking.last_soc_percent
         )
-        payload: dict[str, Any] = {
-            "vin": vin,
-            "entry_id": self._host.entry_id,
-            "status": status,
-            "soc": None if soc is None else round(soc, 1),
-            "target_soc": tracking.target_soc_percent,
-        }
+        payload = ChargingEvent(
+            vin=vin,
+            entry_id=self._host.entry_id,
+            status=status,
+            soc=None if soc is None else round(soc, 1),
+            target_soc=tracking.target_soc_percent,
+        )
         if now_charging:
             # Charging resumed while a close was pending: this was a brief status
             # flap, not a new plug-in. Cancel the pending close and let the same
@@ -700,13 +702,13 @@ class VehicleCharging:
         )
         self._host._fire(
             EVENT_CHARGING_PAUSED,
-            {
-                "vin": vin,
-                "entry_id": self._host.entry_id,
-                "status": status,
-                "soc": None if soc is None else round(soc, 1),
-                "target_soc": tracking.target_soc_percent,
-            },
+            ChargingEvent(
+                vin=vin,
+                entry_id=self._host.entry_id,
+                status=status,
+                soc=None if soc is None else round(soc, 1),
+                target_soc=tracking.target_soc_percent,
+            ),
         )
 
     def close_held_charge_on_unplug(self, vin: str) -> None:
@@ -760,24 +762,24 @@ class VehicleCharging:
             if tracking.estimated_percent is not None
             else tracking.last_soc_percent
         )
-        payload: dict[str, Any] = {
-            "vin": vin,
-            "entry_id": self._host.entry_id,
-            "status": status,
-            "soc": None if soc is None else round(soc, 1),
-            "target_soc": tracking.target_soc_percent,
-        }
+        target = tracking.target_soc_percent
         # Close the record first so its summary can ride along on the event --
         # automations then get the cost without a second lookup.
         session = self._close_session_record(vin, status, at=stopped_at)
         self._clear_charge_progress(vin)
+        payload = ChargingEndEvent(
+            vin=vin,
+            entry_id=self._host.entry_id,
+            status=status,
+            soc=None if soc is None else round(soc, 1),
+            target_soc=target,
+            complete=_charge_complete(soc, target),
+        )
         if session is not None:
             payload["energy_kwh"] = session.energy_kwh
             payload["cost"] = session.cost
             payload["session_id"] = session.id
-        payload["complete"] = _charge_complete(soc, tracking.target_soc_percent)
         self._host._fire(EVENT_CHARGING_STOPPED, payload)
-        target = tracking.target_soc_percent
         if payload["complete"]:
             self._host._fire(EVENT_CHARGING_COMPLETE, payload)
         elif charging_interrupted(
@@ -786,7 +788,8 @@ class VehicleCharging:
             # Short of the target with the cable still in, five minutes on (the
             # plugged-in hold) -- not a pause, and not the driver unplugging.
             self._host._fire(
-                EVENT_CHARGING_INTERRUPTED, {**payload, "reason": self._charge_end_reason(vin)}
+                EVENT_CHARGING_INTERRUPTED,
+                ChargingInterruptedEvent(**payload, reason=self._charge_end_reason(vin)),
             )
 
     def _charge_end_reason(self, vin: str) -> str | None:
@@ -1105,17 +1108,17 @@ class VehicleCharging:
         session = self._close_session_record(vin, status, at=end_at)
         if session is None:
             return
-        payload = {
-            "vin": vin,
-            "entry_id": self._host.entry_id,
-            "status": status,
-            "soc": session.soc_end,
-            "target_soc": session.target_soc,
-            "energy_kwh": session.energy_kwh,
-            "cost": session.cost,
-            "session_id": session.id,
-            "complete": _charge_complete(session.soc_end, session.target_soc),
-        }
+        payload = ChargingEndEvent(
+            vin=vin,
+            entry_id=self._host.entry_id,
+            status=status,
+            soc=session.soc_end,
+            target_soc=session.target_soc,
+            energy_kwh=session.energy_kwh,
+            cost=session.cost,
+            session_id=session.id,
+            complete=_charge_complete(session.soc_end, session.target_soc),
+        )
         self._host._fire(EVENT_CHARGING_STOPPED, payload)
         if payload["complete"]:
             # It reached its target while nobody watched: still the news an

@@ -23,6 +23,7 @@ from pathlib import Path
 
 import pytest
 
+from . import harness as harness_mod
 from .harness import CoordinatorHarness, _clocked_modules, coordinator_mod
 from .test_coordinator_robustness import _fuzz_day
 from .trace import ACCOUNT, NOT_PROBED, PER_CAR
@@ -97,6 +98,9 @@ def test_a_leak_between_cars_is_caught(tmp_path, monkeypatch):
 def test_a_changed_payload_is_caught(tmp_path, monkeypatch):
     """A refactor that drops one field of one event must not pass the gate."""
 
+    # The harness's own shape check (event_payloads) would stop this run before
+    # the trace is compared; the gate must catch it without that check too.
+    monkeypatch.setattr(harness_mod, "event_shape_error", None)
     seed = SEEDS[0]
     before = _trace(tmp_path, "before", seed)
     real = coordinator_mod.CardataCoordinator._fire

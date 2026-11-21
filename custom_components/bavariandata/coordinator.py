@@ -8,7 +8,7 @@ from contextlib import suppress
 from dataclasses import dataclass, field
 from datetime import datetime, UTC
 from typing import TYPE_CHECKING, Any
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Mapping
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import issue_registry as ir
@@ -1311,7 +1311,7 @@ class CardataCoordinator:
             started_at=self.stream_started_at,
         )
 
-    def _fire(self, event_type: str, payload: dict[str, Any]) -> None:
+    def _fire(self, event_type: str, payload: Mapping[str, Any]) -> None:
         """Fire one of the integration's events, with the car's name on it.
 
         ``vehicle`` is what a notification says ("i5 eDrive40: charging

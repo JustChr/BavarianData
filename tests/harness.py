@@ -63,6 +63,11 @@ store_mod = load_with_fake_ha("history.store")
 soc_mod = load_with_fake_ha("soc_tracking")
 coverage_store_mod = load_with_fake_ha("coverage_store")
 tyre_store_mod = load_with_fake_ha("tyre_store")
+# Every event's declared data (``event_payloads.py``), checked after each step.
+# The refactoring gate runs this harness against its base's code too, which may
+# predate the declarations: there is nothing to check against then.
+_PAYLOADS = Path(__file__).resolve().parents[1] / "custom_components/bavariandata/event_payloads.py"
+event_shape_error = load_with_fake_ha("event_payloads").shape_error if _PAYLOADS.exists() else None
 
 # Short names for the descriptors a scenario touches, so a timeline stays
 # readable. Anything else can be passed by its full path via ``extra``.
@@ -628,9 +633,11 @@ class CoordinatorHarness:
             )
 
     def _observe(self, step: str) -> None:
-        new_events = [
-            name for name, data in self.hass.events[self._event_mark :] if self._mine(data)
-        ]
+        fresh = self.hass.events[self._event_mark :]
+        for name, data in fresh if event_shape_error is not None else ():
+            if (error := event_shape_error(name, data)) is not None:
+                raise AssertionError(f"an event is not as declared at '{step}': {error}")
+        new_events = [name for name, data in fresh if self._mine(data)]
         self._event_mark = len(self.hass.events)
         row = Row(
             minute=round(self.minute, 2),
