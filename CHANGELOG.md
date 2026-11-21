@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.33-beta.2] - 2026-11-21
+
 ### Changed
 - **Battery health no longer counts the car's own power use as stored.** While
   it charges, the car draws about 0.3 kW for itself (cooling, electronics), and
