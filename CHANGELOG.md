@@ -9,6 +9,15 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.33-beta.1] - 2026-11-21
+
+### Changed
+- **Lighter on Home Assistant.** Each reading from the car now goes straight to
+  the entities that show it. Until now every reading woke every BavarianData
+  entity of every car, and Home Assistant handed each of those calls to a
+  background thread, hundreds per update; most of them only checked that the
+  reading wasn't theirs. What the entities show is unchanged.
+
 ### Fixed
 - **A stream another program holds is picked up within minutes, and the repair
   says what is going on.** BMW keeps an account's one stream for the program
