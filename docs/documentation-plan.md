@@ -313,6 +313,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | Trips / Fahrtenbuch (+ legal caveat) | 🟡 |
 | Consumption: plug-side balance, battery-side average, the 3 % SoC gate | 🟢 Feature-Trips → "How consumption is measured" + The-Dashboard-Card |
 | Month window on the trips & charging card views | 🟢 The-Dashboard-Card → "One month at a time" (both views) |
+| `page_size` card option: trips & charging lists (and a hub's rooms) a page of whole days at a time, default off (#356) | 🟢 The-Dashboard-Card → "A page at a time" + options table (EN + DE) |
 | Commute chains (a stop on the way) + default type | 🟢 Feature-Trips → "Classification" + Settings-Reference → "Trips" |
 | Deferred close when the position stream goes quiet | 🟢 Feature-Trips → "When the position stream goes quiet" |
 | Older cars that report only at trip end (iDrive 6, i3): no trips, other values still update; community logbook linked | 🟢 Feature-Trips → "Older cars that report only at the end of a trip" (EN + DE) |
