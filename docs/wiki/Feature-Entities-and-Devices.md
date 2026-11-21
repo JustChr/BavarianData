@@ -234,6 +234,24 @@ If *Battery HV State Of Charge* never fills in, the descriptor isn't switched on
 in your Data Selection — see
 [Charging history](Feature-Charging-History-and-Cost#no-startend-soc-on-a-session).
 
+## Which plug entity to use
+
+Several BMW fields describe the charging cable, and only some of them follow it
+as it goes in or out:
+
+| Entity | Descriptor | Updates |
+| --- | --- | --- |
+| **Charging Cable** | — (calculated) | Ours: a `plug` binary sensor read from the streamed fields below. **The one to automate on.** It only appears once the car has streamed one of them. |
+| **Charging Port plug state** | `chargingPort.status` | **On the stream**, as the cable goes in or out. Most cars send this one. |
+| **Charging EV Connector state** | `electricEngine.charging.connectorStatus` | **On the stream**, on cars that send it. |
+| **Charging Port connection state** | `chargingPort.combinedStatus` | **REST only**: it changes only on the [daily refresh](Feature-API-Quota#the-daily-refresh) or *Fetch now*, so it can say *Disconnected* in the middle of a charge. |
+| **Charging Port plug lock state** | `chargingPort.lockedStatus` | **REST only**, the same as above. |
+
+If there is no *Charging Cable* sensor and *Charging Port plug state* stays empty
+after you plug in, check that the plug fields are ticked in your Data Selection:
+**Configure → Choose streamed data** ticks them for you. If they are ticked and
+still never arrive, your car doesn't send them.
+
 ## Entity names and your language
 
 <a id="entity-names-and-your-language"></a>
