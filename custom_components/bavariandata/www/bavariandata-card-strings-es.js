@@ -461,6 +461,8 @@ export default {
   edh_shape: "Se elige según el modelo en los datos del vehículo de BMW. Defínela solo si el dibujo no coincide con tu coche.",
   ed_pictures: "Mostrar imágenes del equipamiento",
   edh_pictures: "Una pequeña imagen delante de cada opción para la que BMW tiene una. Desactívalo para una lista simple.",
+  ed_page_size: "Trayectos o cargas por página",
+  edh_page_size: "Divide un mes largo en páginas de días completos, con flechas bajo la lista. 0 muestra todo el mes a la vez.",
   sh_sedan: "Berlina BMW",
   sh_countryman: "MINI Countryman",
   ed_overview_option: "Resumen (predeterminado)",

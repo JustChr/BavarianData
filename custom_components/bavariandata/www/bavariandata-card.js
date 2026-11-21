@@ -23,10 +23,6 @@ const CARD_VERSION = "2.0.0";
 // again on the next paint instead, a refused call (an account reloading, for
 // one) repeated itself hundreds of times a second (#277).
 const FETCH_RETRY_MS = 30000;
-// Entries a page of the charging or trips list holds before the next day goes
-// on a page of its own (#356): a busy month otherwise ran the card's column off
-// the dashboard.
-const LIST_PAGE_SIZE = 10;
 
 // Classification -> colour, shared by the trips legend and the trip map so a
 // route drawn on the map matches the colour of its row in the Trips view.
@@ -565,6 +561,11 @@ const VIEW_MODES = new Set([
 // The rooms a hub (`hub: true` on the overview) can open, each the `view:` it
 // draws. Which of them a car lists follows its drivetrain (overview part).
 const HUB_ROOMS = new Set([CHARGING_VIEW, TRIPS_VIEW, EFFICIENCY_VIEW, FUEL_VIEW, CAR_VIEW]);
+
+/** Whether a card config draws a month's list of charges or trips: those two
+ * views, or a hub, whose rooms are them. */
+const _hasMonthLists = (c) =>
+  c.view === CHARGING_VIEW || c.view === TRIPS_VIEW || (c.hub === true && !c.view && !c.cluster);
 
 // What the parts take from this file. Each part names the ones it uses.
 const SHARED = {
@@ -1507,12 +1508,21 @@ class BavarianDataCard extends CardParts {
     });
   }
 
+  /** Entries a page of the charging or trips list holds (`page_size`, #356);
+   * 0 or unset is the whole month on one page. */
+  _pageSize() {
+    const n = Math.floor(Number(this._config && this._config.page_size));
+    return n > 0 ? n : 0;
+  }
+
   /** A month's list (newest first) cut into pages of whole days: a page takes
-   * days until the next would carry it past LIST_PAGE_SIZE entries, so a day's
+   * days until the next would carry it past `page_size` entries, so a day's
    * heading never splits across two pages, and a day busier than a page gets
    * one of its own. Page 0 is the newest; a page past the end (the list shrank)
-   * shows the oldest. */
+   * shows the oldest. Without a page size the month is one page. */
   _pageByDay(items, page) {
+    const size = this._pageSize();
+    if (!size) return { items, page: 0, pages: items.length ? 1 : 0 };
     const days = [];
     let lastKey;
     for (const it of items) {
@@ -1525,7 +1535,7 @@ class BavarianDataCard extends CardParts {
     const pages = [];
     for (const day of days) {
       const cur = pages[pages.length - 1];
-      if (cur && cur.length + day.length <= LIST_PAGE_SIZE) cur.push(...day);
+      if (cur && cur.length + day.length <= size) cur.push(...day);
       else pages.push([...day]);
     }
     const at = Math.min(Math.max(Number(page) || 0, 0), Math.max(pages.length - 1, 0));
@@ -1910,6 +1920,11 @@ class BavarianDataCardEditor extends HTMLElement {
     if (this._config && [GLANCE_VIEW, ROW_VIEW, GARAGE_VIEW].includes(this._config.view)) {
       schema.push({ name: "navigation_path", selector: { navigation: {} } });
     }
+    // The month lists can come a page at a time (#356): the two views that
+    // have them, and the hub, whose rooms draw those views.
+    if (this._config && _hasMonthLists(this._config)) {
+      schema.push({ name: "page_size", selector: { number: { min: 0, max: 100, step: 1, mode: "box" } } });
+    }
     // The equipment view can drop the option pictures for a plain list.
     if (this._config && this._config.view === EQUIPMENT_VIEW) {
       schema.push({ name: "pictures", selector: { boolean: {} } });
@@ -1997,6 +2012,10 @@ class BavarianDataCardEditor extends HTMLElement {
     // The hub is off by default, and only the overview has one.
     if (value.hub !== true || value.view || value.cluster) delete value.hub;
     if (![GLANCE_VIEW, ROW_VIEW, GARAGE_VIEW].includes(value.view)) delete value.navigation_path;
+    // No page size (0) is the whole month on one page, and only the month
+    // lists have one.
+    if (!(Math.floor(Number(value.page_size)) > 0) || !_hasMonthLists(value)) delete value.page_size;
+    else value.page_size = Math.floor(Number(value.page_size));
     // No tiles is the drivetrain's own grid, not an empty one.
     if (Array.isArray(value.tiles) && !value.tiles.length) delete value.tiles;
     // Drop empties so the stored config stays minimal.

@@ -461,6 +461,8 @@ export default {
   edh_shape: "Choisie d'après le modèle dans les données du véhicule de BMW. Ne la définissez que si le dessin ne correspond pas à votre voiture.",
   ed_pictures: "Afficher les images des options",
   edh_pictures: "Une petite image devant chaque option pour laquelle BMW en a une. Désactivez pour une simple liste.",
+  ed_page_size: "Trajets ou recharges par page",
+  edh_page_size: "Découpe un long mois en pages de jours entiers, avec des flèches sous la liste. 0 affiche tout le mois d'un coup.",
   sh_sedan: "Berline BMW",
   sh_countryman: "MINI Countryman",
   ed_overview_option: "Aperçu (par défaut)",

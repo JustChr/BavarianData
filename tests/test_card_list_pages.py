@@ -1,9 +1,10 @@
-"""A month's trips and charges come a page of whole days at a time (#356).
+"""A month's trips and charges can come a page of whole days at a time (#356).
 
 A busy month listed every trip in one column and pushed the rest of the
-dashboard far down. The list now holds up to ten entries, cut at day
-boundaries so a day's heading never splits, with a pager at its foot whose
-arrows run as the month control's do (back to earlier days, on to later).
+dashboard far down. With ``page_size`` set, the list holds up to that many
+entries, cut at day boundaries so a day's heading never splits, with a pager
+at its foot whose arrows run as the month control's do (back to earlier days,
+on to later). Unset or 0, the month is one page, as it always was.
 
 The presses go through the card's own listeners: the fake shadow root hands
 out an element for every ``[data-…]`` match in the rendered HTML, so the
@@ -21,6 +22,7 @@ import subprocess
 import pytest
 
 from .card_source import evaluable_card
+from .test_card_configurator import _editor
 from .test_card_drivetrain import I5
 
 _CARD = evaluable_card()
@@ -90,6 +92,7 @@ if (input.sessions) {
   card._chgPage = input.page || 0;
   card._render = () => { card._sig = null; card._paintCharging("device", Object.keys(input.states)); };
 }
+if (input.room) card._enterRoom(input.room);
 const paint = () => { listeners = []; card._render(); return card.shadowRoot.innerHTML; };
 const frames = [paint()];
 for (const [name, value] of input.press || []) {
@@ -150,7 +153,7 @@ OPEN = {
     "distance_km": 3.0,
     "in_progress": True,
 }
-TRIPS_VIEW = {"type": "custom:bavariandata-card", "view": "trips"}
+TRIPS_VIEW = {"type": "custom:bavariandata-card", "view": "trips", "page_size": 10}
 
 
 def _days(html: str) -> list[str]:
@@ -201,6 +204,26 @@ def test_the_drive_under_way_leads_the_newest_page_only() -> None:
     assert "tr__badge--live" in first and "tr__badge--live" not in second
 
 
+@pytest.mark.parametrize("size", [None, 0, "x"])
+def test_without_a_page_size_the_month_is_one_page(size) -> None:
+    config = {"type": "custom:bavariandata-card", "view": "trips"}
+    if size is not None:
+        config["page_size"] = size
+    html = _run(config=config, trips={"trips": TRIPS, "summary": SUMMARY, "open": None})["frames"][
+        0
+    ]
+    assert _rows(html) == len(TRIPS) and "data-page-step" not in html
+
+
+def test_a_page_size_on_the_hub_pages_its_rooms() -> None:
+    out = _run(
+        config={"type": "custom:bavariandata-card", "hub": True, "page_size": 10},
+        room="trips",
+        trips={"trips": TRIPS, "summary": SUMMARY, "open": None},
+    )
+    assert _days(out["frames"][0]) == ["21", "20", "19"]
+
+
 def test_a_month_that_fits_has_no_pager() -> None:
     out = _run(config=TRIPS_VIEW, trips={"trips": TRIPS[:8], "summary": SUMMARY, "open": None})
     html = out["frames"][0]
@@ -237,7 +260,7 @@ def _session(day: int) -> dict:
 def test_the_charging_list_pages_the_same_way() -> None:
     sessions = [_session(day) for day in range(21, 7, -1)]  # 14 charges, one a day
     out = _run(
-        config={"type": "custom:bavariandata-card", "view": "charging"},
+        config={"type": "custom:bavariandata-card", "view": "charging", "page_size": 10},
         sessions=sessions,
         press=[["data-page-step", 1]],
     )
@@ -245,3 +268,24 @@ def test_the_charging_list_pages_the_same_way() -> None:
     assert (first.count("data-session="), second.count("data-session=")) == (10, 4)
     assert _pager(first) == "12 Nov – 21 Nov" and _pager(second) == "8 Nov – 11 Nov"
     assert not _enabled(second, 1) and _enabled(second, -1)
+
+
+def test_the_editor_offers_the_page_size_where_there_is_a_month_list() -> None:
+    for config in ({"view": "trips"}, {"view": "charging"}, {"hub": True}):
+        assert "page_size" in _editor(config)["fields"], config
+    for config in ({}, {"view": "map"}, {"view": "efficiency"}, {"cluster": "tire"}):
+        assert "page_size" not in _editor(config)["fields"], config
+
+
+@pytest.mark.parametrize(
+    ("change", "stored"),
+    [
+        ({"cluster": "trips", "page_size": 10}, {"view": "trips", "page_size": 10}),
+        ({"cluster": "charging", "page_size": 7.6}, {"view": "charging", "page_size": 7}),
+        ({"cluster": "trips", "page_size": 0}, {"view": "trips"}),  # the default
+        ({"cluster": "map", "page_size": 10}, {"view": "map"}),  # not its view
+    ],
+)
+def test_the_editor_stores_only_a_page_size_that_pages(change, stored) -> None:
+    result = _editor({"type": "custom:bavariandata-card", "view": "trips"}, change)
+    assert result["stored"] == {"type": "custom:bavariandata-card", **stored}
