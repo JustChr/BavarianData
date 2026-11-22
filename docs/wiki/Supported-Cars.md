@@ -42,7 +42,7 @@ Any car with CarData should work; this list is only what has been seen.
 | BMW i5 eDrive40 | Electric | The maintainer's car. |
 | BMW i4 M60 xDrive, i4 eDrive35 | Electric | — |
 | BMW i4 M50 | Electric | Runs in Australia, set up from the UK portal because the Australian site has no CarData tile ([D#293](https://github.com/JustChr/BavarianData/discussions/293)). |
-| BMW iX3 (new generation) | Electric | BMW streams a repeating 100 % charge target on top of the real setting ([#52](https://github.com/JustChr/BavarianData/issues/52)). |
+| BMW iX3 (G08) | Electric | BMW streams a repeating 100 % charge target on top of the real setting ([#52](https://github.com/JustChr/BavarianData/issues/52)). |
 | BMW i3s 120 Ah | Electric | — |
 | BMW X3 30e xDrive | Plug-in hybrid | Doesn't stream the state of charge; it arrives with the [daily REST refresh](Feature-API-Quota#the-daily-refresh). |
 | BMW X3 M40d (G01) | Diesel | — |

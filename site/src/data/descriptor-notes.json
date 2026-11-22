@@ -27,11 +27,11 @@
   "vehicle.powertrain.electric.battery.stateOfCharge.target": {
     "en": [
       "The charge target set in the car or the MyBMW app. The card draws it as the target on the overview, and the [evcc bridge](Feature-evcc-and-Wallbox-Bridge) publishes it as `limitSoc`, so a charge controller stops where the car would.",
-      "Two caveats. A petrol or diesel BMW can stream this descriptor too, so its arrival says nothing about the drivetrain. And the new iX3 streams a repeating 100 % on top of the real setting ([issue #52](https://github.com/JustChr/BavarianData/issues/52)); there the value from a REST request is the right one."
+      "Two caveats. A petrol or diesel BMW can stream this descriptor too, so its arrival says nothing about the drivetrain. And an iX3 G08 streamed a repeating 100 % on top of the real setting ([issue #52](https://github.com/JustChr/BavarianData/issues/52)); there the value from a REST request is the right one."
     ],
     "de": [
       "Das Ladeziel, das im Auto oder in der MyBMW-App eingestellt ist. Die Karte zeigt es in der Übersicht als Ziel, und die [evcc-Brücke](Feature-evcc-and-Wallbox-Bridge) veröffentlicht es als `limitSoc`, damit eine Ladesteuerung dort aufhört, wo es auch das Auto täte.",
-      "Zwei Einschränkungen. Auch ein Benziner oder Diesel kann diesen Deskriptor streamen; dass er ankommt, sagt also nichts über den Antrieb. Und der neue iX3 streamt zusätzlich zur echten Einstellung immer wieder 100 % ([Issue #52](https://github.com/JustChr/BavarianData/issues/52)); dort stimmt der Wert aus einer REST-Abfrage."
+      "Zwei Einschränkungen. Auch ein Benziner oder Diesel kann diesen Deskriptor streamen; dass er ankommt, sagt also nichts über den Antrieb. Und ein iX3 G08 streamte zusätzlich zur echten Einstellung immer wieder 100 % ([Issue #52](https://github.com/JustChr/BavarianData/issues/52)); dort stimmt der Wert aus einer REST-Abfrage."
     ]
   },
   "vehicle.drivetrain.batteryManagement.maxEnergy": {
