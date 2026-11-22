@@ -85,6 +85,22 @@ async def test_every_history_tool_answers(hass: HomeAssistant, no_bmw) -> None:
         assert VIN not in str(answer), tool
 
 
+async def test_every_tool_names_its_integration(hass: HomeAssistant, no_bmw) -> None:
+    """Home Assistant warns about a tool that doesn't name its integration
+    (it stops working in 2027.10), then sets the name on that one instance,
+    so the class is what has to carry it."""
+
+    from custom_components.bavariandata.const import DOMAIN
+
+    await _account(hass)
+    api = await llm.async_get_api(hass, API_ID, CONTEXT)
+
+    assert api.tools
+    assert {type(tool).__name__: type(tool).integration for tool in api.tools} == {
+        type(tool).__name__: DOMAIN for tool in api.tools
+    }
+
+
 async def test_two_cars_of_one_name_are_told_apart(hass: HomeAssistant, no_bmw) -> None:
     _entry, runtime, _trip = await _account(hass)
     coordinator = runtime.coordinator

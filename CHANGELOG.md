@@ -9,6 +9,13 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **No more warnings about the assistant's tools in the log.** Home Assistant
+  2026.10 and later wrote a warning for each of BavarianData's six tools for
+  voice assistants, because the tools didn't say which integration they come
+  from. Without that, they stop working in Home Assistant 2027.10. Now every
+  tool says it. Thanks @Ernst-JanKromhout (#363).
+
 ## [0.9.33-beta.4] - 2026-11-22
 
 ### Fixed
