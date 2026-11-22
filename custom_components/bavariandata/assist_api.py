@@ -111,6 +111,7 @@ class _CarTool(llm.Tool):
 
     extra: dict[Any, Any] = {}
     integration = DOMAIN
+
     def __init__(self, cars: list[_Car]) -> None:
         self.cars = cars
         schema = dict(self.extra)
