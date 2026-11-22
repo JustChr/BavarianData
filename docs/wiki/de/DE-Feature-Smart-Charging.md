@@ -23,7 +23,7 @@ lädt, sobald die Wallbox Strom gibt.
 | Auto angesteckt | **Status der Ladesteckverbindung** (`connected` / `disconnected`), oder **Ladekabel** (`on` / `off`), wenn der Planer einen Binärsensor will | Kommt mit dem Stream, sobald das Kabel ein- oder ausgesteckt wird, ohne Abfragen. Beide folgen demselben Wert. |
 | Akkugröße (kWh), falls gefragt | **Maximaler Energieinhalt der Hochvoltbatterie** oder die nutzbare Kapazität aus dem Datenblatt | Nur nötig, um Prozent in kWh umzurechnen. |
 
-Bei einigen iX3 springt das Ladeziel kurz auf 100 %, neben dem echten Wert
+Bei einem iX3 (G08) springt das Ladeziel kurz auf 100 %, neben dem echten Wert
 ([#52](https://github.com/JustChr/BavarianData/issues/52)). Lädt dein Planer
 dann voll, gib ihm ein festes Ziel: Die meisten Planer haben eine eigene
 Zieleinstellung, oder du nimmst ein `input_number`.

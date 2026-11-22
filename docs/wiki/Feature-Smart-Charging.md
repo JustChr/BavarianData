@@ -23,7 +23,7 @@ charges whenever the wallbox gives it power.
 | Car connected | **Charging Port plug state** (`connected` / `disconnected`), or **Charging Cable** (`on` / `off`) where the planner wants a binary sensor | Streamed as the cable goes in or out, no polling. Both follow the same reading. |
 | Battery size (kWh), if asked | **Range EV Battery energy max**, or the usable capacity from your car's data sheet | Only needed to turn percentages into kWh. |
 
-On a few iX3 cars the target briefly jumps to 100 % next to the real value
+On an iX3 (G08) the target briefly jumps to 100 % next to the real value
 ([#52](https://github.com/JustChr/BavarianData/issues/52)). If your planner
 then charges to full, give it a fixed target instead: most planners have their
 own target setting, or point it at an `input_number`.
