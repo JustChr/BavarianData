@@ -111,3 +111,48 @@ async def test_the_device_carries_basic_data_and_new_fields_get_a_name(
         "sensor", DOMAIN, f"{VIN}_vehicle.body.madeUp.newField"
     )
     assert hass.states.get(sensor).name.endswith("Body Madeup Newfield")
+
+
+async def test_the_tracker_moves_on_whole_fixes_only(hass: HomeAssistant, no_bmw) -> None:
+    """A half fix plots no phantom point, and a repeated fix writes no new row.
+
+    Home Assistant's tracker forces every write when it isn't polled; on the
+    live i5 that left 94 % of the tracker's recorder rows copies of the one
+    before, and three in nine position changes a mixed point for ~40 ms.
+    """
+
+    entry = _entry()
+    await _set_up(hass, entry)
+    coordinator = entry.runtime_data.coordinator
+
+    async def send(**halves: tuple[float, str]) -> None:
+        data = {
+            {"lat": LAT, "lon": LON}[part]: {"value": value, "unit": None, "timestamp": stamp}
+            for part, (value, stamp) in halves.items()
+        }
+        await coordinator.async_handle_message({"vin": VIN, "data": data})
+        await hass.async_block_till_done()
+
+    fix1, fix2 = "2026-11-21T10:39:57.000Z", "2026-11-21T10:40:04.000Z"
+    await send(lat=(48.1, fix1), lon=(11.5, fix1))
+    tracker = er.async_get(hass).async_get_entity_id("device_tracker", DOMAIN, f"{VIN}_tracker")
+    first = hass.states.get(tracker)
+    assert (first.attributes["latitude"], first.attributes["longitude"]) == (48.1, 11.5)
+
+    changes: list[State] = []
+    hass.bus.async_listen(
+        "state_changed",
+        lambda event: (
+            changes.append(event.data["new_state"]) if event.data["entity_id"] == tracker else None
+        ),
+    )
+
+    await send(lat=(48.1, fix1))  # BMW redelivers a half of the same fix
+    await send(lon=(11.6, fix2))  # the next fix's first half
+    assert changes == []
+    assert hass.states.get(tracker).last_updated == first.last_updated
+
+    await send(lat=(48.2, fix2))
+    assert [(s.attributes["latitude"], s.attributes["longitude"]) for s in changes] == [
+        (48.2, 11.6)
+    ]

@@ -11,9 +11,11 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.util import dt as dt_util
 
 from .coordinator import CardataCoordinator
 from .entity import CardataEntity
+from .gps_fix import FixGate
 
 PARALLEL_UPDATES = 0
 
@@ -25,6 +27,9 @@ LOCATION_DESCRIPTORS = (
     "vehicle.trip.segment.end.vehicleLocation.gpsPosition.latitude",
     "vehicle.trip.segment.end.vehicleLocation.gpsPosition.longitude",
 )
+# What the tracker shows: the car's live position (the segment's end only
+# creates a tracker, above).
+DESC_LAT, DESC_LON = LOCATION_DESCRIPTORS[0], LOCATION_DESCRIPTORS[1]
 
 
 async def async_setup_entry(
@@ -74,7 +79,6 @@ async def async_setup_entry(
 class CardataDeviceTracker(CardataEntity, TrackerEntity):
     """BMW CarData device tracker."""
 
-    _attr_force_update = False
     _attr_translation_key = "car"
     _attr_name = None
 
@@ -82,13 +86,26 @@ class CardataDeviceTracker(CardataEntity, TrackerEntity):
         """Initialize the tracker."""
         super().__init__(coordinator, vin, "device_tracker")
         self._attr_unique_id = f"{vin}_tracker"
+        self._fix = FixGate()
+
+    @property
+    def force_update(self) -> bool:
+        """Write only what changed.
+
+        Home Assistant's tracker forces every write into the state machine
+        when it isn't polled (``_attr_force_update`` doesn't reach it), and BMW
+        repeats an unchanged position several times a minute while the car is
+        awake: 94 % of the i5's tracker rows were copies of the one before.
+        """
+        return False
 
     async def async_added_to_hass(self) -> None:
         """Handle entity added to Home Assistant."""
         await super().async_added_to_hass()
         await self._async_restore_location()
+        self._offer_fix()
         self.async_on_remove(
-            self._coordinator.router.subscribe(self.vin, LOCATION_DESCRIPTORS, self._handle_update)
+            self._coordinator.router.subscribe(self.vin, (DESC_LAT, DESC_LON), self._handle_update)
         )
 
     async def _async_restore_location(self) -> None:
@@ -99,7 +116,7 @@ class CardataDeviceTracker(CardataEntity, TrackerEntity):
         Seed the coordinator so the ``latitude``/``longitude`` properties resolve
         the restored position unchanged, and only until live data supersedes it.
         """
-        lat_desc, lon_desc = LOCATION_DESCRIPTORS[0], LOCATION_DESCRIPTORS[1]
+        lat_desc, lon_desc = DESC_LAT, DESC_LON
         if self._coordinator.get_state(self._vin, lat_desc) is not None:
             return  # A live location already arrived; nothing to restore.
         last_state = await self.async_get_last_state()
@@ -113,9 +130,22 @@ class CardataDeviceTracker(CardataEntity, TrackerEntity):
         self._coordinator.restore_descriptor_state(self._vin, lat_desc, lat, None, timestamp)
         self._coordinator.restore_descriptor_state(self._vin, lon_desc, lon, None, timestamp)
 
+    def _offer_fix(self) -> bool:
+        """Hand the newest halves to the gate; True when the position moved."""
+        lat = self._coordinator.get_state(self._vin, DESC_LAT)
+        lon = self._coordinator.get_state(self._vin, DESC_LON)
+        return self._fix.offer(
+            lat.value if lat else None,
+            lat.timestamp if lat else None,
+            lon.value if lon else None,
+            lon.timestamp if lon else None,
+            dt_util.utcnow(),
+        )
+
     def _handle_update(self, _vin: str, _descriptor: str) -> None:
-        """A new fix for this car (the router hands it only those)."""
-        self.schedule_update_ha_state()
+        """A new half of a fix for this car (the router hands it only those)."""
+        if self._offer_fix():
+            self.schedule_update_ha_state()
 
     @property
     def source_type(self) -> SourceType:
@@ -127,30 +157,14 @@ class CardataDeviceTracker(CardataEntity, TrackerEntity):
         """Return entity specific state attributes."""
         return self._basic_data_attributes()
 
-    def _fetch_coordinate(self, descriptor: str) -> float | None:
-        state = self._coordinator.get_state(self._vin, descriptor)
-        if state and state.value is not None:
-            try:
-                return float(state.value)
-            except ValueError, TypeError:
-                _LOGGER.debug(
-                    "Unable to parse coordinate for %s from descriptor %s: %s",
-                    self._vin,
-                    descriptor,
-                    state.value,
-                )
-        return None
-
     @property
     def latitude(self) -> float | None:
-        """Return latitude value of the device."""
-        return self._fetch_coordinate(
-            "vehicle.cabin.infotainment.navigation.currentLocation.latitude"
-        )
+        """Return latitude value of the device (a whole fix only, see ``gps_fix``)."""
+        position = self._fix.position
+        return position[0] if position else None
 
     @property
     def longitude(self) -> float | None:
-        """Return longitude value of the device."""
-        return self._fetch_coordinate(
-            "vehicle.cabin.infotainment.navigation.currentLocation.longitude"
-        )
+        """Return longitude value of the device (a whole fix only, see ``gps_fix``)."""
+        position = self._fix.position
+        return position[1] if position else None

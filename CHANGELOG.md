@@ -9,6 +9,20 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **The car's tracker writes a position once, not four times.** Home Assistant
+  stores every update of a tracker that isn't polled, even when nothing
+  changed, and BMW repeats the car's position several times a minute while
+  it is awake. On the maintainer's i5, 94 % of the tracker's history rows were
+  copies of the one before. Now only a new position is written.
+- **The tracker no longer jumps to a point the car never was.** BMW sends a
+  position's latitude and longitude as two messages, and the tracker showed
+  each as it landed: for a moment the new longitude stood with the old
+  latitude. On the map that's a corner in the route, and near the edge of a
+  zone it could flip the car to *away* and back, which a person entity or an
+  automation would act on. The tracker now waits for both halves (two minutes
+  at most) before it moves.
+
 ## [0.9.33-beta.3] - 2026-11-21
 
 ### Added
