@@ -285,10 +285,11 @@ zip asset). The manifest's `categories` (`vehicles_transport.cars_evs`,
 - Descriptor selection ("Data Selection") is portal-only; per-descriptor
   streaming scopes are rejected by BMW — see
   `docs/reference/stream-scope-investigation.md` before revisiting.
-- Minimum supported HA is **2026.3** (`hacs.json`; needed for self-served brand
-  icons in `brand/`) — don't use newer-only HA
+- Minimum supported HA is **2026.10** (`hacs.json`; needed for the LLM tools'
+  `ToolResult` and `integration`, and the device registry's `config_entry_id`) —
+  don't use newer-only HA
   APIs without bumping it deliberately. That floor sets the **Python floor too**:
-  HA 2026.3 requires **Python 3.14.2** (2026.2 was the last release to accept
+  HA 2026.10 requires **Python 3.14.2** (2026.2 was the last release to accept
   3.13), so every install runs 3.14+. CI tests 3.14 only and `pyproject.toml`
   targets `py314`; raising the HA floor means revisiting both.
 - The source is **syntactically 3.14-only**. `ruff format` at `target-version =

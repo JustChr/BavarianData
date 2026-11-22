@@ -7,7 +7,7 @@
 # not drown the signal. Narrow the net per-file with ``per-file-ignores`` rather
 # than shrinking the global ``select``.
 [tool.ruff]
-# Home Assistant 2026.3 (the floor in hacs.json) requires Python 3.14.2,
+# Home Assistant 2026.10 (the floor in hacs.json) requires Python 3.14.2,
 # so every install runs 3.14 or newer -- ruff may assume its syntax.
 target-version = "py314"
 line-length = 100
@@ -57,9 +57,9 @@ module = ["homeassistant.*"]
 implicit_reexport = true
 
 # Home Assistant 2026.10 types its schemas as probatio's (its voluptuous fork:
-# services, flows, LLM tools), while the 2026.3 floor takes voluptuous; both
-# accept a voluptuous schema at run time. Until the floor moves past the
-# switch, voluptuous is read as untyped rather than every schema ignored.
+# services, flows, LLM tools), while this integration still builds voluptuous
+# ones; both work at run time. Until the schemas move to probatio, voluptuous
+# is read as untyped rather than every schema ignored.
 [[tool.mypy.overrides]]
 module = ["voluptuous", "voluptuous.*"]
 follow_imports = "skip"

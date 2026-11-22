@@ -163,13 +163,13 @@ def _hass(
                 "id": DEBUG,
                 "name": "CarData Debug Device",
                 "identifiers": [["bavariandata", ENTRY]],
-                "config_entries": [ENTRY],
+                "config_entry_id": ENTRY,
             },
             CAR: {
                 "id": CAR,
                 "name": "i5 eDrive40",
                 "identifiers": [["bavariandata", "WBYTESTVIN0000001"]],
-                "config_entries": [ENTRY],
+                "config_entry_id": ENTRY,
             },
         },
     }

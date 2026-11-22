@@ -6,14 +6,13 @@ configured; specify entry_id"), so the charging, trips, map and efficiency views
 stay empty for as long as both accounts exist. The card therefore reads the
 entry off the vehicle's device and passes it along.
 
-The trap this pins is the *shape of the device registry*: `config_entry_id`
-only exists from Home Assistant 2026.8, while the minimum supported here is
-2026.3, where the field is `primary_config_entry`. Reading only the new name
-yields `undefined` on an older install -- and since the services declare
-`entry_id` as an optional *string*, sending it as null fails schema validation
-and breaks the same views for everyone, one-account installs included. So the
-rule is two-sided: resolve the entry from whichever field the registry offers,
-and where none does, leave the key off entirely rather than send a null.
+The entry comes from the device's `config_entry_id` (Home Assistant 2026.10,
+the minimum supported here, still carries the deprecated `primary_config_entry`
+and `config_entries` beside it; 2027.10 drops them). Where the registry does
+not know the device, the key is left off entirely: the services declare
+`entry_id` as an optional *string*, so sending it as null fails schema
+validation and breaks the same views for everyone, one-account installs
+included.
 
 Like the other card tests this runs the shipped card under Node -- passing an
 argument is behaviour, and a text match would pass on a rewrite that no longer
@@ -39,18 +38,16 @@ pytestmark = pytest.mark.skipif(NODE is None, reason="Node.js is not installed")
 ENTRY = "01KYDMS7JW5ABEQAH7HXQAQ3F7"
 VIN = "WBAEXAMPLE0000000"
 
-# The device registry as Home Assistant has spelled it over time. Every shape
-# has to resolve to the same entry, and the last one -- a device the registry
-# does not know at all -- has to resolve to nothing without breaking the call.
+# The device registry on every supported Home Assistant. Every shape has to
+# resolve to the same entry, and the last one -- a device the registry does not
+# know at all -- has to resolve to nothing without breaking the call.
 REGISTRY_SHAPES = {
     "2027.10": {"config_entry_id": ENTRY},
-    "2026.8+": {
+    "2026.10": {
         "config_entry_id": ENTRY,
         "primary_config_entry": ENTRY,
         "config_entries": [ENTRY],
     },
-    "2026.3": {"primary_config_entry": ENTRY, "config_entries": [ENTRY]},
-    "legacy-list-only": {"config_entries": [ENTRY]},
     "unknown-device": None,
 }
 
@@ -140,7 +137,7 @@ EXPECTED_SERVICES = {
 }
 
 
-@pytest.mark.parametrize("shape", ["2027.10", "2026.8+", "2026.3", "legacy-list-only"])
+@pytest.mark.parametrize("shape", ["2027.10", "2026.10"])
 def test_entry_id_travels_with_every_call(shape: str) -> None:
     """A known device puts its entry id on every service call."""
 
@@ -198,12 +195,12 @@ process.stdout.write(JSON.stringify(Card._isVehicleDevice(dev)));
 """
 
 
-@pytest.mark.parametrize("shape", ["2027.10", "2026.8+", "2026.3", "legacy-list-only"])
+@pytest.mark.parametrize("shape", ["2027.10", "2026.10"])
 def test_the_debug_device_is_never_a_car(shape: str) -> None:
     """The debug device's identifier is its own entry id, under every registry shape.
 
-    Home Assistant drops ``config_entries`` in 2027.10; reading only that list
-    would make the debug device pass for a car and pre-fill the card with it.
+    Read off the wrong field, the debug device would pass for a car and pre-fill
+    the card with it.
     """
 
     def is_car(identifier: str) -> bool:

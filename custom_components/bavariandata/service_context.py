@@ -21,7 +21,6 @@ from .service_target import (
     TargetError,
     choose_account,
     choose_vin,
-    device_owner,
     requested_vin,
 )
 from .account import (
@@ -135,7 +134,7 @@ class ServiceContext:
             raise TargetError("device_not_a_car", device=device_id)
         entries = {entry.entry_id for entry in hass.config_entries.async_entries(DOMAIN)}
         vin = next((value for value in ours if value not in entries), None)
-        return device_owner(device), vin
+        return (device.config_entry_id if device else None), vin
 
     def resolve_target(self, call: Any) -> tuple[str, ConfigEntry, CardataRuntimeData, str | None]:
         """The account a call acts on, and the car it names, if it names one.

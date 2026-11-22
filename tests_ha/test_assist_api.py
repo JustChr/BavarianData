@@ -33,7 +33,11 @@ async def _call(hass: HomeAssistant, name: str, **args):
     api = await llm.async_get_api(hass, API_ID, CONTEXT)
     tool = next(tool for tool in api.tools if tool.name == name)
     tool_input = llm.ToolInput(tool_name=name, tool_args=tool.parameters(args))
-    return await tool.async_call(hass, tool_input, CONTEXT)
+    result = await tool.async_call(hass, tool_input, CONTEXT)
+    # A plain dict is deprecated since 2026.10 and stops working in 2027.11.
+    assert isinstance(result, llm.ToolResult)
+    assert not result.error
+    return result.data
 
 
 async def test_without_a_car_there_are_no_tools(hass: HomeAssistant, no_bmw) -> None:

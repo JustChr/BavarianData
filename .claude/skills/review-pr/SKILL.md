@@ -58,7 +58,7 @@ Read the diff with CLAUDE.md's constraints in hand. The usual misses:
 
 - **REST quota** (50/24 h): no new polling; cache what is fetched.
 - **One stream per account**; the MQTT client offers TLS 1.3 only.
-- **HA floor 2026.3 / Python 3.14** — no newer-only HA API; `except A, B:` is fine.
+- **HA floor 2026.10 / Python 3.14** — no newer-only HA API; `except A, B:` is fine.
 - **Generated files** hand-edited (`catalogue.json`, `descriptor_metadata.py`,
   the `entity` blocks, `en-GB.json`, the field reference) — must come from `tools/`.
 - A derived entity with a hardcoded `_attr_name` instead of `derived_entities.json`.

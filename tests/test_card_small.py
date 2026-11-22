@@ -67,7 +67,7 @@ def test_the_garage_lists_every_car_by_its_own_name():
             "id": "acct",
             "name": "Account",
             "identifiers": [["bavariandata", "e1"]],
-            "config_entries": ["e1"],
+            "config_entry_id": "e1",
         },
     }
     out = _card(

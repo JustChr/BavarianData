@@ -51,8 +51,8 @@ bash scripts/test_ha.sh -k "surface or flow_snapshots" --snapshot-update
   setup (`test_setup.py`'s `no_bmw` fixture).
 - **Only what needs HA.** Logic that can be tested without Home Assistant
   belongs in an HA-free module and in `tests/`; this suite is for the glue.
-- **The 2026.3 floor.** Don't use an HA API newer than the minimum the
-  integration supports, in tests either (see `test_setup.py`'s device lookup).
+- **The 2026.10 floor.** Don't use an HA API newer than the minimum the
+  integration supports, in tests either.
 - `requirements_test_ha.txt` pins the plugin, which pins one Home Assistant
   release, and that release's frontend package; `test_requirements.py` checks
   the two agree.

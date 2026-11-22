@@ -12,7 +12,7 @@ repository needed.
 
 ## Requirements
 
-- Home Assistant **2026.3** or newer.
+- Home Assistant **2026.10** or newer.
 
 ## Steps
 
@@ -49,7 +49,7 @@ same integration and the same updates.
 
 ## Before Home Assistant 2026.11: HACS
 
-On Home Assistant 2026.3 to 2026.10, install through **HACS** instead. The
+On Home Assistant 2026.10, install through **HACS** instead. The
 button above opens HACS there, or by hand:
 
 1. Open **HACS** and search for **BavarianData**.

@@ -97,9 +97,9 @@ async def _async_register_lovelace_resource(hass: HomeAssistant, url: str) -> bo
         _LOGGER.debug("Cardata: lovelace resources unavailable; using frontend module")
         return False
 
-    # HA 2026.2 split the resource mode off ``mode`` so YAML dashboards can still
-    # manage resources through the UI. Prefer the newer attribute when present.
-    mode = getattr(lovelace, "resource_mode", None) or getattr(lovelace, "mode", None)
+    # The resource mode, not the dashboard's ``mode``: a YAML dashboard can still
+    # manage its resources through the UI.
+    mode = getattr(lovelace, "resource_mode", None)
     if mode != "storage":
         _LOGGER.debug("Cardata: lovelace resources are %s-managed; using frontend module", mode)
         return False
