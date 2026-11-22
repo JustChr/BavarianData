@@ -20,7 +20,7 @@
 <p align="center">
   <a href="https://github.com/JustChr/BavarianData/wiki/Getting-Started-2-Install"><img src="https://img.shields.io/badge/Home%20Assistant-Marketplace-41BDF5.svg" alt="In the Home Assistant Marketplace" /></a>
   <a href="https://github.com/JustChr/BavarianData/releases/latest"><img src="https://img.shields.io/github/v/release/JustChr/BavarianData" alt="Latest release" /></a>
-  <a href="https://github.com/JustChr/BavarianData/wiki/Getting-Started-2-Install"><img src="https://img.shields.io/badge/Home%20Assistant-2026.3%2B-41BDF5.svg" alt="Home Assistant 2026.3 or newer" /></a>
+  <a href="https://github.com/JustChr/BavarianData/wiki/Getting-Started-2-Install"><img src="https://img.shields.io/badge/Home%20Assistant-2026.10%2B-41BDF5.svg" alt="Home Assistant 2026.10 or newer" /></a>
   <a href="https://github.com/JustChr/BavarianData/wiki/Feature-Entities-and-Devices#entity-names-and-your-language"><img src="https://img.shields.io/badge/languages-10-41BDF5" alt="Ten languages" /></a>
   <a href="https://github.com/JustChr/BavarianData/releases"><img src="https://img.shields.io/endpoint?url=https://justchr.github.io/BavarianData/badges/downloads.json" alt="Downloads" /></a>
   <a href="https://github.com/JustChr/BavarianData/stargazers"><img src="https://img.shields.io/github/stars/JustChr/BavarianData?style=flat" alt="GitHub stars" /></a>
@@ -115,8 +115,8 @@ the quick overview.
   BMW Motorrad motorcycles). See [which cars work](https://justchr.github.io/BavarianData/docs/supported-cars/).
 - **CarData API** and **CarData Streaming** subscribed in the BMW portal, and a
   **client ID** generated for this integration.
-- Home Assistant **2026.3** or newer. From 2026.11 it installs from the
-  built-in **Marketplace**; on older versions, from [HACS](https://hacs.xyz/).
+- Home Assistant **2026.10** or newer. From 2026.11 it installs from the
+  built-in **Marketplace**; on 2026.10, from [HACS](https://hacs.xyz/).
 
 ## Quick start
 

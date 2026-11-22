@@ -154,8 +154,8 @@ const distance = input.distance.map(([choice, system]) => {
     config: { unit_system: { length: system } },
     states: { "sensor.connection": { state: "x", attributes: { display_units: { distance: choice } } } },
     devices: {
-      car: { identifiers: [["bavariandata", "WBS1"]], config_entries: ["entry1"] },
-      account: { identifiers: [["bavariandata", "entry1"]] },
+      car: { identifiers: [["bavariandata", "WBS1"]], config_entry_id: "entry1" },
+      account: { identifiers: [["bavariandata", "entry1"]], config_entry_id: "entry1" },
     },
     entities: { "sensor.connection": { platform: "bavariandata", device_id: "account" } },
   };

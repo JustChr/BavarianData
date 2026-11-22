@@ -728,17 +728,12 @@ class BavarianDataCard extends CardParts {
    * Whether a device is a car rather than the integration's "CarData Debug
    * Device". Both carry a `bavariandata` identifier: a car's is its VIN, the
    * debug device's is the id of its own config entry. The debug device holds
-   * diagnostics only, so a card bound to it has nothing to show. The owning
-   * entry is read under every name Home Assistant has used (see
-   * `_deviceEntry`): `config_entries` goes away in 2027.10.
+   * diagnostics only, so a card bound to it has nothing to show.
    */
   static _isVehicleDevice(dev) {
     if (!dev) return false;
-    const entries = new Set(Array.isArray(dev.config_entries) ? dev.config_entries : []);
-    if (dev.config_entry_id) entries.add(dev.config_entry_id);
-    if (dev.primary_config_entry) entries.add(dev.primary_config_entry);
     return (dev.identifiers || []).some(
-      (pair) => pair && pair[0] === "bavariandata" && !entries.has(pair[1])
+      (pair) => pair && pair[0] === "bavariandata" && pair[1] !== dev.config_entry_id
     );
   }
 
@@ -1362,17 +1357,13 @@ class BavarianDataCard extends CardParts {
    *
    * With two accounts set up -- a BMW and a MINI, say -- the services cannot
    * guess which entry a call means and refuse it, so every call the card makes
-   * has to name its entry. Home Assistant has spelled that field differently
-   * over time: `config_entry_id` only exists from 2026.8, `primary_config_entry`
-   * is there throughout, and the `config_entries` list is deprecated as of
-   * 2026.8. Take whichever is present, and `null` where none is -- see
-   * `_withEntry` for why that is never sent.
+   * has to name its entry: the device's `config_entry_id`, or `null` for a
+   * device the registry doesn't know -- see `_withEntry` for why that is
+   * never sent.
    */
   _deviceEntry(deviceId) {
     const dev = this._hass.devices && this._hass.devices[deviceId];
-    if (!dev) return null;
-    const entries = Array.isArray(dev.config_entries) ? dev.config_entries : [];
-    return dev.config_entry_id || dev.primary_config_entry || entries[0] || null;
+    return (dev && dev.config_entry_id) || null;
   }
 
   /** Service data with `entry_id` added, but only when it is actually known.

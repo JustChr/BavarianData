@@ -9,12 +9,21 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Changed
+- **BavarianData now needs Home Assistant 2026.10 or newer** (it was 2026.3).
+  Home Assistant changed how voice assistants talk to an integration's tools
+  in 2026.10, and the old way stops working in 2027.10 and 2027.11. Supporting
+  both would have meant carrying the old way along until then. On an older
+  Home Assistant, HACS keeps the version you have; update Home Assistant to
+  get this one.
+
 ### Fixed
 - **No more warnings about the assistant's tools in the log.** Home Assistant
-  2026.10 and later wrote a warning for each of BavarianData's six tools for
-  voice assistants, because the tools didn't say which integration they come
-  from. Without that, they stop working in Home Assistant 2027.10. Now every
-  tool says it. Thanks @Ernst-JanKromhout (#363).
+  2026.10 and later wrote warnings for BavarianData's six tools for voice
+  assistants: the tools didn't say which integration they come from, and they
+  answered in the old format. Both stop working in Home Assistant 2027.10 and
+  2027.11. Now every tool names its integration and answers in the new
+  format. Thanks @Ernst-JanKromhout (#363).
 
 ## [0.9.33-beta.4] - 2026-11-22
 

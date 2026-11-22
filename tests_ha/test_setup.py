@@ -135,13 +135,8 @@ async def test_stored_basic_data_makes_the_device_at_setup(hass: HomeAssistant, 
     )
     await _set_up(hass, entry)
 
-    # Not ``async_get_device``: 2026.10 deprecates it, and its successor is too
-    # new for the 2026.3 floor.
-    (device,) = [
-        d
-        for d in dr.async_entries_for_config_entry(dr.async_get(hass), entry.entry_id)
-        if (DOMAIN, VIN) in d.identifiers
-    ]
+    device = dr.async_get(hass).async_get_device_by_identifier((DOMAIN, VIN), entry.entry_id)
+    assert device is not None
     assert device.model == "i5 eDrive40"
     assert device.sw_version == "0723"
 

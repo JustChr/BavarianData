@@ -22,7 +22,6 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import llm
 from homeassistant.util import dt as dt_util
-from homeassistant.util.json import JsonObjectType
 
 from .account import account_vins
 from .assist import (
@@ -126,13 +125,13 @@ class _CarTool(llm.Tool):
 
     async def async_call(
         self, hass: HomeAssistant, tool_input: llm.ToolInput, llm_context: llm.LLMContext
-    ) -> JsonObjectType:
+    ) -> llm.ToolResult:
         answers: list[dict[str, Any]] = []
         for car in _picked(self.cars, tool_input.tool_args):
             answer = await self.answer(hass, car, tool_input.tool_args, llm_context)
             unit = car_distance_unit(hass, car.runtime.coordinator, car.vin)
             answers.append({"car": car.name, **in_unit(scrub(answer), unit)})
-        return _per_car(answers)
+        return llm.ToolResult(data=_per_car(answers))
 
     async def answer(
         self,

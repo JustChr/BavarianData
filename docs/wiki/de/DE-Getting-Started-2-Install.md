@@ -12,7 +12,7 @@ ohne benutzerdefiniertes Repository.
 
 ## Voraussetzungen
 
-- Home Assistant **2026.3** oder neuer.
+- Home Assistant **2026.10** oder neuer.
 
 ## Schritte
 
@@ -51,7 +51,7 @@ Updates.
 
 ## Vor Home Assistant 2026.11: HACS
 
-Auf Home Assistant 2026.3 bis 2026.10 installierst du stattdessen über
+Auf Home Assistant 2026.10 installierst du stattdessen über
 **HACS**. Der Button oben öffnet dort HACS, oder von Hand:
 
 1. Öffne **HACS** und suche nach **BavarianData**.

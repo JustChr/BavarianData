@@ -88,7 +88,7 @@ async def test_the_card_resource_is_created_refreshed_or_left_alone(hass: HomeAs
     older = _Resources(
         [{"id": "x", "url": "/local/other.js"}, {"id": "card", "url": f"{LOVELACE_CARD_URL}?v=1"}]
     )
-    hass.data["lovelace"] = SimpleNamespace(resources=older, mode="storage")
+    hass.data["lovelace"] = SimpleNamespace(resources=older, resource_mode="storage")
     assert await frontend._async_register_lovelace_resource(hass, url)
     assert older.updated == [("card", {"res_type": "module", "url": url})]
     assert older.created == []

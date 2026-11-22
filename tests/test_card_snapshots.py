@@ -74,12 +74,12 @@ if (input.display_units || input.account) {
   // Configure -> Units (and the account's other attributes), the way the
   // integration publishes them: on the account device's connection sensor,
   // found through the car's config entry.
-  card._hass.devices.device.config_entries = ["entry1"];
+  card._hass.devices.device.config_entry_id = "entry1";
   card._hass.devices.account = {
     id: "account",
     name: "Account",
     identifiers: [["bavariandata", "entry1"]],
-    config_entries: ["entry1"],
+    config_entry_id: "entry1",
   };
   card._hass.entities = {
     "sensor.connection": { platform: "bavariandata", device_id: "account" },
