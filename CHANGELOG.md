@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.33-beta.4] - 2026-11-22
+
 ### Fixed
 - **The car's tracker writes a position once, not four times.** Home Assistant
   stores every update of a tracker that isn't polled, even when nothing
