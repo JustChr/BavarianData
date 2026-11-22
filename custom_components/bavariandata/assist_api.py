@@ -110,7 +110,7 @@ class _CarTool(llm.Tool):
     """A tool that answers per car, with an optional ``car`` argument."""
 
     extra: dict[Any, Any] = {}
-
+    integration = DOMAIN
     def __init__(self, cars: list[_Car]) -> None:
         self.cars = cars
         schema = dict(self.extra)
