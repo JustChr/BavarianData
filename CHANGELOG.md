@@ -9,6 +9,12 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.33] - 2026-11-22
+
+Needs Home Assistant 2026.10 or newer. Lighter on Home Assistant, a battery health
+figure that matches BMW's own, a tracker that stores only real moves, and a
+stream another program holds is picked up within minutes.
+
 ### Changed
 - **BavarianData now needs Home Assistant 2026.10 or newer** (it was 2026.3).
   Home Assistant changed how voice assistants talk to an integration's tools
@@ -16,13 +22,70 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   both would have meant carrying the old way along until then. On an older
   Home Assistant, HACS keeps the version you have; update Home Assistant to
   get this one.
+- **Lighter on Home Assistant.** Each reading from the car now goes straight to
+  the entities that show it. Until now every reading woke every BavarianData
+  entity of every car, and Home Assistant handed each of those calls to a
+  background thread, hundreds per update; most of them only checked that the
+  reading wasn't theirs. What the entities show is unchanged.
+- **Battery health no longer counts the car's own power use as stored.** While
+  it charges, the car draws about 0.3 kW for itself (cooling, electronics), and
+  battery health counted that as energy in the pack. A slow charge carries far
+  more of it than a fast one: a 13-hour solar charge at 2.6 kW read as an
+  88 kWh battery on a car whose 11 kW charges said 76–81. Now 0.3 kW is taken
+  off for every hour power flowed, and the capacity adds up every qualifying
+  charge's energy over every one's gain in charge instead of taking the median
+  of the per-charge figures, so a wide charge counts for more than a narrow one.
+  On the maintainer's i5 the figure moves from 80.1 to 76.3 kWh, against BMW's
+  own 76, and the capacity trend's highest point drops from 88 to 83 kWh. The
+  *real range* that uses this capacity moves with it.
+
+### Added
+- **A busy month's trips and charges can come a page at a time.** The trips
+  and charging views list every entry of the month in one column, so a month
+  with 30 trips pushed the rest of the dashboard far down. Set **Trips or
+  charges per page** in the card editor (`page_size` in YAML) and the list holds
+  about that many, whole days together, with a `‹ 15 Nov – 21 Nov ›` pager
+  under it; the month in review still covers the whole month. Without the
+  setting nothing changes. Thanks to @kerzebrozzer for the idea (#356).
 
 ### Fixed
+- **A stream another program holds is picked up within minutes, and the repair
+  says what is going on.** BMW keeps an account's one stream for the program
+  that has it and refuses every other with *not authorized* (rc=5), the same
+  answer a wrong login gets (measured on the maintainer's account with a
+  second client). When another program, such as evcc's own CarData vehicle,
+  got in during Home Assistant's reconnect, BavarianData waited for its next
+  token renewal, about 45 minutes, before trying again, and after half an hour
+  showed a repair that suggested renewing tokens, which can't help. Now a
+  refusal that a freshly renewed token gets as well counts as the stream being
+  held elsewhere: BavarianData tries again every 5 minutes, and the repair is
+  **Another program holds the BMW stream**, pointing to the MQTT bridge. The
+  wiki's *One stream per account* sections are corrected too: a second program
+  doesn't kick the first off; the holder keeps the stream.
+- **A battery size of 0 kWh is shown as unknown.** Some cars, an i5 eDrive40
+  among them, send the battery's as-new size (`batterySizeMax`) as 0, BMW's
+  stand-in for no reading, so the *Battery HV Max size* sensor showed 0.0 kWh.
+  It now shows *unknown* (state `0.0` → `unknown`), after a restart too, like
+  the trip-end battery charge that BMW sends the same way. Battery health
+  already ignored the 0, so its percentage of the as-new pack stays blank on
+  such a car.
+- **The car's tracker writes a position once, not four times.** Home Assistant
+  stores every update of a tracker that isn't polled, even when nothing
+  changed, and BMW repeats the car's position several times a minute while
+  it is awake. On the maintainer's i5, 94 % of the tracker's history rows were
+  copies of the one before. Now only a new position is written.
+- **The tracker doesn't jump to a point the car never was.** BMW sends a
+  position's latitude and longitude as two messages, and the tracker showed
+  each as it landed: for a moment the new longitude stood with the old
+  latitude. On the map that's a corner in the route, and near the edge of a
+  zone it could flip the car to *away* and back, which a person entity or an
+  automation would act on. The tracker now waits for both halves (two minutes
+  at most) before it moves.
 - **No more warnings about the assistant's tools in the log.** Home Assistant
   2026.10 and later wrote warnings for BavarianData's six tools for voice
   assistants: the tools didn't say which integration they come from, and they
-  answered in the old format. Both stop working in Home Assistant 2027.10 and
-  2027.11. Now every tool names its integration and answers in the new
+  answered in the old format. Both would stop working in Home Assistant 2027.10
+  and 2027.11. Every tool now names its integration and answers in the new
   format. Thanks @Ernst-JanKromhout (#363).
 
 ## [0.9.33-beta.4] - 2026-11-22
