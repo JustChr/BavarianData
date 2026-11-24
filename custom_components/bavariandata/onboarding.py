@@ -340,6 +340,11 @@ _HELPER_PAGE_TEMPLATE = """<!doctype html>
   .hint { color: #555; font-size: 14px; } code, textarea { font-family: ui-monospace, monospace; }
   textarea { width: 100%; height: 90px; margin-top: 8px; }
   details { margin-top: 24px; } summary { cursor: pointer; color: #1c69d4; }
+  .paste { margin-top: 28px; padding-top: 4px; border-top: 1px solid #8884; }
+  .paste h2 { font-size: 18px; }
+  .paste button { margin-top: 8px; background: #1c69d4; color: #fff; border: 0;
+                  padding: 10px 18px; border-radius: 8px; font: inherit; font-weight: 600; cursor: pointer; }
+  .paste button:disabled { opacity: .6; cursor: default; }
   @media (prefers-color-scheme: dark) { body { background:#111; color:#eee; } .hint{color:#aaa;} }
 </style></head><body>
 <h1>Activate your BMW CarData</h1>
@@ -351,12 +356,56 @@ _HELPER_PAGE_TEMPLATE = """<!doctype html>
   <li>Click the <b>Activate BMW data</b> bookmark. It turns on __COUNT__ data fields
       (only the ones not already on) and tells Home Assistant automatically.</li>
 </ol>
-<details>
+__PASTE__<details>
   <summary>No bookmarks bar? Use the console instead</summary>
   <p class="hint">On the BMW or MINI stream-setup page, press <b>F12</b> &rarr; <b>Console</b>, paste this, and press Enter:</p>
   <textarea readonly onclick="this.select()">__CONSOLE__</textarea>
 </details>
 </body></html>"""
+
+# Shown when Home Assistant waits for the activator to report back. The report
+# goes from BMW's portal to Home Assistant, which the browser, the network or the
+# portal itself can stop; the box then shows the result with a Copy button
+# (D#370). Pasted here, it goes to the same webhook from Home Assistant's own
+# address, where nothing stands in the way, and the waiting dialog carries on.
+_PASTE_SECTION = """<section class="paste">
+  <h2>Did the box on the portal show a Copy button?</h2>
+  <p class="hint">Then Home Assistant didn't get the result by itself. Press <b>Copy</b> there,
+     paste it here and press <b>Send</b>: the setup dialog carries on.</p>
+  <textarea id="bd-paste" placeholder="BAVARIANDATA1:&hellip;" aria-label="Activation result"></textarea>
+  <button id="bd-send" type="button">Send to Home Assistant</button>
+  <p id="bd-sent" role="status"></p>
+</section>
+<script>
+(() => {
+  const REPORT = __REPORT__;
+  const ACK = __ACK__;
+  const field = document.getElementById('bd-paste');
+  const button = document.getElementById('bd-send');
+  const said = document.getElementById('bd-sent');
+  button.onclick = async () => {
+    const code = field.value.trim();
+    if (!code) { said.textContent = 'Paste the result from the portal first.'; return; }
+    button.disabled = true;
+    said.textContent = 'Sending\\u2026';
+    try {
+      const r = await fetch(REPORT, { method: 'POST', headers: { 'Content-Type': 'text/plain' },
+                                      body: code });
+      const text = await r.text();
+      if (r.ok && text.indexOf(ACK) === 0) {
+        said.textContent = 'Sent. Home Assistant carries on \\u2014 you can close this tab.';
+        return;
+      }
+      said.textContent = r.status === 400 ? text
+        : 'This setup has ended. Start it again in Home Assistant and use its new setup page.';
+    } catch (e) {
+      said.textContent = 'Home Assistant could not be reached from this page. Try again.';
+    }
+    button.disabled = false;
+  };
+})();
+</script>
+"""
 
 
 def activation_link_placeholders(url: str) -> dict[str, str]:
@@ -377,18 +426,34 @@ def activation_link_placeholders(url: str) -> dict[str, str]:
     }
 
 
-def build_helper_page(*, bookmarklet: str, console_js: str, attribute_count: int) -> str:
+def build_helper_page(
+    *,
+    bookmarklet: str,
+    console_js: str,
+    attribute_count: int,
+    report_path: str | None = None,
+) -> str:
     """Return the self-contained HTML helper page hosting the bookmarklet.
 
     Served from Home Assistant's own origin (a config-flow dialog can't hold a
     ``javascript:`` link — HA sanitizes it), so it can present the draggable
     bookmarklet, a right-click hint and the console fallback in one place.
+
+    ``report_path`` is this run's webhook, given only while Home Assistant waits
+    for the activator to report: the page then takes a pasted result too, for
+    when the report from the portal never arrives (D#370).
     """
 
+    paste = ""
+    if report_path:
+        paste = _PASTE_SECTION.replace("__REPORT__", json.dumps(report_path)).replace(
+            "__ACK__", json.dumps(REPORT_ACK)
+        )
     return (
         _HELPER_PAGE_TEMPLATE.replace("__BOOKMARKLET__", escape(bookmarklet, quote=True))
         .replace("__COUNT__", str(attribute_count))
         .replace("__CONSOLE__", escape(console_js))
+        .replace("__PASTE__", paste)
     )
 
 

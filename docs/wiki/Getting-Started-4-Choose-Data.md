@@ -33,7 +33,10 @@ and **Configure → Choose streamed data** let you pick the clusters first.
    On that stream-setup page, click the **Activate BMW data** bookmark. It turns
    on the fields of your chosen clusters, all in your own browser.
 4. Back in Home Assistant:
-   - on an **https** Home Assistant the dialog **continues on its own**;
+   - on an **https** Home Assistant the dialog **continues on its own**. If the
+     box on the portal shows a **Copy** button instead, paste the result into
+     the box at the bottom of the activation page and press
+     **Send to Home Assistant**;
    - on an **http** Home Assistant, press **Copy** in the box the activator shows
      and paste the short result into the field.
 
