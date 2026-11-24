@@ -406,7 +406,7 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
         const fig = pre[side];
         const val = [
           fig.avg_kw != null ? kw(fig.avg_kw) : null,
-          fig.minutes_per_10 != null ? `${this._dec(fig.minutes_per_10, 1)} min / 10 %` : null,
+          fig.minutes_per_10 != null ? `${this._dec(fig.minutes_per_10, 1)} min / 10%` : null,
         ]
           .filter((v) => v)
           .join(" · ");
@@ -462,12 +462,12 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
         return `<polyline points="${line}" class="chg__chart-line" style="opacity:${opacity}"></polyline>`;
       })
       .join("");
-    return `
-      <svg class="chg__chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">
-        ${lines}
-        <text x="${pad}" y="10" class="chg__chart-max">${this._dec(yMax, 1)} kW</text>
-      </svg>
-    `;
+    // The label is text beside the chart, not in it: the chart stretches to
+    // the card's width, and text inside it stretched with it.
+    return this._chartFrame(
+      `<svg class="chg__chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">${lines}</svg>`,
+      `${this._dec(yMax, 1)} kW`
+    );
   }
 
   /** Mount the places map once the map library is ready, and again after a
@@ -645,14 +645,14 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
     // Only worth a bar where something besides "unattributed" is known.
     const mix =
       total > 0 && parts.some(([k]) => k !== "unknown")
-        ? `<div class="sec"><span class="sec__t">${this._t("ch_where_from")}</span></div>
+        ? `<div class="sec"><span class="sec__t">${this._t("ch_where_from")}</span><span class="sec__s">kWh</span></div>
         <div class="mix">
           <div class="mix__bar" role="img" aria-label="${this._esc(parts.map(([k, l]) => `${this._t(l)} ${this._dec(f.mix[k], 1)} kWh`).join(", "))}">
             ${parts.map(([k, , c]) => `<span style="width:${((f.mix[k] / total) * 100).toFixed(1)}%;background:${c}"></span>`).join("")}
           </div>
           <div class="legend">${parts
             .map(([k, l, c]) => `<span><i style="background:${c}"></i>${this._t(l)} <b>${this._dec(f.mix[k], 1)}</b></span>`)
-            .join("")}<span>kWh</span></div>
+            .join("")}</div>
         </div>`
         : "";
     // kWh per day across the month; days still to come stay flat.
@@ -938,14 +938,24 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
       .map(([x, y]) => `${this._px(x)},${this._px(y)}`)
       .join(" ");
     const area = `${pad},${H - pad} ${line} ${W - pad},${H - pad}`;
-    return `
-      <svg class="chg__chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">
+    return this._chartFrame(
+      `<svg class="chg__chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">
         <polygon points="${area}" class="chg__chart-fill"></polygon>
         <polyline points="${line}" class="chg__chart-line"></polyline>
         ${avg != null && avg > 0 && avg <= yMax ? `<line x1="${pad}" x2="${W - pad}" y1="${this._px(sy(avg))}" y2="${this._px(sy(avg))}" class="chg__chart-avg"></line>` : ""}
-        <text x="${pad}" y="10" class="chg__chart-max">${this._dec(yMax, 1)} kW</text>
-      </svg>
-    `;
+      </svg>`,
+      `${this._dec(yMax, 1)} kW`
+    );
+  }
+
+  /** A line chart with its scale as text: the top value above it, the bottom
+   * one below when it isn't zero. Never text inside the SVG, which stretches. */
+  _chartFrame(svg, top, bottom = null) {
+    return `<div class="chart">
+        <span class="chart__lbl">${top}</span>
+        ${svg}
+        ${bottom == null ? "" : `<span class="chart__lbl">${bottom}</span>`}
+      </div>`;
   }
 
   _locationBadge(session) {

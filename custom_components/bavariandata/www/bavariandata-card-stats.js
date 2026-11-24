@@ -170,13 +170,13 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
     const line = points
       .map((p) => `${this._px(sx(p[0]))},${this._px(sy(p[1]))}`)
       .join(" ");
-    return `
-      <svg class="bh__chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">
+    return this._chartFrame(
+      `<svg class="bh__chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">
         <polyline points="${line}" class="chg__chart-line"></polyline>
-        <text x="${pad}" y="10" class="chg__chart-max">${this._dec(yMax, 1)} kWh</text>
-        <text x="${pad}" y="${H - 3}" class="chg__chart-max">${this._dec(yMin, 1)} kWh</text>
-      </svg>
-    `;
+      </svg>`,
+      `${this._dec(yMax, 1)} kWh`,
+      `${this._dec(yMin, 1)} kWh`
+    );
   }
 
   /* ---- efficiency & real range ------------------------------------------ */
@@ -310,7 +310,7 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
       ]);
     }
     if (life.electric_share_percent != null) {
-      facts.push([this._t("ef_electric_share"), `${this._dec(life.electric_share_percent, 0)} %`, ""]);
+      facts.push([this._t("ef_electric_share"), `${this._dec(life.electric_share_percent, 0)}%`, ""]);
     }
     if (life.fuel_l_per_100km != null) {
       facts.push([
@@ -456,7 +456,7 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
     if (f.loss != null && f.gridConsumption != null) {
       facts.push([
         this._t("ef_loss"),
-        `${this._dec(f.loss, 0)} %`,
+        `${this._dec(f.loss, 0)}%`,
         `${this._dec(this._perDist(f.gridConsumption, unit), 1)} ${this._kwhPer(unit)} ${this._t(
           "ef_side_grid"
         )}`,
@@ -573,43 +573,19 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
     const edge = (c) => this._dec(tempUnit === "f" ? c * 1.8 + 32 : c, 0);
     const label = (b) =>
       b.from_c == null ? `< ${edge(b.to_c)}` : b.to_c == null ? `≥ ${edge(b.from_c)}` : `${edge(b.from_c)}–${edge(b.to_c)}`;
-    const W = 280;
-    const H = 88;
-    const pad = 6;
-    const bottom = 14;
     const values = bands.map((b) => (b.kwh_per_100km == null ? null : this._perDist(b.kwh_per_100km, unit)));
-    // Headroom for the value printed over the tallest bar, clear of the unit.
-    const max = Math.max(...values.filter((v) => v != null), 0) * 1.3 || 1;
-    const slot = (W - 2 * pad) / bands.length;
-    const width = Math.min(28, Math.max(4, slot * 0.58));
-    const bars = bands
-      .map((b, i) => {
-        const x = pad + i * slot + (slot - width) / 2;
-        // A band with too few km behind it gets a stub, not a figure.
-        const h = values[i] == null ? 2 : (values[i] / max) * (H - bottom - pad);
-        const y = H - bottom - h;
+    // Mild weather as a dashed line across: each band reads against it.
+    const mildV = byTemp.mild_kwh_per_100km == null ? null : this._perDist(byTemp.mild_kwh_per_100km, unit);
+    const chart = this._barsHtml(
+      bands.map((b, i) => {
         // Today's band, where the car is parked, stands out from the rest.
         const now =
           today != null && (b.from_c == null || today >= b.from_c) && (b.to_c == null || today < b.to_c);
-        const cls = (values[i] == null ? "ef__bar ef__bar--thin" : "ef__bar") + (now ? " ef__bar--today" : "");
-        return `<rect class="${cls}" x="${this._px(x)}" y="${this._px(y)}" width="${this._px(
-          width
-        )}" height="${this._px(Math.max(h, 1))}" rx="2"></rect>
-                ${values[i] == null ? "" : this._efBarValue(x + width / 2, y, values[i])}
-                <text class="ef__bar-lbl" x="${this._px(x + width / 2)}" y="${H - 3}" text-anchor="middle">${this._esc(
-          label(b)
-        )}</text>`;
-      })
-      .join("");
-    // Mild weather as a dashed line across: each band reads against it.
-    const mildV = byTemp.mild_kwh_per_100km == null ? null : this._perDist(byTemp.mild_kwh_per_100km, unit);
-    const mildY = mildV == null ? null : H - bottom - (mildV / max) * (H - bottom - pad);
-    const chart = `
-      <svg class="ef__chart" viewBox="0 0 ${W} ${H}" role="img">
-        ${bars}
-        ${mildY == null ? "" : `<line class="chg__chart-avg" x1="${pad}" x2="${W - pad}" y1="${this._px(mildY)}" y2="${this._px(mildY)}"></line>`}
-        <text x="${pad}" y="9" class="chg__chart-max">${this._kwhPer(unit)}</text>
-      </svg>`;
+        // A band with too few km behind it gets a stub, not a figure.
+        return { label: label(b), value: values[i], stub: values[i] == null, today: now };
+      }),
+      { unit: this._kwhPer(unit), line: mildV }
+    );
     const cold = this._temp(5, tempUnit);
     const mild = `${edge(15)}–${this._temp(25, tempUnit)}`;
     const p = byTemp.cold_penalty_percent;
@@ -629,47 +605,43 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
    * would make a 1 kWh/100 km wobble look like a season. */
   _efTrendSvg(trend, unit) {
     if (!Array.isArray(trend) || trend.length < 2) return "";
-    const W = 280;
-    const H = 88;
-    const pad = 6;
-    const bottom = 14;
-    const values = trend.map((e) => this._perDist(e.kwh_per_100km, unit));
-    const max = Math.max(...values) * 1.3 || 1;
-    const slot = (W - 2 * pad) / trend.length;
-    // Capped as well as proportional: with two months on file a purely
-    // proportional bar is 78 px wide and reads as a block, not a chart.
-    const width = Math.min(28, Math.max(4, slot * 0.58));
-    const bars = trend
-      .map((entry, i) => {
-        const x = pad + i * slot + (slot - width) / 2;
-        const h = (values[i] / max) * (H - bottom - pad);
-        const y = H - bottom - h;
+    return this._barsHtml(
+      trend.map((entry) => ({
         // "2026-09" -> "09": a bare month number reads the same in every
         // language, which a translated abbreviation would not.
-        const label = String(entry.month || "").slice(5);
-        return `<rect class="ef__bar" x="${this._px(x)}" y="${this._px(y)}"
-                  width="${this._px(width)}" height="${this._px(
-          Math.max(h, 1)
-        )}" rx="2"></rect>
-                ${this._efBarValue(x + width / 2, y, values[i])}
-                <text class="ef__bar-lbl" x="${this._px(
-                  x + width / 2
-                )}" y="${H - 3}" text-anchor="middle">${this._esc(label)}</text>`;
-      })
-      .join("");
-    return `
-      <svg class="ef__chart" viewBox="0 0 ${W} ${H}" role="img">
-        ${bars}
-        <text x="${pad}" y="9" class="chg__chart-max">${this._kwhPer(unit)}</text>
-      </svg>
-    `;
+        label: String(entry.month || "").slice(5),
+        value: this._perDist(entry.kwh_per_100km, unit),
+      })),
+      { unit: this._kwhPer(unit) }
+    );
   }
 
-  /** A bar's own figure, just above it; the unit stands once in the corner. */
-  _efBarValue(cx, top, value) {
-    return `<text class="ef__bar-val" x="${this._px(cx)}" y="${this._px(
-      top - 3
-    )}" text-anchor="middle">${this._dec(value, 1)}</text>`;
+  /** Bars as HTML, every label and figure as text in the card's own font.
+   *
+   * The charts used to be SVGs, and their text either stretched with the chart
+   * or left the chart letterboxed. ``cols``: ``{label, value, stub, today,
+   * partial, figure}``; ``value`` null draws no bar (a stub with ``stub``), and
+   * ``figure: false`` leaves the number off. ``line`` is a dashed reference at
+   * that value, drawn behind the figures so it never runs through one. */
+  _barsHtml(cols, { unit = null, line = null, headroom = 1.3 } = {}) {
+    const top = Math.max(...cols.map((c) => c.value || 0), line || 0, 0) * headroom || 1;
+    const pct = (v) => this._px(Math.max(0, Math.min(100, (v / top) * 100)));
+    const col = (c) => {
+      const cls = ["bars__bar", c.stub ? "bars__bar--stub" : "", c.today ? "bars__bar--today" : "", c.partial ? "bars__bar--partial" : ""]
+        .filter(Boolean)
+        .join(" ");
+      const bar = c.value != null ? `<span class="${cls}" style="height:${pct(c.value)}%"></span>` : c.stub ? `<span class="${cls}"></span>` : "";
+      const figure = c.value != null && c.figure !== false ? `<span class="bars__val">${this._dec(c.value, 1)}</span>` : "";
+      return `<span class="bars__col">${figure}${bar}</span>`;
+    };
+    return `<div class="bars" role="img">
+        ${unit ? `<span class="chart__lbl">${unit}</span>` : ""}
+        <div class="bars__plot">
+          ${line != null ? `<span class="bars__line" style="bottom:${pct(line)}%"></span>` : ""}
+          ${cols.map(col).join("")}
+        </div>
+        <div class="bars__axis">${cols.map((c) => `<span>${this._esc(c.label)}</span>`).join("")}</div>
+      </div>`;
   }
 
   /* ---- mileage ---------------------------------------------------------- */
@@ -795,10 +767,10 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
 
     const tank = data.tank || {};
     const tankValue =
-      tank.litres != null ? litres(tank.litres) : tank.percent != null ? `${this._dec(tank.percent, 0)} %` : "";
+      tank.litres != null ? litres(tank.litres) : tank.percent != null ? `${this._dec(tank.percent, 0)}%` : "";
     const tankNote =
       tank.litres != null && tank.percent != null
-        ? `${this._dec(tank.percent, 0)} %`
+        ? `${this._dec(tank.percent, 0)}%`
         : tank.range_km != null
         ? this._t("fu_range", { d: dist(tank.range_km) })
         : "";
@@ -836,7 +808,7 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
           r.added_l != null
             ? `+${litres(r.added_l)}`
             : r.added_percent != null
-            ? `+${this._dec(r.added_percent, 0)} %`
+            ? `+${this._dec(r.added_percent, 0)}%`
             : "—";
         const meta = [];
         if (r.km != null) meta.push(`<span class="chg__tag">${dist(r.km)}</span>`);
@@ -1135,31 +1107,15 @@ export default (Base, { DESC_ODOMETER, FUEL_DESCRIPTORS, KM_PER_MILE, _lang }) =
     if (first < 0) return "";
     const shown = months.slice(first);
     if (shown.length < 2) return "";
-    const W = 280;
-    const H = 88;
-    const pad = 6;
-    const bottom = 14;
     const factor = unit === "mi" ? 1 / KM_PER_MILE : 1;
-    const values = shown.map((m) => (m.km || 0) * factor);
-    const max = Math.max(...values) * 1.15 || 1;
-    const slot = (W - 2 * pad) / shown.length;
-    const width = Math.min(28, Math.max(4, slot * 0.58));
-    const bars = shown
-      .map((entry, i) => {
-        const x = pad + i * slot + (slot - width) / 2;
-        const h = ((entry.km || 0) * factor / max) * (H - bottom - pad);
-        const y = H - bottom - h;
-        const label = String(entry.month || "").slice(5);
-        const cls = entry.partial ? "ef__bar mi__bar-partial" : "ef__bar";
-        return `${
-          entry.km != null
-            ? `<rect class="${cls}" x="${this._px(x)}" y="${this._px(y)}"
-                  width="${this._px(width)}" height="${this._px(Math.max(h, 1))}" rx="2"></rect>`
-            : ""
-        }<text class="ef__bar-lbl" x="${this._px(x + width / 2)}" y="${H - 3}"
-                  text-anchor="middle">${this._esc(label)}</text>`;
-      })
-      .join("");
-    return `<svg class="ef__chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${bars}</svg>`;
+    return this._barsHtml(
+      shown.map((entry) => ({
+        label: String(entry.month || "").slice(5),
+        value: entry.km == null ? null : entry.km * factor,
+        partial: entry.partial,
+        figure: false,
+      })),
+      { headroom: 1.15 }
+    );
   }
 };

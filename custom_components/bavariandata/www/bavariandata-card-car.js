@@ -698,7 +698,7 @@ export default (Base, { CAR, CAR_FLIP, UNAVAILABLE, _lang, carTones }) => class 
         this._t("bh_title"),
         learning
           ? this._t("bh_learning", { n, total: need })
-          : [this._fmt(health), a.vs_new_percent != null ? this._t("bh_of_new", { p: this._dec(a.vs_new_percent, 0) }) : null].filter(Boolean).join(" · "),
+          : [this._num(health) != null ? `${this._dec(this._num(health), 1)} kWh` : this._fmt(health), a.vs_new_percent != null ? this._t("bh_of_new", { p: this._dec(a.vs_new_percent, 0) }) : null].filter(Boolean).join(" · "),
         learning ? `<span class="thin"><span style="width:${Math.min(100, (n / need) * 100)}%;background:var(--bmw-charge)"></span></span>` : "",
         health.entity_id
       );

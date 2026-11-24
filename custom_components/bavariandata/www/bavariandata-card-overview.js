@@ -220,7 +220,7 @@ export default (Base, { DEVICE_CLASS_ICONS, UNAVAILABLE, _lang }) => class Overv
         ? `<button class="hero__mode" data-hero-mode title="${this._esc(this._t(inside ? "hs_exterior" : "hs_interior"))}"><ha-icon icon="${inside ? "mdi:car-side" : "mdi:car-seat"}"></ha-icon></button>`
         : "");
     const bar = isPct && gaugeNum != null
-      ? this._barHtml({ pct, color: fillColor, charging, gain, used, tick: target, label: `${gaugeCap} ${gaugeVal} %` })
+      ? this._barHtml({ pct, color: fillColor, charging, gain, used, tick: target, label: `${gaugeCap} ${gaugeVal}%` })
       : "";
 
     this.shadowRoot.innerHTML = `
@@ -830,7 +830,7 @@ export default (Base, { DEVICE_CLASS_ICONS, UNAVAILABLE, _lang }) => class Overv
       case "session_solar": {
         const s = ctx.session;
         if (!charging || !s || s.solar == null) return null;
-        return tile(this._t("ti_solar"), s.st, "mdi:solar-power-variant", { val: `${this._dec(s.solar, 0)} %`, tone: "solar" });
+        return tile(this._t("ti_solar"), s.st, "mdi:solar-power-variant", { val: `${this._dec(s.solar, 0)}%`, tone: "solar" });
       }
       case "session_cost": {
         const s = ctx.session;
@@ -859,7 +859,7 @@ export default (Base, { DEVICE_CLASS_ICONS, UNAVAILABLE, _lang }) => class Overv
         if (!t || t.soc_start == null || t.soc_now == null) return null;
         const drop = Math.max(0, t.soc_start - t.soc_now);
         return tile(this._t("ti_used"), this._st(t.entity_id), "mdi:battery-arrow-down-outline", {
-          val: `−${this._dec(drop, 0)} %`,
+          val: `−${this._dec(drop, 0)}%`,
         });
       }
       case "open_items": {
