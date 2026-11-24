@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.34-beta.3] - 2026-11-24
+
 ### Fixed
 - **The card's text is written the same way in every view.** Chart labels no
   longer come out stretched or squeezed (battery health, charging, mileage): every
