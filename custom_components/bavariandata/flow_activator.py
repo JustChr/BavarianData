@@ -242,7 +242,11 @@ class StreamActivatorFlow(_FlowBase):
         bookmarklet = build_bookmarklet(attributes, report_url=report_candidates)
         console = build_console_snippet(attributes, report_url=report_candidates)
         html = build_helper_page(
-            bookmarklet=bookmarklet, console_js=console, attribute_count=len(attributes)
+            bookmarklet=bookmarklet,
+            console_js=console,
+            attribute_count=len(attributes),
+            # Same origin as the page, so a pasted result always gets through.
+            report_path=f"/api/webhook/{token}" if auto else None,
         )
 
         event = asyncio.Event()

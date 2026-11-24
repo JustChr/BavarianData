@@ -78,7 +78,11 @@ derselbe Ein-Klick-Aktivator ein — siehe [Schritt 4](DE-Getting-Started-4-Choo
    </p>
 
    - Läuft dein Home Assistant über **https**, meldet sich der Aktivator von
-     selbst zurück und die Einrichtung **läuft allein weiter**.
+     selbst zurück und die Einrichtung **läuft allein weiter**. Zeigt das Feld
+     im Portal stattdessen einen **Copy**-Button, ist die Rückmeldung nicht
+     angekommen: Klick auf **Copy**, füge das Ergebnis in das Feld unten auf der
+     BavarianData-Setup-Seite ein und klick auf **Send to Home Assistant**. Die
+     Einrichtung läuft dann weiter.
    - Läuft er über **http**, klickst du im Feld des Aktivators auf **Copy**
      (siehe oben) und **fügst** das kurze (nicht geheime) Ergebnis in Home
      Assistant ein.

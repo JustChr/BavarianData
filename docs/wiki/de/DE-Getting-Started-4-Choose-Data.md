@@ -38,7 +38,9 @@ lassen dich zuerst die Datengruppen wählen.
    eigenen Browser.
 4. Zurück in Home Assistant:
    - Läuft dein Home Assistant über **https**, **geht der Dialog von allein
-     weiter**;
+     weiter**. Zeigt das Feld im Portal stattdessen einen **Copy**-Button, füge
+     das Ergebnis in das Feld unten auf der Aktivierungsseite ein und klick auf
+     **Send to Home Assistant**;
    - läuft er über **http**, klickst du im Feld des Aktivators auf **Copy** und
      fügst das kurze Ergebnis ein.
 

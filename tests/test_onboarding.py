@@ -138,6 +138,109 @@ def test_helper_page_carries_bookmarklet_and_console():
     assert "42" in html
     # Console fallback present, escaped into a textarea.
     assert "F12" in html or "Console" in html
+    # Nothing waits for a report (an http Home Assistant): no paste box here,
+    # the dialog's own paste screen takes the result.
+    assert "bd-paste" not in html
+
+
+def _helper_with_paste() -> str:
+    return OB.build_helper_page(
+        bookmarklet="javascript:void 0",
+        console_js="",
+        attribute_count=1,
+        report_path="/api/webhook/abc123",
+    )
+
+
+def test_helper_page_takes_a_pasted_result_while_home_assistant_waits():
+    """D#370: the report from the portal never arrived; the page sends it instead.
+
+    From Home Assistant's own address, to the same webhook the activator uses.
+    """
+
+    html = _helper_with_paste()
+    assert 'id="bd-paste"' in html and "Send to Home Assistant" in html
+    assert 'const REPORT = "/api/webhook/abc123";' in html
+    assert f"const ACK = {json.dumps(OB.REPORT_ACK)};" in html
+    assert "__" not in html.split("<script>", 1)[1]  # every marker filled
+
+
+def _run_paste(answer: str, pasted: str = "BAVARIANDATA1:abc") -> dict:
+    """Run the page's paste script under Node against one answer from HA."""
+
+    import shutil
+    import subprocess
+
+    node = shutil.which("node")
+    if node is None:
+        pytest.skip("Node is not installed")
+    script = _helper_with_paste().split("<script>", 1)[1].split("</script>", 1)[0]
+    harness = """
+const els = {};
+const el = (id) => (els[id] = els[id] || { id, value: '', textContent: '', disabled: false });
+globalThis.document = { getElementById: el };
+el('bd-paste').value = __PASTED__;
+const ANSWER = __ANSWER__;
+const sent = [];
+globalThis.fetch = async (url, opts) => {
+  sent.push({ url, body: opts.body, type: opts.headers['Content-Type'] });
+  if (ANSWER === 'unreachable') throw new TypeError('Failed to fetch');
+  const [status, text] = ANSWER;
+  return { ok: status < 300, status, text: async () => text };
+};
+__SCRIPT__
+(async () => {
+  await els['bd-send'].onclick();
+  console.log(JSON.stringify({ sent, said: els['bd-sent'].textContent,
+                               disabled: els['bd-send'].disabled }));
+})();
+"""
+    harness = (
+        harness.replace("__PASTED__", json.dumps(pasted))
+        .replace("__ANSWER__", answer)
+        .replace("__SCRIPT__", script)
+    )
+    out = subprocess.run(
+        [node, "-e", harness], capture_output=True, text=True, timeout=30, check=True
+    )
+    return json.loads(out.stdout)
+
+
+def test_a_pasted_result_home_assistant_took_says_so():
+    ack = json.dumps([200, OB.REPORT_ACK + " — you can return to Home Assistant."])
+    result = _run_paste(ack)
+
+    assert result["sent"] == [
+        {"url": "/api/webhook/abc123", "body": "BAVARIANDATA1:abc", "type": "text/plain"}
+    ]
+    assert result["said"].startswith("Sent.")
+    assert result["disabled"] is True  # sent once; nothing left to do here
+
+
+def test_a_pasted_result_home_assistant_refused_says_why():
+    result = _run_paste(json.dumps([400, "That doesn't look like a BavarianData result."]))
+
+    assert result["said"] == "That doesn't look like a BavarianData result."
+    assert result["disabled"] is False
+
+
+def test_a_paste_after_the_setup_ended_says_to_start_again():
+    # Home Assistant answers a webhook it no longer knows with an empty 200.
+    result = _run_paste(json.dumps([200, ""]))
+
+    assert "Start it again" in result["said"] and result["disabled"] is False
+
+
+def test_a_paste_home_assistant_did_not_answer_can_be_sent_again():
+    result = _run_paste("'unreachable'")
+
+    assert "could not be reached" in result["said"] and result["disabled"] is False
+
+
+def test_an_empty_paste_sends_nothing():
+    result = _run_paste(json.dumps([200, OB.REPORT_ACK]), pasted="   ")
+
+    assert result["sent"] == [] and "first" in result["said"]
 
 
 # --- result parsing -------------------------------------------------------------

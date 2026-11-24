@@ -75,7 +75,10 @@ again — see [step 4](Getting-Started-4-Choose-Data).
    </p>
 
    - On an **https** Home Assistant the activator reports back and setup
-     **continues on its own**.
+     **continues on its own**. If the box on the portal shows a **Copy** button
+     instead, the report didn't get through: press **Copy**, paste the result
+     into the box at the bottom of the BavarianData setup page, and press
+     **Send to Home Assistant**. Setup then carries on.
    - On an **http** Home Assistant, press **Copy** in the box the activator shows
      (pictured above) and **paste** the short (non-secret) result into the field.
 
