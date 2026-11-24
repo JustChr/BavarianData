@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.34-beta.2] - 2026-11-24
+
 ### Fixed
 - **A charge that waits for its start time is one session** (#369, thanks
   @Kars-de-Jong). With a start time set in the car, plugging in at 18:20 often
