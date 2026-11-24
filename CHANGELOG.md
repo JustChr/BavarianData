@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.34-beta.1] - 2026-11-24
+
 ### Added
 - **The odometer at both ends of every trip** (#367, thanks @ckkm08). Each trip now
   keeps the odometer when the car set off and when it stopped, what a mileage log
