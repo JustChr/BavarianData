@@ -1026,7 +1026,8 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
     // A car that reports only once parked says where a trip went, never when
     // it set off: its start is the arrival, and "0 min" would be made up.
     if (!session.start || !session.end || session.duration_unknown) return null;
-    const ms = new Date(session.end).getTime() - new Date(session.start).getTime();
+    // A charge that waited for its start time counts only its charging time (#369).
+    const ms = this._chargingMs(session);
     if (!(ms > 0)) return null;
     const mins = Math.round(ms / 60000);
     if (mins < 60) return `${mins} min`;
@@ -1038,10 +1039,14 @@ export default (Base, { _lang, _numberLocale }) => class ChargingPart extends Ba
   _avgPowerKw(session) {
     const energyKwh = session.grid_kwh != null ? session.grid_kwh : session.energy_kwh;
     if (energyKwh == null || !session.start || !session.end) return null;
-    const hours =
-      (new Date(session.end).getTime() - new Date(session.start).getTime()) / 3600000;
+    const hours = this._chargingMs(session) / 3600000;
     if (!(hours > 0)) return null;
     return energyKwh / hours;
+  }
+
+  _chargingMs(session) {
+    const span = new Date(session.end).getTime() - new Date(session.start).getTime();
+    return span - (Number(session.paused_s) || 0) * 1000;
   }
 
   _wireChargingTaps() {

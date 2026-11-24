@@ -82,7 +82,13 @@ SoC, energy, duration, peak power, the charging power curve, and cost.
 A charge that stops and starts again stays **one session** as long as the
 pause is short: up to **five minutes** while the cable stays in (some cars pause
 by themselves mid-charge), or up to **two minutes** if your car doesn't report
-whether it is plugged in. A longer pause is recorded as **two sessions**, even if
+whether it is plugged in. A charge that **waits for a start time** set in the
+car stays one session however long it waits: plugged in at 18:20 with charging
+set to start at 01:00, the car often charges for a minute first, then reports
+itself as *paused* until 01:00. As long as the car says *paused* and the cable
+is in (up to a day), that minute and the night's charge are one session, and the
+wait doesn't count as charging time: the duration and the average power leave
+it out. Any other longer pause is recorded as **two sessions**, even if
 the cable never came out, so solar charging that waits out a long cloud can
 leave several sessions on one day. Pulling the cable ends the session right
 away. The session ends when charging stopped. When the car reports the charge

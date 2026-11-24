@@ -26,6 +26,23 @@
      42.1  advance 42.1             est= 40.52 rate=    - charging=off open=n sessions=1 charging_stopped
   '''
 # ---
+# name: test_a_charge_waiting_for_its_start_time_is_one_charge
+  '''
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+     10.0  wait 10                  est=     - rate=    - charging=off open=n sessions=0
+     10.0  plugged in               est=     - rate=    - charging=off open=n sessions=0
+     10.0  target 80                est=     - rate=    - charging=off open=n sessions=0
+     10.0  charges on plug-in       est= 15.00 rate=14.67 charging=on  open=y sessions=0 charging_started
+     12.0  wait 12                  est= 15.49 rate=14.67 charging=on  open=y sessions=0
+     12.0  waits for its start time est= 16.00 rate=    - charging=off open=y sessions=0 situation
+    400.0  advance 400              est= 16.00 rate=    - charging=off open=y sessions=0 charging_paused
+    400.0  start time               est= 16.00 rate=    - charging=off open=y sessions=0
+    401.0  wait 401                 est= 16.00 rate=    - charging=off open=y sessions=0
+    401.0  charges                  est= 16.00 rate=14.67 charging=on  open=y sessions=0 charging_resumed,situation
+    641.0  wait 641                 est= 74.67 rate=14.67 charging=on  open=y sessions=0
+    641.0  done                     est= 80.00 rate=    - charging=off open=n sessions=1 charging_stopped,charging_complete
+  '''
+# ---
 # name: test_a_finished_charge_is_said_at_once_with_the_cable_in
   '''
       0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0

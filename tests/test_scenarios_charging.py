@@ -286,6 +286,103 @@ def test_an_unplug_ends_the_wait_for_the_cable(h):
     assert [s.end for s in h.sessions()] == [h.at(60)]
 
 
+def _plug_in_and_wait_for_the_timer(h: CoordinatorHarness) -> None:
+    """#369's evening: a short charge on plug-in, then the wait for 01:00.
+
+    Plugged in at 18:20 with charging set to start at 01:00, the car charges
+    for a minute or two, then says CHARGINGPAUSED until its start time. Shifted
+    here to start at 08:10.
+    """
+
+    h.send(10, plug="CONNECTED", step="plugged in")
+    h.send(10, target=80, step="target 80")
+    h.send(10, soc=15, status="CHARGINGACTIVE", power=11000, step="charges on plug-in")
+    h.send(12, soc=16, status="CHARGINGPAUSED", power=0, step="waits for its start time")
+
+
+def test_a_charge_waiting_for_its_start_time_is_one_charge(h, snapshot):
+    """#369: the burst at plug-in and the charge at the start time are one charge.
+
+    The plugged-in hold closed the burst after five minutes and filed the
+    night's charge as a second session. While the car says it is paused and
+    the cable is in, the charge is waiting, not over.
+    """
+
+    _plug_in_and_wait_for_the_timer(h)
+    h.advance_to(400)
+    assert h.sessions() == []
+    assert h.has_open_session()
+
+    h.send(400, status="INITIALIZATION", step="start time")
+    h.send(401, status="CHARGINGACTIVE", power=11000, step="charges")
+    h.send(641, soc=80, status="CHARGINGENDED", power=0, step="done")
+
+    sessions = h.sessions()
+    assert len(sessions) == 1
+    session = sessions[0]
+    assert (session.start, session.end) == (h.at(10), h.at(641))
+    # The wait is not charging time: the average power is the charger's.
+    assert session.paused_s == (401 - 12) * 60
+    assert session.duration_s == (641 - 10) * 60 - session.paused_s
+    assert [name for name, _ in h.events()] == [
+        "bavariandata_charging_started",
+        "bavariandata_charging_paused",
+        "bavariandata_charging_resumed",
+        "bavariandata_charging_stopped",
+        "bavariandata_charging_complete",
+    ]
+    assert h.render() == snapshot
+
+
+def test_an_unplug_while_waiting_for_the_start_time_ends_the_charge_at_its_stop(h):
+    _plug_in_and_wait_for_the_timer(h)
+    h.advance_to(200)
+    h.send(200, plug="DISCONNECTED", step="unplugged before 01:00")
+
+    assert not h.has_open_session()
+    assert [s.end for s in h.sessions()] == [h.at(12)]
+
+
+def test_a_pause_the_car_gives_up_on_ends_at_its_stop(h):
+    """No longer paused, cable still in: the plain plugged-in hold takes over."""
+
+    _plug_in_and_wait_for_the_timer(h)
+    h.advance_to(200)
+    h.send(200, status="NOCHARGING", step="timer cancelled in the app")
+    h.advance_to(206)
+
+    assert not h.has_open_session()
+    assert [s.end for s in h.sessions()] == [h.at(12)]
+
+
+def test_a_restart_while_waiting_for_the_start_time_keeps_one_charge(h):
+    """The wait outlasts the restart grace, so the snapshot has to stay fresh."""
+
+    _plug_in_and_wait_for_the_timer(h)
+    h.advance_to(200)
+    h.restart(downtime_s=120)
+    h.advance_to(400)
+    assert h.sessions() == []
+    assert h.has_open_session()
+
+    h.send(401, status="CHARGINGACTIVE", power=11000, step="charges")
+    h.send(641, soc=80, status="CHARGINGENDED", power=0, step="done")
+
+    sessions = h.sessions()
+    assert len(sessions) == 1
+    assert sessions[0].start == h.at(10)
+
+
+def test_a_pause_is_not_held_for_ever(h):
+    """A car that never leaves CHARGINGPAUSED still gets its record after a day."""
+
+    _plug_in_and_wait_for_the_timer(h)
+    h.advance_to(12 + 24 * 60 + 6)
+
+    assert not h.has_open_session()
+    assert [s.end for s in h.sessions()] == [h.at(12)]
+
+
 def test_the_same_batch_twice_changes_nothing(h):
     _start_charge(h)
     h.send(20, soc=39, status="CHARGINGACTIVE", power=3480, stamped=20)

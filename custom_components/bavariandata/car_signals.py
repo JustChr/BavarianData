@@ -128,6 +128,17 @@ CHARGE_CLOSE_DEBOUNCE_S = 120
 # once; one stopped at its target closes when the flap debounce is over.
 CHARGE_PLUGGED_HOLD_S = 300
 
+# The car's own word that it is waiting, cable in, rather than done: a charge
+# set to start at a later time charges briefly on plug-in, then says
+# CHARGINGPAUSED until its start time (#369: 18:20 to 01:00). While it says so
+# and the cable is in, the charge stays open past the plugged-in hold, checked
+# again every ``CHARGE_PLUGGED_HOLD_S``, so the burst and the night's charge are
+# one record. The wait is kept on the record (``paused_s``) and is not charging
+# time. A car that never leaves the pause gets its record after
+# ``CHARGE_PAUSED_HOLD_MAX_S``, which covers a start time up to a day away.
+CHARGE_PAUSED_STATUS = "CHARGINGPAUSED"
+CHARGE_PAUSED_HOLD_MAX_S = 24 * 3600
+
 # The car's own word that the charge is over, as opposed to the NOCHARGING a
 # flap or a pause shows: such a charge is closed and announced at once.
 CHARGE_FINISHED_STATUS = "CHARGINGENDED"
