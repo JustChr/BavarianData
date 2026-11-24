@@ -413,6 +413,27 @@ def test_an_odometer_tick_after_the_close_still_counts(h):
     (trip,) = h.trips()
     assert trip.distance_km == 11
     assert trip.soc_end == 63
+    # The late km moves the stored end reading too (#367), or the log's
+    # readings would disagree with its own distance.
+    assert (trip.odometer_start_km, trip.odometer_end_km) == (100, 111)
+
+
+def test_a_trip_keeps_the_odometer_at_both_ends(h):
+    """#367: the readings behind the distance, on the record and in the event."""
+
+    h.send(1, odometer=100, soc=70)
+    h.fix(2, *HOME)
+    h.send(3, door=False)
+    here, odometer = _drive_with_odometer(h, 3, 10, odometer=100)
+    h.send(14, door=True)
+    h.fix(14.5, *here)
+    h.advance_to(40)
+
+    (trip,) = h.trips()
+    assert (trip.odometer_start_km, trip.odometer_end_km) == (100, 110)
+    assert trip.to_dict()["odometer_end_km"] == 110
+    ((_, ended),) = h.events("bavariandata_trip_ended")
+    assert (ended["odometer_start_km"], ended["odometer_end_km"]) == (100, 110)
 
 
 def test_a_late_tick_with_no_fix_after_it_still_counts(h):

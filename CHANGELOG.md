@@ -9,6 +9,15 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **The odometer at both ends of every trip** (#367, thanks @ckkm08). Each trip now
+  keeps the odometer when the car set off and when it stopped, what a mileage log
+  asks for. It appears in the trip CSV (two new last columns), in the monthly
+  HTML report's trip journal, in `get_trips` and in the `bavariandata_trip_ended`
+  event, so an automation can write its own log. Trips recorded before this
+  version have no readings: one odometer reading a day can't tell where a trip
+  inside that day began.
+
 ## [0.9.33] - 2026-11-22
 
 Needs Home Assistant 2026.10 or newer. Lighter on Home Assistant, a battery health

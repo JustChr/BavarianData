@@ -66,6 +66,7 @@ def test_a_report_without_a_mark_is_a_trip_without_a_duration(h) -> None:
     assert trip.start_place["label"] == "Home"
     assert trip.end_place["label"] == "Work"
     assert trip.distance_km == 12
+    assert (trip.odometer_start_km, trip.odometer_end_km) == (50_000, 50_012)
     assert trip.stats == {"fuel_start_l": 50.0, "fuel_end_l": 49.0, "fuel_used_l": 1.0}
     # Stored at the arrival, by the car's clock -- not at the previous report,
     # which is when it parked at Home, and not when the report was announced.

@@ -441,7 +441,9 @@ unveränderter Wert auf einer kurzen Fahrt echt und bleibt erhalten.
 - Die Details stecken in den Diensten (und der Karte), nicht in einer Flut von
   Entitäten:
   - **`bavariandata.get_trips`** — gespeicherte Fahrten als Antwortdaten, dazu
-    `open_trips` für eine laufende Fahrt.
+    `open_trips` für eine laufende Fahrt. Jede Fahrt trägt den Kilometerstand
+    beim Losfahren und Abstellen (`odometer_start_km`, `odometer_end_km`; `null`
+    bei Fahrten, die vor 0.9.34 aufgezeichnet wurden).
   - **`bavariandata.get_driving_summary`** — die Monatsübersicht: Strecke (gegen den
     Vormonat), die Aufteilung, Verbrauch, Rekuperation, eine Fahrstil-Bewertung, die
     häufigsten Ziele und (mit Tarif) geschätzte Fahrtkosten. Der Verbrauch kommt als

@@ -121,6 +121,12 @@ class Trip:
     # temperature, its range and the samples behind it -- never a coordinate.
     # ``None`` until looked up, and always when the user hasn't opted in.
     weather: dict[str, Any] | None = None
+    # The odometer when the car set off and when it stopped (#367), what a
+    # mileage log asks for. ``None`` where the car sent none, and on every trip
+    # recorded before they were kept: a day's single odometer reading can't
+    # place a trip inside it, so older records are never filled in.
+    odometer_start_km: float | None = None
+    odometer_end_km: float | None = None
 
     @property
     def id(self) -> str:
@@ -209,6 +215,8 @@ class Trip:
             "duration_unknown": self.duration_unknown,
             "track_source": self.track_source,
             "weather": self.weather,
+            "odometer_start_km": self.odometer_start_km,
+            "odometer_end_km": self.odometer_end_km,
         }
 
     @classmethod
@@ -241,7 +249,17 @@ class Trip:
             duration_unknown=bool(data.get("duration_unknown")),
             track_source=data.get("track_source") if data.get("track_source") == "phone" else None,
             weather=data.get("weather") if isinstance(data.get("weather"), dict) else None,
+            odometer_start_km=_reading(data.get("odometer_start_km")),
+            odometer_end_km=_reading(data.get("odometer_end_km")),
         )
+
+
+def _reading(value: Any) -> float | None:
+    """A stored odometer reading, or ``None`` for anything that isn't a number."""
+
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    return float(value)
 
 
 def prune_trips(

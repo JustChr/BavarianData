@@ -19,6 +19,9 @@ One row per session or trip:
   [route weather](Feature-Trips#weather-along-the-route-opt-in) on, the outside
   temperature with its lowest and highest value and where it was looked up
   (`outside_temp_c`, `outside_temp_min_c`, `outside_temp_max_c`, `weather_source`).
+- For trips, the odometer when the car set off and when it stopped
+  (`odometer_start_km`, `odometer_end_km`). Empty on trips recorded before 0.9.34
+  and on a car that sent no odometer for that drive.
 
 Headers are always machine-readable English. Opens cleanly in Excel and Numbers.
 
@@ -26,7 +29,8 @@ Headers are always machine-readable English. Opens cleanly in Excel and Numbers.
 
 A self-contained HTML page: month totals (business, commute and private each
 with its share of the month's distance), the charging table and the trip
-journal. Print it (**Ctrl/⌘+P → Save as PDF**) for a tidy A4 document. The
+journal. The trip journal shows the odometer at both ends of each drive (in the
+account's unit) once a trip of that month has it. Print it (**Ctrl/⌘+P → Save as PDF**) for a tidy A4 document. The
 report language follows Home Assistant's own language, or set it explicitly.
 
 > The report is a trip journal and expense helper, **not** a tax-office-compliant

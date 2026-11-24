@@ -213,14 +213,25 @@ def test_trips_csv_ends_with_the_weather_along_the_route():
     trip.weather = {"source": "route", "temp_c": 3.44, "temp_min_c": -1.0, "temp_max_c": 6.0}
     not_looked_up = _trip(start=trip.start - timedelta(days=1))
     header, row, empty = _rows(export.trips_csv([trip, not_looked_up]))
-    assert header[-4:] == [
+    weather = slice(header.index("outside_temp_c"), header.index("weather_source") + 1)
+    assert header[weather] == [
         "outside_temp_c",
         "outside_temp_min_c",
         "outside_temp_max_c",
         "weather_source",
     ]
-    assert row[-4:] == ["3.4", "-1", "6", "route"]
-    assert empty[-4:] == ["", "", "", ""]
+    assert row[weather] == ["3.4", "-1", "6", "route"]
+    assert empty[weather] == ["", "", "", ""]
+
+
+def test_trips_csv_ends_with_the_odometer_at_both_ends():
+    # #367, appended so a sheet reading columns by position keeps working.
+    trip = _trip(odometer_start_km=12345.0, odometer_end_km=12378.5)
+    older = _trip(start=trip.start - timedelta(days=1))
+    header, row, empty = _rows(export.trips_csv([trip, older]))
+    assert header[-2:] == ["odometer_start_km", "odometer_end_km"]
+    assert row[-2:] == ["12345", "12378.5"]
+    assert empty[-2:] == ["", ""]
 
 
 def test_csv_of_an_empty_month_is_still_a_valid_file():
@@ -274,6 +285,29 @@ def test_report_shows_miles_when_the_account_counts_in_them():
     assert "Consumption (kWh/100 mi)" in html
     assert " km<" not in html and "100 km" not in html
     assert trip.distance_km == 40.0
+
+
+def test_report_shows_the_odometer_when_a_trip_has_one():
+    # #367: a mileage log's start and end readings, whole units.
+    trip = _trip(odometer_start_km=12345.4, odometer_end_km=12378.6)
+    older = _trip(start=trip.start - timedelta(days=1))
+    html = export.month_report_html(
+        month="2026-07", vehicle="i5", sessions=[], trips=[trip, older], lang="de"
+    )
+    assert "Kilometerstand (km)" in html
+    assert ">12345 – 12379<" in html
+    assert ">— – —<" in html  # a trip recorded before the readings were kept
+    assert 'colspan="5"' in html
+    miles = export.month_report_html(
+        month="2026-07", vehicle="i4", sessions=[], trips=[trip], distance_unit="mi"
+    )
+    assert "Odometer (mi)" in miles and ">7671 – 7692<" in miles
+
+
+def test_report_leaves_out_the_odometer_when_no_trip_has_one():
+    html = export.month_report_html(month="2026-07", vehicle="i5", sessions=[], trips=[_trip()])
+    assert "Odometer" not in html
+    assert 'colspan="4"' in html
 
 
 def test_report_gives_each_trip_type_its_share():

@@ -361,6 +361,33 @@ def test_builder_distance_from_odometer_delta():
     assert trip.soc_delta == -6.0
 
 
+def test_builder_keeps_the_odometer_at_both_ends():
+    """#367: a mileage log wants the readings, not only their difference."""
+
+    builder = TripBuilder("WBY1", START, mileage_start=1000.0)
+    trip = builder.close(START + timedelta(minutes=20), mileage_end=1023.0)
+    assert (trip.odometer_start_km, trip.odometer_end_km) == (1000.0, 1023.0)
+    # An end below the start is a stale reading, not where the drive ended.
+    builder = TripBuilder("WBY1", START, mileage_start=1000.0)
+    trip = builder.close(START + timedelta(minutes=20), mileage_end=990.0, travelled_km=5.0)
+    assert (trip.odometer_start_km, trip.odometer_end_km) == (1000.0, None)
+    assert trip.distance_km == 5.0
+    # A car that sends no odometer has none to give.
+    trip = TripBuilder("WBY1", START).close(START + timedelta(minutes=20))
+    assert (trip.odometer_start_km, trip.odometer_end_km) == (None, None)
+
+
+def test_the_odometer_readings_survive_a_save_and_load():
+    trip = _trip(odometer_start_km=1000.0, odometer_end_km=1023.0)
+    restored = Trip.from_dict(json.loads(json.dumps(trip.to_dict())))
+    assert (restored.odometer_start_km, restored.odometer_end_km) == (1000.0, 1023.0)
+    # A record stored before they were kept, or holding junk, has none.
+    older = {k: v for k, v in trip.to_dict().items() if not k.startswith("odometer")}
+    assert Trip.from_dict(older).odometer_start_km is None
+    junk = Trip.from_dict({**trip.to_dict(), "odometer_start_km": "1000", "odometer_end_km": True})
+    assert (junk.odometer_start_km, junk.odometer_end_km) == (None, None)
+
+
 def test_builder_falls_back_to_bmw_distance():
     builder = TripBuilder("WBY1", START, mileage_start=1000.0)
     # Odometer unchanged -> use BMW's travelled distance instead.
