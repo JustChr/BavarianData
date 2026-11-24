@@ -118,9 +118,9 @@ def test_a_charge_says_when_it_will_be_done_and_what_it_added():
     assert "7.4 kW" in html
     # The stripes cover what this charge added: 41 % up to 72 %.
     assert 'class="bar__gain" style="left:41%;width:31%"' in html
-    assert "+31 % since" in html
+    assert "+31% since" in html
     assert _cells(html) == ["Charging power", "Added so far", "From your solar", "Cost so far"]
-    assert "64 %" in html and "€1.32" in html
+    assert "64%" in html and "€1.32" in html
     # The minutes left are a tap away.
     assert 'class="verdict" data-entity="sensor.eta"' in html
 
@@ -144,21 +144,21 @@ def test_on_the_road_the_bar_shows_what_the_drive_used():
     assert _verdict(html) == ("live", "On the road")
     assert "23.4 km" in html
     assert 'class="bar__used" style="left:74%;width:6%' in html
-    assert "−6 % this trip" in html
+    assert "−6% this trip" in html
     assert _cells(html) == ["This trip", "Driving", "Used this trip", "Lock"]
 
 
 def test_plugged_in_below_its_target_is_waiting():
     html = _ev(**{"binary_sensor.plug": PLUGGED})
     assert _verdict(html) == ("ok", "Waiting to charge")
-    assert "target 80 %" in html
+    assert "target 80%" in html
 
 
 def test_plugged_in_at_its_target_is_ready():
     soc = {**I5["sensor.i5_soc"], "state": "80"}
     html = _ev(**{"binary_sensor.plug": PLUGGED, "sensor.i5_soc": soc})
     assert _verdict(html) == ("ok", "Ready to go")
-    assert "at its 80 % target" in html
+    assert "at its 80% target" in html
 
 
 def test_low_and_unplugged_says_charge_soon():

@@ -242,13 +242,13 @@ def test_electric_overview_bars_the_charge_and_its_target():
     assert rendered["drivetrain"] == "bev"
     html = rendered["html"]
     assert "72<i>%</i>" in html and "width:72%" in html
-    assert "Target 80 %" in html and 'class="bar__tick" style="left:80%"' in html
+    assert "Target 80%" in html and 'class="bar__tick" style="left:80%"' in html
     assert "Tank" not in html
 
 
 def test_a_target_of_0_is_no_target():
     html = _render(I5)["html"]
-    assert "Target 0 %" not in html and "bar__tick" not in html
+    assert "Target 0%" not in html and "bar__tick" not in html
     assert "Ready to go" in html
 
 
@@ -260,7 +260,7 @@ def test_plug_in_hybrid_shows_battery_and_tank():
     assert "electric range" in html
     # The tank as a second line under the battery, with the range of both.
     assert "meter__tank" in html and "Tank" in html and "590 km together" in html
-    assert "Target 80 %" in html
+    assert "Target 80%" in html
 
 
 PLUG_STATE = "sensor.x3_30e_xdrive_charging_port_plug_state"

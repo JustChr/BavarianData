@@ -847,8 +847,12 @@ export default (Base) => class StylesPart extends Base {
       .chg__tag--warn { border-color: var(--bmw-mid); color: var(--bmw-mid); }
       .chg__tag--sun { border-color: var(--bmw-high); color: var(--bmw-high); }
       .chg__detail { padding: 2px 12px 12px; }
-      .chg__chart {
-        width: 100%; height: 64px; display: block; margin-bottom: 8px;
+      .chg__chart { width: 100%; height: 64px; display: block; }
+      /* A chart's scale and captions are text, never inside a stretching SVG. */
+      .chart { display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px; }
+      .chart__lbl {
+        font-size: 0.68rem; line-height: 1.2; color: var(--secondary-text-color);
+        font-variant-numeric: tabular-nums;
       }
       .chg__chart-line {
         fill: none; stroke: var(--bmw-charge); stroke-width: 2;
@@ -856,9 +860,6 @@ export default (Base) => class StylesPart extends Base {
         vector-effect: non-scaling-stroke;
       }
       .chg__chart-fill { fill: var(--bmw-charge); opacity: 0.12; stroke: none; }
-      .chg__chart-max {
-        fill: var(--secondary-text-color); font-size: 9px;
-      }
       .chg__facts { display: flex; flex-wrap: wrap; gap: 6px; }
       .chg__fact {
         flex: 1 1 40%; display: flex; justify-content: space-between; gap: 8px;
@@ -867,6 +868,9 @@ export default (Base) => class StylesPart extends Base {
       }
       .chg__fact-lbl { color: var(--secondary-text-color); font-size: 0.76rem; }
       .chg__fact-val { font-variant-numeric: tabular-nums; font-size: 0.82rem; }
+      /* On the card itself (battery health), not inside a session row: the card's
+         own colour would leave label and value floating apart with no tile. */
+      .bh .chg__fact { background: var(--bd-sub); }
 
       /* ---- battery health ---- */
       .bh { padding: 6px 14px 14px; display: flex; flex-direction: column; gap: 14px; }
@@ -953,13 +957,35 @@ export default (Base) => class StylesPart extends Base {
       .ef__trend-title {
         font-size: 0.68rem; color: var(--secondary-text-color);
       }
-      .ef__chart { width: 100%; height: 88px; display: block; }
-      .ef__bar { fill: var(--bmw-charge); opacity: 0.85; }
-      .ef__bar--thin { opacity: 0.35; }
-      .ef__bar--today { fill: var(--bd-solar); opacity: 1; }
+      .bars { display: flex; flex-direction: column; gap: 2px; }
+      .bars__plot { position: relative; height: 72px; display: flex; align-items: stretch; gap: 6px; }
+      .bars__col {
+        position: relative; z-index: 1; flex: 1 1 0; min-width: 0;
+        display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+      }
+      .bars__bar {
+        width: min(28px, 60%); min-height: 1px; border-radius: 2px 2px 0 0;
+        background: var(--bmw-charge); opacity: 0.85;
+      }
+      .bars__bar--stub { height: 2px; opacity: 0.35; }
+      .bars__bar--today { background: var(--bd-solar); opacity: 1; }
+      .bars__bar--partial { opacity: 0.45; }
+      /* On the card's own colour, so the dashed line passes behind a figure. */
+      .bars__val {
+        font-size: 0.68rem; line-height: 1.2; margin-bottom: 2px; padding: 0 2px; border-radius: 3px;
+        color: var(--primary-text-color); font-variant-numeric: tabular-nums;
+        background: var(--ha-card-background, var(--card-background-color, #fff));
+      }
+      .bars__line {
+        position: absolute; left: 0; right: 0; z-index: 0; height: 0;
+        border-top: 1px dashed var(--bd-muted);
+      }
+      .bars__axis { display: flex; gap: 6px; }
+      .bars__axis span {
+        flex: 1 1 0; min-width: 0; text-align: center; white-space: nowrap;
+        font-size: 0.68rem; color: var(--secondary-text-color); font-variant-numeric: tabular-nums;
+      }
       .ef__today::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 2px; background: var(--bd-solar); }
-      .ef__bar-lbl { fill: var(--secondary-text-color); font-size: 8px; }
-      .ef__bar-val { fill: var(--primary-text-color); font-size: 8px; }
       .ef__note { font-size: 0.72rem; color: var(--secondary-text-color); line-height: 1.35; }
       .mi__allowance { display: flex; flex-direction: column; gap: 6px; }
       .mi__bar {
@@ -973,7 +999,6 @@ export default (Base) => class StylesPart extends Base {
         background: var(--primary-text-color); opacity: 0.6;
       }
       .mi__of { font-size: 1.05rem; font-weight: 600; font-variant-numeric: tabular-nums; }
-      .mi__bar-partial { opacity: 0.45; }
 
       /* trips */
       .tr__review { padding: 8px 14px 4px; display: flex; flex-direction: column; gap: 12px; }

@@ -729,9 +729,9 @@ def test_a_charge_split_by_a_restart_counts_its_gap_as_unattributed() -> None:
     split["interrupted"] = True
     html = _render(I5, SCREENS["charging"], sessions=sessions, sessionsExpanded=split["start"])
     # 5.0 measured as unknown plus the 24.8 kWh no step saw.
-    assert "unattributed <b>29.8</b>" in html
+    assert "Unattributed <b>29.8</b>" in html
     assert "Grid <b>36.7</b>" in html
-    assert "Grid 20 · unattributed 29.8 kWh" in html
+    assert "Grid 20 · Unattributed 29.8 kWh" in html
     assert "Home Assistant restarted during this charge" in html
     # Only the charge that was split says so.
     assert html.count("Home Assistant restarted") == 1
@@ -908,7 +908,7 @@ def test_the_efficiency_view_by_outside_temperature(unit: str, snapshot) -> None
     assert "The way you drive" in html and "Car&#39;s estimate" in html or "Car's estimate" in html
     assert "At 15–25 °C" in html or "At 59–77 °F" in html
     # Mild weather drawn across the temperature chart, to read each band against.
-    assert "chg__chart-avg" in html
+    assert "bars__line" in html
 
 
 def test_today_is_marked_where_the_car_is_parked() -> None:
@@ -931,12 +931,12 @@ def test_today_is_marked_where_the_car_is_parked() -> None:
     html = _render(
         I5, SCREENS["efficiency"], efficiency=efficiency, realRange=real_range("2026-09-09")
     )
-    assert html.count("ef__bar--today") == 1
+    assert html.count("bars__bar--today") == 1
     assert "Today about 2 °C where the car is" in html
     stale = _render(
         I5, SCREENS["efficiency"], efficiency=efficiency, realRange=real_range("2026-09-08")
     )
-    assert "ef__bar--today" not in stale and "Today about" not in stale
+    assert "bars__bar--today" not in stale and "Today about" not in stale
 
 
 def test_the_efficiency_view_waits_for_cold_and_mild_trips() -> None:

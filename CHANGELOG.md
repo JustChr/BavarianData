@@ -9,6 +9,19 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **The card's text is written the same way in every view.** Chart labels no
+  longer come out stretched or squeezed (battery health, charging, mileage): every
+  scale, month and figure is now plain text in the card's own font, set above or
+  below the chart rather than inside it, so a line never runs through a label.
+  On the efficiency charts the dashed reference line passes behind the figures
+  instead of through them, and the *kWh/100 km* caption sits at the chart's edge.
+  Percentages read *51%* everywhere (some views wrote *51 %*). The Car view gives
+  the battery health its unit (*76.3 kWh*), the battery health card's *Based on*
+  sits in a tile like the other figures, *Where it came from* shows its kWh unit
+  beside the heading like *Per day*, and *Unattributed* is capitalized like the
+  other sources.
+
 ## [0.9.34-beta.2] - 2026-11-24
 
 ### Fixed

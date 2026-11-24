@@ -155,8 +155,8 @@ def test_efficiency_view_text_is_localised_but_its_chart_coordinates_are_not():
     html = _run({"html": ["_efBody", figures, trend, {}]})["html"]
     assert "19,8 kWh/100 km" in html
     assert "19.8" not in html
-    # A bar whose top is not on a whole pixel, written the only way SVG reads it.
-    assert re.search(r'<rect class="ef__bar" [^>]*y="\d+\.\d"', html), html
+    # A bar height that isn't whole, written the only way CSS reads it.
+    assert re.search(r'class="bars__bar" style="height:\d+\.\d%"', html), html
 
 
 def _method_body(source: str, name: str) -> tuple[int, int]:

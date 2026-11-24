@@ -20,7 +20,7 @@
              </div>
   <div class="ef__fact">
                <span class="ef__fact-lbl">Driven electrically</span>
-               <span class="ef__fact-val">45 %</span>
+               <span class="ef__fact-val">45%</span>
                
              </div>
   <div class="ef__fact">
@@ -103,6 +103,7 @@
   </div>
         <div class="sec">
   <span class="sec__t">Where it came from</span>
+  <span class="sec__s">kWh</span>
   </div>
           <div class="mix">
             <div class="mix__bar" role="img" aria-label="PV 13.3 kWh, House battery 23.4 kWh, Grid 52.1 kWh, Away 19.7 kWh">
@@ -132,7 +133,6 @@
   <i style="background:var(--bmw-charge)">
   </i>Away <b>19.7</b>
   </span>
-  <span>kWh</span>
   </div>
           </div>
         <div class="sec">
@@ -228,17 +228,18 @@
           </button>
           
         <div class="chg__detail">
-          
-        <svg class="chg__chart" viewBox="0 0 260 64" preserveAspectRatio="none" role="img">
+          <div class="chart">
+          <span class="chart__lbl">11 kW</span>
+          <svg class="chg__chart" viewBox="0 0 260 64" preserveAspectRatio="none" role="img">
           <polygon points="4,60 4,60 4.7,60 4.7,4 214,4 214,4 256,4 256,43.2 256,60" class="chg__chart-fill">
   </polygon>
           <polyline points="4,60 4.7,60 4.7,4 214,4 214,4 256,4 256,43.2" class="chg__chart-line">
   </polyline>
           <line x1="4" x2="256" y1="15.5" y2="15.5" class="chg__chart-avg">
   </line>
-          <text x="4" y="10" class="chg__chart-max">11 kW</text>
         </svg>
-      
+          
+        </div>
           <div class="chg__facts">
   <div class="chg__fact">
   <span class="chg__fact-lbl">Peak</span>
@@ -2382,7 +2383,7 @@
                 <span class="meter__cap">remaining range</span>
               </button>
             </div>
-            <div class="bar" role="img" aria-label="charge 72 %">
+            <div class="bar" role="img" aria-label="charge 72%">
               <span class="bar__fill" style="width:72%;background:var(--bmw-high)">
   </span>
               
@@ -2649,7 +2650,7 @@
   
           <button class="verdict" data-entity="sensor.x3_30e_xdrive_charging_port_plug_state">
             <span class="verdict__t verdict__t--ok">Waiting to charge</span>
-            <span class="verdict__s">target 80 %</span>
+            <span class="verdict__s">target 80%</span>
           </button>
   
           <div class="meter">
@@ -2664,7 +2665,7 @@
                 <span class="meter__cap">electric range</span>
               </button>
             </div>
-            <div class="bar" role="img" aria-label="charge 72 %">
+            <div class="bar" role="img" aria-label="charge 72%">
               <span class="bar__fill" style="width:72%;background:var(--bmw-high)">
   </span>
               
@@ -2674,7 +2675,7 @@
             </div>
             <div class="bar__legend">
   <span>Plugged in, not charging</span>
-  <span>Target 80 %</span>
+  <span>Target 80%</span>
   </div>
             <button class="meter__tank" data-entity="sensor.x3_30e_xdrive_range_tank_level">
                 <ha-icon icon="mdi:gas-station">
@@ -2936,7 +2937,7 @@
                 <span class="meter__cap">remaining range</span>
               </button>
             </div>
-            <div class="bar" role="img" aria-label="charge 72 %">
+            <div class="bar" role="img" aria-label="charge 72%">
               <span class="bar__fill" style="width:72%;background:var(--bmw-high)">
   </span>
               
@@ -3086,7 +3087,7 @@
   
           <button class="verdict" data-entity="sensor.x3_30e_xdrive_charging_port_plug_state">
             <span class="verdict__t verdict__t--ok">Waiting to charge</span>
-            <span class="verdict__s">target 80 %</span>
+            <span class="verdict__s">target 80%</span>
           </button>
   
           <div class="meter">
@@ -3101,7 +3102,7 @@
                 <span class="meter__cap">electric range</span>
               </button>
             </div>
-            <div class="bar" role="img" aria-label="charge 72 %">
+            <div class="bar" role="img" aria-label="charge 72%">
               <span class="bar__fill" style="width:72%;background:var(--bmw-high)">
   </span>
               
@@ -3111,7 +3112,7 @@
             </div>
             <div class="bar__legend">
   <span>Plugged in, not charging</span>
-  <span>Target 80 %</span>
+  <span>Target 80%</span>
   </div>
             <button class="meter__tank" data-entity="sensor.x3_30e_xdrive_range_tank_level">
                 <ha-icon icon="mdi:gas-station">
@@ -3225,7 +3226,7 @@
   </span>
             <span class="sm__txt">
               <span class="sm__vd sm__vd--ok">Waiting to charge</span>
-              <span class="sm__sub">Car · target 80 %</span>
+              <span class="sm__sub">Car · target 80%</span>
             </span>
             <span class="sm__end">
   <span class="sm__mid">72<i>%</i>
@@ -3479,7 +3480,7 @@
              </div>
   <div class="ef__fact">
                <span class="ef__fact-lbl">Charging loss</span>
-               <span class="ef__fact-val">9 %</span>
+               <span class="ef__fact-val">9%</span>
                <span class="ef__fact-note">20.1 kWh/100 km at the plug</span>
              </div>
   <div class="ef__fact">
@@ -3495,56 +3496,78 @@
   </div>
           <div class="ef__trend">
   <span class="ef__trend-title">Consumption by month</span>
-        <svg class="ef__chart" viewBox="0 0 280 88" role="img">
-          <rect class="ef__bar" x="36.7" y="26.9"
-                    width="28" height="47.1" rx="2">
-  </rect>
-                  <text class="ef__bar-val" x="50.7" y="23.9" text-anchor="middle">16.4</text>
-                  <text class="ef__bar-lbl" x="50.7" y="85" text-anchor="middle">07</text>
-  <rect class="ef__bar" x="126" y="25.1"
-                    width="28" height="48.9" rx="2">
-  </rect>
-                  <text class="ef__bar-val" x="140" y="22.1" text-anchor="middle">17</text>
-                  <text class="ef__bar-lbl" x="140" y="85" text-anchor="middle">08</text>
-  <rect class="ef__bar" x="215.3" y="21.7"
-                    width="28" height="52.3" rx="2">
-  </rect>
-                  <text class="ef__bar-val" x="229.3" y="18.7" text-anchor="middle">18.2</text>
-                  <text class="ef__bar-lbl" x="229.3" y="85" text-anchor="middle">09</text>
-          <text x="6" y="9" class="chg__chart-max">kWh/100 km</text>
-        </svg>
-      </div>
+  <div class="bars" role="img">
+          <span class="chart__lbl">kWh/100 km</span>
+          <div class="bars__plot">
+            
+            <span class="bars__col">
+  <span class="bars__val">16.4</span>
+  <span class="bars__bar" style="height:69.3%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__val">17</span>
+  <span class="bars__bar" style="height:71.9%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__val">18.2</span>
+  <span class="bars__bar" style="height:76.9%">
+  </span>
+  </span>
+          </div>
+          <div class="bars__axis">
+  <span>07</span>
+  <span>08</span>
+  <span>09</span>
+  </div>
+        </div>
+  </div>
           <div class="ef__trend">
   <span class="ef__trend-title">Consumption by outside temperature (°C)</span>
-        <svg class="ef__chart" viewBox="0 0 280 88" role="img">
-          <rect class="ef__bar ef__bar--thin" x="15.4" y="72" width="25.9" height="2" rx="2">
-  </rect>
-                  
-                  <text class="ef__bar-lbl" x="28.3" y="85" text-anchor="middle">&lt; 0</text>
-  <rect class="ef__bar" x="60" y="21.7" width="25.9" height="52.3" rx="2">
-  </rect>
-                  <text class="ef__bar-val" x="73" y="18.7" text-anchor="middle">23.1</text>
-                  <text class="ef__bar-lbl" x="73" y="85" text-anchor="middle">0–5</text>
-  <rect class="ef__bar" x="104.7" y="27.8" width="25.9" height="46.2" rx="2">
-  </rect>
-                  <text class="ef__bar-val" x="117.7" y="24.8" text-anchor="middle">20.4</text>
-                  <text class="ef__bar-lbl" x="117.7" y="85" text-anchor="middle">5–10</text>
-  <rect class="ef__bar ef__bar--thin" x="149.4" y="72" width="25.9" height="2" rx="2">
-  </rect>
-                  
-                  <text class="ef__bar-lbl" x="162.3" y="85" text-anchor="middle">10–15</text>
-  <rect class="ef__bar" x="194" y="37.3" width="25.9" height="36.7" rx="2">
-  </rect>
-                  <text class="ef__bar-val" x="207" y="34.3" text-anchor="middle">16.2</text>
-                  <text class="ef__bar-lbl" x="207" y="85" text-anchor="middle">15–20</text>
-  <rect class="ef__bar" x="238.7" y="38.2" width="25.9" height="35.8" rx="2">
-  </rect>
-                  <text class="ef__bar-val" x="251.7" y="35.2" text-anchor="middle">15.8</text>
-                  <text class="ef__bar-lbl" x="251.7" y="85" text-anchor="middle">20–25</text>
-          <line class="chg__chart-avg" x1="6" x2="274" y1="37.5" y2="37.5">
-  </line>
-          <text x="6" y="9" class="chg__chart-max">kWh/100 km</text>
-        </svg>
+  <div class="bars" role="img">
+          <span class="chart__lbl">kWh/100 km</span>
+          <div class="bars__plot">
+            <span class="bars__line" style="bottom:53.6%">
+  </span>
+            <span class="bars__col">
+  <span class="bars__bar bars__bar--stub">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__val">23.1</span>
+  <span class="bars__bar" style="height:76.9%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__val">20.4</span>
+  <span class="bars__bar" style="height:67.9%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__bar bars__bar--stub">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__val">16.2</span>
+  <span class="bars__bar" style="height:53.9%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__val">15.8</span>
+  <span class="bars__bar" style="height:52.6%">
+  </span>
+  </span>
+          </div>
+          <div class="bars__axis">
+  <span>&lt; 0</span>
+  <span>0–5</span>
+  <span>5–10</span>
+  <span>10–15</span>
+  <span>15–20</span>
+  <span>20–25</span>
+  </div>
+        </div>
   <span class="ef__fact-note">Below 5 °C it uses 43% more than at 15–25 °C, measured on your trips.</span>
   </div>
           <span class="ef__note">Measured from the charging ledger: the distance between two charges and the energy that went in, not the car's own estimate. It counts everything the battery gave between two charges, parked hours and preconditioning included, so it reads higher than the figures of single trips, which count only the drives.</span>
@@ -3608,7 +3631,7 @@
              </div>
   <div class="ef__fact">
                <span class="ef__fact-lbl">Charging loss</span>
-               <span class="ef__fact-val">9 %</span>
+               <span class="ef__fact-val">9%</span>
                <span class="ef__fact-note">32.3 kWh/100 mi at the plug</span>
              </div>
   <div class="ef__fact">
@@ -3624,56 +3647,78 @@
   </div>
           <div class="ef__trend">
   <span class="ef__trend-title">Consumption by month</span>
-        <svg class="ef__chart" viewBox="0 0 280 88" role="img">
-          <rect class="ef__bar" x="36.7" y="26.9"
-                    width="28" height="47.1" rx="2">
-  </rect>
-                  <text class="ef__bar-val" x="50.7" y="23.9" text-anchor="middle">26.4</text>
-                  <text class="ef__bar-lbl" x="50.7" y="85" text-anchor="middle">07</text>
-  <rect class="ef__bar" x="126" y="25.1"
-                    width="28" height="48.9" rx="2">
-  </rect>
-                  <text class="ef__bar-val" x="140" y="22.1" text-anchor="middle">27.4</text>
-                  <text class="ef__bar-lbl" x="140" y="85" text-anchor="middle">08</text>
-  <rect class="ef__bar" x="215.3" y="21.7"
-                    width="28" height="52.3" rx="2">
-  </rect>
-                  <text class="ef__bar-val" x="229.3" y="18.7" text-anchor="middle">29.3</text>
-                  <text class="ef__bar-lbl" x="229.3" y="85" text-anchor="middle">09</text>
-          <text x="6" y="9" class="chg__chart-max">kWh/100 mi</text>
-        </svg>
-      </div>
+  <div class="bars" role="img">
+          <span class="chart__lbl">kWh/100 mi</span>
+          <div class="bars__plot">
+            
+            <span class="bars__col">
+  <span class="bars__val">26.4</span>
+  <span class="bars__bar" style="height:69.3%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__val">27.4</span>
+  <span class="bars__bar" style="height:71.9%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__val">29.3</span>
+  <span class="bars__bar" style="height:76.9%">
+  </span>
+  </span>
+          </div>
+          <div class="bars__axis">
+  <span>07</span>
+  <span>08</span>
+  <span>09</span>
+  </div>
+        </div>
+  </div>
           <div class="ef__trend">
   <span class="ef__trend-title">Consumption by outside temperature (°F)</span>
-        <svg class="ef__chart" viewBox="0 0 280 88" role="img">
-          <rect class="ef__bar ef__bar--thin" x="15.4" y="72" width="25.9" height="2" rx="2">
-  </rect>
-                  
-                  <text class="ef__bar-lbl" x="28.3" y="85" text-anchor="middle">&lt; 32</text>
-  <rect class="ef__bar" x="60" y="21.7" width="25.9" height="52.3" rx="2">
-  </rect>
-                  <text class="ef__bar-val" x="73" y="18.7" text-anchor="middle">37.2</text>
-                  <text class="ef__bar-lbl" x="73" y="85" text-anchor="middle">32–41</text>
-  <rect class="ef__bar" x="104.7" y="27.8" width="25.9" height="46.2" rx="2">
-  </rect>
-                  <text class="ef__bar-val" x="117.7" y="24.8" text-anchor="middle">32.8</text>
-                  <text class="ef__bar-lbl" x="117.7" y="85" text-anchor="middle">41–50</text>
-  <rect class="ef__bar ef__bar--thin" x="149.4" y="72" width="25.9" height="2" rx="2">
-  </rect>
-                  
-                  <text class="ef__bar-lbl" x="162.3" y="85" text-anchor="middle">50–59</text>
-  <rect class="ef__bar" x="194" y="37.3" width="25.9" height="36.7" rx="2">
-  </rect>
-                  <text class="ef__bar-val" x="207" y="34.3" text-anchor="middle">26.1</text>
-                  <text class="ef__bar-lbl" x="207" y="85" text-anchor="middle">59–68</text>
-  <rect class="ef__bar" x="238.7" y="38.2" width="25.9" height="35.8" rx="2">
-  </rect>
-                  <text class="ef__bar-val" x="251.7" y="35.2" text-anchor="middle">25.4</text>
-                  <text class="ef__bar-lbl" x="251.7" y="85" text-anchor="middle">68–77</text>
-          <line class="chg__chart-avg" x1="6" x2="274" y1="37.5" y2="37.5">
-  </line>
-          <text x="6" y="9" class="chg__chart-max">kWh/100 mi</text>
-        </svg>
+  <div class="bars" role="img">
+          <span class="chart__lbl">kWh/100 mi</span>
+          <div class="bars__plot">
+            <span class="bars__line" style="bottom:53.6%">
+  </span>
+            <span class="bars__col">
+  <span class="bars__bar bars__bar--stub">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__val">37.2</span>
+  <span class="bars__bar" style="height:76.9%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__val">32.8</span>
+  <span class="bars__bar" style="height:67.9%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__bar bars__bar--stub">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__val">26.1</span>
+  <span class="bars__bar" style="height:53.9%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__val">25.4</span>
+  <span class="bars__bar" style="height:52.6%">
+  </span>
+  </span>
+          </div>
+          <div class="bars__axis">
+  <span>&lt; 32</span>
+  <span>32–41</span>
+  <span>41–50</span>
+  <span>50–59</span>
+  <span>59–68</span>
+  <span>68–77</span>
+  </div>
+        </div>
   <span class="ef__fact-note">Below 41 °F it uses 43% more than at 59–77 °F, measured on your trips.</span>
   </div>
           <span class="ef__note">Measured from the charging ledger: the distance between two charges and the energy that went in, not the car's own estimate. It counts everything the battery gave between two charges, parked hours and preconditioning included, so it reads higher than the figures of single trips, which count only the drives.</span>
@@ -3729,7 +3774,7 @@
              </div>
   <div class="ef__fact">
                <span class="ef__fact-lbl">Charging loss</span>
-               <span class="ef__fact-val">9 %</span>
+               <span class="ef__fact-val">9%</span>
                <span class="ef__fact-note">20.1 kWh/100 km at the plug</span>
              </div>
   <div class="ef__fact">
@@ -3745,25 +3790,33 @@
   </div>
           <div class="ef__trend">
   <span class="ef__trend-title">Consumption by month</span>
-        <svg class="ef__chart" viewBox="0 0 280 88" role="img">
-          <rect class="ef__bar" x="36.7" y="26.9"
-                    width="28" height="47.1" rx="2">
-  </rect>
-                  <text class="ef__bar-val" x="50.7" y="23.9" text-anchor="middle">16.4</text>
-                  <text class="ef__bar-lbl" x="50.7" y="85" text-anchor="middle">07</text>
-  <rect class="ef__bar" x="126" y="25.1"
-                    width="28" height="48.9" rx="2">
-  </rect>
-                  <text class="ef__bar-val" x="140" y="22.1" text-anchor="middle">17</text>
-                  <text class="ef__bar-lbl" x="140" y="85" text-anchor="middle">08</text>
-  <rect class="ef__bar" x="215.3" y="21.7"
-                    width="28" height="52.3" rx="2">
-  </rect>
-                  <text class="ef__bar-val" x="229.3" y="18.7" text-anchor="middle">18.2</text>
-                  <text class="ef__bar-lbl" x="229.3" y="85" text-anchor="middle">09</text>
-          <text x="6" y="9" class="chg__chart-max">kWh/100 km</text>
-        </svg>
-      </div>
+  <div class="bars" role="img">
+          <span class="chart__lbl">kWh/100 km</span>
+          <div class="bars__plot">
+            
+            <span class="bars__col">
+  <span class="bars__val">16.4</span>
+  <span class="bars__bar" style="height:69.3%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__val">17</span>
+  <span class="bars__bar" style="height:71.9%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__val">18.2</span>
+  <span class="bars__bar" style="height:76.9%">
+  </span>
+  </span>
+          </div>
+          <div class="bars__axis">
+  <span>07</span>
+  <span>08</span>
+  <span>09</span>
+  </div>
+        </div>
+  </div>
           
           <span class="ef__note">Measured from the charging ledger: the distance between two charges and the energy that went in, not the car's own estimate. It counts everything the battery gave between two charges, parked hours and preconditioning included, so it reads higher than the figures of single trips, which count only the drives.</span>
         </div>
@@ -3818,7 +3871,7 @@
              </div>
   <div class="ef__fact">
                <span class="ef__fact-lbl">Charging loss</span>
-               <span class="ef__fact-val">9 %</span>
+               <span class="ef__fact-val">9%</span>
                <span class="ef__fact-note">32.3 kWh/100 mi at the plug</span>
              </div>
   <div class="ef__fact">
@@ -3834,25 +3887,33 @@
   </div>
           <div class="ef__trend">
   <span class="ef__trend-title">Consumption by month</span>
-        <svg class="ef__chart" viewBox="0 0 280 88" role="img">
-          <rect class="ef__bar" x="36.7" y="26.9"
-                    width="28" height="47.1" rx="2">
-  </rect>
-                  <text class="ef__bar-val" x="50.7" y="23.9" text-anchor="middle">26.4</text>
-                  <text class="ef__bar-lbl" x="50.7" y="85" text-anchor="middle">07</text>
-  <rect class="ef__bar" x="126" y="25.1"
-                    width="28" height="48.9" rx="2">
-  </rect>
-                  <text class="ef__bar-val" x="140" y="22.1" text-anchor="middle">27.4</text>
-                  <text class="ef__bar-lbl" x="140" y="85" text-anchor="middle">08</text>
-  <rect class="ef__bar" x="215.3" y="21.7"
-                    width="28" height="52.3" rx="2">
-  </rect>
-                  <text class="ef__bar-val" x="229.3" y="18.7" text-anchor="middle">29.3</text>
-                  <text class="ef__bar-lbl" x="229.3" y="85" text-anchor="middle">09</text>
-          <text x="6" y="9" class="chg__chart-max">kWh/100 mi</text>
-        </svg>
-      </div>
+  <div class="bars" role="img">
+          <span class="chart__lbl">kWh/100 mi</span>
+          <div class="bars__plot">
+            
+            <span class="bars__col">
+  <span class="bars__val">26.4</span>
+  <span class="bars__bar" style="height:69.3%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__val">27.4</span>
+  <span class="bars__bar" style="height:71.9%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__val">29.3</span>
+  <span class="bars__bar" style="height:76.9%">
+  </span>
+  </span>
+          </div>
+          <div class="bars__axis">
+  <span>07</span>
+  <span>08</span>
+  <span>09</span>
+  </div>
+        </div>
+  </div>
           
           <span class="ef__note">Measured from the charging ledger: the distance between two charges and the energy that went in, not the car's own estimate. It counts everything the battery gave between two charges, parked hours and preconditioning included, so it reads higher than the figures of single trips, which count only the drives.</span>
         </div>
@@ -4192,53 +4253,59 @@
           <span class="ef__vs">At this pace: about 15,038 km a year</span>
           <div class="ef__trend">
   <span class="ef__trend-title">Last 12 months</span>
-  <svg class="ef__chart" viewBox="0 0 280 88" preserveAspectRatio="none">
-  <rect class="ef__bar mi__bar-partial" x="12.3" y="65.3"
-                    width="17.3" height="8.7" rx="2">
-  </rect>
-  <text class="ef__bar-lbl" x="20.9" y="85"
-                    text-anchor="middle">01</text>
-  <rect class="ef__bar" x="42" y="41.6"
-                    width="17.3" height="32.4" rx="2">
-  </rect>
-  <text class="ef__bar-lbl" x="50.7" y="85"
-                    text-anchor="middle">02</text>
-  <rect class="ef__bar" x="71.8" y="39.1"
-                    width="17.3" height="34.9" rx="2">
-  </rect>
-  <text class="ef__bar-lbl" x="80.4" y="85"
-                    text-anchor="middle">03</text>
-  <rect class="ef__bar" x="101.6" y="36.8"
-                    width="17.3" height="37.2" rx="2">
-  </rect>
-  <text class="ef__bar-lbl" x="110.2" y="85"
-                    text-anchor="middle">04</text>
-  <rect class="ef__bar" x="131.4" y="34.6"
-                    width="17.3" height="39.4" rx="2">
-  </rect>
-  <text class="ef__bar-lbl" x="140" y="85"
-                    text-anchor="middle">05</text>
-  <rect class="ef__bar" x="161.1" y="40.8"
-                    width="17.3" height="33.2" rx="2">
-  </rect>
-  <text class="ef__bar-lbl" x="169.8" y="85"
-                    text-anchor="middle">06</text>
-  <rect class="ef__bar" x="190.9" y="28.9"
-                    width="17.3" height="45.1" rx="2">
-  </rect>
-  <text class="ef__bar-lbl" x="199.6" y="85"
-                    text-anchor="middle">07</text>
-  <rect class="ef__bar" x="220.7" y="14.9"
-                    width="17.3" height="59.1" rx="2">
-  </rect>
-  <text class="ef__bar-lbl" x="229.3" y="85"
-                    text-anchor="middle">08</text>
-  <rect class="ef__bar mi__bar-partial" x="250.5" y="63.3"
-                    width="17.3" height="10.7" rx="2">
-  </rect>
-  <text class="ef__bar-lbl" x="259.1" y="85"
-                    text-anchor="middle">09</text>
-  </svg>
+  <div class="bars" role="img">
+          
+          <div class="bars__plot">
+            
+            <span class="bars__col">
+  <span class="bars__bar bars__bar--partial" style="height:12.8%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__bar" style="height:47.6%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__bar" style="height:51.3%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__bar" style="height:54.7%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__bar" style="height:58%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__bar" style="height:48.9%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__bar" style="height:66.3%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__bar" style="height:87%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__bar bars__bar--partial" style="height:15.7%">
+  </span>
+  </span>
+          </div>
+          <div class="bars__axis">
+  <span>01</span>
+  <span>02</span>
+  <span>03</span>
+  <span>04</span>
+  <span>05</span>
+  <span>06</span>
+  <span>07</span>
+  <span>08</span>
+  <span>09</span>
+  </div>
+        </div>
   </div>
           <div class="mi__allowance">
           <span class="ef__trend-title">Lease · ends 31 Aug 2028</span>
@@ -4290,18 +4357,24 @@
           <span class="ef__vs">The yearly pace shows after four weeks of readings.</span>
           <div class="ef__trend">
   <span class="ef__trend-title">Last 12 months</span>
-  <svg class="ef__chart" viewBox="0 0 280 88" preserveAspectRatio="none">
-  <rect class="ef__bar mi__bar-partial" x="59" y="14.9"
-                    width="28" height="59.1" rx="2">
-  </rect>
-  <text class="ef__bar-lbl" x="73" y="85"
-                    text-anchor="middle">08</text>
-  <rect class="ef__bar mi__bar-partial" x="193" y="19.2"
-                    width="28" height="54.8" rx="2">
-  </rect>
-  <text class="ef__bar-lbl" x="207" y="85"
-                    text-anchor="middle">09</text>
-  </svg>
+  <div class="bars" role="img">
+          
+          <div class="bars__plot">
+            
+            <span class="bars__col">
+  <span class="bars__bar bars__bar--partial" style="height:87%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__bar bars__bar--partial" style="height:80.6%">
+  </span>
+  </span>
+          </div>
+          <div class="bars__axis">
+  <span>08</span>
+  <span>09</span>
+  </div>
+        </div>
   </div>
           <span class="ef__note">Have a lease or an insurance mileage limit? Add it in the integration's settings under Mileage allowance.</span>
         </div>
@@ -4341,53 +4414,59 @@
           <span class="ef__vs">At this pace: about 9,344 mi a year</span>
           <div class="ef__trend">
   <span class="ef__trend-title">Last 12 months</span>
-  <svg class="ef__chart" viewBox="0 0 280 88" preserveAspectRatio="none">
-  <rect class="ef__bar mi__bar-partial" x="12.3" y="65.3"
-                    width="17.3" height="8.7" rx="2">
-  </rect>
-  <text class="ef__bar-lbl" x="20.9" y="85"
-                    text-anchor="middle">01</text>
-  <rect class="ef__bar" x="42" y="41.6"
-                    width="17.3" height="32.4" rx="2">
-  </rect>
-  <text class="ef__bar-lbl" x="50.7" y="85"
-                    text-anchor="middle">02</text>
-  <rect class="ef__bar" x="71.8" y="39.1"
-                    width="17.3" height="34.9" rx="2">
-  </rect>
-  <text class="ef__bar-lbl" x="80.4" y="85"
-                    text-anchor="middle">03</text>
-  <rect class="ef__bar" x="101.6" y="36.8"
-                    width="17.3" height="37.2" rx="2">
-  </rect>
-  <text class="ef__bar-lbl" x="110.2" y="85"
-                    text-anchor="middle">04</text>
-  <rect class="ef__bar" x="131.4" y="34.6"
-                    width="17.3" height="39.4" rx="2">
-  </rect>
-  <text class="ef__bar-lbl" x="140" y="85"
-                    text-anchor="middle">05</text>
-  <rect class="ef__bar" x="161.1" y="40.8"
-                    width="17.3" height="33.2" rx="2">
-  </rect>
-  <text class="ef__bar-lbl" x="169.8" y="85"
-                    text-anchor="middle">06</text>
-  <rect class="ef__bar" x="190.9" y="28.9"
-                    width="17.3" height="45.1" rx="2">
-  </rect>
-  <text class="ef__bar-lbl" x="199.6" y="85"
-                    text-anchor="middle">07</text>
-  <rect class="ef__bar" x="220.7" y="14.9"
-                    width="17.3" height="59.1" rx="2">
-  </rect>
-  <text class="ef__bar-lbl" x="229.3" y="85"
-                    text-anchor="middle">08</text>
-  <rect class="ef__bar mi__bar-partial" x="250.5" y="63.3"
-                    width="17.3" height="10.7" rx="2">
-  </rect>
-  <text class="ef__bar-lbl" x="259.1" y="85"
-                    text-anchor="middle">09</text>
-  </svg>
+  <div class="bars" role="img">
+          
+          <div class="bars__plot">
+            
+            <span class="bars__col">
+  <span class="bars__bar bars__bar--partial" style="height:12.8%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__bar" style="height:47.6%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__bar" style="height:51.3%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__bar" style="height:54.7%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__bar" style="height:58%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__bar" style="height:48.9%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__bar" style="height:66.3%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__bar" style="height:87%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__bar bars__bar--partial" style="height:15.7%">
+  </span>
+  </span>
+          </div>
+          <div class="bars__axis">
+  <span>01</span>
+  <span>02</span>
+  <span>03</span>
+  <span>04</span>
+  <span>05</span>
+  <span>06</span>
+  <span>07</span>
+  <span>08</span>
+  <span>09</span>
+  </div>
+        </div>
   </div>
           <div class="mi__allowance">
           <span class="ef__trend-title">Lease · ends 31 Aug 2028</span>
@@ -4439,18 +4518,24 @@
           <span class="ef__vs">The yearly pace shows after four weeks of readings.</span>
           <div class="ef__trend">
   <span class="ef__trend-title">Last 12 months</span>
-  <svg class="ef__chart" viewBox="0 0 280 88" preserveAspectRatio="none">
-  <rect class="ef__bar mi__bar-partial" x="59" y="14.9"
-                    width="28" height="59.1" rx="2">
-  </rect>
-  <text class="ef__bar-lbl" x="73" y="85"
-                    text-anchor="middle">08</text>
-  <rect class="ef__bar mi__bar-partial" x="193" y="19.2"
-                    width="28" height="54.8" rx="2">
-  </rect>
-  <text class="ef__bar-lbl" x="207" y="85"
-                    text-anchor="middle">09</text>
-  </svg>
+  <div class="bars" role="img">
+          
+          <div class="bars__plot">
+            
+            <span class="bars__col">
+  <span class="bars__bar bars__bar--partial" style="height:87%">
+  </span>
+  </span>
+  <span class="bars__col">
+  <span class="bars__bar bars__bar--partial" style="height:80.6%">
+  </span>
+  </span>
+          </div>
+          <div class="bars__axis">
+  <span>08</span>
+  <span>09</span>
+  </div>
+        </div>
   </div>
           <span class="ef__note">Have a lease or an insurance mileage limit? Add it in the integration's settings under Mileage allowance.</span>
         </div>
@@ -4491,15 +4576,16 @@
           </button>
           
         <div class="chg__detail">
-          
-        <svg class="chg__chart" viewBox="0 0 260 64" preserveAspectRatio="none" role="img">
-          <polyline points="4,15.2 88,15.2 88,10.2 256,10.2 256,40.1" class="chg__chart-line" style="opacity:1">
+          <div class="chart">
+          <span class="chart__lbl">180 kW</span>
+          <svg class="chg__chart" viewBox="0 0 260 64" preserveAspectRatio="none" role="img">
+  <polyline points="4,15.2 88,15.2 88,10.2 256,10.2 256,40.1" class="chg__chart-line" style="opacity:1">
   </polyline>
   <polyline points="4,9.6 67,9.6 67,4 193,4 193,37.6" class="chg__chart-line" style="opacity:0.58">
   </polyline>
-          <text x="4" y="10" class="chg__chart-max">180 kW</text>
-        </svg>
-      
+  </svg>
+          
+        </div>
           <div class="chg__facts">
   <div class="chg__fact">
   <span class="chg__fact-lbl">Avg</span>
@@ -4510,16 +4596,16 @@
   <span class="chg__fact-val">140 kW</span>
   </div>
   <div class="chg__fact">
-  <span class="chg__fact-lbl">Per 10 % (to 80 %)</span>
+  <span class="chg__fact-lbl">Per 10% (to 80%)</span>
   <span class="chg__fact-val">5.2 min</span>
   </div>
   <div class="chg__fact">
   <span class="chg__fact-lbl">Preconditioned (1×)</span>
-  <span class="chg__fact-val">140 kW · 4.5 min / 10 %</span>
+  <span class="chg__fact-val">140 kW · 4.5 min / 10%</span>
   </div>
   <div class="chg__fact">
   <span class="chg__fact-lbl">Not preconditioned (1×)</span>
-  <span class="chg__fact-val">103 kW · 6 min / 10 %</span>
+  <span class="chg__fact-val">103 kW · 6 min / 10%</span>
   </div>
   <div class="chg__fact">
   <span class="chg__fact-lbl">Charged here</span>
@@ -4620,15 +4706,16 @@
           </button>
           
         <div class="chg__detail">
-          
-        <svg class="chg__chart" viewBox="0 0 260 64" preserveAspectRatio="none" role="img">
-          <polyline points="4,15.2 88,15.2 88,10.2 256,10.2 256,40.1" class="chg__chart-line" style="opacity:1">
+          <div class="chart">
+          <span class="chart__lbl">180 kW</span>
+          <svg class="chg__chart" viewBox="0 0 260 64" preserveAspectRatio="none" role="img">
+  <polyline points="4,15.2 88,15.2 88,10.2 256,10.2 256,40.1" class="chg__chart-line" style="opacity:1">
   </polyline>
   <polyline points="4,9.6 67,9.6 67,4 193,4 193,37.6" class="chg__chart-line" style="opacity:0.58">
   </polyline>
-          <text x="4" y="10" class="chg__chart-max">180 kW</text>
-        </svg>
-      
+  </svg>
+          
+        </div>
           <div class="chg__facts">
   <div class="chg__fact">
   <span class="chg__fact-lbl">Avg</span>
@@ -4639,16 +4726,16 @@
   <span class="chg__fact-val">140 kW</span>
   </div>
   <div class="chg__fact">
-  <span class="chg__fact-lbl">Per 10 % (to 80 %)</span>
+  <span class="chg__fact-lbl">Per 10% (to 80%)</span>
   <span class="chg__fact-val">5.2 min</span>
   </div>
   <div class="chg__fact">
   <span class="chg__fact-lbl">Preconditioned (1×)</span>
-  <span class="chg__fact-val">140 kW · 4.5 min / 10 %</span>
+  <span class="chg__fact-val">140 kW · 4.5 min / 10%</span>
   </div>
   <div class="chg__fact">
   <span class="chg__fact-lbl">Not preconditioned (1×)</span>
-  <span class="chg__fact-val">103 kW · 6 min / 10 %</span>
+  <span class="chg__fact-val">103 kW · 6 min / 10%</span>
   </div>
   <div class="chg__fact">
   <span class="chg__fact-lbl">Charged here</span>
