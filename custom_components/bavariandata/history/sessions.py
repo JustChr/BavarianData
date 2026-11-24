@@ -461,6 +461,14 @@ class SessionBuilder:
         # Another car charged on the same meter during this session, so its
         # advance is both cars' and this session has no measured figure.
         self.meter_shared = False
+        # Seconds the car waited, paused with the cable in, before carrying on
+        # (see ``ChargingSession.paused_s``).
+        self.paused_s = 0
+
+    def note_pause(self, seconds: float) -> None:
+        """Count a pause the charge came back from as waiting, not charging."""
+
+        self.paused_s += max(0, int(seconds))
 
     def _offset(self, at: datetime) -> int:
         # Clock skew between BMW's timestamps and ours could put a sample before
@@ -568,6 +576,12 @@ class SessionBuilder:
         the resumed half of a long session denser than the first half.
         """
 
+        snapshot = self._snapshot()
+        if self.paused_s:
+            snapshot["paused_s"] = self.paused_s
+        return snapshot
+
+    def _snapshot(self) -> dict[str, Any]:
         return {
             "vin": self.vin,
             "start": _iso(self.start),
@@ -637,6 +651,9 @@ class SessionBuilder:
         builder.grid_meter_start = data.get("grid_meter_start")
         builder.grid_meter_last = data.get("grid_meter_last")
         builder.meter_shared = bool(data.get("meter_shared"))
+        paused = data.get("paused_s")
+        if isinstance(paused, int | float) and not isinstance(paused, bool):
+            builder.note_pause(paused)
         return builder
 
     def close(
@@ -687,4 +704,5 @@ class SessionBuilder:
             # (or later, from BMW's own charging history during enrichment).
             grid_kwh=grid_kwh,
             grid_source=None if grid_kwh is None else "meter",
+            paused_s=self.paused_s,
         )

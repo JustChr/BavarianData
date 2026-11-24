@@ -9,6 +9,24 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **A charge that waits for its start time is one session** (#369, thanks
+  @Kars-de-Jong). With a start time set in the car, plugging in at 18:20 often
+  charges for a minute, then the car reports *paused* until 01:00. After five
+  minutes that minute was filed as its own session and the night's charge as a
+  second one. Now, while the car says *paused* and the cable is in (up to a day),
+  both are one session, a restart in the wait included. The wait doesn't count as
+  charging time: the duration, the average power, the station figures and the
+  wallbox meter's model leave it out. *Charging resumed* fires when it carries on.
+  Sessions already split stay as they are.
+- **Setup no longer waits five minutes when the activator can't report back**
+  (D#370, thanks @derekPrivate). On an https Home Assistant the dialog waits for
+  the *Activate BMW data* bookmark to report from the BMW portal; when the
+  browser or the network stopped that report, the portal box showed a Copy
+  button while the dialog kept waiting. The BavarianData setup page now has a box
+  for that result: paste it, press *Send to Home Assistant*, and setup carries
+  on. The waiting screen says so, in all ten languages.
+
 ## [0.9.34-beta.1] - 2026-11-24
 
 ### Added

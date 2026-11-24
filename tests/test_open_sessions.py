@@ -101,6 +101,37 @@ def test_interrupted_flag_survives_the_record_round_trip():
     assert back is not None and back.interrupted is True
 
 
+def test_a_wait_for_the_start_time_survives_the_snapshot_and_the_record():
+    """#369: the pause rides through a restart and is no charging time."""
+
+    models = load_module("history.models")
+    builder = _charging_builder()
+    builder.note_pause(3600)
+    restored = SessionBuilder.from_dict(json.loads(json.dumps(builder.to_dict())))
+    assert restored is not None and restored.paused_s == 3600
+
+    record = restored.close(START + timedelta(minutes=150), energy_kwh=16.2)
+    back = models.ChargingSession.from_dict(json.loads(json.dumps(record.to_dict())))
+    assert back is not None and back.paused_s == 3600
+    assert back.duration_s == 90 * 60  # 150 minutes, less the hour it waited
+    assert back.avg_power_kw == round(16.2 / 1.5, 3)
+
+
+def test_a_charge_that_never_waited_stores_no_pause():
+    record = _charging_builder().close(START + timedelta(minutes=95), energy_kwh=15.9)
+
+    assert "paused_s" not in record.to_dict()
+    assert "paused_s" not in _charging_builder().to_dict()
+
+
+def test_a_garbled_pause_reads_as_none():
+    models = load_module("history.models")
+    record = _charging_builder().close(START + timedelta(minutes=95)).to_dict()
+    for garbled in ("an hour", True, -5, None):
+        back = models.ChargingSession.from_dict({**record, "paused_s": garbled})
+        assert back is not None and back.paused_s == 0
+
+
 def test_unusable_snapshots_are_refused():
     """Junk in the store must not raise on the setup path."""
 

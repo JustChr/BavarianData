@@ -25,7 +25,7 @@ auswählen und aus der Liste wählen. Kein YAML, keine Entitätsnamen.
 | **Laden gestartet** | ein Ladevorgang beginnt | — |
 | **Laden abgeschlossen (Ziel erreicht)** | ein Ladevorgang bei oder über dem Ziel endet | — |
 | **Laden pausiert, Kabel steckt noch** | das Laden unter dem Ziel aufhört, mit Kabel, für mehr als 2 Minuten | — |
-| **Laden fortgesetzt** | ein pausierter Ladevorgang innerhalb von 5 Minuten weitergeht (derselbe Ladevorgang) | — |
+| **Laden fortgesetzt** | ein pausierter Ladevorgang innerhalb von 5 Minuten weitergeht, oder jederzeit, solange das Auto selbst *pausiert* meldet (derselbe Ladevorgang) | — |
 | **Laden vor dem Ziel beendet, Kabel steckt noch** | ein Ladevorgang unter dem Ziel endet, während das Kabel noch steckt | — |
 | **Vorklimatisierung gestartet** | das Auto beginnt, sich zu heizen oder zu kühlen | — |
 | **Vorklimatisierung beendet** | das Auto hört auf, sich zu heizen oder zu kühlen | — |
@@ -43,7 +43,10 @@ Laden unter dem Ziel auf, während das Kabel steckt, ist das zuerst eine
 **Pause**: Nach 2 Minuten (ein kürzerer Aussetzer kommt vom Datenstrom, nicht vom
 Auto) löst *Laden pausiert* aus, und geht es innerhalb von 5 Minuten weiter,
 *Laden fortgesetzt*. Die Ladehistorie behält ihn als einen Ladevorgang. Erst nach 5 Minuten Stillstand endet er, als *vor dem Ziel
-beendet*. Ein Halt am Ziel endet nach den 2 Minuten; Abstecken beendet ihn
+beendet*. Solange das Auto selbst den Ladevorgang als *pausiert* meldet (es
+wartet auf eine im Auto eingestellte Startzeit), gilt die Grenze von 5 Minuten
+nicht: *Laden fortgesetzt* löst aus, wann immer es weitergeht, bis zu einem Tag
+später. Ein Halt am Ziel endet nach den 2 Minuten; Abstecken beendet ihn
 sofort.
 
 **Angeboten werden nur die Auslöser, die dein Auto auslösen kann.** Ein Auto,

@@ -104,6 +104,10 @@ class ChargingSession:
     # Whether the battery was preconditioned for this charge. Only BMW's
     # charging history says so; ``None`` means nobody told us.
     preconditioned: bool | None = None
+    # Seconds inside ``start``..``end`` the car spent paused with the cable in,
+    # waiting -- for a start time set in the car, say (#369). Not charging time:
+    # ``duration_s`` leaves them out, so the average power is the charger's.
+    paused_s: int = 0
 
     @property
     def id(self) -> str:
@@ -130,9 +134,11 @@ class ChargingSession:
 
     @property
     def duration_s(self) -> int | None:
+        """How long the car charged: start to end, less the pauses it waited out."""
+
         if self.end is None:
             return None
-        return max(0, int((self.end - self.start).total_seconds()))
+        return max(0, int((self.end - self.start).total_seconds()) - self.paused_s)
 
     @property
     def soc_delta(self) -> float | None:
@@ -154,6 +160,14 @@ class ChargingSession:
         return round(self.energy_kwh / (duration / 3600.0), 3)
 
     def to_dict(self) -> dict[str, Any]:
+        record = self._record()
+        # Only a charge that waited carries it, so every other record reads as
+        # it always did.
+        if self.paused_s:
+            record["paused_s"] = self.paused_s
+        return record
+
+    def _record(self) -> dict[str, Any]:
         return {
             "vin": self.vin,
             "start": _iso(self.start),
@@ -218,7 +232,16 @@ class ChargingSession:
             preconditioned=data.get("preconditioned")
             if isinstance(data.get("preconditioned"), bool)
             else None,
+            paused_s=_seconds(data.get("paused_s")),
         )
+
+
+def _seconds(value: Any) -> int:
+    """A stored count of seconds, or 0 for anything that isn't one."""
+
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        return 0
+    return max(0, int(value))
 
 
 def _grid_source(data: dict[str, Any]) -> str | None:

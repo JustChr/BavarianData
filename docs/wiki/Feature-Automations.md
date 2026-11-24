@@ -25,7 +25,7 @@ your car, and choose from the list. No YAML and no entity names needed.
 | **Charging started** | a charging session begins | — |
 | **Charging completed (target reached)** | a session ends at or above the target | — |
 | **Charging paused, cable still in** | charging stops short of the target with the cable in, for more than 2 minutes | — |
-| **Charging resumed** | a paused charge carries on within 5 minutes (still the same session) | — |
+| **Charging resumed** | a paused charge carries on within 5 minutes, or at any time while the car itself says *paused* (still the same session) | — |
 | **Charging stopped before the target, cable still in** | a session ends short of the target while the cable is still plugged in | — |
 | **Preconditioning started** | the car starts heating or cooling itself | — |
 | **Preconditioning finished** | the car stops heating or cooling itself | — |
@@ -43,7 +43,10 @@ target with the cable still in is first a **pause**: after 2 minutes (a
 shorter dip is the data stream, not the car) *Charging paused* fires, and if
 it carries on within 5 minutes, *Charging resumed*. The charging history
 keeps it as one session. Only after 5 minutes stopped does
-the session end, as *stopped before the target*. A stop at the target ends
+the session end, as *stopped before the target*. While the car itself reports
+the charge as *paused* (it is waiting for a start time set in the car), the wait
+has no 5-minute limit: *Charging resumed* fires whenever it carries on, up to a
+day later. A stop at the target ends
 the session after the 2 minutes; unplugging ends it at once.
 
 **Only the triggers your car can fire are listed.** A car that never sent a lock

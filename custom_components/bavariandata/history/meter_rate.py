@@ -123,7 +123,8 @@ def meter_rate(sessions: Iterable[ChargingSession], home_zone: str | None) -> Me
             continue
         if not MIN_PERCENT_PER_KWH <= delta / kwh <= MAX_PERCENT_PER_KWH:
             continue
-        hours = (session.end - session.start).total_seconds() / 3600.0
+        # Charging time: a wait for a start time drew nothing (#369).
+        hours = (session.duration_s or 0) / 3600.0
         samples.append(_Sample(session.start, delta, kwh, min(hours, kwh / MIN_FLOW_KW)))
     if len(samples) < MIN_SESSIONS:
         return None

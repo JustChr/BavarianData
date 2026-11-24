@@ -34,9 +34,12 @@ from .car_signals import (
     CHARGE_CLOSE_DEBOUNCE_S,
     CHARGE_END_REASON_DESCRIPTORS,
     CHARGE_FINISHED_STATUS,
+    CHARGE_PAUSED_HOLD_MAX_S,
+    CHARGE_PAUSED_STATUS,
     CHARGE_PLUGGED_HOLD_S,
     CHARGE_PROGRESS_DESCRIPTORS,
     CHARGE_TERMINAL_STATUSES,
+    DESC_CHARGE_STATUS,
     METER_MOVED_KWH,
     OPEN_SESSION_SAVE_INTERVAL_S,
     RESTORED_SESSION_GRACE_S,
@@ -590,9 +593,13 @@ class VehicleCharging:
             # session continue -- no fresh STARTED event, no split record.
             if self._cancel_charge_close_timer(vin):
                 session = self._host._car(vin).session
-                session.stopped = None
+                stopped = session.take("stopped")
                 if session.paused:
                     session.paused = False
+                    if stopped is not None and session.builder is not None:
+                        # It waited, cable in, and carried on: the wait is no
+                        # charging time (#369).
+                        session.builder.note_pause((datetime.now(UTC) - stopped[0]).total_seconds())
                     self._host._fire(EVENT_CHARGING_RESUMED, payload)
                 if debug_enabled():
                     _LOGGER.debug(
@@ -656,6 +663,16 @@ class VehicleCharging:
         def _fire(_now: datetime) -> None:
             self._host._car(vin).session.close_timer = None
             stopped = self._host._peek(vin).session.stopped
+            if stopped is not None and not self._reached_target(vin):
+                waited = (datetime.now(UTC) - stopped[0]).total_seconds()
+                if waited < CHARGE_PAUSED_HOLD_MAX_S and self._waiting_on_the_car(vin):
+                    # Paused by the car, cable in: waiting for its start time,
+                    # however long that is. Kept fresh in the store, so a
+                    # restart in the wait still finds the same charge.
+                    self._announce_pause(vin, stopped[1])
+                    self._snapshot_open_session(vin, force=True)
+                    self._schedule_charge_close(vin, CHARGE_PLUGGED_HOLD_S)
+                    return
             if (
                 stopped is not None
                 and self._plug_state_live(vin) is True
@@ -733,6 +750,22 @@ class VehicleCharging:
 
     def _plug_state_live(self, vin: str) -> bool | None:
         return plug_state(self._host._live_values(vin, PLUG_DESCRIPTORS))
+
+    def _waiting_on_the_car(self, vin: str) -> bool:
+        """Whether the car says it is paused, with the cable in.
+
+        Read off the values the car holds now, a restored one included: after a
+        restart in a long wait the stream may not repeat either for a while,
+        and an unplug or a new status replaces them the moment it arrives.
+        """
+
+        state = (self._host.data.get(vin) or {}).get(DESC_CHARGE_STATUS)
+        word = None if state is None else state.value
+        return (
+            isinstance(word, str)
+            and word.strip().upper() == CHARGE_PAUSED_STATUS
+            and self._host._plug_state(vin) is True
+        )
 
     def _cancel_charge_close_timer(self, vin: str) -> bool:
         """Cancel a pending close; return whether one was actually pending."""
@@ -999,11 +1032,33 @@ class VehicleCharging:
                 if tracking is not None:
                     tracking.charging_active = True
                 return
+            if self._waiting_on_the_car(vin):
+                self._hold_restored_pause(vin)
+                return
             self._close_restored_session(vin, "restart")
 
         self._host._car(vin).session.restored_timer = async_call_later(
             self._host.hass, RESTORED_SESSION_GRACE_S, _fire
         )
+
+    def _hold_restored_pause(self, vin: str) -> None:
+        """Carry a restored charge on as the wait it was when we went down (#369).
+
+        The car still says it is paused with the cable in, so this is the same
+        charge waiting for its start time: it goes back to the live hold, stopped
+        where we last saw it charge. The pause was announced before the restart
+        and is not announced again.
+        """
+
+        session = self._host._car(vin).session
+        session.restored_at = None
+        self._cancel_restored_open_timer(vin)
+        builder = session.builder
+        stopped_at = None if builder is None else (builder.last_sample_at or builder.start)
+        session.stopped = (stopped_at or datetime.now(UTC), CHARGE_PAUSED_STATUS)
+        session.paused = True
+        self._snapshot_open_session(vin, force=True)
+        self._schedule_charge_close(vin, CHARGE_PLUGGED_HOLD_S)
 
     def _arm_restored_stop_timer(self, vin: str, status: str) -> None:
         """Close a restored session on a stop, unless charging comes back first.
@@ -1260,7 +1315,11 @@ class VehicleCharging:
         """
 
         for vin in self._host._vins_where(lambda car: car.session.close_timer is not None):
-            if self._cancel_charge_close_timer(vin):
+            # A charge waiting for its start time is not over: it is snapshotted
+            # below like a running one, and the restart hands it back to the
+            # wait (#369).
+            waiting = self._host._peek(vin).session.paused and self._waiting_on_the_car(vin)
+            if self._cancel_charge_close_timer(vin) and not waiting:
                 with suppress(Exception):
                     self._finalize_charge_close(vin, "unload")
         for vin in self._host._vins_where(lambda car: car.session.builder is not None):

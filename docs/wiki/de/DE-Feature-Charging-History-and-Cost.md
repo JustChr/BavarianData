@@ -92,7 +92,14 @@ und die Kosten.
 Hört eine Ladung auf und lädt dann weiter, bleibt sie **ein Ladevorgang**,
 solange die Pause kurz ist: bis zu **fünf Minuten**, wenn das Kabel steckt
 (manche Autos pausieren mitten im Laden von selbst), oder bis zu **zwei
-Minuten**, wenn dein Auto nicht meldet, ob es angesteckt ist. Eine längere Pause
+Minuten**, wenn dein Auto nicht meldet, ob es angesteckt ist. Eine Ladung, die
+auf eine im Auto eingestellte **Startzeit wartet**, bleibt ein Ladevorgang, egal
+wie lange sie wartet: Steckst du um 18:20 an und soll das Laden um 01:00
+beginnen, lädt das Auto oft erst eine Minute und meldet sich dann bis 01:00 als
+*pausiert*. Solange das Auto *pausiert* meldet und das Kabel steckt (bis zu
+einem Tag), sind diese Minute und die Ladung in der Nacht ein Ladevorgang, und
+die Wartezeit zählt nicht als Ladezeit: Dauer und Durchschnittsleistung lassen
+sie weg. Jede andere längere Pause
 wird als **zwei Ladevorgänge** aufgezeichnet, auch wenn das Kabel die ganze Zeit
 steckte. Solarladen, das eine lange Wolke abwartet, kann deshalb mehrere
 Ladevorgänge an einem Tag hinterlassen. Ziehst du das Kabel, endet der

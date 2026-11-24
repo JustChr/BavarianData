@@ -662,6 +662,24 @@ def test_a_month_of_charging(snapshot) -> None:
     assert html == snapshot
 
 
+def test_a_charge_that_waited_for_its_start_time_counts_its_charging_time() -> None:
+    """#369: plugged in at 18:20, charged from 01:00. The wait is not charging."""
+
+    sessions = _month_of_charging()
+    waited = {
+        **sessions[0],
+        "start": "2026-09-29T16:20:00+00:00",
+        "end": "2026-09-30T03:00:00+00:00",
+        "energy_kwh": 40.0,
+        "paused_s": int(6.666666 * 3600),
+    }
+    html = _render(I5, SCREENS["charging"], sessions=[waited], sessionsExpanded=waited["start"])
+
+    # 10 h 40 min on the clock, 6 h 40 min of it waiting: 4 h at 10 kW.
+    assert re.search(r'Duration</span>\s*<span class="chg__fact-val">4 h<', html)
+    assert re.search(r'Average \(dashed\)</span>\s*<span class="chg__fact-val">10 kW<', html)
+
+
 def test_a_charge_takes_the_amount_paid() -> None:
     """#324: an expanded charge offers the amount paid; an entered one says so
     and can be removed, which brings back the figure it replaced."""
