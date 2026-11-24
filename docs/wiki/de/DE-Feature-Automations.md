@@ -107,7 +107,7 @@ Jeder Auslöser übergibt seine Details als `trigger.data`:
 | --- | --- |
 | In einer Zone angekommen | `zone`, `zone_entity_id`, `from`, `distance_km`, `duration_s`, `energy_kwh`, `soc`, `trip_id`, `trip_start` |
 | Eine Zone verlassen | `zone`, `zone_entity_id`, `soc`, `trip_start` |
-| Fahrt beendet | wie *In einer Zone angekommen* (`zone` und `zone_entity_id` sind außerhalb einer Zone `null`), dazu `trip_end`, `to`, `soc_start`, `classification` |
+| Fahrt beendet | wie *In einer Zone angekommen* (`zone` und `zone_entity_id` sind außerhalb einer Zone `null`), dazu `trip_end`, `to`, `soc_start`, `classification`, `odometer_start_km`, `odometer_end_km` (der Kilometerstand beim Losfahren und Abstellen; `null`, wenn das Auto keinen geschickt hat) |
 | Geparkt und nicht verriegelt | `since`, `zone`, `zone_entity_id` |
 | Geparkt mit offenem Fenster | `since`, `windows` (welche: `front_driver`, `front_passenger`, `rear_driver`, `rear_passenger`, `sunroof`, `sunroof_tilt`, `rear_window`), `zone`, `zone_entity_id` |
 | Angesteckt, lädt aber nicht | `since`, `soc`, `target_soc`, `zone`, `zone_entity_id` |

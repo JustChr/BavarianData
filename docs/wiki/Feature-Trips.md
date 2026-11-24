@@ -410,7 +410,9 @@ whenever it changes, so on a short hop an unchanged SoC is real and is kept.
   — see [above](#seeing-the-drive-thats-happening-now).
 - The detail lives in the services (and the card), not a flood of entities:
   - **`bavariandata.get_trips`** — recorded trips as response data, plus
-    `open_trips` for a drive still under way.
+    `open_trips` for a drive still under way. Each trip carries the odometer
+    when the car set off and stopped (`odometer_start_km`, `odometer_end_km`;
+    `null` on trips recorded before 0.9.34).
   - **`bavariandata.get_driving_summary`** — the "month in review": distance
     (vs last month), the split, consumption, recuperation, a driving-style
     score, top destinations, and (with a tariff) an estimated driving cost.

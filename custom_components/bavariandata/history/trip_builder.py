@@ -337,8 +337,19 @@ class TripBuilder:
         classification_source: str | None = None,
         hybrid: bool = False,
     ) -> Trip:
-        """Finish the trip and return the record to persist."""
+        """Finish the trip and return the record to persist.
 
+        The odometer readings are kept as the car sent them, except an end below
+        the start (a stale reading), which is no end at all.
+        """
+
+        odometer_end = mileage_end
+        if (
+            odometer_end is not None
+            and self.mileage_start is not None
+            and odometer_end < self.mileage_start
+        ):
+            odometer_end = None
         return Trip(
             vin=self.vin,
             start=self.start,
@@ -357,6 +368,8 @@ class TripBuilder:
             or end_place.get("label") == "Unknown",
             track=list(self.track),
             hybrid=hybrid,
+            odometer_start_km=self.mileage_start,
+            odometer_end_km=odometer_end,
         )
 
 

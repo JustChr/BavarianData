@@ -113,6 +113,8 @@ class TripEndedEvent(ZoneArrivedEvent):
     to: str | None
     soc_start: float | None
     classification: str | None
+    odometer_start_km: float | None
+    odometer_end_km: float | None
 
 
 # --- situations and edges -------------------------------------------------------------

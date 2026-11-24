@@ -21,6 +21,10 @@ Eine Zeile pro Ladevorgang oder Fahrt:
   [Wetter entlang der Strecke](DE-Feature-Trips#weather-along-the-route-opt-in), die
   Außentemperatur mit tiefstem und höchstem Wert und woher sie stammt
   (`outside_temp_c`, `outside_temp_min_c`, `outside_temp_max_c`, `weather_source`).
+- Bei Fahrten der Kilometerstand beim Losfahren und beim Abstellen
+  (`odometer_start_km`, `odometer_end_km`). Leer bei Fahrten, die vor 0.9.34
+  aufgezeichnet wurden, und wenn das Auto für diese Fahrt keinen Kilometerstand
+  geschickt hat.
 
 Die Spaltenüberschriften sind immer maschinenlesbares Englisch. Öffnet sich
 sauber in Excel und Numbers.
@@ -29,7 +33,8 @@ sauber in Excel und Numbers.
 
 Eine eigenständige HTML-Seite: Monatssummen (geschäftlich, Pendeln und privat
 jeweils mit ihrem Anteil an der Monatsstrecke), die Ladetabelle und das
-Fahrtenbuch. Drucke sie (**Strg/⌘+P → Als PDF speichern**) für ein ordentliches
+Fahrtenbuch. Das Fahrtenbuch zeigt den Kilometerstand an beiden Enden jeder
+Fahrt (in der Einheit des Kontos), sobald eine Fahrt des Monats ihn hat. Drucke sie (**Strg/⌘+P → Als PDF speichern**) für ein ordentliches
 A4-Dokument. Die Sprache des Berichts folgt der Sprache von Home Assistant, oder
 du legst sie ausdrücklich fest.
 

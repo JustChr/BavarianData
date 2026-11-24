@@ -935,6 +935,7 @@ class VehicleTrips:
             and odometer > closed.odometer
         ):
             trip.distance_km = round(odometer - closed.mileage_start, 1)
+            trip.odometer_end_km = odometer
             closed.odometer = odometer
         if soc is not None and trip.soc_end is not None and soc < trip.soc_end:
             trip.soc_end = soc
@@ -1064,6 +1065,8 @@ class VehicleTrips:
                     to=(trip.end_place or {}).get("label"),
                     soc_start=trip.soc_start,
                     classification=trip.classification,
+                    odometer_start_km=trip.odometer_start_km,
+                    odometer_end_km=trip.odometer_end_km,
                 ),
             )
         except Exception:  # noqa: BLE001 - a trigger must never break the stream

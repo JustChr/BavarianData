@@ -57,6 +57,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "consumption": "Avg consumption",
         # The table column carries its unit; the tile puts it in the value.
         "consumption_col": "Consumption (kWh/{per})",
+        "odometer_col": "Odometer ({unit})",
         "at_the_plug": "at the plug",
         "at_the_battery": "at the battery",
         "recuperation": "Recuperated",
@@ -107,6 +108,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "trip_count": "Fahrten",
         "consumption": "Ø Verbrauch",
         "consumption_col": "Verbrauch (kWh/{per})",
+        "odometer_col": "Kilometerstand ({unit})",
         "at_the_plug": "ab Steckdose",
         "at_the_battery": "ab Akku",
         "recuperation": "Rekuperiert",
@@ -157,6 +159,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "trip_count": "Trajets",
         "consumption": "Conso. moyenne",
         "consumption_col": "Consommation (kWh/{per})",
+        "odometer_col": "Kilométrage ({unit})",
         "at_the_plug": "à la prise",
         "at_the_battery": "à la batterie",
         "recuperation": "Récupéré",
@@ -208,6 +211,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "trip_count": "Viaggi",
         "consumption": "Consumo medio",
         "consumption_col": "Consumo (kWh/{per})",
+        "odometer_col": "Chilometraggio ({unit})",
         "at_the_plug": "alla presa",
         "at_the_battery": "alla batteria",
         "recuperation": "Recuperato",
@@ -259,6 +263,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "trip_count": "Trayectos",
         "consumption": "Consumo medio",
         "consumption_col": "Consumo (kWh/{per})",
+        "odometer_col": "Kilometraje ({unit})",
         "at_the_plug": "en el enchufe",
         "at_the_battery": "en la batería",
         "recuperation": "Recuperado",
@@ -310,6 +315,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "trip_count": "Ritten",
         "consumption": "Gem. verbruik",
         "consumption_col": "Verbruik (kWh/{per})",
+        "odometer_col": "Kilometerstand ({unit})",
         "at_the_plug": "aan de stekker",
         "at_the_battery": "aan de accu",
         "recuperation": "Teruggewonnen",
@@ -360,6 +366,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "trip_count": "Przejazdy",
         "consumption": "Śr. zużycie",
         "consumption_col": "Zużycie (kWh/{per})",
+        "odometer_col": "Przebieg ({unit})",
         "at_the_plug": "przy gniazdku",
         "at_the_battery": "przy akumulatorze",
         "recuperation": "Odzyskano",
@@ -411,6 +418,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "trip_count": "Viagens",
         "consumption": "Consumo médio",
         "consumption_col": "Consumo (kWh/{per})",
+        "odometer_col": "Quilometragem ({unit})",
         "at_the_plug": "na tomada",
         "at_the_battery": "na bateria",
         "recuperation": "Recuperado",
@@ -462,6 +470,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "trip_count": "Jízdy",
         "consumption": "Prům. spotřeba",
         "consumption_col": "Spotřeba (kWh/{per})",
+        "odometer_col": "Stav kilometrů ({unit})",
         "at_the_plug": "ze zásuvky",
         "at_the_battery": "z baterie",
         "recuperation": "Rekuperováno",
@@ -512,6 +521,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "trip_count": "Resor",
         "consumption": "Snittförbrukning",
         "consumption_col": "Förbrukning (kWh/{per})",
+        "odometer_col": "Mätarställning ({unit})",
         "at_the_plug": "vid uttaget",
         "at_the_battery": "vid batteriet",
         "recuperation": "Återvunnet",
@@ -707,6 +717,10 @@ def trips_csv(trips: Iterable[Trip], *, localize: Localizer = _identity) -> str:
         "outside_temp_min_c",
         "outside_temp_max_c",
         "weather_source",
+        # The odometer at both ends (#367); empty on trips recorded before
+        # they were kept and on a car that sent none.
+        "odometer_start_km",
+        "odometer_end_km",
     ]
     rows: list[list[Any]] = [header]
     for trip in trips:
@@ -732,6 +746,8 @@ def trips_csv(trips: Iterable[Trip], *, localize: Localizer = _identity) -> str:
                 _num(weather.get("temp_min_c"), 1),
                 _num(weather.get("temp_max_c"), 1),
                 weather.get("source") or "",
+                _num(trip.odometer_start_km, 1),
+                _num(trip.odometer_end_km, 1),
             ]
         )
     return _write(rows)
@@ -859,6 +875,17 @@ def month_report_html(
         if km is None:
             return "—"
         return f"{num(km / KM_PER_MILE if miles else km)} {'mi' if miles else 'km'}"
+
+    def odometer_cell(trip: Trip) -> str:
+        """Both odometer readings, whole units, as a logbook writes them."""
+
+        def reading(km: float | None) -> str:
+            if km is None:
+                return "—"
+            return num(km / KM_PER_MILE if miles else km, 0)
+
+        text = f"{reading(trip.odometer_start_km)} – {reading(trip.odometer_end_km)}"
+        return f'<td class="n">{escape(text)}</td>'
 
     def per_dist(value: float | None) -> float | None:
         """A per-100 km figure as per 100 of the unit shown (more per longer unit)."""
@@ -1016,6 +1043,11 @@ def month_report_html(
                 tiles.append(_tile(label, dist(split[f"{key}_km"]), note))
         parts.append(f'<div class="tiles">{"".join(tiles)}</div>')
 
+        # Only when a trip this month has one: a month recorded before the
+        # readings were kept would otherwise get a column of dashes.
+        odometer = any(
+            trip.odometer_start_km is not None or trip.odometer_end_km is not None for trip in trips
+        )
         head = "".join(
             f'<th class="n">{escape(label)}</th>' if numeric else f"<th>{escape(label)}</th>"
             for label, numeric in (
@@ -1023,6 +1055,11 @@ def month_report_html(
                 (s["from"], False),
                 (s["to"], False),
                 (s["duration"], True),
+                *(
+                    ((s["odometer_col"].format(unit="mi" if miles else "km"), True),)
+                    if odometer
+                    else ()
+                ),
                 (s["distance"], True),
                 (s["consumption_col"].format(per=per), True),
                 (s["class"], False),
@@ -1036,6 +1073,7 @@ def month_report_html(
                 f"<td>{escape((trip.start_place or {}).get('label') or '—')}</td>"
                 f"<td>{escape((trip.end_place or {}).get('label') or '—')}</td>"
                 f'<td class="n">{escape(_minutes(trip.duration_s))} min</td>'
+                f"{odometer_cell(trip) if odometer else ''}"
                 f'<td class="n">{escape(dist(trip.distance_km))}</td>'
                 f'<td class="n">{escape(num(per_dist(trip.consumption_kwh_per_100km)) or "—")}</td>'
                 f'<td><span class="badge">{escape(_classification(trip, s))}</span></td>'
@@ -1043,7 +1081,7 @@ def month_report_html(
             )
         foot = (
             "<tfoot><tr>"
-            f'<td colspan="4">{escape(s["total"])}</td>'
+            f'<td colspan="{5 if odometer else 4}">{escape(s["total"])}</td>'
             f'<td class="n">{escape(dist(driving.get("total_km")))}</td>'
             "<td></td><td></td>"
             "</tr></tfoot>"

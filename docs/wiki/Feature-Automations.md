@@ -101,7 +101,7 @@ Every trigger passes its details as `trigger.data`:
 | --- | --- |
 | Arrived at a zone | `zone`, `zone_entity_id`, `from`, `distance_km`, `duration_s`, `energy_kwh`, `soc`, `trip_id`, `trip_start` |
 | Left a zone | `zone`, `zone_entity_id`, `soc`, `trip_start` |
-| Trip ended | as *Arrived at a zone* (`zone` and `zone_entity_id` are `null` outside a zone), plus `trip_end`, `to`, `soc_start`, `classification` |
+| Trip ended | as *Arrived at a zone* (`zone` and `zone_entity_id` are `null` outside a zone), plus `trip_end`, `to`, `soc_start`, `classification`, `odometer_start_km`, `odometer_end_km` (the odometer when the car set off and stopped; `null` when the car sent none) |
 | Parked and left unlocked | `since`, `zone`, `zone_entity_id` |
 | Parked with a window open | `since`, `windows` (which ones: `front_driver`, `front_passenger`, `rear_driver`, `rear_passenger`, `sunroof`, `sunroof_tilt`, `rear_window`), `zone`, `zone_entity_id` |
 | Plugged in but not charging | `since`, `soc`, `target_soc`, `zone`, `zone_entity_id` |
