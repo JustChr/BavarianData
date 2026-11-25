@@ -9,6 +9,16 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Assist knows how long a charge actually ran.** Its charging answers now
+  carry the charging time, without the wait for a start time set in the car.
+  Asked about a charge plugged in at 18:00 and set to start at 01:00, an agent
+  could read start and end and say it charged for eleven hours; it now gets
+  the four it did (#369).
+- **The month report writes percentages like the card**: *37%* for the solar
+  share and each trip type's share, as its charge column and the card already
+  did.
+
 ## [0.9.34-beta.4] - 2026-11-25
 
 ### Fixed

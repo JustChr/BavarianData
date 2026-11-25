@@ -326,9 +326,9 @@ def test_report_gives_each_trip_type_its_share():
     html = export.month_report_html(
         month="2026-07", vehicle="i5", sessions=[], trips=[_trip()], driving=driving
     )
-    assert "<small>60 %</small>" in html  # private
-    assert "<small>40 %</small>" in html  # business, 39.6 rounded
-    assert "<small>&lt;1 %</small>" in html  # a sliver still shows
+    assert "<small>60%</small>" in html  # private
+    assert "<small>40%</small>" in html  # business, 39.6 rounded
+    assert "<small>&lt;1%</small>" in html  # a sliver still shows
 
 
 def test_report_never_claims_tax_compliance():
@@ -384,7 +384,7 @@ def test_report_says_what_the_solar_share_is_a_share_of():
         trips=[],
         charging_summary=summary.summarise(sessions),
     )
-    assert "75.8 % <small>75.0 of 99.0 kWh measured</small>" in html
+    assert "75.8% <small>75.0 of 99.0 kWh measured</small>" in html
 
 
 def test_report_numbers_read_right_in_the_reader_s_language():

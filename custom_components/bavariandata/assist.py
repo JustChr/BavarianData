@@ -17,6 +17,7 @@ unit-tested directly (``tests/test_assist.py``).
 from __future__ import annotations
 
 import re
+from datetime import datetime
 from typing import Any
 from collections.abc import Iterable, Mapping, Sequence
 
@@ -392,6 +393,24 @@ def _range_check_with_fuel(
     return answer
 
 
+def _charging_minutes(session: Mapping[str, Any]) -> int | None:
+    """How long the charge ran, without the time it waited for a start time.
+
+    A charge plugged in at six and set to start at one is one record from six,
+    so start and end alone would tell an agent it charged for seven hours more
+    than it did (``paused_s``, #369). ``None`` while it runs or without times.
+    """
+
+    try:
+        start = datetime.fromisoformat(str(session["start"]))
+        end = datetime.fromisoformat(str(session["end"]))
+    except KeyError, TypeError, ValueError:
+        return None
+    paused = session.get("paused_s")
+    waited = paused if isinstance(paused, (int, float)) else 0
+    return max(0, round(((end - start).total_seconds() - waited) / 60))
+
+
 def charging_answer(sessions: Iterable[Mapping[str, Any]], *, days: int) -> dict[str, Any]:
     """The charging sessions of the last ``days`` days, newest first, with totals.
 
@@ -414,6 +433,7 @@ def charging_answer(sessions: Iterable[Mapping[str, Any]], *, days: int) -> dict
             item = {
                 "start": session.get("start"),
                 "end": session.get("end"),
+                "charging_minutes": _charging_minutes(session),
                 "place": (session.get("location") or {}).get("zone"),
                 "battery_from_percent": _number(session.get("soc_start")),
                 "battery_to_percent": _number(session.get("soc_end")),
