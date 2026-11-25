@@ -318,3 +318,25 @@ def test_charging_answer_totals_everything_and_lists_the_newest():
     assert answer["sessions_not_listed"] == 6
     assert answer["sessions"][0]["start"].startswith("2026-10-26")
     assert "power_curve" not in json.dumps(answer)
+
+
+def test_a_charge_that_waited_for_its_start_time_reports_only_the_charging():
+    # #369: plugged in at 18:00, set to start at 01:00, done at 05:00. One record
+    # from 18:00, but it charged for about four hours, not eleven.
+    waited = 7 * 3600 - 60
+    answer = assist.charging_answer(
+        [
+            {
+                "start": "2026-11-24T18:00:00+00:00",
+                "end": "2026-11-25T05:00:00+00:00",
+                "paused_s": waited,
+            },
+            {"start": "2026-11-23T18:00:00+00:00", "end": "2026-11-23T19:30:00+00:00"},
+            {"start": "2026-11-25T18:00:00+00:00", "end": None},
+        ],
+        days=7,
+    )
+    by_start = {s["start"][:10]: s for s in answer["sessions"]}
+    assert by_start["2026-11-24"]["charging_minutes"] == 4 * 60 + 1
+    assert by_start["2026-11-23"]["charging_minutes"] == 90
+    assert "charging_minutes" not in by_start["2026-11-25"]

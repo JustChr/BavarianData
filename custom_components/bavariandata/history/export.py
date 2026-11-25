@@ -922,7 +922,7 @@ def month_report_html(
             tiles.append(
                 _tile(
                     s["solar"],
-                    f"{num(mix['solar_percent'])} %",
+                    f"{num(mix['solar_percent'])}%",
                     s["solar_measured"].format(pv=num(mix.get("pv") or 0), known=num(known)),
                 )
             )
@@ -1039,7 +1039,7 @@ def month_report_html(
         ):
             if split.get(f"{key}_km"):
                 pct = split.get(f"{key}_percent")
-                note = "" if pct is None else ("<1 %" if pct < 0.5 else f"{num(pct, 0)} %")
+                note = "" if pct is None else ("<1%" if pct < 0.5 else f"{num(pct, 0)}%")
                 tiles.append(_tile(label, dist(split[f"{key}_km"]), note))
         parts.append(f'<div class="tiles">{"".join(tiles)}</div>')
 
