@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.34-beta.4] - 2026-11-25
+
 ### Fixed
 - **The activation result on the BMW portal is readable everywhere** (Discussion
   #370, thanks @derekPrivate). When Home Assistant can't be reached from the
