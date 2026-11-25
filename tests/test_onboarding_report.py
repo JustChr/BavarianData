@@ -87,3 +87,17 @@ def test_a_bookmark_from_an_earlier_setup_says_so_instead_of_claiming_success(
     assert "Home Assistant will continue automatically" not in toast
     assert "earlier setup" in toast
     assert "Copy this and paste it into Home Assistant" in toast
+
+
+def test_the_code_field_sets_its_own_colours_and_the_box_can_be_closed(
+    tmp_path,
+) -> None:
+    # D#370: on a Mac the portal's styles turned the code field white on white,
+    # and the box stayed on the page until the tab was closed.
+    toast = _toast(tmp_path, "")
+
+    field = toast[toast.index("<textarea") : toast.index("</textarea>")]
+    assert "background:#fff" in field
+    assert "color:#1a1a1a" in field
+    assert 'id="bd-close"' in toast
+    assert 'id="bd-close"' in _toast(tmp_path, OB.REPORT_ACK)
