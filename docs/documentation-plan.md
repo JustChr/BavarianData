@@ -109,7 +109,7 @@ restructure) · ❌ missing · 📷 needs screenshot.
 | `guided_wait` | Guided: waiting for activation (progress, **https only**) | ❌ needs https HA to reach | 📷 |
 | `guided_paste` | Guided: activation + paste screen (http HA) | ✅ `bavariandata-setup-guided` | — |
 | `guided_done` | Guided: activation confirmation | ❌ needs a real activation | 📷 |
-| served `/bavariandata/onboarding` | Bookmarklet helper page (drag + console fallback) | ✅ `bavariandata-setup-bookmarklet` | — |
+| served `/bavariandata/onboarding` | Bookmarklet helper page (drag + paste box + console fallback) | ✅ `bavariandata-setup-bookmarklet` | — |
 | `manual` | Client ID entry + portal recap | ✅ `bavariandata-setup-manual` | — |
 | `authorize` | Device link + user code | 🟡 | 📷 |
 | `authorize_failed` | Access-denied recovery | 🟡 | 📷 |
@@ -132,7 +132,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | CarData Stream + Change data selection | GS-4 | ✅ | `bmw-portal-change-data-selection` |
 | Stream setup — selection of vehicle data | GS-3 | ✅ | `bmw-portal-stream-setup` |
 | Bookmarklet running (reading fields) | GS-3 | ✅ | `bmw-portal-bookmarklet-running` |
-| Bookmarklet done (fields active + copy box) | GS-3 | ✅ | `bmw-portal-bookmarklet-done` |
+| Bookmarklet done (fields active + copy box + close) | GS-3 | ✅ | `bmw-portal-bookmarklet-done` |
 
 ### Configure (options) menu — 14 actions from `async_step_init`
 

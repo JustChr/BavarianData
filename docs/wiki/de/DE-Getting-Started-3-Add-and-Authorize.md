@@ -46,7 +46,7 @@ derselbe Ein-Klick-Aktivator ein — siehe [Schritt 4](DE-Getting-Started-4-Choo
    Assistant nicht mehr:
 
    <p align="center">
-     <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-setup-bookmarklet.png" alt="Die bereitgestellte Aktivierungsseite mit dem ziehbaren Lesezeichen 'Activate BMW data' und einer Konsolen-Alternative" width="600" />
+     <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-setup-bookmarklet.png" alt="Die bereitgestellte Aktivierungsseite mit dem ziehbaren Lesezeichen 'Activate BMW data', einem Feld zum Einfügen des Ergebnisses vom Portal und einer Konsolen-Alternative" width="600" />
    </p>
 
 2. Öffne das **BMW- oder MINI-Portal**, melde dich an, gehe zur
@@ -62,13 +62,13 @@ derselbe Ein-Klick-Aktivator ein — siehe [Schritt 4](DE-Getting-Started-4-Choo
    und keine Sitzung verlässt ihn. Zuerst liest es die verfügbaren Felder …
 
    <p align="center">
-     <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bmw-portal-bookmarklet-running.png" alt="Dieselbe Portalseite mit der Fortschrittsmeldung 'BavarianData — Reading available fields…' oben rechts" width="760" />
+     <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bmw-portal-bookmarklet-running.png" alt="Dieselbe Portalseite mit der Fortschrittsmeldung 'BavarianData — Reading available fields…' oben rechts, mit Schließen-Knopf" width="760" />
    </p>
 
    … und meldet dann, wie viele aktiv sind:
 
    <p align="center">
-     <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bmw-portal-bookmarklet-done.png" alt="Portalseite mit der Meldung 'BavarianData — 228 fields active' und einem Feld 'Copy this and paste it into Home Assistant' mit Copy-Schaltfläche" width="760" />
+     <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bmw-portal-bookmarklet-done.png" alt="Portalseite mit der Meldung 'BavarianData — 224 fields active', dem Ergebnis unter 'Copy this and paste it into Home Assistant', Copy-Schaltfläche und Schließen-Knopf" width="760" />
    </p>
 
    Zurück in Home Assistant wartet der geführte Bildschirm auf dieses Ergebnis:

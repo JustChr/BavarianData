@@ -43,7 +43,7 @@ again — see [step 4](Getting-Started-4-Choose-Data).
    earlier try can't reach Home Assistant:
 
    <p align="center">
-     <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-setup-bookmarklet.png" alt="The served activation page with a draggable 'Activate BMW data' bookmarklet button and a console fallback" width="600" />
+     <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-setup-bookmarklet.png" alt="The served activation page with a draggable 'Activate BMW data' bookmarklet button, a box to paste the portal's result into, and a console fallback" width="600" />
    </p>
 
 2. Open the **BMW or MINI portal**, sign in, go to a vehicle's **stream setup**
@@ -59,13 +59,13 @@ again — see [step 4](Getting-Started-4-Choose-Data).
    ever leaves it. You'll see it read the available fields…
 
    <p align="center">
-     <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bmw-portal-bookmarklet-running.png" alt="The same portal page with a 'BavarianData — Reading available fields…' progress toast in the top-right corner" width="760" />
+     <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bmw-portal-bookmarklet-running.png" alt="The same portal page with a 'BavarianData — Reading available fields…' progress box in the top-right corner, with a close button" width="760" />
    </p>
 
    …then report how many are active:
 
    <p align="center">
-     <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bmw-portal-bookmarklet-done.png" alt="Portal page with a 'BavarianData — 228 fields active' toast and a 'Copy this and paste it into Home Assistant' box with a Copy button" width="760" />
+     <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bmw-portal-bookmarklet-done.png" alt="Portal page with a 'BavarianData — 224 fields active' box showing the result under 'Copy this and paste it into Home Assistant', a Copy button and a close button" width="760" />
    </p>
 
    Back in Home Assistant, the guided screen waits for that result:
