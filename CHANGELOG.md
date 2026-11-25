@@ -9,6 +9,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **The activation result on the BMW portal is readable everywhere** (Discussion
+  #370, thanks @derekPrivate). When Home Assistant can't be reached from the
+  portal, the blue box shows a code to copy. On some browsers (seen on a Mac) the
+  portal's own styles made that code white on white; the field now sets its own
+  dark text on a light background. The box also has a close button (×), so it no
+  longer stays on the page until the tab is closed.
+
 ## [0.9.34-beta.3] - 2026-11-24
 
 ### Fixed

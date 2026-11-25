@@ -89,7 +89,13 @@ _ACTIVATOR_TEMPLATE = """(async () => {
   box.style.cssText = 'position:fixed;top:16px;right:16px;z-index:2147483647;'
     + 'max-width:360px;background:#1c69d4;color:#fff;font:14px/1.45 Arial,sans-serif;'
     + 'padding:14px 16px;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.35)';
-  const show = (html) => { box.innerHTML = '<b>BavarianData</b><br>' + html; };
+  // The portal's own styles reach into the box, so every control in it sets its
+  // colours itself (D#370: the code field came out white on white on a Mac).
+  const TITLE = '<button id="bd-close" aria-label="Close" title="Close" style="float:right;'
+    + 'margin:-6px -8px 0 8px;padding:0 6px;border:0;background:transparent;color:#fff;'
+    + 'font:20px/1 Arial,sans-serif;cursor:pointer">&times;</button><b>BavarianData</b><br>';
+  const show = (html) => { box.innerHTML = TITLE + html; };
+  box.onclick = (e) => { if (e.target && e.target.id === 'bd-close') box.remove(); };
   document.body.appendChild(box);
 
   // Every request gets a hard timeout, so a stalled connection (BMW's bot-defense
@@ -241,13 +247,14 @@ _ACTIVATOR_TEMPLATE = """(async () => {
   // Manual fallback: a programmatic clipboard write fails this late (the click
   // gesture that launched us has long expired), so present the code with a Copy
   // button -- the button's own click is a fresh gesture that is allowed to copy.
-  box.innerHTML = '<b>BavarianData</b><br>' + head
+  box.innerHTML = TITLE + head
     + (stale ? '<br><br>This bookmark is from an earlier setup, so Home Assistant did not get it. '
         + 'Drag the button from the current activation page to your bookmarks bar again '
         + '(replacing this one) and click it here.' : '')
     + '<br><br>Copy this and paste it into Home Assistant:'
     + '<textarea id="bd-blob" readonly style="width:100%;height:56px;margin-top:6px;'
-    + 'font:11px/1.3 monospace;box-sizing:border-box"></textarea>'
+    + 'font:11px/1.3 monospace;box-sizing:border-box;background:#fff;color:#1a1a1a;'
+    + 'border:1px solid #c8d3e6;border-radius:4px;padding:4px 6px"></textarea>'
     + '<button id="bd-copy" style="margin-top:6px;padding:7px 14px;border:0;border-radius:5px;'
     + 'background:#fff;color:#1c69d4;font-weight:600;cursor:pointer">Copy</button>';
   const ta = box.querySelector('#bd-blob'); ta.value = blob;
