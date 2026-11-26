@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.34-beta.6] - 2026-11-26
+
 ### Fixed
 - **A Home Assistant restart during a drive no longer splits the trip in two.**
   The part before the restart was saved as a trip of its own and the rest
