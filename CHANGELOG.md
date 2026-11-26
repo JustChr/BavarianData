@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.34-beta.5] - 2026-11-26
+
 ### Added
 - **The card shows a car warming itself up.** While the parked car heats, cools
   or airs itself before you leave, a badge on the picture says so and when it
