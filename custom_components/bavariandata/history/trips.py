@@ -127,6 +127,10 @@ class Trip:
     # place a trip inside it, so older records are never filled in.
     odometer_start_km: float | None = None
     odometer_end_km: float | None = None
+    # True when Home Assistant stopped while this drive was under way, so it was
+    # filed as far as it had got. The drive that opens just after the restart
+    # carries it on (``vehicle_trips._restart_cut``) and replaces the record.
+    cut_by_restart: bool = False
 
     @property
     def id(self) -> str:
@@ -190,6 +194,14 @@ class Trip:
         return round(self.soc_start - self.soc_end, 1)
 
     def to_dict(self) -> dict[str, Any]:
+        data = self._fields()
+        # Only while it is true: a short-lived mark, not a column every
+        # record, export and answer should carry.
+        if self.cut_by_restart:
+            data["cut_by_restart"] = True
+        return data
+
+    def _fields(self) -> dict[str, Any]:
         return {
             "vin": self.vin,
             "start": _iso(self.start),
@@ -251,6 +263,7 @@ class Trip:
             weather=data.get("weather") if isinstance(data.get("weather"), dict) else None,
             odometer_start_km=_reading(data.get("odometer_start_km")),
             odometer_end_km=_reading(data.get("odometer_end_km")),
+            cut_by_restart=data.get("cut_by_restart") is True,
         )
 
 

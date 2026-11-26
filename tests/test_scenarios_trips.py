@@ -218,7 +218,60 @@ def test_a_restart_mid_drive_does_not_lose_the_trip(h, snapshot):
 
     trips = h.trips()
     assert trips, "the drive was lost across the restart"
+    # One drive, not the part before the restart and the part after it.
+    (trip,) = trips
+    assert abs(trip.start - h.at(7)) < timedelta(seconds=5)
+    assert trip.start_place["label"] == "Home"
+    assert trip.distance_km == 13.4
+    assert not trip.cut_by_restart
     assert _record(h) == snapshot
+
+
+def test_the_first_part_stays_stored_while_the_rest_is_driven(h):
+    # Kept until the close writes the whole drive over it: a crash before then
+    # (no stop flush) must still leave the part before the restart.
+    here = _drive(h, 5, 5)
+    h.restart(downtime_s=60)
+    _drive(h, h.minute, 3, origin=here)
+
+    progress = h.coordinator.open_trip_progress(h.vin)
+    (first,) = h.trips()
+    assert first.cut_by_restart
+    assert progress is not None and progress["start"] == first.start.isoformat()
+
+
+def test_a_car_that_had_parked_before_the_restart_starts_a_new_trip(h):
+    here = _drive(h, 5, 5)
+    h.fix(16, *here)  # standing: arrived
+    h.restart(downtime_s=60)
+    there = _drive(h, h.minute + 1, 3, origin=here)
+    h.fix(h.minute + 2, *there)
+    h.advance_to(h.minute + 30)
+
+    assert len(h.trips()) == 2
+
+
+def test_a_driver_door_opened_before_the_restart_starts_a_new_trip(h):
+    h.send(4, door=False)
+    here = _drive(h, 5, 4)
+    here = _arrive_with_the_door_open(h, 15, here)
+    h.restart(downtime_s=60)
+    there = _drive(h, h.minute + 1, 3, origin=here)
+    h.fix(h.minute + 2, *there)
+    h.advance_to(h.minute + 30)
+
+    assert len(h.trips()) == 2
+
+
+def test_a_drive_long_after_the_restart_is_a_trip_of_its_own(h):
+    here = _drive(h, 5, 5)
+    h.restart(downtime_s=60)
+    h.advance_to(h.minute + 15)  # past RESUME_AFTER_RESTART_S
+    there = _drive(h, h.minute, 3, origin=here)
+    h.fix(h.minute + 2, *there)
+    h.advance_to(h.minute + 30)
+
+    assert len(h.trips()) == 2
 
 
 def test_a_fresh_install_pairs_its_gps_halves_correctly():

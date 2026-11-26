@@ -759,3 +759,12 @@ def test_format_address_falls_back_to_display_name():
 def test_format_address_none_when_empty():
     assert geocoding.format_address(None) is None
     assert geocoding.format_address({}) is None
+
+
+def test_the_restart_mark_survives_the_store_and_is_absent_otherwise():
+    cut = Trip("WBY1", START, end=START + timedelta(minutes=20), cut_by_restart=True)
+    assert Trip.from_dict(json.loads(json.dumps(cut.to_dict()))).cut_by_restart
+    whole = Trip("WBY1", START, end=START + timedelta(minutes=20))
+    assert "cut_by_restart" not in whole.to_dict()
+    assert not Trip.from_dict(whole.to_dict()).cut_by_restart
+    assert not Trip.from_dict({**whole.to_dict(), "cut_by_restart": "yes"}).cut_by_restart
