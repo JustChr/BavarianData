@@ -9,6 +9,16 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **A Home Assistant restart during a drive no longer splits the trip in two.**
+  The part before the restart was saved as a trip of its own and the rest
+  started a new one. Now the drive carries on from its original start and is
+  saved as one trip when you arrive, with the full distance. If the car had
+  already stopped or the driver's door had opened before the restart, the next
+  drive stays a trip of its own. With weather along trips on, the weather covers
+  the part before the restart too: from the recorded route, or without route
+  recording from the zone the drive started in.
+
 ## [0.9.34-beta.5] - 2026-11-26
 
 ### Added

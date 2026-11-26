@@ -112,6 +112,30 @@ class TripWeather:
         if sampler is not None:
             sampler.add(latitude, longitude, at)
 
+    def trip_resumed(self, vin: str, trip: Trip) -> None:
+        """Start a drive carried on after a restart from what survived of it.
+
+        The waypoints before the restart lived in memory and are gone. Its
+        stored route gives them back, where one was recorded; otherwise the
+        zone it set off from stands in for its start. Nothing else of where it
+        went was kept, by design, so nothing else is guessed.
+        """
+
+        self.trip_opened(vin)
+        sampler = self._host._peek(vin).trip.waypoints
+        if sampler is None:
+            return
+        points = points_from_track(trip.track, trip.start, trip.end) if trip.track else []
+        if points:
+            for point in points:
+                sampler.add(point.lat, point.lon, point.at)
+            return
+        place = trip.start_place
+        if isinstance(place, dict) and place.get("zone"):
+            location = self._host.places.zone_location(place["zone"])
+            if location is not None:
+                sampler.add(location[0], location[1], trip.start)
+
     def take_waypoints(self, vin: str) -> WaypointSampler | None:
         sampler: WaypointSampler | None = self._host._peek(vin).trip.take("waypoints")
         return sampler

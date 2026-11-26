@@ -226,3 +226,50 @@ def test_nothing_is_asked_about_the_day_while_the_switch_is_off(h):
 
     assert weather.days == []
     assert h.coordinator.outside_temperature(h.vin) is None
+
+
+# -- a drive a restart cut in two ------------------------------------------------
+
+
+def _drive_through_a_restart(h: CoordinatorHarness, *, track: bool) -> None:
+    """Five fixes out of Home, a restart, five more, parked. One trip."""
+
+    settings = load_module("trip_settings").TripSettings(record_track=track)
+    h.coordinator.trip_settings = settings
+    for i in range(1, 6):
+        h.fix(5 + i * 2, HOME[0] + i * STEP, HOME[1] + i * STEP)
+    h.restart(downtime_s=60)
+    h.coordinator.trip_settings = settings
+    weather = h.coordinator.route_weather = _FakeWeather()
+    start = h.minute
+    for i in range(6, 11):
+        h.fix(start + (i - 5) * 2, HOME[0] + i * STEP, HOME[1] + i * STEP)
+    h.fix(h.minute + 2, HOME[0] + 10 * STEP, HOME[1] + 10 * STEP)
+    h.advance_to(h.minute + 20)
+    return weather
+
+
+@pytest.mark.solo  # counts the account's weather lookups, every car's
+def test_a_resumed_drive_without_a_route_starts_its_weather_at_home(h):
+    # The waypoints before the restart were in memory only; the zone it left
+    # from stands in for them -- no coordinate was kept to do it.
+    weather = _drive_through_a_restart(h, track=False)
+
+    (trip,) = h.trips()
+    (call,) = weather.calls
+    first = call["points"][0]
+    assert (first.lat, first.lon) == (48.1, 16.3)
+    assert first.at == trip.start
+    assert trip.weather["source"] == "route"
+
+
+@pytest.mark.solo  # counts the account's weather lookups, every car's
+def test_a_resumed_drive_with_a_route_keeps_its_weather_points_from_before(h):
+    weather = _drive_through_a_restart(h, track=True)
+
+    (trip,) = h.trips()
+    (call,) = weather.calls
+    before = [p for p in call["points"] if p.at < h.at(20)]
+    # The start and the waypoints the route held from before the restart.
+    assert len(before) >= 2
+    assert call["points"][0].at == trip.start

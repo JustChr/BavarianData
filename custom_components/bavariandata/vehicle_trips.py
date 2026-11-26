@@ -79,6 +79,11 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger("custom_components.bavariandata.coordinator")
 
+# How long after a restart cut a drive the next one may still be its
+# continuation. A restart takes a minute or two; the first fix that reads as
+# movement can come a few minutes after that.
+RESUME_AFTER_RESTART_S = 600
+
 
 class TripHost(Protocol):
     """What trip detection reads and does, from the coordinator."""
@@ -681,6 +686,10 @@ class VehicleTrips:
         self._host._peek(vin).trip.take("door_arrival")
         # Moving again: a reading still pending after the last close is this drive's.
         self.settle_late_reading(vin, moved=True)
+        cut = self._restart_cut(vin, now)
+        if cut is not None:
+            self._resume_trip(vin, cut)
+            return
         seed, started_at = self._trip_start_seed(vin, now, parked_until)
         # Resolve the start place from the seed (the parked/door-close spot), not
         # the ~hundreds-of-metres-later fix that first registered as movement.
@@ -770,7 +779,13 @@ class VehicleTrips:
         return max(start, min(last_move, now))
 
     async def _close_trip(
-        self, vin: str, now: datetime, *, reason: str = "stationary", announce: bool = True
+        self,
+        vin: str,
+        now: datetime,
+        *,
+        reason: str = "stationary",
+        announce: bool = True,
+        cut_by_restart: bool = False,
     ) -> None:
         """Close the open trip. ``announce=False`` (the stop flush) fires no events."""
 
@@ -817,6 +832,7 @@ class VehicleTrips:
             stats=stats,
             hybrid=self._host.is_plug_in_hybrid(vin),
         )
+        trip.cut_by_restart = cut_by_restart
         dropped = is_noise_trip(trip)
         self._host.trip_log.cap(
             "[trip] %s CLOSE(%s) %s -> %s dist=%s (bmw=%s) soc=%s->%s energy=%s stats=%s",
@@ -1257,9 +1273,94 @@ class VehicleTrips:
         for vin in self._host._vins_where(lambda car: car.report.timer is not None):
             self._host.reports.cancel_report_timer(vin)
         for vin in self._host._vins_where(lambda car: car.trip.builder is not None):
+            now = datetime.now(UTC)
             reason = "silent" if self._host._peek(vin).trip.held_since is not None else "unload"
             with suppress(Exception):
-                await self._close_trip(vin, datetime.now(UTC), reason=reason, announce=False)
+                await self._close_trip(
+                    vin,
+                    now,
+                    reason=reason,
+                    announce=False,
+                    cut_by_restart=reason == "unload" and self._still_driving(vin, now),
+                )
+
+    def _still_driving(self, vin: str, now: datetime) -> bool:
+        """Whether the drive was under way when Home Assistant stopped.
+
+        Moving within the close debounce, with no fix since showing the car
+        standing and no driver door opened: a trip only waiting out its
+        debounce after an arrival is over, and the next drive must not be glued
+        onto it.
+        """
+
+        car = self._host._peek(vin)
+        if car.trip.door_arrival is not None or car.trip.driver_door_open:
+            return False
+        last_move = car.gps.last_move
+        if last_move is None or (now - last_move).total_seconds() >= TRIP_CLOSE_DEBOUNCE_S:
+            return False
+        # A fix since that showed the car standing: it had already arrived.
+        stopped = car.trip.last_stop_evidence
+        return stopped is None or stopped <= last_move
+
+    def _restart_cut(self, vin: str, now: datetime) -> Trip | None:
+        """The drive a restart cut off, if the one opening now carries it on.
+
+        The newest stored trip, marked by the stop flush, ended no more than
+        :data:`RESUME_AFTER_RESTART_S` ago -- and the driver did not get in
+        again since (a door close marks a fresh start).
+        """
+
+        history = self._host.history
+        if history is None or self._host._peek(vin).trip.pending_start is not None:
+            return None
+        newest = next(iter(history.trips(vin, limit=1)), None)
+        if newest is None or not newest.cut_by_restart or newest.end is None:
+            return None
+        gap_s = (now - newest.end).total_seconds()
+        return newest if 0 <= gap_s <= RESUME_AFTER_RESTART_S else None
+
+    def _resume_trip(self, vin: str, trip: Trip) -> None:
+        """Carry on the drive ``trip`` holds, as it was when the restart cut it.
+
+        The record stays stored until the close writes the whole drive over it
+        (same start, same id), so a crash before then still keeps the first
+        part. Its route, where one was recorded, carries on; its distance comes
+        from the odometer, which spans the gap.
+        """
+
+        builder = self._host._car(vin).trip.builder = TripBuilder(
+            vin,
+            trip.start,
+            start_place=trip.start_place,
+            soc_start=trip.soc_start,
+            mileage_start=trip.odometer_start_km,
+            location_assumed=trip.location_assumed,
+            record_track=self._host.trip_settings_for(vin).record_track,
+        )
+        if builder.mileage_start is None and trip.distance_km:
+            builder.gps_km = trip.distance_km
+        if builder.record_track:
+            builder.track = [list(point) for point in trip.track]
+        self._host._peek(vin).trip.take("pending_start")
+        self._host._peek(vin).trip.take("parked_reading")
+        self._host.weather.trip_resumed(vin, trip)
+        # "Left a zone" was the first part's to fire; this one starts nowhere.
+        self._host._peek(vin).trip.take("start_zone")
+        self._host._car(vin).trip.zone_left_fired = False
+        self._host._car(vin).trip.capture = {
+            "fixes": 0,
+            "moves": 0,
+            "holds": 0,
+            "max_gap": 0.0,
+            "odo_start": builder.mileage_start,
+        }
+        self._host.trip_log.cap(
+            "[trip] %s RESUME the drive from %s cut by a restart",
+            vin,
+            trip.start.isoformat(),
+        )
+        async_dispatcher_send(self._host.hass, self._host.signal_trip_active, vin)
 
     async def resolve_place(
         self,

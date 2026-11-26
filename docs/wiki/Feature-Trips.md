@@ -187,8 +187,14 @@ Two things to know before you automate on it:
   ticks in whole kilometers, so it reads `unknown` for the first minute or so of a
   drive and then falls behind the GPS track a little. The final record is
   computed at close from the better of the available sources.
-- Nothing survives a restart: an in-flight trip lives only in memory, so
-  restarting Home Assistant mid-drive ends the trip and the flag goes `off`.
+- **A restart mid-drive doesn't split the trip.** When Home Assistant stops
+  during a drive, the trip is saved as far as it got and the flag goes `off`. If
+  the car is still driving when Home Assistant is back (within 10 minutes), the
+  trip carries on from its original start and is saved as one drive when you
+  arrive. If the car had already stopped, or the driver's door had opened, the
+  next drive is a trip of its own. The weather along the drive covers the part
+  before the restart from the recorded route, or, without route recording, from
+  the zone it started in.
 
 ## Privacy by default
 

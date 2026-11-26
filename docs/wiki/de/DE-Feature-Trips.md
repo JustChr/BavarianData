@@ -206,9 +206,14 @@ Zwei Dinge, bevor du darauf automatisierst:
   ganzen Kilometern zählt, sie zeigt in der ersten Minute einer Fahrt also `unknown`
   und hängt danach etwas hinter der GPS-Spur her. Der endgültige Datensatz wird
   beim Schließen aus der besten verfügbaren Quelle berechnet.
-- Über einen Neustart kommt nichts: Eine laufende Fahrt existiert nur im Speicher,
-  ein Neustart von Home Assistant mitten in der Fahrt beendet sie also und das
-  Signal geht auf `aus`.
+- **Ein Neustart während der Fahrt teilt sie nicht.** Stoppt Home Assistant
+  während einer Fahrt, wird sie bis dahin gespeichert und das Signal geht auf
+  `aus`. Fährt das Auto noch, wenn Home Assistant wieder da ist (innerhalb von
+  10 Minuten), läuft die Fahrt ab ihrem ursprünglichen Start weiter und wird bei
+  der Ankunft als eine Fahrt gespeichert. Stand das Auto schon oder war die
+  Fahrertür offen, ist die nächste Fahrt eine eigene. Das Wetter entlang der Fahrt
+  deckt den Teil vor dem Neustart über die aufgezeichnete Route ab, ohne
+  Routenaufzeichnung über die Zone, in der sie begann.
 
 ## Privatsphäre von Haus aus
 

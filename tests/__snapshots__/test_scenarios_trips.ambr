@@ -259,8 +259,7 @@
 # ---
 # name: test_a_restart_mid_drive_does_not_lose_the_trip
   '''
-  08:18:02 -> 08:26:02  6.7 km  Unknown -> Unknown
-  08:07:01 -> 08:15:01  6.7 km  Home -> Unknown
+  08:07:01 -> 08:26:02  13.4 km  Home -> Unknown
   --
       0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
       7.0  wait 7                   est=     - rate=    - charging=off open=n sessions=0
