@@ -195,6 +195,9 @@ export default (Base) => class StylesPart extends Base {
         flex: 0 0 auto;
         animation: bd-trip-pulse 2s ease-in-out infinite;
       }
+      /* The same badge for a parked car preconditioning: warm while it heats,
+         the charge blue while it cools or airs. */
+      .hero__trip-dot--heat { background: #ff8a3d; }
       .hero__trip-sub {
         font-weight: 500;
         opacity: 0.85;

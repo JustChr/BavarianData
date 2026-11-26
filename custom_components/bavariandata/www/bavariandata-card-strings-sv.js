@@ -408,6 +408,9 @@ export default {
   tr_rain: "regn",
   tr_open_note:
     "Den här resan pågår fortfarande. Sträcka och förbrukning är preliminära, och resan kan klassas när den är slut.",
+  // preconditioning badge
+  pc_hint: "Bilen värmer eller kyler sig före avfärd",
+  pc_until: "till {t}",
   // map
   mp_title: "Resekarta",
   mp_loading: "Läser in karta…",

@@ -408,6 +408,9 @@ export default {
   tr_rain: "lluvia",
   tr_open_note:
     "Este trayecto sigue en curso. La distancia y el consumo son provisionales, y el trayecto se podrá clasificar cuando termine.",
+  // preconditioning badge
+  pc_hint: "El coche se está climatizando antes de salir",
+  pc_until: "hasta las {t}",
   // map
   mp_title: "Mapa de trayectos",
   mp_loading: "Cargando el mapa…",

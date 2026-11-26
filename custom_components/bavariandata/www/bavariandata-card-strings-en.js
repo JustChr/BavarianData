@@ -409,6 +409,9 @@ export default {
   tr_rain: "rain",
   tr_open_note:
     "This drive is still under way. Distance and consumption are provisional, and the trip can be classified once it ends.",
+  // preconditioning badge
+  pc_hint: "The car is heating or cooling itself before you leave",
+  pc_until: "until {t}",
   // map
   mp_title: "Trip map",
   mp_loading: "Loading map…",

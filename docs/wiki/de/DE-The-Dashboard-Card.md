@@ -212,6 +212,14 @@ mit Strecke und Minuten bisher; antippen für die vollständigen Attribute. Es f
 der Entität *Fahrt aktiv* und bleibt daher nach der Ankunft noch ein paar Minuten
 stehen — [warum](DE-Feature-Trips#seeing-the-drive-thats-happening-now).
 
+Heizt, kühlt oder lüftet sich das geparkte Auto vor der Abfahrt, zeigt dieselbe
+Stelle, was es gerade tut (*Heizen*, *Kühlen*, *Lüften*) und bis wann – aus dem
+eigenen Vorklimatisierungsstatus des Autos und seiner Restzeit; antippen öffnet die
+Entität. Während einer Fahrt erscheint es nie (Klimatisierung unterwegs ist keine
+Vorklimatisierung), und es verschwindet, sobald der Status auf Ruhe wechselt oder die
+Restzeit abgelaufen ist. Autos, die den Vorklimatisierungsstatus nicht streamen,
+zeigen es nie.
+
 Ein bestimmtes Fahrzeug legst du mit `device:` (Geräte-ID) oder `vin:` fest.
 
 ### Kacheln wählen

@@ -9,6 +9,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **The card shows a car warming itself up.** While the parked car heats, cools
+  or airs itself before you leave, a badge on the picture says so and when it
+  ends (*Heating · until 07:43*). It reads the car's own preconditioning status,
+  so it is there whether you started it in the app, by timer or in the car. It
+  never shows during a drive, and it goes once the car says it is done or the
+  remaining time has run out.
+
 ### Fixed
 - **Assist knows how long a charge actually ran.** Its charging answers now
   carry the charging time, without the wait for a start time set in the car.

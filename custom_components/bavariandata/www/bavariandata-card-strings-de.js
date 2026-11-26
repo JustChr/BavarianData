@@ -408,6 +408,9 @@ export default {
   tr_rain: "Regen",
   tr_open_note:
     "Diese Fahrt läuft noch. Strecke und Verbrauch sind vorläufig; zuordnen lässt sich die Fahrt, sobald sie beendet ist.",
+  // preconditioning badge
+  pc_hint: "Das Auto klimatisiert sich vor der Abfahrt",
+  pc_until: "bis {t}",
   // map
   mp_title: "Fahrtenkarte",
   mp_loading: "Karte wird geladen…",

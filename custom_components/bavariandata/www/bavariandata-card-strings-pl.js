@@ -408,6 +408,9 @@ export default {
   tr_rain: "deszcz",
   tr_open_note:
     "Ten przejazd wciąż trwa. Dystans i zużycie są wstępne, a przejazd można sklasyfikować po jego zakończeniu.",
+  // preconditioning badge
+  pc_hint: "Samochód ogrzewa lub chłodzi się przed wyjazdem",
+  pc_until: "do {t}",
   // map
   mp_title: "Mapa przejazdów",
   mp_loading: "Wczytywanie mapy…",

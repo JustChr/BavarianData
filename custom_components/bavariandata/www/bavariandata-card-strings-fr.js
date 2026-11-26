@@ -408,6 +408,9 @@ export default {
   tr_rain: "pluie",
   tr_open_note:
     "Ce trajet est toujours en cours. La distance et la consommation sont provisoires, et le trajet pourra être classé une fois terminé.",
+  // preconditioning badge
+  pc_hint: "La voiture se chauffe ou se refroidit avant le départ",
+  pc_until: "jusqu’à {t}",
   // map
   mp_title: "Carte des trajets",
   mp_loading: "Chargement de la carte…",
