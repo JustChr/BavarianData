@@ -408,6 +408,9 @@ export default {
   tr_rain: "chuva",
   tr_open_note:
     "Esta viagem ainda está em curso. A distância e o consumo são provisórios, e a viagem pode ser classificada quando terminar.",
+  // preconditioning badge
+  pc_hint: "O carro está a aquecer ou arrefecer antes da partida",
+  pc_until: "até às {t}",
   // map
   mp_title: "Mapa de viagens",
   mp_loading: "A carregar o mapa…",

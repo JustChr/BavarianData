@@ -181,3 +181,66 @@ def test_own_tiles_stay_whatever_the_car_does():
     html = _render({**I5, "binary_sensor.trip": _trip()}, config)["html"]
     assert _cells(html) == ["Odometer"]
     assert _verdict(html) == ("live", "On the road")
+
+
+# --- the preconditioning badge -------------------------------------------------
+
+
+def _precond(activity: str, minutes: str | None = "25") -> dict:
+    states = {"sensor.precond": _sensor("vehicle.vehicle.preConditioning.activity", activity)}
+    if minutes is not None:
+        stamp = datetime.now(UTC).isoformat()
+        states["sensor.precond_left"] = {
+            **_sensor("vehicle.vehicle.preConditioning.remainingTime", minutes, "min"),
+            "last_updated": stamp,
+        }
+    return states
+
+
+def _badge(html: str) -> str | None:
+    match = re.search(r'data-entity="sensor\.precond"[^>]*>(.*?)</button>', html, re.S)
+    return (
+        None
+        if match is None
+        else re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", match.group(1))).strip()
+    )
+
+
+def test_a_parked_car_heating_itself_shows_it_and_until_when():
+    html = _ev(**_precond("heating"))
+    badge = _badge(html)
+    assert badge is not None and badge.startswith("heating") and "until" in badge, badge
+    assert "hero__trip-dot--heat" in html
+
+
+def test_cooling_shows_without_the_warm_dot():
+    html = _ev(**_precond("cooling"))
+    assert _badge(html) is not None
+    assert "hero__trip-dot--heat" not in html
+
+
+def test_without_a_remaining_time_the_badge_still_shows():
+    badge = _badge(_ev(**_precond("ventilation", minutes=None)))
+    assert badge == "ventilation"
+
+
+@pytest.mark.parametrize("activity", ["standby", "inactive", "unknown"])
+def test_an_idle_or_unknown_status_shows_nothing(activity):
+    assert _badge(_ev(**_precond(activity))) is None
+
+
+def test_once_the_time_has_run_out_the_badge_goes():
+    # A car that never sends the idle word must not keep heating on the card.
+    assert _badge(_ev(**_precond("heating", minutes="0"))) is None
+
+
+def test_not_while_driving():
+    # Cabin climate on the road is not preconditioning: the trip badge only.
+    html = _ev(**_precond("heating"), **{"binary_sensor.trip": _trip()})
+    assert _badge(html) is None
+    assert "hero__trip" in html
+
+
+def test_not_while_the_car_says_it_moves():
+    moving = {"binary_sensor.moving": _sensor("vehicle.isMoving", "on")}
+    assert _badge(_ev(**_precond("heating"), **moving)) is None

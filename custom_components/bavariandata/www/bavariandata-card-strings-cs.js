@@ -408,6 +408,9 @@ export default {
   tr_rain: "déšť",
   tr_open_note:
     "Tato jízda stále probíhá. Vzdálenost a spotřeba jsou předběžné a jízdu lze zařadit, až skončí.",
+  // preconditioning badge
+  pc_hint: "Auto se před odjezdem vytápí nebo chladí",
+  pc_until: "do {t}",
   // map
   mp_title: "Mapa jízd",
   mp_loading: "Načítání mapy…",

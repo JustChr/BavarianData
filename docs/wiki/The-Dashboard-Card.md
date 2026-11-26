@@ -202,6 +202,13 @@ the picture with the distance and minutes so far; tap it for the full
 attributes. It follows the *Trip in Progress* entity, so it lingers for a few
 minutes after you arrive ([why](Feature-Trips#seeing-the-drive-thats-happening-now)).
 
+While the parked car heats, cools or airs itself before you leave, the same spot
+shows what it is doing (*Heating*, *Cooling*, *Ventilation*) and when it ends,
+from the car's own preconditioning status and remaining time; tap it for the
+entity. It never shows during a drive (cabin climate on the road isn't
+preconditioning), and it goes once the status turns idle or the remaining time has
+run out. Cars that don't stream the preconditioning status never show it.
+
 Pin a specific vehicle with `device:` (device id) or `vin:`.
 
 ### Choosing the tiles

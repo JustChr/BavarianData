@@ -408,6 +408,9 @@ export default {
   tr_rain: "regen",
   tr_open_note:
     "Deze rit is nog bezig. Afstand en verbruik zijn voorlopig, en de rit kan worden ingedeeld zodra hij eindigt.",
+  // preconditioning badge
+  pc_hint: "De auto verwarmt of koelt zich voor vertrek",
+  pc_until: "tot {t}",
   // map
   mp_title: "Rittenkaart",
   mp_loading: "Kaart laden…",

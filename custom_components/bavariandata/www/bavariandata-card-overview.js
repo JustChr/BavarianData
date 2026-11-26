@@ -21,6 +21,7 @@ export default (Base, { DEVICE_CLASS_ICONS, UNAVAILABLE, _lang }) => class Overv
     const name = cfg.title || this._deviceName(deviceId);
     const unit = this._distUnit(deviceId, entities);
     const trip = this._openTrip(entities);
+    const climate = this._climateNow(entities, trip);
     const socSt = this._st(picks.soc);
     const chargingSt = this._st(picks.charging);
     const odometerSt = this._st(picks.odometer);
@@ -152,11 +153,11 @@ export default (Base, { DEVICE_CLASS_ICONS, UNAVAILABLE, _lang }) => class Overv
       ids: { timeToFull: picks.timeToFull, charging: picks.charging, gauge: gaugeId, plug: picks.plug },
     });
 
-    return { cfg, drivetrain, ice, phev, picks, name, unit, trip, socSt, chargingSt, odometerSt, fuelId, fuelSt, bare, rangeId, rangeSt, electric, charging, plugSt, plugged, target, session, closures, gaugeId, gaugeSt, gaugeNum, gaugeUnit, isPct, pct, fillColor, gaugeVal, gaugeUnitHtml, gaugeCap, gain, used, legL, legR, realSt, side, tank, verdict };
+    return { cfg, drivetrain, ice, phev, picks, name, unit, trip, climate, socSt, chargingSt, odometerSt, fuelId, fuelSt, bare, rangeId, rangeSt, electric, charging, plugSt, plugged, target, session, closures, gaugeId, gaugeSt, gaugeNum, gaugeUnit, isPct, pct, fillColor, gaugeVal, gaugeUnitHtml, gaugeCap, gain, used, legL, legR, realSt, side, tank, verdict };
   }
 
   _renderOverview(deviceId, entities) {
-    const { cfg, drivetrain, ice, picks, name, unit, trip, chargingSt, odometerSt, fuelSt, bare, rangeSt, electric, charging, target, session, closures, gaugeId, gaugeSt, gaugeNum, isPct, pct, fillColor, gaugeVal, gaugeUnitHtml, gaugeCap, gain, used, legL, legR, side, tank, verdict } = this._overviewModel(deviceId, entities);
+    const { cfg, drivetrain, ice, picks, name, unit, trip, climate, chargingSt, odometerSt, fuelSt, bare, rangeSt, electric, charging, target, session, closures, gaugeId, gaugeSt, gaugeNum, isPct, pct, fillColor, gaugeVal, gaugeUnitHtml, gaugeCap, gain, used, legL, legR, side, tank, verdict } = this._overviewModel(deviceId, entities);
 
     // `tiles:` replaces the grid whole, in the order given. Without it the grid
     // follows what the car is doing: the four first of the situation's list
@@ -206,6 +207,7 @@ export default (Base, { DEVICE_CLASS_ICONS, UNAVAILABLE, _lang }) => class Overv
       trip: trip
         ? [trip.distance_km, this._elapsedMin(trip.started), trip.held]
         : null,
+      climate: climate ? [climate.kind, climate.label, climate.until] : null,
     });
     if (sig === this._sig) return;
     this._sig = sig;
@@ -241,7 +243,7 @@ export default (Base, { DEVICE_CLASS_ICONS, UNAVAILABLE, _lang }) => class Overv
             <div class="hero__name" title="${this._esc(name)}">${this._esc(name)}</div>
             ${rel ? `<div class="pill" title="${this._t("last_update")}"><span class="dot ${this._staleClass(freshest)}"></span>${rel}</div>` : ""}
           </div>
-          ${this._tripPill(trip, unit)}${heroExtras}
+          ${this._tripPill(trip, unit)}${this._climatePill(climate)}${heroExtras}
         </div>
 
         <button class="verdict" data-entity="${this._esc(verdict.entity || "")}">
@@ -930,6 +932,37 @@ export default (Base, { DEVICE_CLASS_ICONS, UNAVAILABLE, _lang }) => class Overv
     const t = new Date(iso).getTime();
     if (!Number.isFinite(t)) return null;
     return Math.max(0, Math.floor((Date.now() - t) / 60000));
+  }
+
+  /** The parked car heating, cooling or airing itself, read off its status
+   * (`preConditioning.activity`), never off the events: the same words the
+   * `preconditioning` event fires on, so the badge and the event agree. Null
+   * while a drive is open or the car says it moves (cabin climate on the road
+   * is not preconditioning), and once the car's own remaining time has run
+   * out -- a car that never sends the idle status must not keep the badge. */
+  _climateNow(entities, trip) {
+    if (trip) return null;
+    const moving = this._byDescriptor(entities, "vehicle.isMoving");
+    if (moving && moving.state === "on") return null;
+    const st = this._byDescriptor(entities, "vehicle.vehicle.preConditioning.activity");
+    const kind = st ? String(st.state).toLowerCase() : "";
+    if (!["heating", "cooling", "ventilation", "active"].includes(kind)) return null;
+    const left = this._byDescriptor(entities, "vehicle.vehicle.preConditioning.remainingTime");
+    const until = this._doneAt(left);
+    if (!until && left && Number.isFinite(parseFloat(left.state))) return null;
+    return { entity_id: st.entity_id, kind, label: this._fmt(st), until };
+  }
+
+  /** Hero badge for a parked car preconditioning; empty string otherwise. */
+  _climatePill(climate) {
+    if (!climate) return "";
+    const tone = climate.kind === "heating" ? " hero__trip-dot--heat" : "";
+    return `
+      <button class="hero__trip" data-entity="${this._esc(climate.entity_id)}" title="${this._t("pc_hint")}">
+        <span class="hero__trip-dot${tone}"></span>
+        <span class="hero__trip-lbl">${climate.label}</span>
+        ${climate.until ? `<span class="hero__trip-sub">${this._t("pc_until", { t: climate.until })}</span>` : ""}
+      </button>`;
   }
 
   /** Hero badge for a drive in progress; empty string when the car is parked. */
