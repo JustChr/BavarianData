@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.34-beta.7] - 2026-11-28
+
 ### Fixed
 - **A charge no longer says it all came from the grid when solar helped.** The
   card's charge detail labeled the wallbox meter's count *From grid*, though it
