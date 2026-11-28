@@ -10,6 +10,15 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 ## [Unreleased]
 
 ### Fixed
+- **A charge no longer says it all came from the grid when solar helped.** The
+  card's charge detail labeled the wallbox meter's count *From grid*, though it
+  counts everything at the wall, solar included, so a 9.4 kWh charge with 5.9 kWh
+  of solar read *From grid 9.4 kWh* next to *PV 5.9 · Grid 3.5*. The line is now
+  *At the plug*; the figures are unchanged. Thanks to @FrankBesseling (#371).
+- **A blueprint you delete stays deleted.** BavarianData put a bundled
+  blueprint back on the next start after you deleted it. Now it is gone for
+  good, through updates too; the ones you keep still get each update, and a
+  blueprint new in a release is still installed. Thanks to @mucki12 (#380).
 - **Dutch: the battery's usable energy has a Dutch name.** BMW's Dutch
   catalogue names this sensor in Norwegian (*Brukbar energi fra
   høyspenningsbatteri*); it now reads *Bruikbare energie uit hoogspanningsaccu

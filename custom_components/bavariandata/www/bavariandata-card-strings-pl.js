@@ -219,7 +219,7 @@ export default {
   ch_session_many: "Sesje: {n}",
   ch_peak: "Szczyt",
   ch_avg: "Śr.",
-  ch_grid: "Z sieci",
+  ch_grid: "Przy gniazdku",
   ch_solar: "słońce",
   ch_mix: "Źródło energii",
   ch_mix_pv: "PV",

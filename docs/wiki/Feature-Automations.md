@@ -191,7 +191,9 @@ Nine starter automations ship with the integration. **They're already
 installed**: find them under **Settings → Automations & scenes → Blueprints**,
 pick one and fill in the form. Each update of the integration brings their
 latest version, and automations made from them pick it up at once. A blueprint
-you changed by hand is left as it is from then on.
+you changed by hand is left as it is from then on. One you don't want, delete
+from the list: it stays deleted, through updates too. To get it back, copy its
+link from the list below and paste it under **Blueprints → Import blueprint**.
 
 The ones that message you take your **phones** from a list (the devices of the
 Home Assistant Companion app). A notification service typed in before the list

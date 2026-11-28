@@ -219,7 +219,7 @@ export default {
   ch_session_many: "{n} sessies",
   ch_peak: "Piek",
   ch_avg: "Gem.",
-  ch_grid: "Van het net",
+  ch_grid: "Aan de stekker",
   ch_solar: "zon",
   ch_mix: "Energiebron",
   ch_mix_pv: "PV",

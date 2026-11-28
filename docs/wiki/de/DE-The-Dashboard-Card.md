@@ -285,7 +285,8 @@ die Ladevorgänge des Monats, neueste zuerst: Datum, der Ladestand von → bis a
 kleiner Balken, ein Abzeichen Zuhause/Unterwegs, die Energie und darunter die
 Kosten. Tippe einen Ladevorgang an für seine **Ladekurve** (mit dem Durchschnitt
 als gestrichelter Linie), Spitzen- und Durchschnittsleistung, Dauer und
-Netzenergie. Darunter nimmt **Bezahlt** an, was die Ladung laut Beleg gekostet
+*Ab Steckdose*: was der Wallbox-Zähler oder BMW an der Wand gezählt hat, Solar
+eingeschlossen (woher es kam, zeigt die Zeile *Energiequelle*). Darunter nimmt **Bezahlt** an, was die Ladung laut Beleg gekostet
 hat; das ersetzt den Betrag von BMW oder aus dem Tarif, bis du ihn **entfernst**
 ([siehe Eintragen, was eine Ladung gekostet hat](DE-Feature-Charging-History-and-Cost#eintragen-was-eine-ladung-gekostet-hat)).
 Die Schaltflächen **CSV** und **Bericht** exportieren den
