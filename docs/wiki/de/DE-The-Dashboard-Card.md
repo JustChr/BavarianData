@@ -220,6 +220,10 @@ Vorklimatisierung), und es verschwindet, sobald der Status auf Ruhe wechselt ode
 Restzeit abgelaufen ist. Autos, die den Vorklimatisierungsstatus nicht streamen,
 zeigen es nie.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hero-preconditioning-de.png" alt="Das Bild der Übersicht, während der geparkte i5 vorheizt: unten ein Abzeichen mit Heizen, bis 18:36" width="300" />
+</p>
+
 Ein bestimmtes Fahrzeug legst du mit `device:` (Geräte-ID) oder `vin:` fest.
 
 ### Kacheln wählen

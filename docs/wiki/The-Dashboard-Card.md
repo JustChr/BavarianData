@@ -209,6 +209,10 @@ entity. It never shows during a drive (cabin climate on the road isn't
 preconditioning), and it goes once the status turns idle or the remaining time has
 run out. Cars that don't stream the preconditioning status never show it.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hero-preconditioning.png" alt="The overview's picture while the parked i5 preheats: a badge at the bottom reading Heating, until 06:36 PM" width="300" />
+</p>
+
 Pin a specific vehicle with `device:` (device id) or `vin:`.
 
 ### Choosing the tiles
