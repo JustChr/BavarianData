@@ -199,7 +199,10 @@ schon installiert**: Du findest sie unter **Einstellungen → Automationen &
 Szenen → Blueprints**, wählst eines aus und füllst das Formular aus. Jedes
 Update der Integration bringt ihre neueste Fassung mit, und Automationen daraus
 übernehmen sie sofort. Ein Blueprint, das du von Hand geändert hast, bleibt ab
-dann so, wie es ist.
+dann so, wie es ist. Eines, das du nicht willst, löschst du in der Liste: Es
+bleibt gelöscht, auch nach Updates. Zurück bekommst du es, indem du seinen Link
+aus der Liste unten kopierst und unter **Blueprints → Blueprint importieren**
+einfügst.
 
 Die, die dir eine Nachricht schicken, nehmen deine **Handys** aus einer Liste
 (die Geräte der Home Assistant Companion-App). Ein vorher eingetippter

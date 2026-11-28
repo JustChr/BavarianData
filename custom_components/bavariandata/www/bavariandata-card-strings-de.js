@@ -219,7 +219,7 @@ export default {
   ch_session_many: "{n} Ladevorgänge",
   ch_peak: "Spitze",
   ch_avg: "Ø",
-  ch_grid: "Aus dem Netz",
+  ch_grid: "Ab Steckdose",
   ch_solar: "Solar",
   ch_mix: "Energiequelle",
   ch_mix_pv: "PV",

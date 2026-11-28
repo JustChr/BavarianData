@@ -219,7 +219,7 @@ export default {
   ch_session_many: "{n} sessions",
   ch_peak: "Pic",
   ch_avg: "Moy.",
-  ch_grid: "Du réseau",
+  ch_grid: "À la prise",
   ch_solar: "solaire",
   ch_mix: "Source d'énergie",
   ch_mix_pv: "PV",

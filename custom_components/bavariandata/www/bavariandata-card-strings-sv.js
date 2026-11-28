@@ -219,7 +219,7 @@ export default {
   ch_session_many: "{n} sessioner",
   ch_peak: "Topp",
   ch_avg: "Snitt",
-  ch_grid: "Från nätet",
+  ch_grid: "Vid uttaget",
   ch_solar: "sol",
   ch_mix: "Energikälla",
   ch_mix_pv: "Sol",

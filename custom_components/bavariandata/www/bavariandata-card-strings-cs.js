@@ -219,7 +219,7 @@ export default {
   ch_session_many: "Relace: {n}",
   ch_peak: "Špička",
   ch_avg: "Prům.",
-  ch_grid: "Ze sítě",
+  ch_grid: "Ze zásuvky",
   ch_solar: "solár",
   ch_mix: "Zdroj energie",
   ch_mix_pv: "FV",

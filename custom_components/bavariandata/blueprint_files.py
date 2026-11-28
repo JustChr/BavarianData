@@ -9,8 +9,9 @@ after the GitHub user); it is updated by the same rule, but never created.
 
 A file is replaced only while it is still what we last wrote. One edited by hand
 (or re-imported from GitHub, newer than this release) is left alone from then
-on. A file found without any record, from an import by URL before we managed
-the folder, is taken over. Removing the integration leaves the files: an
+on, and one the user deleted stays deleted (its record is kept). A file found
+without any record, from an import by URL before we managed the folder, is
+taken over; one never written before, new in this release, is installed. Removing the integration leaves the files: an
 automation made from one keeps working without it.
 
 No Home Assistant imports: ``__init__`` reads and saves the record and decides
@@ -68,6 +69,11 @@ def plan(
     for name, data in sorted(shipped.items()):
         new = digest(data)
         current = present.get(name)
+        if current is None and name in record:
+            # We wrote it and it is gone: the user deleted it. Keep the record,
+            # so it stays deleted through every later update (#380).
+            kept[name] = record[name]
+            continue
         if current is None:
             write.append(name)
             kept[name] = new

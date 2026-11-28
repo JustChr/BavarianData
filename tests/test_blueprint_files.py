@@ -97,13 +97,43 @@ def test_a_blueprint_imported_by_url_before_is_taken_over():
     assert result.replaces is True
 
 
-def test_a_deleted_blueprint_comes_back():
+def test_a_deleted_blueprint_stays_deleted():
+    # #380: a blueprint the user deleted must not come back, not even when an
+    # update brings a newer version of it.
     record = {"a.yaml": blueprint_files.digest(b"version: 1\n")}
 
-    result = blueprint_files.plan({"a.yaml": b"version: 1\n"}, {"a.yaml": None}, record)
+    for shipped in (b"version: 1\n", b"version: 2\n"):
+        result = blueprint_files.plan({"a.yaml": shipped}, {"a.yaml": None}, record)
 
-    assert result.write == ("a.yaml",)
-    assert result.replaces is False
+        assert result.write == ()
+        assert result.replaces is False
+        assert result.record == record
+
+
+def test_a_blueprint_new_in_an_update_is_installed_beside_a_deleted_one():
+    record = {"a.yaml": blueprint_files.digest(b"version: 1\n")}
+
+    result = blueprint_files.plan(
+        {"a.yaml": b"version: 1\n", "b.yaml": b"new\n"},
+        {"a.yaml": None, "b.yaml": None},
+        record,
+    )
+
+    assert result.write == ("b.yaml",)
+    assert result.record == {**record, "b.yaml": blueprint_files.digest(b"new\n")}
+
+
+def test_a_deleted_blueprint_stays_deleted_on_disk(tmp_path):
+    first = blueprint_files.sync(str(tmp_path), {})
+    folder = _target(tmp_path)
+    gone = sorted(folder.glob("*.yaml"))[0]
+    gone.unlink()
+
+    again = blueprint_files.sync(str(tmp_path), first.record)
+
+    assert again.write == ()
+    assert not gone.exists()
+    assert again.record == first.record
 
 
 def test_other_files_in_the_folder_are_not_touched(tmp_path):
