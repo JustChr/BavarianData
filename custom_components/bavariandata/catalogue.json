@@ -3940,7 +3940,9 @@
         "pt": "Energia utilizável da bateria de alta tensão (totalmente carregada, prevista)",
         "sv": "Användbar energi från högspänningsbatteri (fulladdat, prognostiserat)"
       },
-      "titles_i18n": {},
+      "titles_i18n": {
+        "nl": "Bruikbare energie uit hoogspanningsaccu (volledig geladen, voorspeld)"
+      },
       "description_en": "This value indicates the current energy content of the high-voltage battery.",
       "description_de": "Für Standard-Entladung prognostizierte nutzbare Energie aus dem vollgeladenen Hochvoltspeicher unter aktuellen Bedingungen (z.B. Alterungszustand, Temperatur).",
       "data_type": "float",

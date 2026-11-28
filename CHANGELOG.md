@@ -9,6 +9,13 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Dutch: the battery's usable energy has a Dutch name.** BMW's Dutch
+  catalogue names this sensor in Norwegian (*Brukbar energi fra
+  høyspenningsbatteri*); it now reads *Bruikbare energie uit hoogspanningsaccu
+  (volledig geladen, voorspeld)*. Thanks to @FrankBesseling for spotting it
+  (#371).
+
 ## [0.9.34-beta.6] - 2026-11-26
 
 ### Fixed
