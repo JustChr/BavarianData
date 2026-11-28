@@ -259,6 +259,12 @@ HV_BATTERY_DESCRIPTORS = [
     "vehicle.drivetrain.batteryManagement.maxEnergy",
     "vehicle.powertrain.electric.battery.charging.power",
     "vehicle.drivetrain.electricEngine.charging.status",
+    # The tank, in litres and in percent. Both can stream, but some cars send
+    # only one of them, or neither when it isn't ticked in Data Selection
+    # (#385); the daily fetch brings them anyway. An EV answers null, which
+    # creates nothing.
+    "vehicle.drivetrain.fuelSystem.level",
+    "vehicle.drivetrain.fuelSystem.remainingFuel",
 ]
 
 # Response shapes for the mapping, telematic and basic-data endpoints are

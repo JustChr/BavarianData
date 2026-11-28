@@ -51,6 +51,13 @@ def test_the_full_container_holds_every_field_worth_fetching():
     assert container.FULL.descriptors == tuple(wanted)
 
 
+def test_the_daily_fetch_brings_the_tank_in_litres_and_percent():
+    # Both can stream, but an M2 sends only the litres, a 240i only the
+    # percentage, and neither arrives when it isn't ticked (#385).
+    assert "vehicle.drivetrain.fuelSystem.remainingFuel" in container.FULL.descriptors
+    assert "vehicle.drivetrain.fuelSystem.level" in container.FULL.descriptors
+
+
 def test_replacing_the_full_container_clears_every_retired_one():
     session = FakeSession(
         [
