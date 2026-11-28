@@ -380,6 +380,9 @@
       "pt": "Estado da janela traseira do lado do passageiro",
       "cs": "Stav okna vzadu na straně spolujezdce",
       "sv": "Tillstånd för bakre fönster på passagerarsidan"
+    },
+    "vehicle.drivetrain.batteryManagement.maxEnergy": {
+      "nl": "Bruikbare energie uit hoogspanningsaccu (volledig geladen, voorspeld)"
     }
   }
 }

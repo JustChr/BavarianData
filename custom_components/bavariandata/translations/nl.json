@@ -1469,7 +1469,7 @@
         "name": "Oplaadstatus van de hoogspanningsaccu"
       },
       "vehicle_drivetrain_batterymanagement_maxenergy": {
-        "name": "Brukbar energi fra høyspenningsbatteri (fulladet, prognostisert)"
+        "name": "Bruikbare energie uit hoogspanningsaccu (volledig geladen, voorspeld)"
       },
       "vehicle_drivetrain_electricengine_charging_acampere": {
         "name": "AC-laadstroom"
@@ -2764,7 +2764,7 @@
         "name": "Oplaadstatus van de hoogspanningsaccu"
       },
       "vehicle_drivetrain_batterymanagement_maxenergy": {
-        "name": "Brukbar energi fra høyspenningsbatteri (fulladet, prognostisert)"
+        "name": "Bruikbare energie uit hoogspanningsaccu (volledig geladen, voorspeld)"
       },
       "vehicle_drivetrain_electricengine_charging_acampere": {
         "name": "AC-laadstroom"
