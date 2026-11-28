@@ -28,7 +28,7 @@ Assistant, so the integration fetches them once a day:
 
 | Request | Covers |
 | --- | --- |
-| The telematics **container** | All 41 non-streamable fields the container endpoint can serve — **one request for the lot** |
+| The telematics **container** | All 41 non-streamable fields the container endpoint can serve, plus a few streamed ones as a fallback (the battery basics and the tank in litres and percent, which some cars never stream) — **one request for the lot** |
 | **Tire diagnosis** | Tread wear and remaining mileage per wheel — its own endpoint, so its own request |
 
 Both endpoints are per vehicle, so the refresh costs **2 requests per car**: 2 a

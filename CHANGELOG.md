@@ -9,6 +9,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **The fuel in the tank shows up on cars that don't stream it.** BavarianData
+  read the tank (litres and percent) only from the stream, so a car that never
+  streams it, or where it isn't ticked in Data Selection, got no *Tank level*.
+  The daily refresh now asks for it too, in the same request, so it costs no
+  extra quota. After the update the container is replaced once (about three
+  requests). Thanks to @xUniverse (#385).
+
 ## [0.9.34-beta.7] - 2026-11-28
 
 ### Fixed

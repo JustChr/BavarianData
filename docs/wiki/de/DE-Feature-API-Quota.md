@@ -32,7 +32,7 @@ einmal am Tag:
 
 | Anfrage | Umfasst |
 | --- | --- |
-| Der Telematik-**Container** | Alle 41 nicht streambaren Felder, die der Container-Endpunkt liefern kann — **eine Anfrage für alles** |
+| Der Telematik-**Container** | Alle 41 nicht streambaren Felder, die der Container-Endpunkt liefern kann, dazu als Rückfallebene einige gestreamte (die Grunddaten der Batterie und der Tank in Litern und Prozent, den manche Autos nie streamen) — **eine Anfrage für alles** |
 | **Reifendiagnose** | Profiltiefe und Restlaufleistung pro Rad — ein eigener Endpunkt, also eine eigene Anfrage |
 
 Beide Endpunkte gelten je Fahrzeug, die Aktualisierung kostet also **2 Anfragen
